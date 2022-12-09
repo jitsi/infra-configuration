@@ -1,0 +1,256 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  gather_facts: false
+  strategy: free
+  pre_tasks:
+    - name: wait for ssh to come up
+      wait_for: 
+        port: 22
+        timeout: 300
+        state: started
+        search_regex: OpenSSH
+      register: response
+      until: response
+      retries: 60
+      delay: 5
+    - name: wait up to 30 minutes for cloud-init to finish
+      community.general.cloud_init_data_facts:
+        filter: status
+      register: res
+      until: "res.cloud_init_data_facts.status.v1.stage is defined and not res.cloud_init_data_facts.status.v1.stage"
+      retries: 360
+      delay: 5
+
+- hosts: all
+  gather_facts: true
+  become: yes
+  become_user: root
+  vars:
+    jvb_region: "{{cloud_region}}"
+    java_use_11: true
+    standalone_subspace_enabled: false
+    #add proxypass in nginx config for JVB colibri stats
+    jitsi_meet_enable_colibri_websockets: true
+    jvb_ws_domain: "{{prosody_domain_name}}"
+    #disable egress health in standalone
+    egress_enable_health_cron: false
+    subspace_instance_public_ip: "{{ansible_ec2_public_ipv4}}"
+    tcpdump_prosody_jvb_enabled: false
+  pre_tasks:
+    - debug: var=jvb_use_public_ip
+      tags: debug
+    - name: Gather AWS facts
+      action: ec2_metadata_facts
+      tags: "provision"
+      when: cloud_provider == 'aws'
+    - name: Get instance's VNIC
+      uri:
+        url: http://169.254.169.254/opc/v1/vnics/
+      register: vnic_result
+      tags: "provision"
+      when: cloud_provider == 'oracle'
+    - set_fact:
+        jvb_vnic: "{{ vnic_result.json[0].vnicId }}"
+      tags: "provision"
+      when: cloud_provider == 'oracle'
+    - name: Get instance's details
+      uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: "provision"
+      when: cloud_provider == 'oracle'
+    - set_fact:
+        jvb_shape: "{{ instance_result.json.shape }}"
+      tags: "provision"
+      when: cloud_provider == 'oracle'
+    - name: Get instance's Public IP from VNIC
+      shell: "oci network vnic get --vnic-id {{jvb_vnic}} --auth instance_principal"
+      register: vnic_details_result
+      tags: "provision"
+      when: cloud_provider == 'oracle'
+    - set_fact:
+        oracle_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+        jvb_ddns_ipv4_addr: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+        subspace_instance_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+        autoscaler_sidecar_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+      tags: "provision"
+      when: cloud_provider == 'oracle'
+    - name: Set server hostname
+      hostname: name="{{prosody_domain_name}}"
+      tags: "provision"
+    - name: Remove td-agent deb repository
+      apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution|lower }}/{{ ansible_distribution_release|lower }}/ {{ ansible_distribution_release|lower }} contrib"
+        state: absent
+        update_cache: false
+      tags: provision
+    - name: Remove NodeSource deb repository 12.x
+      apt_repository:
+        repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: "provision"
+    - name: Remove NodeSource deb-src repository 12.x
+      apt_repository:
+        repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: "provision"
+    - name: Remove NodeSource deb repository 8.x
+      apt_repository:
+        repo: 'deb https://deb.nodesource.com/node_8.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: "provision"
+    - name: Remove NodeSource deb-src repository 8.x
+      apt_repository:
+        repo: 'deb-src https://deb.nodesource.com/node_8.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: "provision"
+    - apt: update_cache=yes
+      tags: "provision"
+    - name: apt-get clean
+      command: apt-get clean warn=False
+      tags: "provision"
+    - name: journalctl vacuum
+      command: journalctl --vacuum-size=200M
+      tags: "provision"
+    - name: stop fluentd
+      service: name="td-agent" state=stopped enabled=false
+      ignore_errors: true
+      when: not standalone_enable_fluentd
+    - name: stop jitsi-system-events
+      service: name="jitsi-system-events" state=stopped enabled=false
+      ignore_errors: true
+  post_tasks:
+    - name: consul signal state script
+      copy: src="roles/consul-signal/files/set-shard-state-consul.sh" dest="/usr/local/bin/set-shard-state-consul.sh" mode=0755 owner=root    
+      tags: "provision"
+    - name: Remove td-agent deb repository
+      apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution|lower }}/{{ ansible_distribution_release|lower }}/ {{ ansible_distribution_release|lower }} contrib"
+        state: absent
+        update_cache: false
+
+    - name: register installed Jicofo version
+      tags: "gather_versions"
+      shell: dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+      register: jicofo_version_shell
+
+    - name: register installed Meet version
+      tags: "gather_versions"
+      shell: dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      register: jitsi_meet_version_shell
+
+    - name: register installed JVB version
+      tags: "gather_versions"
+      shell: "{{jvb_service_version_shell}}"
+      register: jvb_version_shell
+
+    - name: restart rsyslog
+      tags: "provision"
+      service: name=rsyslog state=restarted
+
+    # change mode on prosody-jvb dump to non-executable to avoid send dump on provision or errors
+    - name: disable prosody-jvb dump exec flag
+      tags: "provision"
+      file: path=/usr/local/bin/dump-prosody-jvb.sh mode=0644
+      when: 
+        - not tcpdump_prosody_jvb_enabled
+        - cloud_provider == 'aws'
+
+  roles:
+  # initial system pre-requisites
+    - { role: "common", tags: "common" }
+    - { role: "openjdk-java", tags: "openjdk" }
+    - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
+    - { role: "sshusers", tags: "ssh" }
+    # - { role: "unattended-upgrades", tags: "unattended-upgrades"}
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: true, fluentd_configure_flag: false, when: standalone_enable_fluentd}
+
+  # install phase of jitsi components
+    - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
+    - { role: "jicofo", tags: "jicofo", jicofo_install_flag: true, jicofo_configure_flag: false }
+    - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: true, jitsi_meet_configure_flag: false}
+    - { role: jitsi-videobridge, tags: "jitsi-videobridge", jvb_image_build_flag: true, jvb_install_flag: true, jvb_configure_flag: false}
+    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
+    - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: true, signal_sidecar_configure_flag: false }
+
+  # configure phase of jitsi components
+    - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true}
+    - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true }
+    - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true, jitsi_meet_redirect_to_ssl: true}
+    - { role: "subspace", tags: "subspace", when: standalone_subspace_enabled }
+    - { role: jitsi-videobridge, tags: "jitsi-videobridge", jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true, jvb_enable_multiple_shards: false, jvb_hostname: "{{prosody_domain_name}}", jvb_reconfigure_on_changes_flag: true, jvb_subspace_enabled: "{{standalone_subspace_enabled}}" }
+    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
+    - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true}
+
+  # now run any handlers which haven't run, before continuing
+    - { role: flush-handlers, tags: "configure" }
+
+  # additional components here
+    - { role: "jiconop", tags: "jiconop"}
+    #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
+    - { role: jitsi-dumper, tags: "jitsi-dumper"}
+    - { role: jibri-auth, tags: "jibri-auth"}
+    - { role: "jigasi-auth", tags: "jigasi-auth"}
+    - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}
+    - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true, testrtc_configure_flag: true }
+    - { role: "consul-standalone", tags: "consul" }
+    - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
+    - { role: "prosody-egress", tags: "prosody-egress" }
+    - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb", when: tcpdump_prosody_jvb_enabled }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: standalone_enable_fluentd}
+    - role: "wavefront"
+      tags: "telegraf"
+      telegraf_hostname: "{{ prosody_domain_name }}"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: standalone_telegraf_enabled
+      vars:
+        telegraf_inputs:
+          nginx:
+            urls: ["http://localhost:888/nginx_status/"]
+          procstat:
+            - systemd_unit: "prosody.service"
+              cmdline_tag: false
+              pid_tag: false
+            - systemd_unit: "prosody-jvb.service"
+              cmdline_tag: false
+              pid_tag: false
+          nstat:
+            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
+          prometheus:
+            urls: ["http://localhost:6000/metrics"]
+            namepass: ["http*", "signal*"]
+        telegraf_tags:
+          shard-role: "all"
+          role: "all"
+          jvb_version: "{{ jitsi_videobridge_deb_pkg_version }}"
+          environment: "{{ hcv_environment }}"
+          shard: "{{ prosody_domain_name }}"
+          region: "{{ cloud_region }}"
+          release_number: "{{ jitsi_meet_deb_pkg_version }}"
+          cloud: "{{ cloud_provider }}"
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "Create shell file with new version information"
+      tags: "gather_versions"
+      copy:
+        content: |
+          JITSI_MEET_VERSION_NAME="{% for host in groups['all'] %}{{ hostvars[host]['jitsi_meet_version_shell']['stdout'] }}{% endfor %}"
+          JICOFO_VERSION_NAME="{% for host in groups['all'] %}{{ hostvars[host]['jicofo_version_shell']['stdout'] }}{% endfor %}"
+          JVB_VERSION_NAME="{% for host in groups['all'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}"
+        dest: ../../test-results/instance_versions
+
