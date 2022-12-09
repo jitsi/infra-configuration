@@ -1,3 +1,18 @@
 [submodule "ansible/roles/fluentd"]
 	path = ansible/roles/fluentd
 	url = https://github.com/aaronkvanmeerten/ansible-fluentd.git
+[submodule "ansible/roles/nvm"]
+	path = ansible/roles/nvm
+	url = https://github.com/aaronkvanmeerten/ansible-nvm.git
+[submodule "ansible/roles/memcached"]
+	path = ansible/roles/memcached
+	url = https://github.com/aaronkvanmeerten/ansible-role-memcached.git
+[submodule "ansible/roles/haproxy"]
+	path = ansible/roles/haproxy
+	url = https://github.com/aaronkvanmeerten/ansible-haproxy.git
+[submodule "ansible/roles/docker"]
+	path = ansible/roles/docker
+	url = https://github.com/aaronkvanmeerten/ansible-role-docker.git
+[submodule "ansible/roles/nomad"]
+	path = ansible/roles/nomad
+	url = https://github.com/aaronkvanmeerten/ansible-nomad.git
