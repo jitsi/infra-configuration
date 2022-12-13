@@ -29,7 +29,7 @@
     regexp: "^{{jicofo_stats_cron_user}}"
     line: "{{jicofo_stats_cron_user}}"
     create: yes 
-  when: jicofo_enable_stats
+  when: jicofo_enable_stats or jicofo_enable_health
 
 # Run the the health checker regularly
 - name: Jicofo stats script cron
