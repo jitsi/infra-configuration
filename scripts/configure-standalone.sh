@@ -3,6 +3,13 @@
 # IF THE CURRENT DIRECTORY HAS stack-env.sh THEN INCLUDE IT
 [ -e ./stack-env.sh ] && . ./stack-env.sh
 
+if [ -z "$ENVIRONMENT" ]; then
+  echo "No ENVIRONMENT found. Exiting..."
+  exit 203
+fi
+
+[ -e ./sites/$ENVIRONMENT/stack-env.sh ] && . ./sites/$ENVIRONMENT/stack-env.sh
+
 # e.g. ../all/bin/terraform/standalone
 LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 
