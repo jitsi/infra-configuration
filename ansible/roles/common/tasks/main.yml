@@ -32,7 +32,7 @@
   pip:
       name: setuptools
       version: "51.3.3"
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 #Get the AWS CLI from pip, latest version is required for lifecycle management, temporary credentials
 - name: Install module from pip
@@ -57,7 +57,7 @@
 #prep ansible install for old installs
 - name: ansible repository install
   apt_repository: repo="ppa:ansible/ansible" state=present update_cache=yes
-  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_release == 'trusty') or (ansible_distribution_release == 'xenial') or (ansible_distribution_release == 'focal'))
+  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_release == 'focal') or (ansible_distribution_release == 'jammy'))
 
 - name: download.sh helper script
   copy: src="download.sh" dest="/usr/local/bin/download.sh" mode="0755"
@@ -81,13 +81,13 @@
     state: latest
   when: 
     - common_install_pip3_flag
-    - ansible_distribution_release == 'focal'
+    - ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 #install ansible packages
 #ansible-pull is used during final machine configuration
 - name: ansible prerequsities 
   apt: 
-    name: [git,python-netaddr,software-properties-common]
+    name: [git,python3-netaddr,software-properties-common]
     state: latest
 
 - name: Install bcrypt module from pip for bionic
@@ -99,23 +99,23 @@
 - name: Install bcrypt module from pip for focal
   pip:
       name: bcrypt
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 - name: ansible client install via pip
   pip: 
     name: ansible
     state: present
     version: 2.7.18
-  when: ansible_distribution_release != 'focal'
+  when: ansible_distribution_release == 'bionic' or ansible_distribution_release == 'xenial'
 
 - name: ansible client install via apt
   apt: 
     name: ansible
     state: present
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 - name: ansible client install cleanup via pip
   pip: 
     name: ansible
     state: absent
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
