@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  remote_user: root
+  gather_facts: true
+  become: true
+  roles:
+    - { role: wavefront, wavefront_install_collector: "true", proxy_address: "localhost" }

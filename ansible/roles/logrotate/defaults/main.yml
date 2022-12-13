@@ -1,0 +1,287 @@
+---
+logrotate_rules:
+  - name: auth
+    options:
+      - su root syslog
+      - size 100M
+      - rotate 12
+      - missingok
+      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/auth.log
+  - name: apt
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/apt/*.log
+  - name: dpkg
+    options:
+      - su root root
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/dpkg.log
+  - name: landscape-client
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/landscape/*.log
+  - name: rsyslog
+    options:
+      - su root syslog
+      - size 100M
+      - rotate 12
+      - missingok
+      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/syslog
+  - name: ufw
+    options:
+      - su root syslog
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/ufw.log
+  - name: unattended-upgrades
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/unattended-upgrades/*.log
+  - name: upstart
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/upstart/*.log
+  - name: local-syslog
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - delaycompress
+    path:
+      - /var/log/local/*log
+  - name: haproxy-monitor
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/proxy_monitor/*.log
+logrotate_rules_core:
+  - name: prosody
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/prosody/*.log
+      - /var/log/prosody/*.err
+  - name: prosody-jvb
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/prosody-jvb/*.log
+      - /var/log/prosody-jvb/*.err
+  - name: jicofo
+    options:
+      - su jicofo jitsi
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/jicofo.log
+  - name: nginx
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - "postrotate\n\t[ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid` > /dev/null\n  endscript"
+      - compress
+      - delaycompress
+    path:
+      - /var/log/nginx/access.log
+      - /var/log/nginx/error.log
+  - name: prosody-log-filter
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - "postrotate\n\tsystemctl restart prosody-log-filter > /dev/null\n  endscript"
+      - compress
+      - delaycompress
+    path:
+      - /var/log/prosody-filtered/*.log
+  - name: signal-sidecar
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - compress
+      - delaycompress
+    path:
+      - /var/log/jitsi/signal-sidecar.log
+logrotate_rules_core_enabled: false
+logrotate_rules_coturn:
+  - name: coturn
+    options:
+      - su root syslog
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - "postrotate\n\tkill -HUP `cat /var/run/turnserver.pid 2>/dev/null` 2> /dev/null || true\n  endscript"
+    path:
+      - /var/log/coturn/turn.log
+logrotate_rules_coturn_enabled: false
+logrotate_rules_enabled: true
+logrotate_rules_haproxy:
+  - name: haproxy
+    options:
+      - su root syslog
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+    path:
+      - /var/log/haproxy.log
+logrotate_rules_haproxy_enabled: false
+logrotate_rules_jigasi:
+  - name: jigasi
+    options:
+      - su jigasi jitsi
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/jigasi.log
+logrotate_rules_jigasi_enabled: false
+logrotate_rules_jvb:
+  - name: jitsi-videobridge
+    options:
+      - su jvb jitsi
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/jvb.log
+logrotate_rules_jvb_enabled: false
+logrotate_rules_sip_jibri:
+  - name: sip-jibri
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/jibri/pjsua_all.log
+  - name: sip-jibri-sidecar
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/sip-jibri-sidecar/*.log
+logrotate_rules_sip_jibri_enabled: false
+logrotate_rules_sip_jibri_selector:
+  - name: sip-jibri-selector
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - delaycompress
+    path:
+      - /var/log/jitsi/sip-jibri-selector/*log
+logrotate_rules_sip_jibri_selector_enabled: false
+
+logrotate_rules_consul:
+  - name: consul
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+    path:
+      - /var/log/consul.log

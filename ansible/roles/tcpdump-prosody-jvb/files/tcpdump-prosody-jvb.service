@@ -1,0 +1,20 @@
+[Unit]
+Description=tcpdump for prosody-jvb
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/var/lib/tcpdump-prosody-jvb
+ExecStart=/usr/sbin/tcpdump -ni ens5 -G 1800 -w /var/lib/tcpdump-prosody-jvb/trace-%%Y-%%m-%%d_%%H.%%M.%%S.pcap port 6222 or icmp
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier=tcpdump-prosody-jvb
+
+[Install]
+WantedBy=multi-user.target
+

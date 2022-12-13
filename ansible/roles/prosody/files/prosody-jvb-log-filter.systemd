@@ -1,0 +1,23 @@
+[Unit]
+Description=Prosody JVB Log Filter
+After=network.target
+Before=prosody-jvb.service
+
+[Service]
+User=root
+Group=prosody
+Environment=PROSODY_FIFO=/var/log/prosody-jvb/prosody.fifo
+Environment=LOG_DIR=/var/log/prosody-filtered
+Environment=LOG_OUTPUT=/var/log/prosody-filtered/prosody-jvb-filtered.log
+WorkingDirectory=/var/log/prosody-jvb
+ExecStart=/usr/local/bin/prosody-log-filter.sh
+Restart=always
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier=prosody-log-jvb-filter
+
+[Install]
+WantedBy=multi-user.target prosody-jvb.service

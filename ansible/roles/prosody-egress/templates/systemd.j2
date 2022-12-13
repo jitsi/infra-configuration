@@ -1,0 +1,17 @@
+[Unit]
+Description=Prosody egress application
+After=syslog.target
+
+[Service]
+User={{egress_username}}
+Group={{egress_groupname}}
+WorkingDirectory={{egress_jar_root_path}}
+EnvironmentFile={{egress_jar_root_path}}/prosody-egress.env
+ExecStart={{jdk11_path}} $JAVA_OPTS -jar prosody-egress.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=30
+SyslogIdentifier={{egress_service_name}}
+
+[Install]
+WantedBy=multi-user.target

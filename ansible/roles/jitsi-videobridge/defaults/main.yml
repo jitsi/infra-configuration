@@ -1,0 +1,226 @@
+---
+jitsi_videobridge_deb_pkg_name: "jitsi-videobridge2"
+jitsi_videobridge_deb_pkg_version: "*"
+jitsi_videobridge_force_deb_pkg_version: false
+# Whether to make the jvb version known to clients
+jvb_announce_version: true
+jvb_auth_domain: "auth.{{prosody_domain_name}}"
+jvb_auth_password: "{{jvb_xmpp_password | default('jzayveebee')}}"
+jvb_auth_user: "jvb"
+jvb_average_participant_stress: "{{jvb_average_participant_stress_by_shape[jvb_shape] if jvb_shape in jvb_average_participant_stress_by_shape else jvb_average_participant_stress_by_shape['default']}}"
+jvb_average_participant_stress_by_shape:
+  "VM.Standard.E3.Flex": 0.005
+  "VM.Standard.E4.Flex": 0.005
+  "default": 0.01
+jvb_brewery_muc: "JvbBrewery@{{jvb_internal_muc_prefix}}.{{prosody_domain_name}}"
+jvb_cloud_provider: "{{ cloud_provider | default('aws') }}"
+#use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
+jvb_component_id: "{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
+jvb_configure_flag: true
+jvb_configure_from_template_flag: true
+jvb_consul_datacenter: "{{cloud_name|default('dc1')}}"
+jvb_consul_datacenters: []
+jvb_consul_extra_urls: []
+jvb_consul_local_datacenters: ["{{jvb_consul_datacenter}}"]
+jvb_consul_server: "{{hcv_environment}}-{{oracle_region}}-consul.jitsi.net"
+jvb_consul_server_type: "{{jvb_consul_server_types[jitsi_meet_environment_type]|default('prod')}}"
+jvb_consul_server_types:
+  dev: dev
+  prod: prod
+  stage: prod
+jvb_custom_region: "{{ oracle_region | default('default') }}"
+jvb_data_channel_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+jvb_data_channel_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
+jvb_disable_bwe: false
+jvb_disable_tcp: true
+jvb_domain_name: "{{ prosody_domain_name }}"
+jvb_download_yourkit: false
+jvb_enable_brctrl_timeseries: false
+jvb_enable_bwe_timeseries: false
+jvb_enable_all_timeseries: false
+# enable consul discovery of prosody nodes by default
+jvb_enable_consul: true
+# enable bridges in other regions/shards connecting to all shards in release
+jvb_enable_cross_region: false
+jvb_enable_health_check_cron: true
+jvb_enable_message_transport_logs: false
+jvb_enable_multi_stream: true
+jvb_enable_multiple_shards: true
+jvb_enable_octo: true
+jvb_enable_pcap: false
+jvb_enable_route_loudest_logs: false
+# This needs to be kept in sync with jicofo_enable_sctp
+jvb_enable_sctp: false
+jvb_enable_silence_detection: false
+jvb_enable_stats_cron: true
+jvb_enable_stats_filter: true
+jvb_enable_ufrag_prefix: false
+jvb_enable_websockets: true
+jvb_enable_websockets_ssl: "{{ false if jvb_nginx_ssl_enabled else true | bool }}"
+jvb_enable_yourkit: false
+jvb_graceful_shutdown_max_duration: "6 hours"
+jvb_graceful_shutdown_min_participants: 0
+jvb_health_check_cron:
+  hour: "*"
+  job: "{{ path_to_health_script }} > /tmp/health-check-cron-output 2>&1"
+  minute: "*"
+jvb_health_check_cron_user: ubuntu
+jvb_host: localhost
+jvb_hostname: "{{prosody_domain_name}}"
+jvb_image_build_flag: false
+jvb_initial_drain_mode: false
+jvb_install_flag: true
+jvb_installed_package: "{{jitsi_videobridge_deb_pkg_name}}"
+jvb_internal_muc_prefix: "{{internal_muc_prefix | default('internal.auth')}}"
+# "sync" or "async". Async mode is currently unsafe for the bridge!
+jvb_iq_handler_mode: "sync"
+jvb_last_n_limits: false
+jvb_load_threshold: "{{jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default']}}"
+jvb_load_threshold_by_shape:
+  "VM.Standard.E3.Flex": 81250
+  "VM.Standard.E4.Flex": 81250
+  "default": 50000
+jvb_log_series_path: "/tmp/jvb-series.log"
+jvb_log_series_file_size_limit: 20000000
+# defines the bitrate bellow which losses are ignore
+jvb_loss_bitrate_threshold_kbps: 1000
+# percentage of streams to enable the loss experiment for.
+jvb_loss_experiment_probability: 0
+jvb_memory: "{{jvb_memory_by_shape[jvb_shape] if jvb_shape in jvb_memory_by_shape else jvb_memory_by_shape['default']}}"
+jvb_memory_by_shape:
+  "VM.Standard.E3.Flex": "6g"
+  "VM.Standard.E4.Flex": "6g"
+  "default": "3072m"
+jvb_nginx_ssl_enabled: false
+jvb_nomination_strategy: "NominateFirstHostOrReflexiveValid"
+jvb_suppress_private_candidates: true
+jvb_open_file_limit: 65536
+jvb_opts: ""
+jvb_package_state: present
+jvb_path_to_terminate_instance_script: /usr/local/bin/terminate_instance.sh
+# by default JVBs connect only to their shard
+jvb_pool_mode: shard
+jvb_preserve_frame_pointer: false
+# prosody-jvb
+jvb_prosody_jvb_auth_domain_name: "auth.jvb.{{prosody_domain_name}}"
+jvb_prosody_jvb_muc_name: "muc.jvb.{{prosody_domain_name}}"
+# The number of recent speakers to signal to endpoints.
+jvb_recent_speakers_count: 30
+jvb_reconfigure_on_changes_flag: false
+jvb_recovery_multiplier: 0.8
+jvb_recovery_threshold: "{{(jvb_load_threshold|int * jvb_recovery_multiplier)|int}}"
+jvb_red_policy: "NOOP"
+jvb_red_distance: "TWO"
+jvb_red_vad_only: true
+jvb_region: "{{oracle_to_aws_region_map[jvb_custom_region] | default('default') if jvb_cloud_provider=='oracle' else ansible_ec2_placement_region | default('default') }}"
+jvb_regions: "{{default_regions.split('\n')}}"
+jvb_release_number: "0"
+jvb_release_number_shard: "{{ release_number | default('0') }}"
+jvb_rest_access_allow_rules: ["192.168.0.0/16"]
+jvb_rest_advertise_address: "{{ ansible_default_ipv4.address }}"
+jvb_rest_dh_param_filename: "dhparam_jvb_rest.pem"
+jvb_rest_enable_public_ssl: false
+jvb_rest_port: 3443
+jvb_rest_service_name: "{{ ansible_fqdn }}"
+jvb_rest_ssl_certificate: |
+  -----BEGIN CERTIFICATE-----
+  MIIDozCCAougAwIBAgIJALyjhMtlESBoMA0GCSqGSIb3DQEBBQUAMGgxCzAJBgNV
+  BAYTAlVTMQ4wDAYDVQQIDAVUZXhhczEPMA0GA1UEBwwGQXVzdGluMRowGAYDVQQK
+  DBFBdGxhc3NpYW4gUHR5IEx0ZDEcMBoGA1UECwwTSGlwY2hhdCBFbmdpbmVlcmlu
+  ZzAeFw0xNTEwMjMwOTU1MjBaFw0xNjEwMjIwOTU1MjBaMGgxCzAJBgNVBAYTAlVT
+  MQ4wDAYDVQQIDAVUZXhhczEPMA0GA1UEBwwGQXVzdGluMRowGAYDVQQKDBFBdGxh
+  c3NpYW4gUHR5IEx0ZDEcMBoGA1UECwwTSGlwY2hhdCBFbmdpbmVlcmluZzCCASIw
+  DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALvRftKvvroukuQnVdZ79/4fvBBD
+  IhRU+gwZVDuHxKbf5gZ/ZNzAqnn1gcJuFQzUZe5/BMcEhGIkEJJqb4ee7FKUBx8Z
+  B3yka4BuABx4OSY9fGigSRtN+hgaxwtRL+kZWSvRWCb4hhLRhBjbTgUjuTuZlNx1
+  xfBe+3Q2HkzTSlmgRCzbNPjgeE4x1BF3mFYoLeHMnIEMlLz5FXsOMuNmDLoG1r6M
+  tFviN+aXW5ALXUqDY6z3EpJM3s9Tnyu3YkOfHN6DvljDSg0rSiwyurf2gP6I7+ho
+  f32QcMu5SCny76fMmBiZVWl7ZQjhy/UkQENr6biwU/tqoHVfFHgqHJToBs8CAwEA
+  AaNQME4wHQYDVR0OBBYEFL7k+R/2YfnODVjKmfAb9QLpzwXPMB8GA1UdIwQYMBaA
+  FL7k+R/2YfnODVjKmfAb9QLpzwXPMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEF
+  BQADggEBAJDq6R1QnDxt+/GzpoMx9pkzsLV3Y2ZkcfxmXzP/OrvHb5XJ6qXnExZf
+  U9CAoedWYQQ0AwbI85YEGsdfJ/DczW4rBnjXrPjdlFL4DW7r2GdeJUzTCd3UKLuF
+  dGC5c7bMDsG9WvzS0uo5JfvfRPChy2Dk+AgXZdeEZMER3T437Z09pFF3LkaZ4pfF
+  3ZCXyvEZIzGI4KWLosEOx/zco/tPiRbdXw7deSQa2K0p8PLld3B+rhIwLchPp2La
+  kPs5HgEzlYH1KLmg0Z0VH2o3whUltwVuADU5kjvuIXtu6mpB9yLkyONTAvewyT3T
+  1K0RryCALh6nrC7KxAm4u+4AgGPzoiY=
+  -----END CERTIFICATE-----
+jvb_rest_ssl_certificate_filename: "jvb_rest.service.consul.crt"
+jvb_rest_ssl_certificate_key: |
+  -----BEGIN PRIVATE KEY-----
+  MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC70X7Sr766LpLk
+  J1XWe/f+H7wQQyIUVPoMGVQ7h8Sm3+YGf2TcwKp59YHCbhUM1GXufwTHBIRiJBCS
+  am+HnuxSlAcfGQd8pGuAbgAceDkmPXxooEkbTfoYGscLUS/pGVkr0Vgm+IYS0YQY
+  204FI7k7mZTcdcXwXvt0Nh5M00pZoEQs2zT44HhOMdQRd5hWKC3hzJyBDJS8+RV7
+  DjLjZgy6Bta+jLRb4jfml1uQC11Kg2Os9xKSTN7PU58rt2JDnxzeg75Yw0oNK0os
+  Mrq39oD+iO/oaH99kHDLuUgp8u+nzJgYmVVpe2UI4cv1JEBDa+m4sFP7aqB1XxR4
+  KhyU6AbPAgMBAAECggEARfGQfzl/l6o8fcbASq3D/tkmmg/GIzg6HkNYgQrgixya
+  dxT+JM+DLQPmnNeN80ct5pFa4BqoijvQCBanDiR68Y260TPq+9nnRt6wH+oNrlX7
+  fKMkVozFdDCUq3xCkVYlRRIi9/BZTazEutUAyx0woCdjrm4VlpxonDCDPCz7ZUCM
+  i2zwQECnJg2reSm/OI+aJdH2AZ8xNV4xcpjNVKMaxZAQUYecjhiX2iApRtN4NAGd
+  PWCF0kX6k6RS3UeZY8/hyehCIiIHF8VDXaYLJXqEq6qxOKaI5PPz70iSTJMShyOp
+  +689vU5fi3mFrzfhqEahHEWdiBDPpdb0cHJ3LBlA8QKBgQDfBmryQ0yLV54q1cJT
+  DRcbwrPGxEIsSlxj9z53bl5QZuGTosiBtbPpDz8TKijq1WLyIJqBqbSjV3MkNsz4
+  t+stGb32zH7RM+WxKgu2WjQHsNnWE4VQFfi/nawj3S40dOulEeRbOxbn3MJKH1Sc
+  JsX3tgSQEVDCCLcFxb7EHSJM0wKBgQDXln1lgAKn+oh8CXOwIButrsb6lHp+DLR+
+  0pqYOCAOTTMsDrKTN0w5Se3Sza2XcrH1PZcKmKB9J+BpfF5fxqOT3UEBp3QvZ8D1
+  w/p+ETZ7rA0+LFQDFSNrlNclzF2xzFWDyMllNSAce/oRyBMj+VFIY+YA5vNgW623
+  +nMnTzdwlQKBgHcTZyBoPEMdic5XCQTstUzWHMRgXvBk14VsKcb8f5CwDXqU7DcM
+  +7zQrh2eYfBX9BdQvw3BvTeE5m4McE3PbNpMpzdRIdiyu81mpJA9AxCkJPp+u6vx
+  vzkXhyQy4IuTbYlZzzHCj81F+do3diZVMVe7sB33kMW4f3euh9cPsxOPAoGAcvXR
+  qkVHpVFoZFQZ96o3eDdB7a8tXnfh69rcCx2qolWyWuT/fpc3Mzlj80wwLBlCIhcU
+  qtbWhca02Sszm/jtk1ShbINh5kF6WNOHiKAfIHWPnj6/EeG8wIpe6839jGj8lMiF
+  9E0O8YF+yOqaok05ddOne4Wr9A8PJJMNwsFwO70CgYAJGxP9SCoqHtFigby7RaME
+  ULm/uFEMiYo+DxJxavoovQ+10+zVlzLe6HdbwUs6hJ2r/bH4KMURoF6Y0mt+UaHR
+  IvdjhhVYQD4/NH/rV/e8SASREZYhcvm5DZ1BpGV5QWlWskGsPdG1tyOxnjQKuI2u
+  u7h6MdKvKaWFWr7F17Cf5Q==
+  -----END PRIVATE KEY-----
+jvb_rest_ssl_certificate_key_filename: "jvb_rest.service.consul.key"
+jvb_rest_ssl_dest_dir: /etc/nginx/ssl
+jvb_route_loudest_only: true
+jvb_server_prefix: "{{ansible_hostname.split('.')[0]}}"
+jvb_service_name: "jitsi-videobridge2"
+jvb_service_version_shell: "dpkg -s {{jitsi_videobridge_deb_pkg_name}} | grep Version | awk '{print $2}' | sed 's/..$//'"
+jvb_set_memory: true
+jvb_shape: "{{ansible_ec2_instance_type if ansible_ec2_instance_type is defined else 'default'}}"
+jvb_shards: []
+jvb_single_harvester_port: 10000
+jvb_skip_authentication_for_silence: false
+jvb_ssrc_limit_audio: 50
+jvb_ssrc_limit_video: 50
+#flag to control if JVB is standalone (localhost only) or in a pool/shard setting
+jvb_standalone: false
+jvb_stats_cron:
+  hour: "*"
+  job: "{{ path_to_stats_script }} > /tmp/stats-cron-output 2>&1"
+  minute: "*"
+jvb_stats_cron_user: jvb
+jvb_stun_mapping_enabled: true
+jvb_subspace_enabled: false
+jvb_subspace_exclusive_enabled: false
+jvb_subspace_static_mapping: false
+jvb_systemd_service_name: "jitsi-videobridge2"
+jvb_udp_buffer_max_backlog: 100000
+#temporarily increase buffer size until performance work is completed
+jvb_udp_buffer_size: 104857600
+#jvb_public_ip: "{{ansible_ec2_public_ipv4 | default(ansible_default_ipv4.address)}}"
+#jvb_ip: "{{ ipify_public_ip | default(jvb_public_ip) }}"
+#jvb_ip_integer: "{{jvb_ip | ipaddr('address') | ipaddr('int') }}"
+jvb_ufrag_prefix: "{{jvb_component_id}}"
+jvb_upgrade_flag: false
+jvb_use_public_ip: false
+jvb_username: jvb
+jvb_websockets_advertise_port: 443
+jvb_websockets_port: "{{ 9090 if jvb_nginx_ssl_enabled else 443 }}"
+jvb_websockets_ssl_keystore_password: jitsimeet
+jvb_websockets_ssl_keystore_path: /etc/jitsi/videobridge/ssl.store
+jvb_websockets_ssl_keystore_pkcs12_path: /etc/jitsi/videobridge/ssl.pkcs12
+jvb_ws_domain: "{{jvb_server_prefix}}.{{jvb_ws_domain_suffix}}"
+jvb_ws_domain_suffix: "jitsi.net"
+jvb_xmpp_port: "{{6222 if prosody_jvb_configure_flag else 5222}}"
+jvb_yourkit_agent_path: "{{jvb_yourkit_base_path}}/bin/linux-x86-64/libyjpagent.so"
+jvb_yourkit_base_path: "/opt/YourKit-JavaProfiler-2020.9"
+jvb_yourkit_url: "https://download.yourkit.com/yjp/2022.9/YourKit-JavaProfiler-2022.9-b170.zip"
+path_to_health_script: "/usr/local/bin/jvb-health-check.sh"
+path_to_stats_python_script: "/usr/local/bin/jvb-stats.py"
+path_to_stats_script: "/usr/local/bin/jvb-stats.sh"

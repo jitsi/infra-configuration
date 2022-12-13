@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: prosody_install_flag
+
+- include_tasks: configure.yml
+  when: prosody_configure_flag

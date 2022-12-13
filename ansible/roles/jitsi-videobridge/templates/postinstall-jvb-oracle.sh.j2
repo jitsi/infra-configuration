@@ -1,0 +1,57 @@
+#!/bin/bash -v
+set -x
+#make sure we exit early if we fail any step
+set -e
+
+#first load our local instance information from Oracle (or cache) (ENVIRONMENT, DOMAIN, SHARD)
+. /usr/local/bin/oracle_cache.sh
+
+function add_name_tag() {
+    INSTANCE_ID=$1
+    MY_HOSTNAME=$2
+
+    INSTANCE_METADATA=`$OCI_BIN compute instance get --instance-id $INSTANCE_ID | jq .`
+    INSTANCE_ETAG=$(echo $INSTANCE_METADATA | jq -r '.etag')
+    DEFINED_TAGS_NAMESPACE="jitsi"
+    NEW_DEFINED_TAGS=`echo $INSTANCE_METADATA | jq --arg MY_HOSTNAME "$MY_HOSTNAME" --arg DEFINED_TAGS_NAMESPACE "$DEFINED_TAGS_NAMESPACE" '.data["defined-tags"][$DEFINED_TAGS_NAMESPACE] += {"Name": $MY_HOSTNAME}' | jq '.data["defined-tags"]'`
+    $OCI_BIN compute instance update --instance-id $INSTANCE_ID --defined-tags "$NEW_DEFINED_TAGS" --if-match "$INSTANCE_ETAG" --force
+}
+
+# This configures an instance running jitsi-videobridge with the parameters given below. The machine should be running on an image with jitsi-videobridge already installed via jvb-install.sh
+
+BUCKET="jvb-bucket-${ENVIRONMENT}"
+
+#the component ID is "jvb-X" where X is the last octet in our IP address.
+MY_IP=`curl -s curl http://169.254.169.254/opc/v1/vnics/ | jq .[0].privateIp -r`
+MY_COMPONENT_ID="jvb-$(echo $MY_IP | awk -F. '{print $2"-"$3"-"$4}')"
+MY_HOSTNAME="${ENVIRONMENT}-${MY_COMPONENT_ID}.$DOMAIN"
+
+#Set local hostname
+hostname $MY_HOSTNAME
+
+#make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
+grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
+
+#set Name tag from shard and component ID by getting current freeform-tags/defined-tags and appending the name tag
+#do not fail immediately for this part, as we want to do one retry for tags update
+set +e
+add_name_tag $INSTANCE_ID $MY_HOSTNAME
+
+if [ $? -gt 0 ]; then
+    echo "Failed to update the tags, doing another retry in 5 seconds"
+    sleep 5
+    add_name_tag $INSTANCE_ID $MY_HOSTNAME
+
+    if [ $? -gt 0 ]; then
+        echo "Error while updating the Name tag on the instance. Exiting..."
+        exit 1
+    fi
+fi
+set -e
+
+#set us up for a local ansible-pull
+$OCI_BIN os object get -bn $BUCKET --name vault-password --file /root/.vault-password
+$OCI_BIN os object get -bn $BUCKET --name id_rsa_jitsi_deployment --file /root/.ssh/id_rsa
+chmod 400 /root/.ssh/id_rsa
+
+/usr/local/bin/configure-jvb-local-oracle.sh >> /var/log/postinstall-ansible.log 2>&1

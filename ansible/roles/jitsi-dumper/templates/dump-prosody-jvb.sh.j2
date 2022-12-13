@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# check for any health-related changes
+TRACEBACK_DIR="/var/lib/prosody-jvb"
+TCPDUMP_PROSODY_JVB_PATH="/var/lib/tcpdump-prosody-jvb"
+# wait up to 2 minutes for traceback file
+TRACEBACK_WAIT_TIMEOUT=120
+
+S3_BUCKET="{{jitsi_dump_s3_bucket}}"
+SNS_TOPIC_ARN="{{jitsi_dump_sns_topic}}"
+
+# check every 10 seconds for traceback file
+TRACEBACK_SLEEP_INTERVAL=10
+
+CURL_BIN="/usr/bin/curl"
+AWS_BIN="/usr/local/bin/aws"
+
+export AWS_DEFAULT_REGION="us-west-2"
+SNS_FILE_PATH="/tmp/${PROGNAME}.txt"
+JSTAMP=`date +%Y-%m-%d-%H%M`
+JHOST=`hostname -s`
+
+TMP_DIR=`mktemp -d /mnt/dump-XXXXX`
+if [ -z $ARCH_PATH ]; then
+    ARCH_PATH="/mnt/$JHOST-$JSTAMP-prosody-jvb-dump.tar.gz"
+fi
+
+PROSODY_PID=$(systemctl show --property MainPID --value "prosody-jvb")
+if [ $? -eq 0 ]; then
+    if [ ! -z "$PROSODY_PID" ]; then
+        kill -USR1 $PROSODY_PID
+        # now wait until traceback file is present
+        SLEEP_TIMER=0
+        while :; do
+            sleep $TRACEBACK_SLEEP_INTERVAL;
+
+            TRACEBACK_PATH=$(ls $TRACEBACK_DIR/traceback* 2>&1)
+            if [ $? -eq 0 ]; then
+                RINGBUFFER_PATH=$(ls $TRACEBACK_DIR/ringbuffer-logs-*.log 2>&1)
+                if [ $? -gt 0 ]; then
+                    RINGBUFFER_PATH=
+                fi
+
+                # found traceback so break
+                break;
+            fi
+            if [ $SLEEP_TIMER -ge $TRACEBACK_WAIT_TIMEOUT ]; then
+                # TODO: notify somebody about this
+                echo "WAITED $TRACEBACK_WAIT_TIMEOUT FOR TRACEBACK, NEVER APPEARED"
+                break;
+            fi
+            SLEEP_TIMER=$(( SLEEP_TIMER + TRACEBACK_SLEEP_INTERVAL ))
+            echo "No traceback found, sleeping for $TRACEBACK_SLEEP_INTERVAL seconds"
+        done
+    fi
+fi
+
+# now check for traceback, if exists then copy it to s3
+if [ -e "$TRACEBACK_PATH" ]; then
+    TB_PATH="traceback_${JHOST}_${JSTAMP}.txt"
+    cp $TRACEBACK_PATH $TMP_DIR/$TB_PATH
+fi
+
+if [ ! -z "$RINGBUFFER_PATH" ]; then
+    RB_PATH="ringbuffer_${JHOST}_${JSTAMP}.txt"
+    cp $RINGBUFFER_PATH $TMP_DIR/$RB_PATH
+fi
+
+if [ -e "$TCPDUMP_PROSODY_JVB_PATH" ]; then
+    mkdir $TMP_DIR/tcpdump-prosody-jvb
+    cp $TCPDUMP_PROSODY_JVB_PATH/*.pcap $TMP_DIR/tcpdump-prosody-jvb
+fi
+
+# look for files in TMP_DIR
+TMP_LIST=$(ls $TMP_DIR/* 2>&1)
+if [ $? -eq 0 ]; then
+    tar zcf $ARCH_PATH -C $TMP_DIR . && echo "Created $ARCH_PATH" >> /tmp/dump-prosody-jvb.log
+
+    [ -d $TMP_DIR ] && rm -r $TMP_DIR
+
+    DUMP_PATH="s3://${S3_BUCKET}/prosody-jvb/`basename $ARCH_PATH`"
+    $AWS_BIN s3 cp $ARCH_PATH $DUMP_PATH
+
+    # delete dump after finished
+    rm $ARCH_PATH
+
+    MESSAGE="Prosody JVB failure traceback available at: $DUMP_PATH"
+    $AWS_BIN sns publish --topic-arn=$SNS_TOPIC_ARN --message="$MESSAGE"
+else
+    MESSAGE="Prosody JVB failure traceback unavailable from $JHOST at $JSTAMP"
+    $AWS_BIN sns publish --topic-arn=$SNS_TOPIC_ARN --message="$MESSAGE"
+fi
+

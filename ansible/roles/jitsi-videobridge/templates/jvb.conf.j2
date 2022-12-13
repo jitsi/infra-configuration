@@ -1,0 +1,250 @@
+# This is the new config file for jitsi-videobridge. For possible options and
+# default values see the reference.conf file in the jvb repo:
+# https://github.com/jitsi/jitsi-videobridge/blob/master/src/main/resources/reference.conf
+#
+# Since the defaults are already provided in reference.conf we should keep this
+# file as thin as possible.
+videobridge {
+
+  initial-drain-mode = {{ jvb_initial_drain_mode | to_json }}
+
+  load-management {
+    average-participant-stress = {{jvb_average_participant_stress}}
+
+    load-measurements {
+      packet-rate {
+        # The packet rate at which we'll consider the bridge overloaded
+        load-threshold = {{ jvb_load_threshold }}
+
+        # The packet rate at which we'll consider the bridge 'underloaded' enough
+        # to start recovery
+        recovery-threshold = {{ jvb_recovery_threshold }}
+      }
+    }
+  }
+
+  cc {
+    {%- if jvb_disable_bwe -%}
+    trust-bwe = false
+    {%- endif -%}
+
+    {%- if jvb_last_n_limits -%}
+    jvb-last-n = 25
+    {%- endif -%}
+  }
+
+  health {
+    sticky-failures = true
+  }
+
+  ice {
+    tcp {
+      {%- if jvb_disable_tcp -%}
+      enabled = false
+      {%- endif -%}
+    }
+    
+    udp {
+      port = {{jvb_single_harvester_port}}
+    }
+
+{% if jvb_enable_ufrag_prefix %}
+    ufrag-prefix="{{jvb_ufrag_prefix}}"
+{% endif %}
+
+{% if jvb_nomination_strategy %}
+    nomination-strategy="{{jvb_nomination_strategy}}"
+{% endif %}
+
+{% if jvb_suppress_private_candidates %}
+   advertise-private-candidates=false
+{% endif %}
+  }
+
+  multi-stream {
+    enabled = {{ jvb_enable_multi_stream }}
+  }
+
+  apis {
+    rest {
+      enabled=true
+    }
+    xmpp-client {
+      configs {
+{% if not jvb_enable_multiple_shards %}
+        shard {
+          PORT={{jvb_xmpp_port }}
+{% if prosody_jvb_configure_flag %}
+          DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
+          MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
+{% else %}
+          DOMAIN={{ jvb_auth_domain }}
+          MUC_JIDS="{{ jvb_brewery_muc }}"
+          MUC="{{ jvb_brewery_muc }}"
+{% endif %}
+          # TODO: don't disable :(
+          DISABLE_CERTIFICATE_VERIFICATION=true
+          HOSTNAME={{ jvb_host }}
+          USERNAME={{ jvb_auth_user }}
+          PASSWORD={{ jvb_auth_password }}
+          MUC_NICKNAME={{ansible_hostname}}
+          IQ_HANDLER_MODE={{ jvb_iq_handler_mode }}
+        }
+{% else %}
+{% for s in jvb_shards %}
+        # SHARD {{s}}
+        {{s}} {
+          HOSTNAME={{ jvb_shards[s]['xmpp_host_public_ip_address'] if jvb_use_public_ip and not jvb_shards[s]['prefer_private'] else jvb_shards[s]['xmpp_host_private_ip_address'] }}
+          PORT={{jvb_xmpp_port }}
+{% if prosody_jvb_configure_flag %}
+          DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
+          MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
+{% else %}
+          DOMAIN={{ jvb_auth_domain }}
+          MUC_JIDS="{{ jvb_brewery_muc }}"
+          MUC="{{ jvb_brewery_muc }}"
+{% endif %}
+          USERNAME={{ jvb_auth_user }}
+          PASSWORD={{ jvb_auth_password }}
+          MUC_NICKNAME={{ansible_hostname}}
+          IQ_HANDLER_MODE={{ jvb_iq_handler_mode }}
+          # TODO: don't disable :(
+          DISABLE_CERTIFICATE_VERIFICATION=true
+        }
+{% endfor %}
+{% endif %}
+      }
+{% if jvb_enable_stats_filter %}
+      stats-filter {
+        enabled = true
+      }
+{% endif %}
+    }
+  }
+
+  stats {
+    enabled = true
+  }
+
+  websockets {
+{% if jvb_enable_websockets %}
+    enabled = true
+    tls = true
+    domain = "{{jvb_ws_domain}}:{{jvb_websockets_advertise_port}}"
+{% else %}
+    enabled = false
+{% endif %}
+  }
+
+  http-servers {
+    public {
+{% if jvb_enable_websockets %}
+      port={{jvb_websockets_port}}
+{% if jvb_enable_websockets_ssl %}
+      tls-port=443
+      key-store-path={{jvb_websockets_ssl_keystore_path}}
+      key-store-password={{jvb_websockets_ssl_keystore_password}}
+{% endif %}
+{% endif %}
+    }
+  }
+
+  rest {
+    shutdown {
+      enabled = true
+    }
+  }
+
+  relay {
+{% if jvb_enable_octo %}
+    enabled = true
+    region = {{ jvb_region }}
+    relay-id = "{{ansible_hostname}}"
+{% else %}
+    enabled = false
+{% endif %}
+  }
+  # For legacy versions
+{% if jvb_enable_octo %}
+  octo {
+    enabled = true
+    bind-port = 4096
+    bind-address = {{ ansible_default_ipv4.address }}
+    region = {{ jvb_region }}
+  }
+{% endif %}
+
+  sctp {
+    enabled = {{ jvb_enable_sctp }}
+  }
+
+  shutdown {
+    graceful-shutdown-max-duration = {{ jvb_graceful_shutdown_max_duration }}
+    graceful-shutdown-min-participants = {{ jvb_graceful_shutdown_min_participants }}
+  }
+
+  version {
+    announce = {{ jvb_announce_version }}
+    release = {{ jvb_release_number_shard }}-{{ jvb_release_number }}
+  }
+
+  speech-activity {
+    recent-speakers-count = {{ jvb_recent_speakers_count }}
+    enable-silence-detection = {{ jvb_enable_silence_detection }}
+  }
+
+  loudest {
+    route-loudest-only = {{ jvb_route_loudest_only }}
+  }
+
+  ssrc-limit {
+    video = {{ jvb_ssrc_limit_video }}
+    audio = {{ jvb_ssrc_limit_audio }}
+  }
+}
+
+jmt {
+  audio {
+    red {
+      policy = {{ jvb_red_policy }}
+      distance = {{ jvb_red_distance }}
+      vad-only = {{ jvb_red_vad_only }}
+    }
+  }
+{% if jvb_enable_pcap %}
+  debug {
+    pcap {
+      enabled = true
+    }
+  }
+{% endif %}
+  bwe {
+    send-side {
+      loss-experiment {
+        probability = {{jvb_loss_experiment_probability}}
+        bitrate-threshold = {{jvb_loss_bitrate_threshold_kbps}} kbps
+      }
+    }
+  }
+{% if jvb_skip_authentication_for_silence %}
+  srtp {
+    # Optimisation: do not authenticate silence except once every 1000 packets.
+    max-consecutive-packets-discarded-early = 1000
+  }
+{% endif %}
+}
+
+ice4j {
+  harvest {
+    udp.receive-buffer-size = {{jvb_udp_buffer_size}}
+    mapping.aws.enabled = false
+{% if jvb_stun_mapping_enabled %}
+    mapping.stun.addresses = [ "meet-jit-si-turnrelay.jitsi.net:443" ]
+{% else %}
+    mapping.stun.enabled = false
+{% endif %}
+{% if jvb_subspace_static_mapping %}
+    mapping.static-mappings = [ { name = "subspace", local-address = "{{ansible_default_ipv4.address}}", local-port = {{jvb_single_harvester_port}}, public-address = "{{jvb_subspace_static_mapping['subspace_ipv4']}}", public-port = {{jvb_subspace_static_mapping['subspace_port']}} } ]
+{% endif %}
+  }
+}

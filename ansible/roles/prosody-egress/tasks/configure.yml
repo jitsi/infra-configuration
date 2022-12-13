@@ -1,0 +1,54 @@
+---
+- name: confirm egress homedir
+  file: path="{{egress_homedir}}" state=directory owner=egress mode=0755
+  when: egress_cloud_provider != 'aws'
+
+- name: add aws directory
+  file: path="{{egress_homedir}}/.aws" state=directory owner=egress mode=0700
+  when: egress_cloud_provider != 'aws'
+
+- name: add aws credentials file
+  template: src="aws_credentials.j2" dest="{{egress_homedir}}/.aws/credentials" owner=egress mode=0700
+  when: egress_cloud_provider != 'aws'
+
+- name: add aws config file
+  template: src="aws_config.j2" dest="{{egress_homedir}}/.aws/config" owner=egress mode=0700
+  when: egress_cloud_provider != 'aws'
+
+- name: configure systemd for service
+  template:
+    src: systemd.j2
+    dest: /lib/systemd/system/{{egress_service_name}}.service
+    mode: 0644
+
+- name: add extra params to JVM using config file
+  template:
+    src: prosody-egress.env.j2
+    dest: "{{egress_jar_root_path}}/{{egress_service_name}}.env"
+    owner: "{{egress_username}}"
+    group: "{{egress_groupname}}"
+    mode: 0644
+
+- name: Start service and set it enabled
+  service:
+    name: "{{egress_service_name}}"
+    state: started
+    enabled: yes
+
+- name: Copy health check script
+  copy:
+    src: "egress_status.sh"
+    dest: "{{egress_path_to_status_script}}"
+    owner: "{{egress_username}}"
+    mode: 0755
+
+# Run the metric reporting script regularly
+
+- name: Egress health script cron
+  cron:
+    state: present
+    name: "Egress health script"
+    minute: "{{ egress_health_cron.minute }}"
+    hour: "{{ egress_health_cron.hour }}"
+    job: "{{ egress_health_cron.job }}"
+  when: egress_enable_health_cron

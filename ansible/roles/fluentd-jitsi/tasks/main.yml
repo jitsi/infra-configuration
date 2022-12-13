@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: fluentd_install_flag
+
+- include_tasks: configure.yml
+  when: fluentd_configure_flag

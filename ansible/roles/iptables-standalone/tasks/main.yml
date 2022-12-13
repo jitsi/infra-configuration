@@ -1,0 +1,54 @@
+---
+- name: Open TCP port 80 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: 80
+    jump: ACCEPT
+    action: insert
+    rule_num: 6
+    comment: Added via ansible post-launch configuration script
+- name: Open TCP port 443 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: 443
+    jump: ACCEPT
+    action: insert
+    rule_num: 7
+    comment: Added via ansible post-launch configuration script
+- name: Open TCP port 5222 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: 5222
+    jump: ACCEPT
+    action: insert
+    rule_num: 8
+    comment: Added via ansible post-launch configuration script
+- name: Open TCP port 6222 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: 6222
+    jump: ACCEPT
+    action: insert
+    rule_num: 9
+    comment: Added via ansible post-launch configuration script
+
+- name: Open UDP port 10000 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: 10000
+    jump: ACCEPT
+    action: insert
+    rule_num: 10
+    comment: Added via ansible post-launch configuration script
+- name: Save newly added iptable rules
+  shell: iptables-save > /etc/iptables/rules.v4

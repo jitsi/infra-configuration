@@ -1,0 +1,23 @@
+{
+  "service": {
+    "name": "signal",
+    "tags":["{{hcv_environment}}"],
+    "meta": {
+        "environment":"{{hcv_environment}}",
+        "domain":"{{prosody_domain_name}}",
+        "release_number":"{{jitsi_release_number}}",
+        "shard":"{{shard_name}}"
+    },
+    "tagged_addresses": {
+      "lan": {
+        "address": "{{consul_signal_private_ip}}",
+        "port": 5280
+      },
+      "wan": {
+        "address": "{{consul_signal_public_ip}}",
+        "port": 5280
+      }
+    },
+    "port": 5280
+  }
+}

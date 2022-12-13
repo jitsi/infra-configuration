@@ -1,0 +1,17 @@
+---
+# - name: Check if prosody package is installed
+#   command: dpkg -l {{prosody_package_name}} | grep -q "ii  {{prosody_package_name}}"
+#   register: prosody_check_deb
+#   failed_when: prosody_check_deb.rc > 1
+#   changed_when: prosody_check_deb.rc == 1
+
+- name: Download specific prosody nightly build
+  get_url: url="{{ prosody_dpkg_url }}" dest="{{ prosody_dpkg_path }}"
+  # when: prosody_check_deb.rc == 1
+
+- name: "Install prosody package from file"
+  command: dpkg -i {{ prosody_dpkg_path }}
+  # when: prosody_check_deb.rc == 1
+
+- name: mark hold on prosody package version
+  command: apt-mark hold {{prosody_package_name}}

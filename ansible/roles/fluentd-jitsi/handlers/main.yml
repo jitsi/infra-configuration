@@ -1,0 +1,3 @@
+---
+- name: restart jitsi fluentd
+  service: name=td-agent state=restarted enabled=true

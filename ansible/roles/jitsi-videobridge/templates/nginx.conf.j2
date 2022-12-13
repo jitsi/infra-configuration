@@ -1,0 +1,36 @@
+server {
+  server_name {{ jvb_rest_service_name }};
+  root /var/www/;
+
+  # --- listen & ssl ----------------------------------------------------------
+
+  listen {{ jvb_rest_advertise_address }}:{{ jvb_rest_port }};
+  ssl on;
+  ssl_certificate {{ jvb_rest_ssl_dest_dir }}/{{ jvb_rest_ssl_certificate_filename }};
+  ssl_certificate_key {{ jvb_rest_ssl_dest_dir }}/{{ jvb_rest_ssl_certificate_key_filename }};
+  ssl_dhparam {{ jvb_rest_ssl_dest_dir }}/{{ jvb_rest_dh_param_filename }};
+
+# https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&guideline=5.4
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+  ssl_prefer_server_ciphers off;
+
+
+  # --- locations -------------------------------------------------------------
+
+
+  location / {
+      allow 127.0.0.1;
+      {% for allow_rule in jvb_rest_access_allow_rules %}
+      allow {{ allow_rule }};
+      {% endfor %}
+      deny  all;
+      proxy_pass http://127.0.0.1:8080;
+  }
+
+  # --- logging ---------------------------------------------------------------
+
+  error_log /var/log/nginx/error-{{ jvb_rest_service_name }}.log;
+  access_log /var/log/nginx/access-{{ jvb_rest_service_name }}.log;
+
+  }

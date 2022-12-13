@@ -1,0 +1,4 @@
+---
+dependencies:
+- { role: jitsi-repo, when: jicofo_install_flag }
+- { role: openjdk-java, when: jicofo_install_flag }

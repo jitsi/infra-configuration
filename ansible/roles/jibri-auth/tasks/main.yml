@@ -1,0 +1,19 @@
+---
+- name: add jibri authentication
+  command: prosodyctl register {{jibri_auth_user}} {{jibri_auth_domain}} {{jibri_auth_password}} creates="{{jibri_auth_domain_path}}"
+
+- name: add jibri selenium authentication
+  command: prosodyctl register {{jibri_selenium_auth_user}} {{jibri_selenium_auth_domain}} {{jibri_selenium_auth_password}} creates="{{jibri_selenium_auth_domain_path}}"
+
+- name: add outbound-sip-jibri authentication
+  command: prosodyctl register {{outbound_sip_jibri_auth_user}} {{outbound_sip_jibri_auth_domain}} {{outbound_sip_jibri_auth_password}} creates="{{outbound_sip_jibri_auth_domain_path}}"
+
+- name: add inbound-sip-jibri authentication
+  command: prosodyctl register {{inbound_sip_jibri_auth_user}} {{inbound_sip_jibri_auth_domain}} {{inbound_sip_jibri_auth_password}} creates="{{inbound_sip_jibri_auth_domain_path}}"
+
+# prosody-jvb
+- name: add jibri authentication for prosody-jvb
+  command: prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register {{jibri_auth_user}} {{jibri_prosody_jvb_auth_domain_name}} {{jibri_auth_password}}
+  args:
+    creates: "{{jibri_auth_prosody_jvb_domain_path}}"
+  when: prosody_jvb_configure_flag

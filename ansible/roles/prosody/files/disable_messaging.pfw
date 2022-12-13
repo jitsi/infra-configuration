@@ -1,0 +1,4 @@
+KIND: message
+INSPECT: body
+LOG=[debug] Dropping message: $(stanza)
+DROP.

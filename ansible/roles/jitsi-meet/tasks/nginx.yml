@@ -1,0 +1,2 @@
+- template: src=nginx.site.j2 dest=/etc/nginx/sites-available/{{jitsi_meet_domain_name}} mode=0644
+  notify: reload nginx

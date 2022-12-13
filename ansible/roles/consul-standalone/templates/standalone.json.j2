@@ -1,0 +1,21 @@
+{
+  "service": {
+    "name": "all",
+    "tags":["{{hcv_environment}}"],
+    "meta": {
+        "environment":"{{hcv_environment}}",
+        "domain":"{{prosody_domain_name}}"
+    },
+    "tagged_addresses": {
+      "lan": {
+        "address": "{{consul_standalone_private_ip}}",
+        "port": 5280
+      },
+      "wan": {
+        "address": "{{consul_standalone_public_ip}}",
+        "port": 5280
+      }
+    },
+    "port": 5280
+  }
+}

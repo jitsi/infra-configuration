@@ -50,6 +50,7 @@
     - secrets/consul.yml
     - secrets/prosody-egress-aws.yml
     - secrets/oci-logging.yml
+    - secrets/repo.yml
     - config/vars.yml
     - sites/{{hcv_environment}}/vars.yml
 

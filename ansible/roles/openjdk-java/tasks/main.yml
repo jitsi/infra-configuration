@@ -1,0 +1,41 @@
+- name: setup apt repository for openjdk
+  apt_repository: repo="ppa:openjdk-r/ppa" update_cache=yes
+  when: 
+    - java_from_apt
+    - java_install_flag
+
+- name: install openjdk-8-jdk
+  apt: name=openjdk-8-jdk
+  when: 
+    - java_from_apt
+    - java_install_flag
+
+- name: Install java 11
+  apt:
+    name: openjdk-11-jdk
+    state: present
+    update_cache: yes
+  when: 
+    - java_from_apt
+    - java_install_flag
+
+- name: Download java packages from URL
+  get_url: 
+    url: "{{java_url_base}}/{{java_package_prefix}}-{{item}}_{{java_package_version}}{{java_package_suffix}}"
+    dest: "/tmp/{{java_package_prefix}}-{{item}}_{{java_package_version}}{{java_package_suffix}}"
+  loop: "{{java_url_packages}}"
+  when: 
+    - not java_from_apt
+    - java_install_flag
+
+- name: Install java packages from file
+  apt:
+    deb: "/tmp/{{java_package_prefix}}-{{item}}_{{java_package_version}}{{java_package_suffix}}"
+    force: yes
+  loop: "{{java_url_packages}}"
+  when: 
+    - not java_from_apt
+    - java_install_flag
+
+- name: set java alternative setting
+  shell: "update-java-alternatives -s {{java_alternatives_version}}"

@@ -1,0 +1,93 @@
+#!/bin/bash
+
+#set -e
+#set -x
+
+CURL_BIN="/usr/bin/curl"
+AWS_BIN="/usr/local/bin/aws"
+
+CURRENT_EC2_REGION=$($CURL_BIN -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq .region -r)
+
+EC2_REGION="{{jitsi_dump_sns_region}}"
+export AWS_DEFAULT_REGION=$EC2_REGION
+
+S3_BUCKET="{{jitsi_dump_s3_bucket}}"
+SNS_TOPIC_ARN="{{jitsi_dump_sns_topic}}"
+JAVA_USER="jicofo"
+
+JPID=`ps aux | grep java | grep -v grep | grep $JAVA_USER | awk '{ print $2; }'`
+JSTAMP=`date +%Y-%m-%d-%H%M`
+JHOST=`hostname -s`
+TMP_DIR=`mktemp -d /mnt/dump-XXXXX`
+
+if [ -z $ARCH_PATH ]; then
+    ARCH_PATH="/mnt/$JHOST-$JSTAMP-$JPID-dump.tar.gz"
+fi
+
+#Run the collect-dump-logs scripts and extract them to the current directory
+pushd $TMP_DIR
+/usr/share/jicofo/collect-dump-logs.sh >> $TMP_DIR/jicofo_dump.log 2>&1
+tar zxvf jicofo-dumps-*.tgz >> $TMP_DIR/jicofo_dump.log 2>&1
+rm jicofo-dumps-*.tgz >> $TMP_DIR/jvb_dump.log 2>&1
+popd
+
+cp -a /var/log/cloud-init* $TMP_DIR
+
+cp -a /var/log/bootstrap.log $TMP_DIR
+
+cp -a /var/log/postinstall-ansible.log $TMP_DIR
+
+cp -a /var/log/jitsi/* $TMP_DIR
+
+cp -a /var/log/prosody/* $TMP_DIR
+
+mkdir $TMP_DIR/local
+
+cp -a /var/log/local/* $TMP_DIR/local
+
+mkdir $TMP_DIR/prosody-jvb
+
+cp -a /var/log/prosody-jvb/* $TMP_DIR/prosody-jvb
+
+cp -a /var/log/syslog $TMP_DIR
+
+echo "HOST: $JHOST, PID: $JPID, STAMP: $JSTAMP, TMP_DIR: $TMP_DIR" > /tmp/jicofo_dump.log
+
+echo "HOST: $JHOST, PID: $JPID, STAMP: $JSTAMP, TMP_DIR: $TMP_DIR" > $TMP_DIR/jicofo_dump.log
+echo "---------HOST: $JHOST DISK SPACE $JSTAMP---------" > $TMP_DIR/df_dump.log
+df -h >> $TMP_DIR/df_dump.log
+
+echo "---------HOST: $JHOST PS OUTPUT $JSTAMP---------" > $TMP_DIR/ps_dump.log
+ps auxwww >> $TMP_DIR/ps_dump.log
+
+echo "---------HOST: $JHOST TOP OUTPUT $JSTAMP---------" > $TMP_DIR/top_dump.log
+top -n 1 -b >> $TMP_DIR/top_dump.log
+
+echo "---------HOST: $JHOST LSOF OUTPUT $JSTAMP---------" > $TMP_DIR/lsof_dump.log
+lsof >> $TMP_DIR/lsof_dump.log
+
+echo "---------HOST: $JHOST LSOF -u $JAVA_USER OUTPUT $JSTAMP---------" > $TMP_DIR/jicofo_lsof_dump.log
+lsof -u $JAVA_USER >> $TMP_DIR/jicofo_lsof_dump.log
+
+
+tar zcf $ARCH_PATH -C $TMP_DIR . && echo "Created $ARCH_PATH" >> /tmp/jicofo_dump.log
+
+[ -d $TMP_DIR ] && rm -r $TMP_DIR
+
+# Assuming AWS CLI is already configured by Ansible
+# and EC2 instance role implies write access to this bucket
+
+if [ -z $SKIP_S3_UPLOAD ]; then
+
+    echo "Uploading to S3." >> /tmp/jicofo_dump.log
+    DUMP_PATH="s3://${S3_BUCKET}/`basename $ARCH_PATH`"
+
+    $AWS_BIN s3 cp $ARCH_PATH s3://${S3_BUCKET}/ >> /tmp/jicofo_dump.log 2>&1
+
+    MESSAGE="Jicofo dumps available at: $DUMP_PATH"
+    $AWS_BIN sns publish --topic-arn=$SNS_TOPIC_ARN --message="$MESSAGE"
+
+    echo "s3://${S3_BUCKET}/`basename $ARCH_PATH`" >>/tmp/jicofo_dump.log
+else
+    echo "Skipping upload to S3." >> /tmp/jicofo_dump.log
+fi

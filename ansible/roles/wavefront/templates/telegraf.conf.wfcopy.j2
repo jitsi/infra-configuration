@@ -1,0 +1,87 @@
+[agent]
+  interval = "60s"
+  round_interval = false
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "60s"
+  flush_jitter = "0s"
+  precision = ""
+  debug = true
+  quiet = false
+  hostname = "{{ telegraf_hostname }}"
+  omit_hostname = false
+  logfile = "/var/log/telegraf/telegraf.log"
+
+[[inputs.cpu]]
+  percpu = false
+  totalcpu = true
+  collect_cpu_time = false
+  report_active = false
+  fielddrop = ["time_*"]
+  fieldpass = ["usage_system*", "usage_user*", "usage_iowait*", "usage_idle*", "usage_steal*"]
+
+[[inputs.disk]]
+  ignore_fs = ["tmpfs", "devtmpfs", "devfs", "overlay", "aufs", "squashfs", "nfs", "nfs4"]
+  fieldpass = ["used_percent", "free", "used", "total"]
+
+[[inputs.diskio]]
+  fieldpass = ["read_time", "write_time"]
+
+[[inputs.mem]]
+  fieldpass = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
+
+[[inputs.net]]
+  fieldpass = ["bytes*","drop*","packets*","err*","tcp*","udp*"]
+
+[[inputs.processes]]
+  fieldpass = ["blocked", "idle", "paging", "running", "total*"]
+
+[[inputs.swap]]
+  fieldpass = ["total", "used"]
+
+[[inputs.system]]
+  fieldpass = ["load*"]
+
+[[inputs.statsd]]
+  service_address = ":{{ statsd_port }}"
+  delete_gauges = true
+  delete_counters = true
+  delete_sets = true
+  delete_timings = true
+  percentiles = [90]
+  metric_separator = "_"
+  allowed_pending_messages = 10000
+  percentile_limit = 1000
+  datadog_extensions = {{ datadog_extensions }}
+
+[[inputs.linux_sysctl_fs]]
+
+{% if telegraf_inputs is defined %}
+{% for input_item in telegraf_inputs.keys() %}
+{% if telegraf_inputs[input_item] is mapping %}
+[[inputs.{{ input_item }}]]
+{% for key, value in telegraf_inputs[input_item].items() %}
+  {{ key }} = {{ value | to_json }}
+{% endfor %}
+
+{% else %}
+{% for item in telegraf_inputs[input_item] %}
+[[inputs.{{ input_item }}]]
+{% for key, value in item.items() %}
+  {{ key }} = {{ value | to_json }}
+{% endfor %}
+
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if telegraf_tags is defined %}
+[global_tags]
+{% for key, value in telegraf_tags.items() %}
+  {{ key }} = "{{ value }}"
+{% endfor %}
+{% else %}
+#[global_tags]
+{% endif %}

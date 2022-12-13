@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: jitsi-repo, when: jitsi_meet_install_flag }
+  - { role: nginx, when: jitsi_meet_install_flag}

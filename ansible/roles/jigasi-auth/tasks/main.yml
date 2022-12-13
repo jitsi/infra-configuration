@@ -1,0 +1,10 @@
+---
+- name: add jigasi XMPP control authentication
+  command: prosodyctl register {{jigasi_auth_user}} {{jigasi_auth_domain}} {{jigasi_auth_password}}
+  args:
+    creates: "{{jigasi_auth_domain_path}}"
+
+- name: add jigasi transcriber authentication
+  command: prosodyctl register {{jigasi_transcriber_auth_user}} {{jigasi_transcriber_auth_domain}} {{jigasi_transcriber_auth_password}}
+  args:
+    creates: "{{jigasi_transcriber_auth_domain_path}}"

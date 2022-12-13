@@ -1,0 +1,15 @@
+---
+consul_cloud_provider: "{{cloud_provider | default('aws')}}"
+consul_datacenter: "{{cloud_name|default('dc1')}}"
+consul_encryption_key: "{{consul_encryption_keys[consul_server_type]|default(false)}}"
+consul_environment_type: "{{jitsi_meet_environment_type|default('prod')}}"
+consul_install_flag: true
+consul_retry_join_lan: "{{consul_retry_join_lan_by_provider[consul_cloud_provider]}}"
+consul_retry_join_lan_by_provider:
+  aws: " [\"provider=aws tag_key=consul_server tag_value={{consul_server_type}}\"]"
+  oracle: " [\"{{consul_datacenter}}-consul-a.oracle.infra.jitsi.net\",\"{{consul_datacenter}}-consul-b.oracle.infra.jitsi.net\",\"{{consul_datacenter}}-consul-c.oracle.infra.jitsi.net\"]"
+consul_server_type: "{{consul_server_types[consul_environment_type]|default('prod')}}"
+consul_server_types:
+  dev: dev
+  prod: prod
+  stage: prod

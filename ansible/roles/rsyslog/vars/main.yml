@@ -1,0 +1,4 @@
+---
+# items:
+# Logstash host for beta environment
+logstash_endpoint_domain: beta-us-east-1-logstash.meet-beta.hipchat.ninja

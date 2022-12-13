@@ -1,0 +1,467 @@
+/**
+ * Hey there Hacker One bounty hunters! None of the contents of this file are security sensitive.
+ * Sorry, but your princess is in another castle :-)
+ * Happy hunting!
+ */
+
+var subdomain = "<!--# echo var="subdomain" default="" -->";
+if (subdomain) {
+    subdomain = subdomain.substr(0,subdomain.length-1).split('.').join('_').toLowerCase() + '.';
+}
+var config = {
+    hosts: {
+        domain: '{{ jitsi_meet_xmpp_domain_name }}',
+{% if jitsi_meet_anonymousdomain %}        anonymousdomain: '{{jitsi_meet_anonymousdomain}}',{% endif %}
+
+{% if jitsi_meet_enable_multi_domain %}
+        muc: 'conference.'+subdomain+'{{ jitsi_meet_xmpp_domain_name }}', // FIXME: use XEP-0030
+{% else %}
+        muc: 'conference.{{ jitsi_meet_xmpp_domain_name }}', // FIXME: use XEP-0030
+{% endif %}
+        focus: 'focus.{{ jitsi_meet_xmpp_domain_name }}',
+    },
+    disableSimulcast: {% if jitsi_meet_enable_simulcast %}false{% else %}true{% endif %},
+{% if jitsi_meet_resolution %}
+    constraints: {
+        video: {
+            height: {
+                ideal: {{jitsi_meet_resolution}},
+                max: {{jitsi_meet_resolution}},
+                min: 180
+            },
+            width: {
+                ideal: {{(jitsi_meet_resolution * (16/9)) | int}},
+                max: {{(jitsi_meet_resolution * (16/9)) | int}},
+                min: 320
+            },
+            frameRate: {
+                max: 30
+            }
+        }
+    },
+{% endif %}
+{% if jitsi_meet_enable_insecure_room_name_warning %}
+    enableInsecureRoomNameWarning: true,
+{% endif %}
+{% if jitsi_meet_jiconop_enabled %}
+{% if jitsi_meet_enable_multi_domain %}
+    externalConnectUrl: '//<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/<!--# echo var="subdir" default="" -->http-pre-bind',
+{% else %}
+    externalConnectUrl: '//{{ jitsi_meet_bosh_host }}/http-pre-bind',
+{% endif %}
+{% endif %}
+    analytics: {
+    {% if jitsi_meet_amplitude_api_key %}
+        amplitudeAPPKey: "{{ jitsi_meet_amplitude_api_key }}",
+    {% endif %}
+        rtcstatsEnabled: {% if jitsi_meet_rtcstats_enabled %}true{% else %}false{% endif %} ,
+        rtcstatsStoreLogs: {% if jitsi_meet_rtcstats_store_logs %}true{% else %}false{% endif %} ,
+        rtcstatsUseLegacy: {% if jitsi_meet_rtcstats_use_legacy %}true{% else %}false{% endif %} ,
+        rtcstatsEndpoint: "{{ jitsi_meet_rtcstats_endpoint }}",
+        rtcstatsPollInterval: {{ jitsi_meet_rtcstats_poll_interval }},
+    {% if jitsi_meet_google_analytics_flag or jitsi_meet_google_analytics_hep_flag %}
+        scriptURLs: [
+        {% if jitsi_meet_google_analytics_flag %}
+            {% for url in jitsi_meet_google_analytics_script_urls %}
+            "{{ url }}",
+            {% endfor %}
+        {% endif %}
+        {% if jitsi_meet_google_analytics_hep_flag %}
+            {% for url in jitsi_meet_google_analytics_hep_script_urls %}
+            "{{ url }}",
+            {% endfor %}
+        {% endif %}
+        ],
+    {% endif %}
+    {% if jitsi_meet_google_analytics_flag %}
+        googleAnalyticsTrackingId: "{{ jitsi_meet_google_analytics_tracking_id }}",
+    {% endif %}
+    {% if jitsi_meet_analytics_whitelist %}
+        whiteListedEvents: {{ jitsi_meet_analytics_whitelist }},
+    {% endif %}
+},
+    enableP2P: {% if jitsi_meet_enable_p2p %}true{% else %}false{% endif %}, // flag to control P2P connections
+    // New P2P options
+    p2p: {
+        enabled: {% if jitsi_meet_enable_p2p %}true{% else %}false{% endif %},
+        enableUnifiedOnChrome: {% if jitsi_meet_enable_unified_plan_chromium_p2p %}true{% else %}false{% endif %},
+{% if jitsi_meet_p2p_preferred_codec %}
+        preferredCodec: '{{ jitsi_meet_p2p_preferred_codec }}',
+{% endif %}
+{% if jitsi_meet_p2p_disabled_codec %}
+        disabledCodec: '{{ jitsi_meet_p2p_disabled_codec }}',
+{% endif %}
+{% if jitsi_meet_enable_p2p_h264 %}
+        preferH264: true,
+        disableH264: false,
+{% else %}
+        disableH264: true,
+{% endif %}
+        useStunTurn: {% if jitsi_meet_enable_p2p_turn %}true{% else %}false{% endif %} // use XEP-0215 to fetch STUN and TURN servers for the P2P connection
+    },
+    useStunTurn: true, // use XEP-0215 to fetch TURN servers for the JVB connection
+    useTurnUdp: {% if jitsi_meet_enable_turn_udp_jvb %}true{% else %}false{% endif %},
+{% if jitsi_meet_enable_multi_domain %}
+    bosh: '{{jitsi_meet_bosh_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/<!--# echo var="subdir" default="" -->{{jitsi_meet_bosh_path}}', // FIXME: use xep-0156 for that
+{% if jitsi_meet_enable_xmpp_websockets %}
+    websocket: '{{jitsi_meet_ws_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->{{jitsi_meet_ws_path}}', // FIXME: use xep-0156 for that
+    websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->_unlock',
+{% endif %}
+{% else %}
+    bosh: '{{jitsi_meet_bosh_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->{{jitsi_meet_bosh_path}}', // FIXME: use xep-0156 for that
+{% if jitsi_meet_enable_xmpp_websockets %}
+    websocket: '{{jitsi_meet_ws_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->{{jitsi_meet_ws_path}}', // FIXME: use xep-0156 for that
+    websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/_unlock',
+{% endif %}
+{% endif %}
+
+{% if jitsi_meet_enable_shared_document %}    etherpad_base: '{{jitsi_meet_etherpad_base}}',{% endif %}
+
+    clientNode: 'http://jitsi.org/jitsimeet', // The name of client node advertised in XEP-0115 'c' stanza
+    //deprecated desktop sharing settings, included only because older version of jitsi-meet require them
+    desktopSharing: 'ext', // Desktop sharing method. Can be set to 'ext', 'webrtc' or false to disable.
+    chromeExtensionId: '{{jitsi_meet_chrome_desktop_key}}', // Id of desktop streamer Chrome extension
+    desktopSharingSources: ['screen', 'window'],
+{% if jitsi_meet_google_api_app_client_id %}
+    googleApiApplicationClientID: "{{jitsi_meet_google_api_app_client_id}}",
+{% endif %}
+{% if jitsi_meet_microsoft_api_app_client_id %}
+    microsoftApiApplicationClientID: "{{jitsi_meet_microsoft_api_app_client_id}}",
+{% endif %}
+{% if jitsi_meet_enable_calendar %}
+    enableCalendarIntegration: true,
+{% endif %}
+    //new desktop sharing settings
+    desktopSharingChromeExtId: '{{jitsi_meet_chrome_desktop_key}}', // Id of desktop streamer Chrome extension
+    desktopSharingChromeSources: ['screen', 'window', 'tab'],
+    enableLipSync: {% if jitsi_meet_enable_lipsync %}true{% else %}false{% endif %},
+    enableSaveLogs: {% if jitsi_meet_enable_save_logs %}true{% else %}false{% endif %},
+    disableRtx: false, // Enables RTX everywhere
+    channelLastN: {{ jitsi_meet_channel_last_n }}, // The default value of the channel attribute last-n.
+{% if jitsi_meet_last_n_limits %}
+    lastNLimits: {
+        5: 20,
+        30: 15,
+        50: 10,
+        70: 5,
+        90: 2
+    },
+{% endif %}
+    flags: {
+        sourceNameSignaling: {% if jitsi_meet_enable_source_name_signaling %}true{% else %}false{% endif %},
+        sendMultipleVideoStreams: {% if jitsi_meet_enable_send_multiple_streams %}true{% else %}false{% endif %},
+        receiveMultipleVideoStreams: true,
+        ssrcRewritingEnabled: {% if jitsi_meet_enable_ssrc_rewriting %}true{% else %}false{% endif %},
+    },
+{% if jitsi_meet_video_quality %}
+    videoQuality: {
+    {% if jitsi_meet_prefer_vp9_codec_jvb %}
+    preferredCodec: 'VP9',
+    maxBitratesVideo: {
+        VP8: {
+            low: 200000,
+            standard: 500000,
+            high: 1500000
+        },
+        VP9: {
+            low: 100000,
+            standard: 300000,
+            high: 1200000
+        }
+    },
+    {% else %}
+    maxBitratesVideo: {
+        low: 200000,
+        standard: 500000,
+        high: 1500000
+    },
+    {% endif %}
+    {% if jitsi_meet_min_height_quality_level %}
+    minHeightForQualityLvl: {
+        240: 'standard',
+        540: 'high'
+    }
+    {% endif %}
+    },
+{% endif %}
+{% if jitsi_meet_use_new_bitrate_allocation_strategy %}
+    useNewBandwidthAllocationStrategy: true,
+{% endif %}
+    startBitrate: "800",
+    disableAudioLevels: false,
+    stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
+{% if jitsi_meet_force_jvb121_ratio %}
+    forceJVB121Ratio:  {{jitsi_meet_force_jvb121_ratio}},
+{% endif %}
+{% if jitsi_meet_talk_while_muted_enabled %}
+    enableTalkWhileMuted: true,
+{% endif %}
+    mouseMoveCallbackInterval: {{jitsi_meet_mouse_move_callback_interval}},
+{% if jitsi_meet_no_audio_detection_enabled %}
+    enableNoAudioDetection: true,
+{% endif %}
+{% if jitsi_meet_noisy_mic_detection_enabled %}
+    enableNoisyMicDetection: true,
+{% endif %}
+{% if jitsi_meet_opus_red_enabled %}
+    enableOpusRed: true,
+{% endif %}
+
+{% if jitsi_meet_close_page_enabled %}
+    enableClosePage: true,
+{% endif %}
+
+{% if jitsi_meet_cors_avatar_urls %}
+    corsAvatarURLs: {{jitsi_meet_cors_avatar_urls}},
+{% endif %}
+
+    disableLocalVideoFlip: {%if jitsi_meet_enable_local_video_flip %}false{% else %}true{% endif %},
+
+    hiddenDomain: 'recorder.{{ jitsi_meet_xmpp_domain_name }}',
+
+{% if jitsi_meet_hidden_from_recorder_feature %}
+    hiddenFromRecorderFeatureEnabled: true,
+{% endif %}
+
+{% if jitsi_meet_dropbox_app_key %}
+    dropbox: {
+        appKey: '{{ jitsi_meet_dropbox_app_key }}'
+    },
+{% endif %}
+
+{% if jitsi_meet_performance_stats %}
+    longTasksStatsInterval: 10000,
+{% endif %}
+
+    transcribingEnabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %},
+    liveStreamingEnabled: {% if jitsi_meet_enable_livestreaming %}true{% else %}false{% endif %},
+    fileRecordingsEnabled: {% if jitsi_meet_enable_file_recordings %}true{% else %}false{% endif %},
+    fileRecordingsServiceEnabled: {% if jitsi_meet_enable_file_recordings_service %}true{% else %}false{% endif %},
+    fileRecordingsServiceSharingEnabled: {% if jitsi_meet_enable_file_recordings_sharing %}true{% else %}false{% endif %},
+    localRecording: {
+        disable: {% if jitsi_meet_enable_local_recording %}false{% else %}true{% endif %},
+        notifyAllParticipants: {% if jitsi_meet_local_recording_notify_all %}true{% else %}false{% endif %}
+    },
+    requireDisplayName: {% if jitsi_meet_require_displayname %}true{% else %}false{% endif %},
+    enableWelcomePage: {% if jitsi_meet_enable_welcome_page %}true{% else %}false{% endif %},
+    isBrand: false,
+{% if jitsi_meet_enable_callstats %}
+// To enable sending statistics to callstats.io you should provide Applicaiton ID and Secret.
+{% if jitsi_meet_callstats_app_id %}
+    callStatsID: "{{ jitsi_meet_callstats_app_id }}",//Application ID for callstats.io API
+    callStatsSecret: "{{ jitsi_meet_callstats_app_secret }}",//Secret for callstats.io API
+{% endif %}
+{% if jitsi_meet_callstats_disable_logs %}
+    callStatsApplicationLogsDisabled: true,
+{% endif %}
+{% if jitsi_meet_callstats_customscript_url %}
+    callStatsCustomScriptUrl: "{{jitsi_meet_callstats_customscript_url}}",
+{% endif %}
+{% endif %}
+{% if jitsi_meet_enable_email_in_stats %}
+    enableEmailInStats: true,
+{% endif %}
+{% if prosody_jaas_actuator_url %}
+   jaasActuatorUrl: '{{prosody_jaas_actuator_url}}',
+{% endif %}
+{% if jitsi_meet_api_jaas_token_url %}
+   jaasTokenUrl: '{{jitsi_meet_api_jaas_token_url}}',
+{% endif %}
+{% if jitsi_meet_api_jaas_webhook_proxy %}
+   webhookProxyUrl: '{{jitsi_meet_api_jaas_webhook_proxy}}',
+{% endif %}
+{% if jitsi_meet_api_billing_counter %}
+   billingCounterUrl: '{{jitsi_meet_api_billing_counter}}',
+{% endif %}
+{% if jitsi_meet_api_branding_data_url %}
+   brandingDataUrl: '{{jitsi_meet_api_branding_data_url}}',
+{% endif %}
+    dialInNumbersUrl: '{{jitsi_meet_api_dialin_numbers_url}}',
+    dialInConfCodeUrl:  '{{jitsi_meet_api_conference_mapper_url}}',
+
+{% if jitsi_meet_api_dialout_codes_url %}
+    dialOutCodesUrl:  '{{jitsi_meet_api_dialout_codes_url}}',
+{% endif %}
+{% if jitsi_meet_api_dialout_auth_url %}
+    dialOutAuthUrl: '{{jitsi_meet_api_dialout_auth_url}}',
+{% endif %}
+{% if jitsi_meet_api_directory_search_url %}
+    peopleSearchUrl: '{{jitsi_meet_api_directory_search_url}}',
+{% endif %}
+{% if jitsi_meet_api_conference_invite_url %}
+    inviteServiceUrl: '{{jitsi_meet_api_conference_invite_url}}',
+{% endif %}
+{% if jitsi_meet_api_conference_invite_callflows_url %}
+    inviteServiceCallFlowsUrl: '{{jitsi_meet_api_conference_invite_callflows_url}}',
+{% endif %}
+{% if jitsi_meet_api_guest_dial_out_url %}
+    guestDialOutUrl: '{{jitsi_meet_api_guest_dial_out_url}}',
+{% endif %}
+{% if jitsi_meet_api_guest_dial_out_status_url %}
+    guestDialOutStatusUrl: '{{jitsi_meet_api_guest_dial_out_status_url}}',
+{% endif %}
+{% if jitsi_meet_api_recoding_sharing_url %}
+   recordingSharingUrl: '{{jitsi_meet_api_recoding_sharing_url}}',
+{% endif %}
+{% if jitsi_meet_people_search_query_types %}
+    peopleSearchQueryTypes: {{jitsi_meet_people_search_query_types}},
+{% endif %}
+    startAudioMuted: {{ jitsi_meet_start_audio_muted_count }},
+    startVideoMuted: {{ jitsi_meet_start_video_muted_count }},
+    enableUserRolesBasedOnToken: {% if jitsi_meet_enable_user_roles_based_on_token %}true{% else %}false{% endif %},
+{% if jitsi_meet_enable_lock_room_for_all %}
+    lockRoomGuestEnabled: true,
+{% endif %}
+{% if jitsi_meet_disable_stage_filmstrip %}
+    filmstrip: {
+        disableStageFilmstrip: true
+    },
+{% endif %}
+{% if jitsi_meet_enable_lock_room_ten_digits %}
+    roomPasswordNumberOfDigits: 10,
+{% endif %}
+{% if jitsi_meet_8x8_video_meetings_url %}
+    _8x8VideoMeetingsUrl: '{{jitsi_meet_8x8_video_meetings_url}}',
+{% endif %}
+{% if jitsi_meet_api_screenshot_history_url %}
+    _screenshotHistoryUrl: '{{jitsi_meet_api_screenshot_history_url}}',
+{% endif %}
+{% if jitsi_meet_api_screenshot_history_region_url %}
+    _screenshotHistoryRegionUrl: '{{jitsi_meet_api_screenshot_history_region_url}}',
+{% endif %}
+{% if jitsi_meet_api_sip_invite_url %}
+   sipInviteUrl: '{{jitsi_meet_api_sip_invite_url}}',
+{% endif %}
+{% if jitsi_meet_disable_record_audio_notification %}
+    disableRecordAudioNotification: true,
+{% endif %}
+{% if jitsi_meet_enable_layer_suspension %}
+    enableLayerSuspension: true,
+{% else %}
+    enableLayerSuspension: false,
+{% endif %}
+        enableUnifiedOnChrome: {% if jitsi_meet_enable_unified_plan_chromium %}true{% else %}false{% endif %},
+{% if jitsi_meet_enable_forced_client_reload %}
+    enableForcedReload: true,
+{% else %}
+    enableForcedReload: false,
+{% endif %}
+    feedbackPercentage: {{jitsi_meet_feedback_percentage}},
+{% if jitsi_meet_user_documentation_url or jitsi_meet_download_apps_url %}
+    deploymentUrls: {
+{% if jitsi_meet_user_documentation_url %}
+        userDocumentationURL: "{{jitsi_meet_user_documentation_url}}",
+{% endif %}
+{% if jitsi_meet_download_apps_url %}
+        downloadAppsUrl: "{{jitsi_meet_download_apps_url}}"
+{% endif %}
+    },
+{% endif %}
+{% if jitsi_meet_chrome_extension_banner_url %}
+    chromeExtensionBanner: {
+        url: "{{jitsi_meet_chrome_extension_banner_url}}",
+    {% if jitsi_meet_edge_extension_banner_url %}
+        edgeUrl: "{{jitsi_meet_edge_extension_banner_url}}",
+    {% endif %}
+        chromeExtensionsInfo: {{jitsi_meet_chrome_extension_info | to_json}}
+    },
+{% endif %}
+{% if jitsi_meet_conference_info_overwrite %}
+    conferenceInfo: {
+        alwaysVisible: {{ jitsi_meet_conference_info_visible }},
+        autoHide: {{ jitsi_meet_conference_info_autohide }}
+    },
+{% endif %}
+{% if jaas_feedback_metadata_url %}
+   jaasFeedbackMetadataURL: '{{jaas_feedback_metadata_url}}',
+{% endif %}
+    prejoinPageEnabled: {% if jitsi_meet_enable_prejoin_page %}true{% else %}false{% endif %},
+{% if jitsi_meet_moderated_service_url %}
+    moderatedRoomServiceUrl: '{{jitsi_meet_moderated_service_url}}',
+{% endif %}
+{% if jitsi_meet_polls_disabled %}
+    disablePolls: true,
+{% endif %}
+{% if jitsi_meet_disable_speaker_stats_search %}
+    disableSpeakerStatsSearch: true,
+{% endif %}
+    enableInsecureRoomNameWarning: {% if jitsi_meet_enable_unsafe_room_warning %}true{% else %}false{% endif %},
+{% if jitsi_meet_disable_reactions %}
+    disableReactions: true,
+{% endif %}
+faceLandmarks: {
+    enableFaceCentering: {% if jitsi_meet_enable_face_landmarks_enable_centering %}true{% else %}false{% endif %},
+    enableFaceExpressionsDetection: {% if jitsi_meet_enable_face_landmarks_detect_expressions %}true{% else %}false{% endif %},
+    enableDisplayFaceExpressions: {% if jitsi_meet_enable_face_landmarks_display_expressions %}true{% else %}false{% endif %},
+    enableRTCStats: {% if jitsi_meet_enable_face_landmarks_enable_rtc_stats %}true{% else %}false{% endif %},
+    faceCenteringThreshold: 20,
+    captureInterval: 1000
+},
+giphy: {
+    enabled: {{ jitsi_meet_giphy_enabled | to_json }},
+    sdkKey: '{{ jitsi_meet_giphy_sdk_key }}'
+},
+whiteboard: {
+    enabled: {{ jitsi_meet_whiteboard_enabled | to_json }},
+    collabServerBaseUrl: '{{ jitsi_meet_whiteboard_collab_server_base_url }}'
+},
+{% if jitsi_meet_disable_reactions_moderation %}
+    disableReactionsModeration: true,
+{% endif %}
+    screenshotCapture:{
+        enabled: {% if jitsi_meet_screenshot_capture_enabled %}true{% else %}false{% endif %} ,
+        mode: '{{jitsi_meet_screenshot_capture_mode}}'
+    },
+    toolbarConfig: {
+        timeout: 4000,
+        initialTimeout: 20000
+    },
+    hepopAnalyticsUrl: "{{jitsi_meet_hepop_analytics_url}}",
+    hepopAnalyticsEvent: {
+        product: "lib-jitsi-meet",
+        subproduct: "{{ hcv_environment }}",
+        name: "jitsi.page.load.failed",
+        action: "page.load.failed",
+        actionSubject: "page.load",
+        type: "page.load.failed",
+        source: "page.load",
+        attributes: {
+            type: "operational",
+            source: 'page.load'
+        },
+        server: "{{ jitsi_meet_xmpp_domain_name }}"
+    },
+    deploymentInfo: {
+        environment: '{{hcv_environment}}',
+        envType: '{{jitsi_meet_environment_type}}',
+        releaseNumber: '{{jitsi_release_number}}',
+        shard: '<!--# echo var="jitsi_shard" default="" -->',
+        region: '<!--# echo var="jitsi_region" default="" -->',
+        userRegion: '<!--# echo var="user_region" default="" -->',
+        crossRegion: (!'<!--# echo var="user_region" default="" -->' || '<!--# echo var="jitsi_region" default="default_region" -->' === '<!--# echo var="http_x_proxy_region" default="default_region" -->') ? 0 : 1
+    },
+    e2eping: {
+        enabled: {{ jitsi_meet_e2eping_enabled | to_json }}
+    },
+    abTesting: {
+{% if jitsi_meet_enable_p2p_suspend_video_test %}
+        enableSuspendVideoTest: true
+{% endif %}
+    },
+    testing: {
+        enableThumbnailReordering: {% if jitsi_meet_enable_thumbnail_reordering %}true{% else %}false{% endif %},
+    {% if jitsi_meet_callstats_threshold %}
+        callStatsThreshold: {{jitsi_meet_callstats_threshold}}, // % of users that will have callStats enabled.
+    {% endif %}
+    {% if jitsi_meet_mobile_xmpp_ws_threshold %}
+        mobileXmppWsThreshold: {{jitsi_meet_mobile_xmpp_ws_threshold}},
+    {% endif %}
+    {% if jitsi_meet_no_auto_local_audio %}
+        noAutoLocalAudio: true,
+    {% endif %}
+        capScreenshareBitrate: 1,
+    {% if jitsi_meet_enable_ss_resolution_constraints %}
+        setScreenSharingResolutionConstraints: true,
+    {% endif %}
+    }
+};

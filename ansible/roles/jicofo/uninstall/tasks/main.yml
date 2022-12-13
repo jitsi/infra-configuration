@@ -1,0 +1,3 @@
+---
+- service: name=jicofo state=stopped enabled=no
+  ignore_errors: true

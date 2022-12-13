@@ -1,0 +1,11 @@
+---
+- include_tasks: install_testrtc.yml
+  when: testrtc_install_flag
+
+- name: check that testrtc folder exists
+  stat:
+    path: "{{testrtc_base_path}}"
+  register: testrtc_path
+
+- include_tasks: configure_testrtc.yml
+  when: testrtc_configure_flag and testrtc_path.stat.isdir is defined and testrtc_path.stat.isdir

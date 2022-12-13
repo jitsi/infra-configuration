@@ -1,0 +1,7 @@
+# Fallback OS defaults
+---
+rsyslog_package_names: 
+  - rsyslog
+rsyslog_service_name: rsyslog
+rsyslog_file_owner: root
+rsyslog_file_group: root

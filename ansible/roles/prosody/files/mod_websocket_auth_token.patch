@@ -1,0 +1,12 @@
+--- mod_websocket.lua	Thu Jan 23 21:59:13 2020 +0000
++++ mod_websocket.lua	Fri Jan 24 16:21:30 2020 +0000
+@@ -305,6 +305,8 @@
+ 	response.headers.sec_webSocket_accept = base64(sha1(request.headers.sec_websocket_key .. "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"));
+ 	response.headers.sec_webSocket_protocol = "xmpp";
+ 
++	module:fire_event("websocket-session", { session = session, request = request });
++
+ 	session.log("debug", "Sending WebSocket handshake");
+ 
+ 	return "";
+

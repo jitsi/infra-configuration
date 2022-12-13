@@ -1,0 +1,16 @@
+---
+npm_modules_path: "{{testrtc_base_path}}/node_modules/.bin/"
+testrtc_base_path: "/opt/testrtc"
+testrtc_configure_flag: false
+testrtc_creds_dir: /etc/testrtc
+testrtc_creds_path: "{{testrtc_creds_dir}}/turn_credentials"
+testrtc_domain_name: "test.{{ jitsi_meet_domain_name }}"
+testrtc_git_repository: "https://github.com/aaronkvanmeerten/testrtc.git"
+testrtc_install_flag: false
+testrtc_port: "8002"
+testrtc_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+testrtc_ssl_dest_dir: /etc/nginx/ssl
+testrtc_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
+testrtc_turn_hostname: all-turnrelay.jitsi.net
+testrtc_turn_port: 443
+testrtc_web_root_path: /var/www/testrtc

@@ -1,0 +1,33 @@
+---
+- name: Install telegraf agent/collector (Ubuntu) from apt
+  apt:
+    name: "{{ wavefront_collector }}={{wavefront_collector_version}}"
+    state: "{{ wavefront_pkg_state }}"
+    force: 'yes'
+    update_cache: yes
+  register: result
+  until: result is succeeded
+  when: wavefront_telegraf_from_apt
+  tags:
+    - install
+    - debian
+    - collector
+
+- name: Download telegraf agent/collector (Ubuntu) from url
+  get_url: url="{{ wavefront_telegraf_deb_url }}" dest="{{ wavefront_telegraf_deb_path }}"
+  when: not wavefront_telegraf_from_apt
+  tags:
+    - install
+    - debian
+    - collector
+
+- name: Install telegraf agent/collector (Ubuntu) from file
+  apt:
+    deb: "{{ wavefront_telegraf_deb_path }}"
+    force: 'yes'
+  register: result
+  when: not wavefront_telegraf_from_apt
+  tags:
+    - install
+    - debian
+    - collector

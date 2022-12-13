@@ -1,0 +1,4 @@
+---
+dependencies:
+- { role: nodejs, when: signal_sidecar_install_flag }
+- { role: jitsi-repo, when: signal_sidecar_install_flag }

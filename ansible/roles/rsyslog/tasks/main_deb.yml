@@ -1,0 +1,3 @@
+# Debian related tasks
+---
+- include_tasks: deb_packages.yml

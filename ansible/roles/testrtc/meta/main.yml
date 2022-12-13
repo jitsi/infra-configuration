@@ -1,0 +1,5 @@
+---
+
+dependencies:
+  - { role: "nodejs", when: testrtc_install_flag }
+  - { role: "nginx", when: testrtc_install_flag }

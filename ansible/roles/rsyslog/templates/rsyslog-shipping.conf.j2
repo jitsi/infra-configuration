@@ -1,0 +1,33 @@
+## {{ ansible_managed }}
+
+ template(name="ls_json" type="list" option.json="on")
+   { constant(value="{")
+     constant(value="\"@timestamp\":\"")         property(name="timegenerated" dateFormat="rfc3339")
+     constant(value="\",\"@version\":\"1")
+     constant(value="\",\"message\":\"")         property(name="msg")
+     constant(value="\",\"host\":\"")            property(name="hostname")
+     constant(value="\",\"host_ip\":\"")         property(name="fromhost-ip")
+     constant(value="\",\"hcv_environment\":\"{{hcv_environment}}")
+{% if shard_name %}
+     constant(value="\",\"hcv_shard\":\"{{shard_name}}")
+{% endif %}
+     constant(value="\",\"logsource\":\"")       property(name="fromhost")
+     constant(value="\",\"severity_label\":\"")  property(name="syslogseverity-text")
+     constant(value="\",\"severity\":\"")        property(name="syslogseverity")
+     constant(value="\",\"facility_label\":\"")  property(name="syslogfacility-text")
+     constant(value="\",\"facility\":\"")        property(name="syslogfacility")
+     constant(value="\",\"program\":\"")         property(name="programname")
+     constant(value="\",\"pid\":\"")             property(name="procid")
+     constant(value="\",\"rawmsg\":\"")          property(name="rawmsg")
+     constant(value="\",\"syslogtag\":\"")       property(name="syslogtag")
+     constant(value="\"}\n")
+   } 
+ 
+*.*;syslog;auth,authpriv.none @@{{ logstash_endpoint }}:514;ls_json
+
+## Log all JSON logs to a file for later processing, disabled until further automation is added
+##$ActionExecOnlyWhenPreviousIsSuspended on
+##
+##& /var/log/local/local_json_buffer.log;ls_json
+##
+##$ActionExecOnlyWhenPreviousIsSuspended off

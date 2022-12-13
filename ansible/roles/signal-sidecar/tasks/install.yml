@@ -1,0 +1,11 @@
+---
+- name: install signal-sidecar package
+  apt: name="{{signal_sidecar_deb_pkg_name}}={{signal_sidecar_deb_pkg_version}}" state=present
+  notify:
+    - restart signal-sidecar 
+
+- name: application log directory
+  file: path={{signal_sidecar_log_dir}} state=directory
+
+- name: rsyslog configuration
+  template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/25-signal-sidecar.conf

@@ -1,0 +1,9 @@
+---
+- include_tasks: install.yml
+  when: jitsi_meet_install_flag
+
+- include_tasks: configure.yml
+  when: jitsi_meet_configure_flag
+
+- include_tasks: nginx.yml
+  when: jitsi_meet_nginx_only_flag

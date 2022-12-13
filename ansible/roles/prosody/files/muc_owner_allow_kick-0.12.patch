@@ -1,0 +1,18 @@
+--- muc.lib.lua	2022-03-15 14:17:25.843693110 +0000
++++ muc.lib.lua	2022-03-15 14:15:10.984641233 +0000
+@@ -1585,13 +1585,13 @@
+
+ 	-- Can't do anything to other owners or admins
+ 	local occupant_affiliation = self:get_affiliation(occupant.bare_jid);
+-	if occupant_affiliation == "owner" or occupant_affiliation == "admin" then
++	local actor_affiliation = self:get_affiliation(actor);
++	if (occupant_affiliation == "owner" and actor_affiliation ~= "owner") or (occupant_affiliation == "admin" and actor_affiliation ~= "admin" and actor_affiliation ~= "owner") then
+ 		return nil, "cancel", "not-allowed";
+ 	end
+
+ 	-- If you are trying to give or take moderator role you need to be an owner or admin
+ 	if occupant.role == "moderator" or role == "moderator" then
+-		local actor_affiliation = self:get_affiliation(actor);
+ 		if actor_affiliation ~= "owner" and actor_affiliation ~= "admin" then
+ 			return nil, "cancel", "not-allowed";
+ 		end

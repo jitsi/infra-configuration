@@ -1,0 +1,35 @@
+#!/bin/bash -v
+#make sure we exit early if we fail any step
+set -e
+set -x
+
+#CLEAR AWSMON CACHE
+rm -rf /var/tmp/aws-mon/
+
+# This configures an instance running jitsi-videobridge with the parameters given below. The machine should be running on an image with jitsi-videobridge already installed via jvb-install.sh
+
+S3_BUCKET="jitsi-bootstrap-assets"
+
+. /usr/local/bin/aws_cache.sh
+
+#the component ID is "jvb-X" where X is the last octet in our IP address.
+MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+MY_COMPONENT_ID="jvb-$(echo $MY_IP | awk -F. '{print $2"-"$3"-"$4}')"
+
+MY_HOSTNAME="${SHARD}-${MY_COMPONENT_ID}.$DOMAIN"
+
+#Set local hostname
+hostname $MY_HOSTNAME
+
+#make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
+grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
+
+#set AWS Name tag from shard and component ID
+aws ec2 create-tags --resources $EC2_INSTANCE_ID --tags Key=Name,Value="$MY_HOSTNAME"
+
+#set us up for a local ansible-pull
+/usr/local/bin/aws s3 cp s3://$S3_BUCKET/vault-password /root/.vault-password
+/usr/local/bin/aws s3 cp s3://$S3_BUCKET/id_rsa_jitsi_deployment /root/.ssh/id_rsa
+chmod 400 /root/.ssh/id_rsa
+
+/usr/local/bin/configure-jvb-local.sh >> /var/log/postinstall-ansible.log 2>&1

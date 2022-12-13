@@ -1,0 +1,64 @@
+---
+datadog_extensions: "false"
+statsd_port: 8125
+telegraf_additional_config_dir: "{{ telegraf_config_dir }}/telegraf.d"
+#telegraf variables
+#telegraf_config_wfcopy: "https://raw.githubusercontent.com/wavefrontHQ/integrations/master/telegraf/telegraf.conf"
+telegraf_config_dir: "/etc/telegraf"
+telegraf_hostname: "{{ ansible_fqdn }}"
+telegraf_http_port: 3878
+telegraf_main_config: "{{ telegraf_config_dir }}/telegraf.conf"
+telegraf_port: 2878
+telegraf_wavefront_output_plugin_config: "{{ telegraf_additional_config_dir }}/10-wavefront.conf"
+wavefront_agent_config_args:
+wavefront_agent_extra_args:
+wavefront_api_token: 'DUMMY_WF_URL_API_TOKEN'
+wavefront_api_url: "{{ wavefront_url }}/api"
+wavefront_cmd: wave
+wavefront_collector: 'telegraf'
+# by default use the latest telegraf as influx repo updates on stable release and doesn't keep old versions
+wavefront_collector_version: '*'
+wavefront_config: "{{ wavefront_config_dir }}/wavefront.conf"
+wavefront_config_dir: '/etc/wavefront/{{ wavefront_proxy_pkg }}'
+wavefront_configure_collector: false
+wavefront_create_cred_file: false
+wavefront_cred_file: "{{ lookup('env','HOME') }}/.wavefront/credentials"
+wavefront_install_collector: false
+wavefront_install_proxy: false
+# defaults file for wavefront
+wavefront_instance: "metrics"
+#Other pip package related attributes
+wavefront_pip_pkg: wavefront-cli
+wavefront_pkg_state: 'present'
+wavefront_proxy_address: "{{ regional_wavefront_proxy | default('localhost') }}"
+wavefront_proxy_from_apt: true
+wavefront_proxy_json_port: "{{ telegraf_port }}"
+# to set a version of the agent use wavefront-proxy=X.Y.Z
+wavefront_proxy_pkg: 'wavefront-proxy'
+wavefront_proxy_pkg_url: 'https://packagecloud.io/wavefront/proxy'
+wavefront_proxy_port: "{{ telegraf_port }}"
+wavefront_proxy_version: '10.14-1'
+wavefront_repo_base_url: "https://packagecloud.io/install/repositories/wavefront/{{ item.tool }}"
+wavefront_repo_gpgkey: "https://packagecloud.io/wavefront/proxy/gpgkey"
+wavefront_repo_install_url: "{{ wavefront_repo_base_url }}/config_file.repo?os={{ item.release }}&dist={{ item.version }}&source=script"
+wavefront_tcp_mode: false
+wavefront_architecture: "{{'arm64' if ansible_architecture == 'aarch64' else 'amd64'}}"
+wavefront_telegraf_deb_file: "telegraf_1.22.4-1_{{wavefront_architecture}}.deb"
+wavefront_telegraf_deb_path: "/tmp/{{wavefront_telegraf_deb_file}}"
+wavefront_telegraf_deb_url: "https://repo:{{jitsi_repo_password}}@internal-repo.jitsi.net/debian/misc/{{wavefront_telegraf_deb_file}}"
+wavefront_telegraf_from_apt: false
+wavefront_telegraf_pkg_url: "{{ wavefront_telegraf_pkg_url_influx if wavefront_telegraf_use_influx else wavefront_telegraf_pkg_url_pcloud}}"
+wavefront_telegraf_pkg_url_influx: 'https://repos.influxdata.com'
+wavefront_telegraf_pkg_url_pcloud: 'https://packagecloud.io/wavefront/telegraf'
+wavefront_telegraf_remove_repo: true
+wavefront_telegraf_repo_branch: "{{'stable' if wavefront_telegraf_use_influx else 'main'}}"
+wavefront_telegraf_repo_gpgkey: "{{ wavefront_telegraf_repo_gpgkey_influx if wavefront_telegraf_use_influx else wavefront_telegraf_repo_gpgkey_pcloud}}"
+wavefront_telegraf_repo_gpgkey_2: "{{ wavefront_telegraf_repo_gpgkey_influx_2 if wavefront_telegraf_use_influx else false}}"
+# needs to be updated when apt keys change
+wavefront_telegraf_repo_gpgkey_id: A4B94A8C145F4C456133EFEFAB162277E8EE6FD0
+wavefront_telegraf_repo_gpgkey_id_2: 684A14CF2582E0C5
+wavefront_telegraf_repo_gpgkey_influx: "https://repos.influxdata.com/influxdb.key"
+wavefront_telegraf_repo_gpgkey_influx_2: "https://repos.influxdata.com/influxdb2.key"
+wavefront_telegraf_repo_gpgkey_pcloud: "https://packagecloud.io/wavefront/telegraf/gpgkey"
+wavefront_telegraf_use_influx: true
+wavefront_url: "https://{{ wavefront_instance }}.wavefront.com"
