@@ -1,0 +1,20 @@
+---
+jvb_rtcstats_enabled: false
+jvb_rtcstats_push_base_path: /opt/jitsi/jvb-rtcstats-push
+jvb_rtcstats_push_config_dir: /etc/jitsi/jvb-rtcstats-push
+jvb_rtcstats_push_config_path: /etc/jitsi/jvb-rtcstats-push/service.env
+jvb_rtcstats_push_configure_flag: true
+jvb_rtcstats_push_git_repo: https://github.com/jitsi/jvb-rtcstats-push.git
+jvb_rtcstats_push_groupname: jitsi
+jvb_rtcstats_push_install_flag: true
+jvb_rtcstats_push_jvb_address: http://localhost:8080
+jvb_rtcstats_push_log_dir: /var/log/jitsi/jvb-rtcstats-push
+jvb_rtcstats_push_rtcstats_server: wss://rtcstats-server.jitsi.net
+jvb_rtcstats_push_service_name: jvb-rtcstats-push
+jvb_rtcstats_push_username: rtcstatspush
+jvb_rtcstats_user:
+  groups: ["adm", "{{jvb_rtcstats_push_groupname}}"]
+  homedir: "/home/{{jvb_rtcstats_push_username}}"
+  real_name: RTC stats pusher user
+  state: present
+  username: "{{jvb_rtcstats_push_username}}"
