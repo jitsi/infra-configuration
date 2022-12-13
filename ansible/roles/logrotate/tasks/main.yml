@@ -37,11 +37,11 @@
     path: /lib/systemd/system/logrotate.timer
     regexp: '^OnCalendar='
     line: OnCalendar=*:0/5
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 - name: update systemd timer granularity for logrotate
   lineinfile:
     path: /lib/systemd/system/logrotate.timer
     regexp: '^AccuracySec='
     line: AccuracySec=1m
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'

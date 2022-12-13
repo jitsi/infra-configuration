@@ -6,7 +6,7 @@
 
 - name: Install list of packages
   apt:
-    name: ["git","luarocks","libexpat1-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn11", "lua-basexx", "lua-luaossl", "lua-cjson"]
+    name: ["git","luarocks","libexpat-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn{{'11' if ansible_distribution_release == 'focal' else '12'}}", "lua-basexx", "lua-luaossl", "lua-cjson"]
     state: latest
 
 - name: Install libssl1.0 if ubuntu == 18
@@ -179,6 +179,15 @@
 
 - name: copy systemd file for nightly if it does not exist
   copy: src="prosody.service" dest="/lib/systemd/system/prosody.service" force=no
+
+#make sure we have the bitbucket deployment key for fetching things from BB
+#TODO: check if we really need this?
+- name: deploy ssh key
+  copy: >
+      content="{{bitbucket_deployment_certificate}}"
+      dest=/root/.ssh/id_rsa_bitbucket_deployment
+      mode=0600
+  no_log: true
 
 - name: apt install mercurial
   apt: name=mercurial state=present

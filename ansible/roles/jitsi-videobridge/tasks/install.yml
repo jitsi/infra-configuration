@@ -7,11 +7,11 @@
 
 - name: install monitoring pip prereqs - decorator
   pip: name=decorator state=present
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 - name: freeze check pip pre reqs
   pip: name=datadog state=present
-  when: ansible_distribution_release == 'focal'
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 - name: install monitoring pip prereqs - decorator
   pip: name=decorator version="4.4.2" state=present executable=/usr/bin/pip

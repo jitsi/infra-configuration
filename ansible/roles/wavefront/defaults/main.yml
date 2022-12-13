@@ -37,7 +37,7 @@ wavefront_proxy_json_port: "{{ telegraf_port }}"
 wavefront_proxy_pkg: 'wavefront-proxy'
 wavefront_proxy_pkg_url: 'https://packagecloud.io/wavefront/proxy'
 wavefront_proxy_port: "{{ telegraf_port }}"
-wavefront_proxy_version: '10.14-1'
+wavefront_proxy_version: "{{'12.0-2' if ansible_distribution_release=='jammy' else '10.14-1'}}"
 wavefront_repo_base_url: "https://packagecloud.io/install/repositories/wavefront/{{ item.tool }}"
 wavefront_repo_gpgkey: "https://packagecloud.io/wavefront/proxy/gpgkey"
 wavefront_repo_install_url: "{{ wavefront_repo_base_url }}/config_file.repo?os={{ item.release }}&dist={{ item.version }}&source=script"
