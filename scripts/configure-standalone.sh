@@ -45,28 +45,6 @@ if [[ "$CLOUD_PROVIDER" == "oracle" ]]; then
         echo "DOMAIN not defined, assuming default value: $DOMAIN"
     fi
 
-    if [ -z "$SKIP_CREATE_STEP_FLAG" ]; then
-        PUBLIC_IP="$(dig $DOMAIN +short)"
-        if [[ -z "$PUBLIC_IP" ]]; then
-            # no ip found, so assume we must create the machine
-            SKIP_CREATE_STEP_FLAG="false"
-        else
-            # ip found, so assume it exists and should not be recreated
-            SKIP_CREATE_STEP_FLAG="true"
-        fi
-    fi
-
-    if [[ "$SKIP_CREATE_STEP_FLAG" == "false" ]]; then
-        $LOCAL_PATH/terraform/standalone/create-standalone-server-oracle.sh $1
-        RET=$?
-        if [[ $RET -eq 0 ]]; then
-            echo "Create successful, adding cname"
-            $LOCAL_PATH/create-oracle-cname-stack.sh
-        else
-            echo "Create failed"
-            exit $RET
-        fi
-    fi
     $LOCAL_PATH/configure-standalone-oracle.sh $1
     exit $?
 fi
