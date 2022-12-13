@@ -1,0 +1,3 @@
+---
+mfa_users: "{{ssh_users_jitsi}}"
+mfa_security_users: "{{ssh_users_security}}"

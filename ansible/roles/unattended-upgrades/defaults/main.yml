@@ -1,0 +1,9 @@
+---
+unattended_upgrades_auto_reboot: false
+unattended_upgrades_auto_remove: false
+unattended_upgrades_email_address: root@localhost
+unattended_upgrades_origins:
+  - '${distro_id} ${distro_codename}-security'
+unattended_upgrades_send_email: false
+unattended_upgrades_update_package_lists_interval: 1
+unattended_upgrades_upgrade_interval: 1

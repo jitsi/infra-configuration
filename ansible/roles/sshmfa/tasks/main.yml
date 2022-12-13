@@ -1,0 +1,64 @@
+- name: install apt pre-requisites
+  apt:
+    name: libpam-google-authenticator
+    install_recommends: True
+    state: latest
+
+- name: comment out common-auth in /etc/pam.d/sshd
+  lineinfile:
+    dest: /etc/pam.d/sshd
+    regexp: '^@include common-auth'
+    line: '#@include common-auth'
+  notify: restart sshd
+
+- name: add auth required blocks to /etc/pam.d/sshd
+  blockinfile:
+    path: /etc/pam.d/sshd
+    insertafter: EOF
+    block: |
+      auth required pam_google_authenticator.so
+  notify: restart sshd
+
+- name: set ChallengeResponseAuthentication in /etc/ssh/sshd_config
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?ChallengeResponseAuthentication '
+    line: 'ChallengeResponseAuthentication yes'
+  notify: restart sshd
+
+- name: set AuthenticationMethods in /etc/ssh/sshd_config
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?AuthenticationMethods '
+    line: 'AuthenticationMethods publickey,keyboard-interactive:pam'
+  notify: restart sshd
+
+- name: give automation users key-only access for ansible
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    insertafter: EOF
+    block: |
+      Match User ubuntu
+          AuthenticationMethods publickey
+      Match User rapid7
+          AuthenticationMethods publickey
+      Match User device42
+          AuthenticationMethods publickey
+
+- name: Deploy .google_authenticator file for jitsi users
+  no_log: True
+  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{item.username}}" group="{{item.username}}"
+  when: 
+    - item.state != "absent"
+    - item.mfa_key is defined
+  with_items:
+    - "{{mfa_users}}"
+
+- name: Deploy .google_authenticator file for security users
+  no_log: True
+  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{item.username}}" group="{{item.username}}"
+  when: 
+    - item.state != "absent"
+    - item.mfa_key is defined
+  with_items:
+    - "{{mfa_security_users}}"
