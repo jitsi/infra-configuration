@@ -120,6 +120,18 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# customizations overlay
+/sites
+/config
+/clouds
+/cloud_vpcs
+/ansible/secrets
+/ansible/sites
+/ansible/config
+
+.vault-password.txt
+.facts/
+
 # mypy
 .mypy_cache/
 .dmypy.json
