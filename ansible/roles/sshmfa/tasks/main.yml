@@ -33,6 +33,14 @@
     line: 'AuthenticationMethods publickey,keyboard-interactive:pam'
   notify: restart sshd
 
+- name: set KbdInteractiveAuthentication in /etc/ssh/sshd_config
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?KbdInteractiveAuthentication '
+    line: 'KbdInteractiveAuthentication yes'
+  when: ansible_distribution_release == 'jammy'
+  notify: restart sshd
+
 - name: give automation users key-only access for ansible
   blockinfile:
     path: /etc/ssh/sshd_config
