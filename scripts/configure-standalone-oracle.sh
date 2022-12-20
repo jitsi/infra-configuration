@@ -108,7 +108,7 @@ if [ ! -z "$PROSODY_FROM_URL" ]; then
     PROSODY_APT_FLAG="\"prosody_install_from_apt\":$PROSODY_APT_FLAG"
 fi
 
-ansible-playbook -v $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
+ansible-playbook -vvv $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
 --extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
 -e "jitsi_videobridge_deb_pkg_version=$JVB_VERSION" \
 -e "jicofo_deb_pkg_version=$JICOFO_VERSION" \
