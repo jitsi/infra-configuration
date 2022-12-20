@@ -37,6 +37,7 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar", autoscaler_instance_type: "jibri", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: true, jibri_configure_flag: false}
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations", upload_integrations_install_flag: true, upload_integrations_configure_flag: false }
+    - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations", upload_customizations_install_flag: true, upload_customizations_configure_flag: false }
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: true, jibri_pjsua_configure_flag: false}
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: true, sip_jibri_configure_flag: false}
     - { role: "clean-system", tags: "clean-system, build" }

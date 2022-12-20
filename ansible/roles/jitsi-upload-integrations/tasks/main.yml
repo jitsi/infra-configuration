@@ -1,103 +1,17 @@
 ---
 
-# we ignore failures for now, for backwards compatibility, as there are still images which don't have the version saved
-- name: Get vo-meet-agent version from the version file
-  shell: cat {{vo_meet_agent_version_file}}
-  ignore_errors: true
-  register: vo_meet_agent_version_result
-  when:
-    - upload_integrations_configure_flag
-
-- name: Set vo-meet-agent version from the version file
-  set_fact:
-    vo_meet_agent_version: "{{ vo_meet_agent_version_result.stdout }}"
-  when:
-    - upload_integrations_configure_flag
-    - not vo_meet_agent_version_result.failed
-
 - name: config jitsi uploader failed dir
   file: path="{{jitsi_uploader_failed_dir}}" state=directory mode=0777
-  when: not recovery_agent and upload_integrations_configure_flag
+  when: upload_integrations_configure_flag
 
 - name: config jitsi uploader dir
   file: path="/etc/jitsi" state=directory
   when: upload_integrations_configure_flag
 
-- name: config jitsi uploader - add recover rec
-  copy: content="RECOVER_REC=true" dest="/etc/jitsi/uploader" owner=root mode=0644
-  when: recovery_agent and upload_integrations_configure_flag
-
 - name: config jitsi uploader - add failed upload dir
   copy: content="FAILED_UPLOAD_DIR={{jitsi_uploader_failed_dir}}" dest="/etc/jitsi/uploader" owner=root mode=0644
-  when: not recovery_agent and upload_integrations_configure_flag
+  when: upload_integrations_configure_flag
 
 - name: install jitsi-upload-integrations package
   apt: name={{uploader_pkg_name}} state=latest
   when: upload_integrations_install_flag
-
-# steps to download the upload agent jar from S3 to the disk
-- name: Ensure the release bucket group exists
-  group:
-    name: "{{release_bucket_groupname}}"
-    state: present
-  when: upload_integrations_install_flag
-
-- name: create the release bucket user
-  user:
-    name: "{{release_bucket_username}}"
-    comment: Release bucket downloader
-    group: "{{release_bucket_groupname}}"
-  when: upload_integrations_install_flag
-
-- name: confirm the release bucket homedir
-  file: path="{{release_bucket_homedir}}" state=directory owner={{release_bucket_username}} mode=0755
-  when: upload_integrations_install_flag
-
-- name: add aws directory
-  file: path="{{release_bucket_homedir}}/.aws" state=directory owner={{release_bucket_username}} mode=0700
-  when: upload_integrations_install_flag and jitsi_upload_cloud_provider != 'aws'
-
-- name: add aws credentials file
-  template: src="aws_credentials.j2" dest="{{release_bucket_homedir}}/.aws/credentials" owner={{release_bucket_username}} mode=0700
-  when: upload_integrations_install_flag and jitsi_upload_cloud_provider != 'aws'
-
-- name: add aws config file
-  template: src="aws_config.j2" dest="{{release_bucket_homedir}}/.aws/config" owner={{release_bucket_username}} mode=0700
-  when: upload_integrations_install_flag and jitsi_upload_cloud_provider != 'aws'
-
-- name: download vo-meet-agent jar from S3 to temp location
-  command: aws s3 cp {{css_uploader_agent_url}} "{{release_bucket_homedir}}/{{css_uploader_agent_jar}}" creates="{{release_bucket_homedir}}/{{css_uploader_agent_jar}}"
-  become: yes
-  become_user: "{{release_bucket_username}}"
-  when: upload_integrations_install_flag
-
-- name: move vo-meet-agent jar from temp location to final location
-  command: mv -f "{{release_bucket_homedir}}/{{css_uploader_agent_jar}}" {{css_uploader_agent_jar_path}}
-  when: upload_integrations_install_flag
-
-- name: remove aws directory
-  file: path="{{release_bucket_homedir}}/.aws" state=absent
-  when: upload_integrations_install_flag and jitsi_upload_cloud_provider != 'aws'
-
-- name: save the vo-meet-agent version
-  template: src="vo-meet-agent-version.j2" dest="{{vo_meet_agent_version_file}}" mode=0640
-  when: upload_integrations_install_flag
-
-#script to handle the css recording
-- name: Copy jitsi-recording-service script
-  template: src="jitsi-recording-service.j2" dest="/usr/bin/jitsi-recording-service.sh" mode=0755
-  when: not recovery_agent and upload_integrations_configure_flag
-
-- name: Copy vo upload configuration
-  template: src="application.yml.j2" dest="/etc/jitsi/vo-meet-agent-config.yml" group=jitsi mode=0640
-  when: not recovery_agent and upload_integrations_configure_flag
-
-- name: Copy vo upload configuration
-  template: src="application.yml.j2" dest="/etc/jitsi/vo-meet-agent-config.yml" mode=0640
-  when: recovery_agent and upload_integrations_configure_flag
-
-#script to handle upload failures on oracle
-#upload this only at postinstall, when oracle_region is known, and not at build time
-- name: Copy jitsi-recording-service script
-  template: src="jitsi-recording-upload-failure.sh.j2" dest="/usr/bin/jitsi-recording-upload-failure.sh" mode=0755
-  when: not recovery_agent and jitsi_upload_cloud_provider == "oracle" and oracle_region is defined and upload_integrations_configure_flag
