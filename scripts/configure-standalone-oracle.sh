@@ -110,6 +110,7 @@ fi
 
 ansible-playbook -vvv $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
 --extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
+-e "ansible_python_interpreter=/usr/bin/python" \
 -e "jitsi_videobridge_deb_pkg_version=$JVB_VERSION" \
 -e "jicofo_deb_pkg_version=$JICOFO_VERSION" \
 -e "jitsi_meet_deb_pkg_version=$JITSI_MEET_VERSION" \
