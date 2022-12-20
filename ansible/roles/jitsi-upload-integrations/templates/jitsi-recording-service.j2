@@ -1,0 +1,3 @@
+#!/bin/bash
+UPLOAD_DIR=$1
+java -jar {{css_uploader_agent_jar_path}} --spring.config.location=/etc/jitsi/vo-meet-agent-config.yml $UPLOAD_DIR

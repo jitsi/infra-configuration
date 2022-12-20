@@ -1,0 +1,57 @@
+---
+- name: register installed sidecar software version
+  shell: "{{autoscaler_sidecar_instance_version_command}}"
+  register: autoscaler_sidecar_instance_version_shell
+  when: (autoscaler_sidecar_instance_version_command | length) > 0
+
+- name: set autoscaler instance version fact
+  set_fact:
+    autoscaler_sidecar_instance_version: "{{ autoscaler_sidecar_instance_version_shell.stdout }}"
+  when: autoscaler_sidecar_instance_version_shell is defined
+
+- name: copy autoscaler signing key file
+  copy: dest="{{autoscaler_key_path}}" mode=0640 content="{{asap_key['key']}}" owner="{{autoscaler_username}}"
+
+- name: sidecar environment configuration
+  template: src=sidecar.env.j2 dest={{autoscaler_env_path}}
+
+- name: allow jsidecar users any sudo commands
+  lineinfile: "dest=/etc/sudoers state=present regexp='^%{{autoscaler_groupname}}' line='%{{autoscaler_groupname}} ALL=(ALL) NOPASSWD: ALL'"
+
+- name: copy graceful shutdown wrapper script
+  template: dest="{{autoscaler_graceful_shutdown_wrapper}}" src="graceful_shutdown_wrapper.sh.j2" mode=0755
+
+- name: copy reconfigure wrapper script
+  template: dest="{{autoscaler_reconfigure_wrapper}}" src="reconfigure_wrapper.sh.j2" mode=0755
+
+- name: copy terminate instance script aws
+  copy: dest="{{autoscaler_terminate_script}}" src="terminate_instance_aws.sh" mode=0755
+  when: autoscaler_cloud_provider == "aws"
+
+- name: copy terminate instance script oracle
+  copy: dest="{{autoscaler_terminate_script}}" src="terminate_instance_oracle.sh" mode=0755
+  when: autoscaler_cloud_provider == "oracle" and autoscaler_use_default_terminate_script == true
+
+- name: Configure systemd script for sidecar service
+  template: src=sidecar.systemd.j2 dest=/lib/systemd/system/{{autoscaler_sidecar_service_name}}.service
+
+- name: Start server service and set it enabled
+  service: name={{autoscaler_sidecar_service_name}} state=started enabled=yes
+
+- name: Create directory for AWS credentials
+  file: path="{{autoscaler_user.homedir}}/.aws" state=directory
+  when: autoscaler_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
+
+- name: AWS credentials
+  template: src=aws_credentials.j2
+    dest="{{autoscaler_user.homedir}}/.aws/credentials" mode=0640 owner={{ autoscaler_username }}
+  when: autoscaler_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
+
+# Run the the health checker regularly
+- name: sidecar health check script cron
+  cron: user=root
+        state=present
+        name="Sidecar health check script"
+        minute="*"
+        hour="*"
+        job="{{ autoscaler_health_script }} > /tmp/health-sidecar-cron-output 2>&1"

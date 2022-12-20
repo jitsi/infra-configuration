@@ -1,0 +1,133 @@
+auth:
+  sso:
+    url: {{ css_auth_sso_url }}
+  basic: Basic {{ css_auth_basic }}
+
+url:
+  agentmonitorservice: {{ css_agent_monitor_service_url }}
+  notification: {{ css_push_notification }}
+  eventAcceptor: {{ css_event_acceptor_url }}
+  usageService: {{ css_usage_service_url }}
+
+upload:
+  s3: {{ css_s3_upload }}
+
+retryProps:
+  regular:
+    maxAttempts: {{ css_retry_reg_maxAttempts }}
+    backOffDelay: {{ css_retry_reg_backOffDelay }}
+    backOffMultiplier: {{ css_retry_reg_backOffMultiplier }}
+
+instance:
+  environment: {{ hcv_environment }}
+  ip: {{ jibri_private_ip }}
+  # those will be dynamically discovered by Jibri postinstall configuration script
+  volumeId: {{ instance_volume_id }}
+  region: {{ jibri_agent_oracle_region }}
+
+metrics:
+  enabled: {{ recovery_agent }}
+  proxy:
+    host: {{ regional_wavefront_proxy }}:2878
+  node:
+    id: {{ jibri_agent_oracle_region }}
+  app:
+    name: {{ metrics_app_name}}
+  environment: {{ hcv_environment }}
+
+customerId: {{ css_auth_customer_id }}
+{% if css_auth_user_id %}
+userId: {{ css_auth_user_id }}
+{% endif %}
+
+testMode:
+  enabled: false
+
+cleanup:
+  cloud:
+    enabled: true
+  local:
+    enabled: true
+
+storage:
+  default-url:  {{ css_storage_default_url }}
+
+region-discovery-service:
+  url: {{ css_region_discovery_service_url }}
+  timeout: {{ css_region_discovery_service_timeout }}
+
+webClient:
+  connectTimeout: {{ css_web_client_connect_timeout }}
+  readTimeout: {{ css_web_client_read_timeout }}
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          vo-meetings-recording-agent:
+            provider: {{ css_storage_oauth2_provider }}
+            client-id: {{ css_storage_oauth2_client_id }}
+            client-secret: {{ css_storage_oauth2_client_secret }}
+            authorization-grant-type: client_credentials
+            client-authentication-method: basic
+        provider:
+          eght-oauth:
+            token-uri: {{ css_storage_oauth2_token_uri }}
+      eght-client:
+        use-web-exchange-context: false
+        discover-client-from-authentication: true
+        clock-skew: PT1M
+        default-client-registration-id: vo-meetings-recording-agent
+
+recovery:
+  enabled: {{ recovery_agent }}
+  efsPath: {{ css_recovery_efs_path }}
+  extraInfoPath: "/tmp/recovery/extra/${instance.environment}/"
+  jitsiUploader: "/usr/bin/jitsi_uploader.sh"
+  historyFilePath: "/tmp/recovery/${instance.environment}/css_dropbox_recovery_history.json"
+  dropbox:
+    recExpirationTimeHours: 24
+  failureThreshold: 7
+  timeoutMinutes: 6
+  nrThreads: {{ css_recovery_nr_threads }}
+  failedBucketPrefix: "failed-recordings"
+  regions: {{ css_oracle_regions }}
+  scheduler:
+    fixedDelay: 120000
+  vpaas:
+    nrThreads: {{ css_recovery_nr_threads }}
+    schedulerFixedDelay: 120000
+    failedBucketPrefix: "vpaas-failed-recordings"
+    recExpirationTimeHours: 24
+    metadataPath: "/tmp/recovery/${instance.environment}/"
+    historyFilePath: "/tmp/recovery/${instance.environment}/vpaas_recovery_history.json"
+
+chunk:
+  splitter:
+    enabled: {{ true if not recovery_agent else false }}
+
+file:
+  maxSizeMb: 5000
+  splitSize: 4500
+  suffix: .mp4
+
+oracle:
+  namespace: {{ oracle_namespace }}
+  enabled: {{ true if jitsi_upload_cloud_provider == 'oracle' else false }}
+  principalAuth: true
+
+vpaas:
+  bucket:
+    name: "vpaas-recordings-${instance.environment}-${instance.region}"
+    recExpirationTimeHours: 24
+
+cache:
+  initial-capacity: 50
+  expiration: 48
+  dir-uploads:
+    initial-capacity: 50
+  css:
+    expiration: 1488
+  dropbox:
+    expiration: 48

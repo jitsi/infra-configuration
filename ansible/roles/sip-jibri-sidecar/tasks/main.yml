@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: sip_jibri_install_flag
+
+- include_tasks: configure.yml
+  when: sip_jibri_configure_flag

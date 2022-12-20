@@ -1,0 +1,75 @@
+#!/bin/bash
+
+VPAAS_FAILED_BUCKET="{{jitsi_uploader_vpaas_failed_bucket}}"
+DROPBOX_FAILED_BUCKET="{{jitsi_uploader_dropbox_failed_bucket}}"
+FAILED_BUCKET="{{jitsi_uploader_failed_bucket}}"
+ORACLE_REGION="{{oracle_region}}"
+OCI_BIN="/usr/local/bin/oci"
+HOSTNAME_ROOT=$(hostname -s)
+
+UPLOAD_DIR=$1
+OS_PREFIX="/failed/$HOSTNAME_ROOT/$(basename $UPLOAD_DIR)/"
+UPLOAD_TYPE="css"
+REC_DURATION=0
+M_TIME=0
+# determine if the recording is VPAAS
+grep -q /vpaas-magic-cookie-.*/ ${UPLOAD_DIR}/metadata.json
+IS_VPAAS=$?
+if [ $IS_VPAAS -eq 0 ]; then
+    FAILED_BUCKET=$VPAAS_FAILED_BUCKET
+    TENANT=`grep -o vpaas-magic-cookie-.*/ ${UPLOAD_DIR}/metadata.json | cut -d/ -f1`
+    OS_PREFIX="${TENANT}/$(basename $UPLOAD_DIR)/"
+    # determine recording duration and modification time
+    REC_DURATION=`ffprobe -v quiet -of csv=p=0 -show_entries format=duration ${UPLOAD_DIR}/*.mp4`
+    if [ -z $REC_DURATION ]; then
+        REC_DURATION=0
+    fi
+    M_TIME=`stat -c %Y ${UPLOAD_DIR}/*.mp4`
+    UPLOAD_TYPE="vpaas"
+fi
+
+# determine if the recording is DROPBOX
+IS_DROPBOX=$(cat ${UPLOAD_DIR}/metadata.json | jq -r ".upload_credentials.service_name")
+if [ ! -z $IS_DROPBOX ] && [ $IS_DROPBOX == 'dropbox' ]; then
+    FAILED_BUCKET=$DROPBOX_FAILED_BUCKET
+    UUID=$(uuidgen)
+    OS_PREFIX="${UUID}/$(basename $UPLOAD_DIR)/"
+    UPLOAD_TYPE="dropbox"
+fi
+
+function retry() {
+    n=0
+    until [ $n -ge 5 ]; do
+        ${@:1}
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        n=$[$n+1]
+        sleep 1
+    done
+    if [ $n -eq 5 ];then
+        return $n
+    else
+        return 0
+    fi
+}
+
+case "$UPLOAD_TYPE" in
+  "vpaas")
+    JSON_TEMPLATE='{"duration":"%f","mtime":"%d"}'
+    METADATA_DURATION=`printf $JSON_TEMPLATE $REC_DURATION $M_TIME`
+    retry timeout --kill-after=5m 30m $OCI_BIN os object bulk-upload --auth instance_principal --region $ORACLE_REGION --src-dir $UPLOAD_DIR --bucket-name $FAILED_BUCKET --object-prefix $OS_PREFIX --metadata $METADATA_DURATION --no-overwrite
+    ;;
+  *)
+    retry timeout --kill-after=5m 30m $OCI_BIN os object bulk-upload --auth instance_principal --region $ORACLE_REGION --src-dir $UPLOAD_DIR --bucket-name $FAILED_BUCKET --object-prefix $OS_PREFIX  --no-overwrite
+    ;;
+esac
+
+FINAL_RET=$?
+
+# if successfully processed upload, then remove upload directory contents
+if [ $FINAL_RET -eq 0 ]; then
+    rm -r $UPLOAD_DIR/*
+fi
+
+exit $FINAL_RET

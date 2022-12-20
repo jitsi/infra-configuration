@@ -1,0 +1,78 @@
+---
+autoscaler_base_path: /opt/jitsi/autoscaler-sidecar
+autoscaler_config_dir: /etc/jitsi/autoscaler-sidecar
+autoscaler_config_file: "{{autoscaler_config_dir}}/config.json"
+autoscaler_configure_flag: true
+autoscaler_enable_report_stats: 'true'
+autoscaler_env_path: "{{autoscaler_config_dir}}/sidecar.env"
+autoscaler_environment: "{{hcv_environment}}"
+autoscaler_express_port: 6000
+autoscaler_force_shutdown_command: "{{ autoscaler_force_shutdown_command_by_type[autoscaler_instance_type] if autoscaler_force_shutdown_command_by_type[autoscaler_instance_type] is defined else ''}}"
+autoscaler_force_shutdown_command_by_type:
+  'JVB': 'service jitsi-videobridge2 stop'
+  'jibri': 'service jibri stop'
+  'jigasi': 'service jigasi stop'
+  'sip-jibri': 'service jibri stop'
+#autoscaler_git_repo: git@github.com:jitsi/jitsi-autoscaler-sidecar.git
+autoscaler_git_repo: https://github.com/jitsi/jitsi-autoscaler-sidecar.git
+autoscaler_graceful_shutdown_script: "{{ autoscaler_graceful_shutdown_scripts[autoscaler_instance_type] if autoscaler_graceful_shutdown_scripts[autoscaler_instance_type] is defined else ''}}"
+autoscaler_graceful_shutdown_scripts:
+  'JVB': /usr/share/jitsi-videobridge/graceful_shutdown.sh
+  'jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
+  'jigasi': /usr/share/jigasi/graceful_shutdown.sh
+  'sip-jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
+autoscaler_graceful_shutdown_wrapper: /usr/local/bin/graceful_shutdown_wrapper.sh
+autoscaler_group: "default"
+autoscaler_groupname: jsidecar
+autoscaler_health_script: "/usr/local/bin/autoscaler-sidecar-health.sh"
+autoscaler_health_url: "http://localhost:{{autoscaler_express_port}}/health"
+autoscaler_install_flag: true
+autoscaler_instance_id: "{{ansible_ec2_instance_id if ansible_ec2_instance_id is defined else oracle_instance_id if oracle_instance_id is defined else 'default'}}"
+autoscaler_instance_type: 'JVB'
+autoscaler_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
+autoscaler_key_path: "{{autoscaler_config_dir}}/asap.key"
+autoscaler_log_dir: /var/log/jitsi/autoscaler-sidecar
+autoscaler_poll_url: "https://{{autoscaler_server_host}}/sidecar/poll"
+autoscaler_reconfigure_script: "{{ autoscaler_reconfigure_scripts[autoscaler_instance_type] if autoscaler_reconfigure_scripts[autoscaler_instance_type] is defined else ''}}"
+autoscaler_reconfigure_scripts:
+  'JVB': /usr/local/bin/reconfigure-jvb.sh
+  'jibri': /usr/local/bin/reconfigure-jibri.sh
+  'jigasi': /usr/local/bin/reconfigure-jigasi.sh
+  'sip-jibri': /usr/local/bin/reconfigure-jibri.sh
+autoscaler_reconfigure_wrapper: /usr/local/bin/reconfigure_wrapper.sh
+autoscaler_region: "{{ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_region if oracle_region is defined else 'default'}}"
+autoscaler_server_host: jitsi-autoscaler-pilot.jitsi.net
+#DELAY AT MOST 6 hours = 21600 seconds
+autoscaler_shutdown_delay_timeout: 21600
+autoscaler_sidecar_instance_name: "{{ansible_hostname}}"
+autoscaler_sidecar_instance_version: ''
+autoscaler_sidecar_instance_version_command: "{{ autoscaler_sidecar_instance_version_command_by_type[autoscaler_instance_type] if autoscaler_sidecar_instance_version_command_by_type[autoscaler_instance_type] is defined else ''}}"
+autoscaler_sidecar_instance_version_command_by_type:
+  'JVB': "dpkg -s jitsi-videobridge2 | grep Version | awk '{print $2}' | sed 's/..$//'"
+  'jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
+  'jigasi': "dpkg -s jigasi | grep Version | awk '{print $2}' | sed 's/..$//'"
+  'sip-jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
+autoscaler_sidecar_private_ip: "{{ansible_default_ipv4.address}}"
+autoscaler_sidecar_public_ip: "{{ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false}}"
+autoscaler_sidecar_service_name: jitsi-autoscaler-sidecar
+autoscaler_stats_report_url: "https://{{autoscaler_server_host}}/sidecar/stats"
+autoscaler_stats_retrieve_url: "{{ autoscaler_stats_retrieve_urls[autoscaler_instance_type] if autoscaler_stats_retrieve_urls[autoscaler_instance_type] is defined else ''}}"
+autoscaler_stats_retrieve_urls:
+  'JVB': http://localhost:8080/colibri/stats
+  'jibri': http://localhost:2222/jibri/api/v1.0/health
+  'jigasi': http://localhost:8788/about/stats
+  'sip-jibri': http://localhost:2222/jibri/api/v1.0/health
+autoscaler_status_url: "https://{{autoscaler_server_host}}/sidecar/status"
+autoscaler_terminate_script: '/usr/local/bin/terminate_instance.sh'
+autoscaler_use_default_terminate_script: false
+autoscaler_user:
+  groups: ["adm"]
+  homedir: "/home/{{autoscaler_username}}"
+  real_name: jitsi autoscaler sidecar user
+  state: present
+  username: "{{autoscaler_username}}"
+autoscaler_username: jsidecar
+# assume AWS by default
+autoscaler_cloud_provider: "{{cloud_provider | default('aws')}}"
+# flag to disable the whole module unless explicitly enabled by overrides
+jitsi_autoscaler_sidecar: false

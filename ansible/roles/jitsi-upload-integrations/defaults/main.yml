@@ -1,0 +1,78 @@
+---
+css_agent_monitor_service_url: "{{ css_params[css_env]['agent_monitor_service_url'] | default('') }}"
+css_auth: "{{css_upload_secrets[css_env] | default(false) }}"
+css_auth_basic: "{{ css_auth['basic'] if css_auth else false }}"
+css_auth_customer_id: "{{ css_params[css_env]['customer_id']| default('') }}"
+css_auth_sso_url: "{{ css_params[css_env]['sso_url'] | default('') }}"
+css_auth_user_id: "{{ css_params[css_env]['user_id']| default(false) }}"
+css_available_url: "{{ css_params[css_env]['available_url']| default('') }}"
+css_env: dev
+css_event_acceptor_url: "{{ css_params[css_env]['event_acceptor_url'] | default('') }}"
+css_oracle_regions: "{{[oracle_to_recording_agent_region_map[oracle_region]] if oracle_region is defined else ''}}"
+css_params:
+  dev:
+    agent_monitor_service_url: https://example.com/recording-agent-monitor/v1/recording-log
+    css_web_client_connect_timeout: PT30S
+    css_web_client_read_timeout: PT30S
+    customer_id: 999999999999999999999999
+    event_acceptor_url: https://example.com/vpaas-event-acceptor/v1/forward
+    oauth2_provider: eght-oauth
+    oauth2_token_uri: https://sso.example.com/v2/oauth/token
+    push_notification: https://example.com/vo-notification/v1/notifications/recents
+    recovery_nr_threads: 10
+    region_discovery_service_timeout: PT15S
+    region_discovery_service_url: https://storage.example.com/region-discovery-service
+    retry_reg_backOffDelay: 100
+    retry_reg_backOffMultiplier: 2
+    retry_reg_maxAttempts: 2
+    s3_upload: true
+    sso_url: https://sso.example.com/v2/oauth/token
+    storage_default_url: https://storage-int.example.com/
+    usage_service_url: https://example.com/usage-service/v1/customers/{customerId}/records
+    user_id: 999999999999999999999999
+css_push_notification: "{{ css_params[css_env]['push_notification']| default('') }}"
+css_recovery_efs_path: "{{ '/opt/jitsi/jibri/recordings/' if jitsi_uploader_cloud_provider == 'oracle' else '/mnt/efs/jibri/' }}"
+css_recovery_nr_threads: "{{ css_params[css_env]['recovery_nr_threads']| default('') }}"
+css_region_discovery_service_timeout: "{{ css_params[css_env]['region_discovery_service_timeout']| default('') }}"
+css_region_discovery_service_url: "{{ css_params[css_env]['region_discovery_service_url']| default('') }}"
+css_retry_reg_backOffDelay: "{{ css_params[css_env]['retry_reg_backOffDelay']| default('') }}"
+css_retry_reg_backOffMultiplier: "{{ css_params[css_env]['retry_reg_backOffMultiplier']| default('') }}"
+css_retry_reg_maxAttempts: "{{ css_params[css_env]['retry_reg_maxAttempts']| default('') }}"
+css_s3_upload: "{{ css_params[css_env]['s3_upload']| default(false) }}"
+css_storage_default_url: "{{ css_params[css_env]['storage_default_url']| default('') }}"
+css_storage_oauth2_client_id: "{{ css_auth['client_id'] if css_auth else false }}"
+css_storage_oauth2_client_secret: "{{ css_auth['client_secret'] if css_auth else false }}"
+css_storage_oauth2_provider: "{{ css_params[css_env]['oauth2_provider']| default('') }}"
+css_storage_oauth2_token_uri: "{{ css_params[css_env]['oauth2_token_uri']| default('') }}"
+css_upload_secrets: {}
+release_bucket_region: us-west-2
+release_bucket_aws_access_key_id: "{{release_bucket_aws_access_key_id_by_type[css_env] | default('')}}"
+release_bucket_aws_secret_access_key: "{{release_bucket_aws_secret_access_key_by_type[css_env] | default('')}}"
+release_bucket_groupname: "releasebucket"
+release_bucket_username: "releasebucket"
+release_bucket_homedir: "/home/{{release_bucket_username}}"
+vo_meet_agent_version_file: "/etc/jitsi/vo-meet-agent-version.txt"
+vo_meet_agent_version: "{{vo_meet_agent_default_version}}"
+vo_meet_agent_jar: "vo-meet-agent-{{vo_meet_agent_version}}.jar"
+css_uploader_agent_jar: "{{vo_meet_agent_jar | default('')}}"
+css_uploader_agent_jar_path: "/usr/bin/{{css_uploader_agent_jar}}"
+css_uploader_bucket_url: "s3://baron-releases/vo-meet-agent"
+css_uploader_agent_url: "{{css_uploader_bucket_url}}/{{css_uploader_agent_jar}}"
+css_usage_service_url: "{{ css_params[css_env]['usage_service_url'] | default('') }}"
+css_web_client_connect_timeout: "{{ css_params[css_env]['css_web_client_connect_timeout']| default('') }}"
+css_web_client_read_timeout: "{{ css_params[css_env]['css_web_client_read_timeout']| default('') }}"
+jitsi_uploader_cloud_provider: "{{cloud_provider | default('aws')}}"
+instance_volume_id: "undefined"
+jibri_agent_oracle_region: "{{ oracle_region | default('') }}"
+jibri_private_ip: "{{ansible_default_ipv4.address}}"
+jitsi_upload_cloud_provider: "{{ cloud_provider | default('aws') }}"
+jitsi_uploader_dropbox_failed_bucket: "dropbox-failed-recordings-{{hcv_environment}}-{{oracle_region}}"
+jitsi_uploader_failed_bucket: "failed-recordings-{{hcv_environment}}-{{oracle_region}}"
+jitsi_uploader_failed_dir: /opt/jitsi/jibri/failed
+jitsi_uploader_vpaas_failed_bucket: "vpaas-failed-recordings-{{hcv_environment}}-{{oracle_region}}"
+metrics_app_name: "{{ 'vo/recovery-agent' if recovery_agent else 'vo/recording-agent' }}"
+oracle_namespace: fr4eeztjonbe
+recovery_agent: false
+upload_integrations_configure_flag: true
+upload_integrations_install_flag: true
+uploader_pkg_name: jitsi-upload-integrations

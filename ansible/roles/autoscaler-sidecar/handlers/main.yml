@@ -1,0 +1,7 @@
+---
+- name: restart autoscaler sidecar service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+    name: "{{autoscaler_sidecar_service_name}}"

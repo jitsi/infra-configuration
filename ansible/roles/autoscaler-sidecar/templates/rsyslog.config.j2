@@ -1,0 +1,4 @@
+template(name="SimpleJSONFormat" type="string" string= "%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n")
+if $programname == '{{autoscaler_sidecar_service_name}}' then {{autoscaler_log_dir}}/sidecar.log;SimpleJSONFormat
+& stop
+
