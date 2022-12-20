@@ -6,7 +6,7 @@
 
 - name: Install list of packages
   apt:
-    name: ["git","luarocks","libexpat-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn{{'11' if ansible_distribution_release == 'focal' else '12'}}", "lua-basexx", "lua-luaossl", "lua-cjson"]
+    name: ["git","luarocks","libexpat{{'1' if ansible_distribution_release == 'focal' else ''}}-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn{{'11' if ansible_distribution_release == 'focal' else '12'}}", "lua-basexx", "lua-luaossl", "lua-cjson"]
     state: latest
 
 - name: Install libssl1.0 if ubuntu == 18
