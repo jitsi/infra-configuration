@@ -8,6 +8,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/jibri.yml
+    - secrets/repo.yml
     - config/vars.yml
     - secrets/release-bucket-aws.yml
   pre_tasks:
