@@ -1,0 +1,64 @@
+---
+- name: Ensure "egress" group exists
+  group:
+    name: "{{egress_groupname}}"
+    state: present
+
+- name: create "egress" user
+  user:
+    name: "{{egress_username}}"
+    comment: Prosody Egress
+    group: "{{egress_groupname}}"
+
+- name: confirm egress homedir
+  file: path="{{egress_homedir}}" state=directory owner=egress mode=0755
+  when: egress_cloud_provider != 'aws'
+
+- name: add aws directory
+  file: path="{{egress_homedir}}/.aws" state=directory owner=egress mode=0700
+  when: egress_cloud_provider != 'aws'
+
+- name: add aws credentials file
+  template: src="aws_credentials.j2" dest="{{egress_homedir}}/.aws/credentials" owner=egress mode=0700
+  when: egress_cloud_provider != 'aws'
+
+- name: add aws config file
+  template: src="aws_config.j2" dest="{{egress_homedir}}/.aws/config" owner=egress mode=0700
+  when: egress_cloud_provider != 'aws'
+
+- name: Set permissions on the prosody-egress folder
+  file:
+    path: "{{egress_jar_root_path}}"
+    state: directory
+    recurse: yes
+    owner: "{{egress_username}}"
+    group: "{{egress_groupname}}"
+
+- name: copy prosody-egress jar
+  command: aws s3 cp {{egress_s3_bucket_url}}/{{egress_release}} {{egress_jar_full_path}} creates="{{egress_jar_full_path}}"
+  become: yes
+  become_user: "{{egress_username}}"
+
+- name: Set permissions on the egress jar
+  file:
+    path: "{{egress_jar_full_path}}"
+    mode: 0755
+    owner: "{{egress_username}}"
+    group: "{{egress_groupname}}"
+
+- name: Create log folder
+  file:
+    path: "{{egress_log_path}}"
+    state: directory
+    mode: 0755
+    owner: "{{egress_username}}"
+
+- name: remove aws directory
+  file: path="{{egress_homedir}}/.aws" state=absent
+  when: egress_cloud_provider != 'aws'
+
+- name: Install java 11
+  apt:
+    name: default-jdk
+    state: present
+    update_cache: yes

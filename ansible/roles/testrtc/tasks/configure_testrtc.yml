@@ -1,0 +1,45 @@
+---
+- name: TestRTC | local /etc/hosts entry
+  lineinfile: dest=/etc/hosts regexp='.*{{ testrtc_domain_name }}$' line="{{ ansible_default_ipv4.address }} {{testrtc_domain_name}}" state=present
+
+- name: install SSL certificate
+  copy: content="{{ testrtc_ssl_certificate }}"
+        dest={{ testrtc_ssl_dest_dir }}/{{ testrtc_domain_name }}.crt
+  notify: reload nginx
+
+- name: install SSL private key
+  copy: content="{{ testrtc_ssl_key_name }}"
+        dest={{ testrtc_ssl_dest_dir }}/{{ testrtc_domain_name }}.key
+        mode=0600
+  notify: reload nginx
+
+- name: TestRTC | Copy nginx template
+  template:
+    src: testrtc.nginx.vhost.j2
+    dest: "/etc/nginx/sites-available/{{testrtc_domain_name}}"
+  notify: reload nginx
+
+- name: TestRTC | Enable nginx config
+  file:
+    src: "/etc/nginx/sites-available/{{testrtc_domain_name}}"
+    dest: "/etc/nginx/sites-enabled/{{testrtc_domain_name}}"
+    state: link
+  notify: reload nginx
+
+- name: TestRTC | credentials path
+  file: state=directory path="{{testrtc_creds_dir}}"
+
+- name: TestRTC | Copy credentials script
+  template:
+    src: "testrtc.credentials.sh.j2"
+    dest: "/usr/local/bin/testrtc_credentials"
+    mode: "0744"
+    owner: root
+    group: root
+  notify: generate testRTC credentials
+
+- name: TestRTC | credentials refresh cronjob
+  cron:
+    name: "refresh testrtc credentials hourly"
+    job: "/usr/local/bin/testrtc_credentials"
+    minute: 0

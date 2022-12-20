@@ -5,17 +5,21 @@ unset SSH_USER
 # IF THE CURRENT DIRECTORY HAS stack-env.sh THEN INCLUDE IT
 [ -e ./stack-env.sh ] && . ./stack-env.sh
 
-# e.g. ../../../infra-configuration/scripts/configure-standalone-oracle.sh
-LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
-
-[ -z "$UNIQUE_ID" ] && UNIQUE_ID="$TEST_ID"
-[ -z "$UNIQUE_ID" ] && UNIQUE_ID="standalone"
-[ -e "../../clouds/oracle.sh" ] && . ../../clouds/oracle.sh
 
 if [ -z "$ENVIRONMENT" ]; then
   echo "No ENVIRONMENT found. Exiting..."
   exit 203
 fi
+
+[ -e ./sites/$ENVIRONMENT/stack-env.sh ] && . ./sites/$ENVIRONMENT/stack-env.sh
+
+# e.g. ../../../infra-configuration/scripts/configure-standalone-oracle.sh
+LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
+
+[ -z "$UNIQUE_ID" ] && UNIQUE_ID="$TEST_ID"
+[ -z "$UNIQUE_ID" ] && UNIQUE_ID="standalone"
+[ -e "./clouds/oracle.sh" ] && . ./clouds/oracle.sh
+
 
 if [ -z "$ORACLE_REGION" ]; then
   echo "No ORACLE_REGION found. Exiting..."
@@ -32,7 +36,7 @@ else
 fi
 
 ORACLE_CLOUD_NAME="$ORACLE_REGION-$ENVIRONMENT-oracle"
-[ -e "../../clouds/${ORACLE_CLOUD_NAME}.sh" ] && . ../../clouds/${ORACLE_CLOUD_NAME}.sh
+[ -e "./clouds/${ORACLE_CLOUD_NAME}.sh" ] && . ./clouds/${ORACLE_CLOUD_NAME}.sh
 
 CLOUD_NAME="$ENVIRONMENT-$ORACLE_REGION"
 
@@ -105,14 +109,8 @@ if [ ! -z "$PROSODY_FROM_URL" ]; then
 fi
 
 ansible-playbook $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
---extra-vars @../../config/vars.yml --extra-vars @./vars.yml \
---extra-vars @../../secrets/ssl-certificates.yml --extra-vars @../../secrets/ssh-users.yml \
---extra-vars @../../secrets/jvb.yml --extra-vars @../../secrets/asap-keys.yml \
---extra-vars @../../secrets/jibri.yml --extra-vars @../../secrets/asap-keys.yml \
---extra-vars @../../secrets/jigasi.yml --extra-vars @../../secrets/coturn.yml \
---extra-vars @../../secrets/consul.yml --extra-vars @../../secrets/wavefront.yml \
---extra-vars @../../secrets/prosody-egress-aws.yml --extra-vars @../../secrets/oci-logging.yml \
---extra-vars "cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
+--extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
+-e "ansible_python_interpreter=/usr/bin/python" \
 -e "jitsi_videobridge_deb_pkg_version=$JVB_VERSION" \
 -e "jicofo_deb_pkg_version=$JICOFO_VERSION" \
 -e "jitsi_meet_deb_pkg_version=$JITSI_MEET_VERSION" \
@@ -130,6 +128,6 @@ $([ ! -z $JITSI_MEET_PROSODY_VERSION ] && echo "-e jitsi_meet_prosody_deb_pkg_ve
 $([ ! -z $ORACLE_REGION ] && echo "-e oracle_region=$ORACLE_REGION") \
 -e "test_id=$UNIQUE_ID" \
 -e "ansible_ssh_user=$ANSIBLE_SSH_USER" \
---vault-password-file ../../.vault-password.txt \
+--vault-password-file .vault-password.txt \
 --tags "$DEPLOY_TAGS"
 exit $?

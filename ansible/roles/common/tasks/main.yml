@@ -1,0 +1,121 @@
+---
+
+#Force the locale
+- name: set locale
+  shell: /usr/sbin/update-locale LANG="{{ locale }}" LC_CTYPE="{{ locale }}" LC_ALL="{{ locale }}"
+
+#install basic helpful packages
+- name: install some convenient tools
+  apt:
+    name: ['mc','htop','tmux','unzip','jq','libffi-dev','libssl-dev','linux-tools-aws','acl','net-tools','sysstat']
+    state: present
+
+- name: install some convenient tools for python configuration
+  apt:
+    name: ['python-pip', 'python-setuptools']
+    state: present
+  when: common_install_pip_flag or ansible_distribution_release == 'bionic'
+
+- name: install some convenient tools for oracle only
+  apt:
+    name: ['python3-pip', 'python3-setuptools']
+    state: present
+  when: common_install_pip3_flag
+
+- name: Install setuptools module from pip for bionic
+  pip:
+      name: setuptools
+      version: "44.1.1"
+  when: ansible_distribution_release == 'bionic'
+
+- name: Install setuptools module from pip for focal
+  pip:
+      name: setuptools
+      version: "51.3.3"
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+#Get the AWS CLI from pip, latest version is required for lifecycle management, temporary credentials
+- name: Install module from pip
+  pip: 
+    name: ['awscli','boto','boto3','botocore','pyyaml','urllib3','requests']
+    state: latest
+
+- name: Install oci module from pip, used later for videobrdige configuration
+  pip:
+    name: ['oci-cli']
+    state: latest
+  when: common_cloud_provider == "oracle"
+
+#getaddrinfo configurator
+- name: configure getaddrinfo
+  template: src=gai.conf.j2 dest=/etc/gai.conf mode=0644 owner="root"
+
+#don't run the xapian-index job by default
+- name: remove /etc/cron.weekly/apt-xapian-index
+  file: path=/etc/cron.weekly/apt-xapian-index state=absent
+
+#prep ansible install for old installs
+- name: ansible repository install
+  apt_repository: repo="ppa:ansible/ansible" state=present update_cache=yes
+  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_release == 'focal') or (ansible_distribution_release == 'jammy'))
+
+- name: download.sh helper script
+  copy: src="download.sh" dest="/usr/local/bin/download.sh" mode="0755"
+
+- name: aws_cache.sh helper script
+  copy: src="aws_cache.sh" dest="/usr/local/bin/aws_cache.sh" mode="0755"
+
+- name: oracle_cache.sh helper script
+  copy: src="oracle_cache.sh" dest="/usr/local/bin/oracle_cache.sh" mode="0755"
+  when: common_cloud_provider == "oracle"
+
+- name: python-dev from apt
+  apt:
+    name: python-dev
+    state: latest
+  when: not common_install_pip3_flag
+
+- name: python-dev-is-python3 from apt
+  apt:
+    name: python-dev-is-python3
+    state: latest
+  when: 
+    - common_install_pip3_flag
+    - ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+#install ansible packages
+#ansible-pull is used during final machine configuration
+- name: ansible prerequsities 
+  apt: 
+    name: [git,python3-netaddr,software-properties-common]
+    state: latest
+
+- name: Install bcrypt module from pip for bionic
+  pip:
+      name: bcrypt
+      version: "3.1.7"
+  when: ansible_distribution_release == 'bionic'
+
+- name: Install bcrypt module from pip for focal
+  pip:
+      name: bcrypt
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: ansible client install via pip
+  pip: 
+    name: ansible
+    state: present
+    version: 2.7.18
+  when: ansible_distribution_release == 'bionic' or ansible_distribution_release == 'xenial'
+
+- name: ansible client install via apt
+  apt: 
+    name: ansible
+    state: present
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: ansible client install cleanup via pip
+  pip: 
+    name: ansible
+    state: absent
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'

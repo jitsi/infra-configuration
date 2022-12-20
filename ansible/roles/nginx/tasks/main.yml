@@ -1,0 +1,40 @@
+---
+- name: nginx apt key
+  apt_key: url="{{nginx_apt_key_url}}" state=present validate_certs=no
+
+- apt_repository: >
+    repo="deb {{nginx_apt_repo_url}} {{ansible_distribution_release}} nginx"
+    state=present
+    update_cache=yes
+
+- name: mark unhold on nginx package version
+  command: apt-mark unhold {{nginx_package}} nginx-extras
+
+- name: install nginx
+  apt: name="nginx={{ nginx_version }}" state=present
+  register: nginx_apt_output
+
+- name: stop nginx
+  service: name=nginx state=stopped
+  when: nginx_apt_output.changed
+
+- name: mark hold on nginx package version
+  command: apt-mark hold {{nginx_package}} nginx-extras
+
+#main nginx configuration tweaks
+- template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf mode=0644
+  notify: restart nginx
+
+#directories for custom configuration
+- file: path='/etc/nginx/sites-available' state=directory mode=0755
+- file: path='/etc/nginx/sites-enabled' state=directory mode=0755
+- file: path='/etc/nginx/conf.d' state=directory mode=0755
+
+- copy: src='status_server' dest='/etc/nginx/sites-available/status_server' mode=0644
+  notify: restart nginx
+- file: src=/etc/nginx/sites-available/status_server dest=/etc/nginx/sites-enabled/status_server state=link
+  notify: restart nginx
+
+- include_tasks: rsyslog.yml
+
+- service: name=nginx state=started enabled=yes

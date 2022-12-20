@@ -1,0 +1,49 @@
+---
+- hosts: default
+  gather_facts: true
+  become: yes
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/repo.yml
+    - config/vars.yml
+  vars:
+    cloud_provider: oracle
+  pre_tasks:
+    #pause 10 seconds before updating, to ensure that everything is ready to roll
+    - pause: seconds=60
+    - apt: update_cache=yes
+    - name: upgrade packages
+      apt:
+        upgrade: yes
+    - name: upgrade to the latest kernel image
+      apt:
+        name: linux-oracle
+        state: latest
+
+  post_tasks:
+    - name: Remove td-agent deb repository
+      apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution|lower }}/{{ ansible_distribution_release|lower }}/ {{ ansible_distribution_release|lower }} contrib"
+        state: absent
+        update_cache: false
+
+  roles:
+    - { role: "common", tags: "common" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "openjdk-java", tags: "openjdk-java" }
+    - { role: "jitsi-dumper", tags: "jitsi-dumper"}
+    - { role: "consul-install", tags: "consul-install" }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: true, fluentd_configure_flag: false}
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      vars:
+        telegraf_tags:
+          role: "base"
+          cloud: "oracle"
+    - { role: "clean-system", tags: "clean-system, build" }

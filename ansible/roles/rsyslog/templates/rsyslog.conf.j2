@@ -1,0 +1,48 @@
+## {{ ansible_managed }}
+
+$ModLoad immark.so
+$ModLoad imuxsock.so
+$ModLoad imklog.so
+
+
+{% if rsyslog_udp_server_enabled %}
+# provides UDP syslog reception
+$ModLoad imudp
+$UDPServerRun {{ rsyslog_udp_input_port }}
+{% endif %}
+
+
+{% if rsyslog_tcp_server_enabled %}
+$ModLoad imtcp
+$InputTCPServerRun {{ rsyslog_tcp_input_port }}
+{% endif %}
+
+{% if rsyslog_action_file_template is defined %}
+$ActionFileDefaultTemplate myFormat
+$template myFormat,{{ rsyslog_action_file_template }}
+{% else %}
+$ActionFileDefaultTemplate {{ rsyslog_action_file_default_template }}
+{% endif %}
+
+## $AbortOnUncleanConfig {{ rsyslog_abort_on_unclean_config | default('off') }}
+$RepeatedMsgReduction {{ rsyslog_repeated_msg_reduction | default('off') }}
+
+$FileOwner {{ rsyslog_file_owner }}
+$FileGroup {{ rsyslog_file_group }}
+$FileCreateMode {{ rsyslog_file_create_mode }}
+$Umask {{ rsyslog_umask }}
+
+{% if rsyslog_priv_drop_to_user is defined %}
+$PrivDropToUser {{ rsyslog_priv_drop_to_user }}
+{% endif %}
+
+{% if rsyslog_priv_drop_to_group is defined %}
+$PrivDropToGroup  {{ rsyslog_priv_drop_to_group }}
+{% endif %}
+
+#
+# Where to place spool files
+#
+$WorkDirectory /var/spool/rsyslog
+
+$IncludeConfig {{ rsyslog_include_path }}/*.conf

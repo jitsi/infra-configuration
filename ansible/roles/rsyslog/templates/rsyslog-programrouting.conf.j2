@@ -1,0 +1,12 @@
+## {{ ansible_managed }}
+
+$PrivDropToGroup adm
+
+{% for program in rsyslog_known_programs %}
+template(name="{{ program }}LocalLog" type="string" string="{{ rsyslog_local_log_directory }}%programname%.log")
+if $programname startswith '{{ program }}' then {
+    action(type="omfile" DynaFile="{{ program }}LocalLog" file="{{ rsyslog_local_log_directory }}{{ program }}.log")
+    stop
+}
+
+{% endfor %}

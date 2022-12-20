@@ -1,0 +1,7 @@
+[Unit]
+Description=TestRTC service at port {{testrtc_port}}
+
+[Service]
+WorkingDirectory={{testrtc_base_path}}
+Type=idle
+ExecStart=dev_appserver.py --port {{testrtc_port}} --enable_host_checking false out/app.yaml

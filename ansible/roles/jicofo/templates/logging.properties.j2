@@ -1,0 +1,28 @@
+{% if jicofo_xmpp_logging_enabled %}
+handlers= java.util.logging.ConsoleHandler, org.jitsi.impl.protocol.xmpp.log.XmppPacketsFileHandler
+org.jitsi.impl.protocol.xmpp.log.PacketDebugger.level=ALL
+{% else %}
+handlers= java.util.logging.ConsoleHandler
+{% endif %}
+
+java.util.logging.ConsoleHandler.level = ALL
+java.util.logging.ConsoleHandler.formatter = org.jitsi.utils.logging2.JitsiLogFormatter
+java.util.logging.ConsoleHandler.filter = org.jitsi.impl.protocol.xmpp.log.ExcludeXmppPackets
+
+org.jitsi.utils.logging2.JitsiLogFormatter.programname=Jicofo
+
+
+.level=INFO
+org.jitsi.jicofo.JitsiMeetConferenceImpl.level=FINE
+{% if jicofo_enable_ssrc_logs %}
+org.jitsi.protocol.xmpp.AbstractOperationSetJingle.level=FINE
+{% endif %}
+org.jitsi.jicofo.conference.colibri.v2.level={{ jicofo_colibri2_log_level }}
+
+# Do not worry about missing strings
+
+# XMPP packets logging config
+org.jitsi.impl.protocol.xmpp.log.XmppPacketsFileHandler.pattern=/var/log/jitsi/jicofo-xmpp.log
+org.jitsi.impl.protocol.xmpp.log.XmppPacketsFileHandler.append=true
+org.jitsi.impl.protocol.xmpp.log.XmppPacketsFileHandler.limit=200000000
+org.jitsi.impl.protocol.xmpp.log.XmppPacketsFileHandler.count=3

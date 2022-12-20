@@ -1,0 +1,5 @@
+---
+- name: install jiconop package
+  apt: name="{{jiconop_deb_pkg_name}}={{jiconop_deb_pkg_version}}" state=present
+  notify:
+    - restart jiconop

@@ -1,0 +1,43 @@
+handlers= java.util.logging.ConsoleHandler
+
+java.util.logging.ConsoleHandler.level = ALL
+java.util.logging.ConsoleHandler.formatter = org.jitsi.utils.logging2.JitsiLogFormatter
+
+org.jitsi.utils.logging2.JitsiLogFormatter.programname=JVB
+
+.level=INFO
+
+{% if jvb_enable_message_transport_logs %}
+org.jitsi.videobridge.EndpointMessageTransport.level=ALL
+org.jitsi.videobridge.relay.RelayMessageTransport.level=ALL
+{% endif %}
+
+{% if jvb_enable_route_loudest_logs %}
+org.jitsi.utils.dsi.DominantSpeakerIdentification.level=ALL
+{% endif %}
+
+# We need this for SENT and RECV messages (for COLIBRI signaling) now.
+org.jitsi.videobridge.xmpp.XmppConnection.level=ALL
+
+# time series logging
+java.util.logging.SimpleFormatter.format= %5$s%n
+java.util.logging.FileHandler.level = ALL
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+java.util.logging.FileHandler.pattern = {{jvb_log_series_path}}
+java.util.logging.FileHandler.limit = {{jvb_log_series_file_size_limit}}
+java.util.logging.FileHandler.count = 1
+java.util.logging.FileHandler.append = false
+
+{% if jvb_enable_all_timeseries %}
+timeseries.level=ALL
+{% else %}
+timeseries.level=OFF
+{% endif %}
+{% if jvb_enable_bwe_timeseries %}
+timeseries.org.jitsi.nlj.rtp.bandwidthestimation.level=ALL
+{% endif %}
+{% if jvb_enable_brctrl_timeseries %}
+timeseries.org.jitsi.videobridge.cc.BitrateController.level=ALL
+{% endif %}
+timeseries.useParentHandlers = false
+timeseries.handlers = java.util.logging.FileHandler

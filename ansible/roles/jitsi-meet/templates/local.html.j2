@@ -1,0 +1,20 @@
+<!-- This is here only for compat with older jitsi-meet versions. New versions don't need this file -->
+<script>
+    var jitsiRegion='<!--# echo var="jitsi_region" default="" -->';
+    var jitsiShard='<!--# echo var="jitsi_shard" default="" -->';
+    var proxyRegion='<!--# echo var="user_region" default="" -->';
+    if (jitsiRegion || jitsiShard) {
+        if (!window.jitsiDeploymentInfo) {
+            window.jitsiDeploymentInfo = {};
+        }
+        window.jitsiDeploymentInfo.Shard = jitsiShard;
+        window.jitsiDeploymentInfo.Region = jitsiRegion;
+        if (proxyRegion) {
+            window.jitsiDeploymentInfo.ProxyRegion = proxyRegion;
+            window.jitsiDeploymentInfo.UserRegion = proxyRegion;
+            window.jitsiDeploymentInfo.CrossRegion = proxyRegion !== jitsiRegion ? 1 : 0;
+        } else {
+            window.jitsiDeploymentInfo.CrossRegion = 0;
+        }
+    }
+</script>

@@ -1,0 +1,67 @@
+---
+- name: Fail_Fast if collector agent's proxy port is not open
+  shell: "telnet {{ wavefront_proxy_address }} {{ wavefront_proxy_port }}"
+  register: telnet_result
+  when: wavefront_tcp_mode
+  failed_when: "'Connection refused' in telnet_result.stderr"
+  tags:
+    - install
+    - check
+    - failfast
+    - collector
+    - redhat
+    - debian
+    - configure
+
+- name: Fail_Fast if collector agent's proxy port is not open
+  shell: "telnet {{ wavefront_proxy_address }} {{ wavefront_proxy_json_port }}"
+  register: telnet_result
+  when: not wavefront_tcp_mode
+  failed_when: "'Connection refused' in telnet_result.stderr"
+  tags:
+    - install
+    - check
+    - failfast
+    - collector
+    - redhat
+    - debian
+    - configure
+
+- include_tasks: "{{ ansible_os_family }}.yml"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+
+- name: Write telegraf.conf file with WF config
+  template:
+    src: telegraf.conf.wfcopy.j2
+    dest: "{{ telegraf_main_config }}"
+    mode: 0644
+  notify: restart telegraf
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Create Wavefront output plugin config 10-wavefront.conf
+  template:
+    src: 10-wavefront.conf.j2
+    dest: "{{ telegraf_wavefront_output_plugin_config }}"
+    mode: 0644
+  notify: restart telegraf
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Ensure telegraf is running
+  service:
+    name: telegraf
+    state: started
+    enabled: yes

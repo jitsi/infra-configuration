@@ -1,0 +1,289 @@
+---
+- name: Install lua 5.2
+  apt:
+    name: ["lua5.2","liblua5.2-dev"]
+    state: present
+
+- name: Install list of packages
+  apt:
+    name: ["git","luarocks","libexpat{{'1' if ansible_distribution_release == 'focal' else ''}}-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn{{'11' if ansible_distribution_release == 'focal' else '12'}}", "lua-basexx", "lua-luaossl", "lua-cjson"]
+    state: latest
+
+- name: Install libssl1.0 if ubuntu == 18
+  apt:
+    name: libssl1.0-dev
+    state: present
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+
+- shell: "luarocks list | grep -w -q luasocket || luarocks install luasocket"
+- shell: "luarocks list | grep -w -q luasec || luarocks install luasec OPENSSL_LIBDIR=/usr/lib/{{ansible_architecture}}-linux-gnu/"
+- shell: "luarocks list | grep -w -q luaossl || luarocks install luaossl OPENSSL_LIBDIR=/usr/lib/{{ansible_architecture}}-linux-gnu/ CRYPTO_LIBDIR=/usr/lib/{{ansible_architecture}}-linux-gnu/"
+- shell: "luarocks list | grep -w -q basexx || luarocks install basexx"
+- shell: "luarocks list | grep -w -q cjson || luarocks install lua-cjson 2.1.0-1"
+- shell: "luarocks list | grep -w -q {{item}} || luarocks install {{item}}"
+  with_items:
+  - luajwtjitsi 2.0-0
+  - net-url
+  - inspect
+  - uuid
+
+- name: install prosody-log-filter script
+  copy: src=prosody-log-filter.sh dest=/usr/local/bin/prosody-log-filter.sh mode=0755
+
+- name: install prosody-log-filter service file
+  copy: src=prosody-log-filter.systemd dest=/lib/systemd/system/prosody-log-filter.service
+
+- name: install prosody health check script AWS
+  copy: src="prosody-health-check.sh" dest="/usr/local/bin/prosody-health-check.sh" mode=0755
+  when: prosody_cloud_provider == "aws"
+
+- name: install prosody health check script OCI
+  copy: src="prosody-health-check-oracle.sh" dest="/usr/local/bin/prosody-health-check.sh" mode=0755
+  when: prosody_cloud_provider == "oracle"
+
+#check for existing installs, uninstall alternates if needed
+- name: unhold prosody package to replace with prosody-0.11
+  dpkg_selections: name="prosody" selection=deinstall
+  when: prosody_package_name == 'prosody-0.11'
+
+- name: uninstall prosody package to replace with prosody-0.11
+  apt: name="prosody" state=absent
+  register: prosody_apt_removed
+  when: prosody_package_name == 'prosody-0.11'
+
+- name: unhold prosody package to replace with prosody-0.11
+  dpkg_selections: name="prosody-0.11" selection=deinstall
+  when: prosody_package_name == 'prosody'
+
+- name: uninstall prosody-0.11 package to replace with prosody
+  apt: name="prosody-0.11" state=absent
+  register: prosody_url_removed
+  when: prosody_package_name == 'prosody'
+
+- name: remove patches if prosody package swap occurred
+  shell: find /usr/lib/prosody -name "*.orig" | xargs -r rm && find /usr/lib/prosody -name ".*.lua" | xargs -r rm
+  when: prosody_apt_removed.changed or prosody_url_removed.changed
+  ignore_errors: true
+
+#now install, either from URL or via apt
+- include_tasks: install-from-apt.yml
+  when: prosody_install_from_apt == true
+
+- include_tasks: install-from-url.yml
+  when: prosody_install_from_apt == false
+
+- name: register installed prosody version
+  shell: "{{prosody_version_shell}}"
+  register: prosody_version_shell
+
+- name: set prosody subversion fact
+  set_fact:
+    prosody_subversion: "{{ prosody_version_shell.stdout.split('.')[-1] }}"
+    prosody_minor_version: "{{ prosody_version_shell.stdout.split('.')[1] }}"
+  when: prosody_subversion == ''
+
+#now patch prosody if necessary
+- name: copy muc_owner_allow_kick patch 0.11
+  copy: src="muc_owner_allow_kick.patch" dest="/tmp/muc_owner_allow_kick.patch"
+  when: (prosody_minor_version | int) == 11
+
+- name: copy muc_owner_allow_kick patch 0.12
+  copy: src="muc_owner_allow_kick-0.12.patch" dest="/tmp/muc_owner_allow_kick.patch"
+  when:
+    - (prosody_minor_version | int) == 12
+    - (prosody_subversion | int) < 1
+
+#file to confirm we have patched
+
+- name: apply muc_owner_allow_kick patch
+  shell: patch -b < /tmp/muc_owner_allow_kick.patch
+  args:
+    chdir: /usr/lib/prosody/modules/muc
+    creates: /usr/lib/prosody/modules/muc/muc.lib.lua.orig
+  when:
+    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 1) or (prosody_minor_version | int) == 11
+#  when: "\"{{prosody_version}}\" == \"1nightly718-1\""
+
+#now patch prosody if necessary
+- name: copy mod_websocket_auth_token patch
+  copy: src="mod_websocket_auth_token.patch" dest="/tmp/mod_websocket_auth_token.patch"
+  when: 
+    - (prosody_minor_version | int) == 11
+    - (prosody_subversion | int) <= 5
+
+#file to confirm we have patched
+
+- name: apply mod_websocket_auth_token patch
+  shell: patch -b < /tmp/mod_websocket_auth_token.patch
+  args:
+    chdir: /usr/lib/prosody/modules
+    creates: /usr/lib/prosody/modules/mod_websocket.lua.orig
+  when: 
+    - (prosody_minor_version | int) == 11
+    - (prosody_subversion | int) <= 5
+
+#now patch prosody if necessary
+- name: copy mod_websocket_smacks patch
+  copy: src="mod_websocket_smacks.patch" dest="/tmp/mod_websocket_smacks.patch"
+  when:
+    - (prosody_minor_version | int) == 11
+    - (prosody_subversion | int) <= 6
+
+#file to confirm we have patched
+- name: apply mod_websocket_smacks patch
+  shell: patch -b -Y .smacks_ < /tmp/mod_websocket_smacks.patch
+  args:
+    chdir: /usr/lib/prosody/modules
+    creates: /usr/lib/prosody/modules/.smacks_mod_websocket.lua
+  when:
+    - (prosody_minor_version | int) == 11
+    - (prosody_subversion | int) <= 6
+
+- name: copy mod_http CIDR patch
+  copy: src="mod_http_support_cidr.patch" dest="/tmp/mod_http_support_cidr.patch"
+  when: (prosody_minor_version | int) == 11
+
+- name: apply mod_http CIDR patch
+  shell: patch -b < /tmp/mod_http_support_cidr.patch
+  args:
+    chdir: /usr/lib/prosody/modules
+    creates: /usr/lib/prosody/modules/mod_http.lua.orig
+  when: (prosody_minor_version | int) == 11
+
+- name: copy mod_websocket session IP patch
+  copy: src="mod_websocket_session_ip.patch" dest="/tmp/mod_websocket_session_ip.patch"
+  when: (prosody_minor_version | int) == 11
+
+- name: apply mod_websocket session IP patch
+  shell: patch -b -p1 -Y .session_ip_ < /tmp/mod_websocket_session_ip.patch
+  args:
+    chdir: /usr/lib/prosody
+    creates: /usr/lib/prosody/modules/.session_ip_mod_websocket.lua
+  when: (prosody_minor_version | int) == 11
+
+- name: copy expat memory leak patch
+  copy: src="expat_memory_leak.patch" dest="/tmp/expat_memory_leak.patch"
+  when: 
+    - (prosody_minor_version | int) == 11
+    - (prosody_subversion | int) == 12
+
+#file to confirm we have patched
+- name: apply expat memory leak patch
+  shell: patch -b -p1 -Y .expatws_ < /tmp/expat_memory_leak.patch
+  args:
+    chdir: /usr/lib/prosody
+    creates: /usr/lib/prosody/util/.expatws_xml.lua
+  when: 
+    - (prosody_minor_version | int) == 11
+    - (prosody_subversion | int) == 12
+
+- name: copy systemd file for nightly if it does not exist
+  copy: src="prosody.service" dest="/lib/systemd/system/prosody.service" force=no
+
+- name: apt install mercurial
+  apt: name=mercurial state=present
+
+- name: checkout mercurial prosody-modules repo
+  hg: repo=https://hg.prosody.im/prosody-modules/ dest=/opt/prosody-modules/
+
+- name: copy extra prosody modules from mercurial repo
+  command: cp -r {{item}} /usr/lib/prosody/modules
+  args:
+    chdir: /opt/prosody-modules/
+    creates: /usr/lib/prosody/modules/{{item}}
+  with_items:
+    - mod_firewall
+    - mod_log_slow_events
+    - mod_debug_traceback
+    - mod_log_ringbuffer
+    - mod_measure_stanza_counts
+    - mod_secure_interfaces
+
+- name: install (but do not enable) the mod_firewall rules
+  copy: >
+    src="disable_messaging.pfw"
+    dest="/usr/lib/prosody/rules.d/"
+    mode=0644
+    force=true
+
+- name: enable the plugin for hiding all MUCs
+  copy: >
+    src="mod_muc_hide_all.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+    force=true
+
+- name: copy over the plugin for rate-limiting joining MUCs
+  copy: >
+    src="mod_rate_limit.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+
+- name: copy over the plugin for muc event reporting
+  copy: >
+    src="mod_muc_events.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+
+- name: copy over the plugin for filtering internal muc access
+  copy: >
+    src="mod_muc_filter_access.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+
+- name: copy over the plugin for muc jitsi auth
+  copy: >
+    src="mod_muc_auth_ban.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+
+- name: delete old turn credentials module
+  file: path="/usr/lib/prosody/modules/mod_turncredentials" state="absent"
+
+- name: copy over the plugin for turn credential support
+  copy: >
+    src="mod_turncredentials_http.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+
+
+- name: copy over the plugin for preset passwords on mucs
+  copy: >
+    src="mod_muc_password_preset.lua"
+    dest="/usr/share/jitsi-meet/prosody-plugins/"
+    mode=0644
+
+- name: copy over the plugin for kick endpoint
+  copy: >
+    src="mod_muc_kick_endpoint.lua"
+    dest="/usr/lib/prosody/modules/"
+    mode=0644
+
+# The previous one creates the folder, we can just touch the file
+- name: Adds a file to indicate we are running prosody 0.12 and mod_smacks needs to be dropped from jitsi-meet
+  file: path=/usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua state=touch
+  when: (prosody_minor_version | int) == 12
+
+- name: Adds a file to indicate we are running prosody 0.12 and mod_external_services needs to be dropped from jitsi-meet
+  file: path=/usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua state=touch
+  when: (prosody_minor_version | int) == 12
+
+- name: Prosody file open limits
+  copy: dest="/etc/security/limits.d/prosody.conf" content="prosody - nofile {{prosody_open_file_limit}}\nroot - nofile {{prosody_open_file_limit}}"
+
+- name: PAM common session applies limits
+  lineinfile: dest=/etc/pam.d/common-session line="session required\tpam_limits.so"
+
+- name: PAM common noninteractive-session applies limits
+  lineinfile: dest=/etc/pam.d/common-session-noninteractive line="session required\tpam_limits.so"
+
+
+#set the systemd limits for default threads
+- name: systemd DefaultLimitNOFILE setting
+  lineinfile: dest=/etc/systemd/system.conf line="DefaultLimitNOFILE={{prosody_open_file_limit}}" regexp="DefaultLimitNOFILE="
+  when: ansible_service_mgr == "systemd"
+
+#set the systemd limits for default threads
+- name: systemd user DefaultLimitNOFILE setting
+  lineinfile: dest=/etc/systemd/user.conf line="DefaultLimitNOFILE={{prosody_open_file_limit}}" regexp="DefaultLimitNOFILE="
+  when: ansible_service_mgr == "systemd"

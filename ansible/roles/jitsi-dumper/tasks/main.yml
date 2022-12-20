@@ -1,0 +1,44 @@
+---
+- name: upload jvb dump script
+  template: src=dump-jvb.sh.j2 dest=/usr/local/bin/dump-jvb.sh mode=0755
+  when: jitsi_dump_cloud_provider == "aws"
+
+- name: upload jvb dump script
+  template: src=dump-jvb-oracle.sh.j2 dest=/usr/local/bin/dump-jvb.sh mode=0755
+  when: jitsi_dump_cloud_provider == "oracle"
+
+- name: upload jicofo dump script
+  template: src=dump-jicofo.sh.j2 dest=/usr/local/bin/dump-jicofo.sh mode=0755
+  when: jitsi_dump_cloud_provider == "aws"
+
+- name: upload jicofo dump script
+  template: src=dump-jicofo-oracle.sh.j2 dest=/usr/local/bin/dump-jicofo.sh mode=0755
+  when: jitsi_dump_cloud_provider == "oracle"
+
+- name: upload jigasi dump script
+  template: src=dump-jigasi.sh.j2 dest=/usr/local/bin/dump-jigasi.sh mode=0755
+  when: jitsi_dump_cloud_provider == "aws"
+
+- name: upload jibri dump script
+  template: src=dump-jibri.sh.j2 dest=/usr/local/bin/dump-jibri.sh mode=0755
+  when: jitsi_dump_cloud_provider == "aws"
+
+- name: upload jibri dump script
+  template: src=dump-jibri-oracle.sh.j2 dest=/usr/local/bin/dump-jibri.sh mode=0755
+  when: jitsi_dump_cloud_provider == "oracle"
+
+- name: upload jigasi dump script
+  template: src=dump-jigasi-oracle.sh.j2 dest=/usr/local/bin/dump-jigasi.sh mode=0755
+  when: jitsi_dump_cloud_provider == "oracle"
+
+- name: upload boot failure dump script
+  template: src=dump-boot.sh.j2 dest=/usr/local/bin/dump-boot.sh mode=0755
+  when: jitsi_dump_cloud_provider == "aws"
+
+- name: upload boot failure dump script
+  template: src=dump-boot-oracle.sh.j2 dest=/usr/local/bin/dump-boot.sh mode=0755
+  when: jitsi_dump_cloud_provider == "oracle"
+
+- name: upload prosody-jvb dump script
+  template: src=dump-prosody-jvb.sh.j2 dest=/usr/local/bin/dump-prosody-jvb.sh mode="{{jitsi_dumper_prosody_dump_jvb_mode}}"
+  when: jitsi_dump_cloud_provider == "aws"

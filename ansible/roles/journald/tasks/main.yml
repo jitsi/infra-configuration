@@ -1,0 +1,15 @@
+---
+- name: vacuum any existing journal with journalctl
+  command: journalctl --vacuum-size=200M
+- name: config to limit journald size
+  lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: '^#SystemMaxUse='
+    line: 'SystemMaxUse=200M'
+  notify: restart journald
+- name: config so journald will always leave free space
+  lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: '^#SystemKeepFree'
+    line: 'SystemKeepFree=500M'
+  notify: restart journald

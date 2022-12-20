@@ -1,0 +1,3 @@
+---
+- name: restart signal-sidecar
+  service: name=signal-sidecar state=restarted

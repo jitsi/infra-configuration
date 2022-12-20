@@ -1,0 +1,58 @@
+---
+- name: Fail_Fast if Wavefront URL/Token authentication fails
+  uri:
+    url: "{{ wavefront_api_url }}/daemon/test?token={{ wavefront_api_token }}"
+    method: POST
+    force_basic_auth: yes
+    return_content: yes
+    follow_redirects: all
+    status_code: 200
+  when: wavefront_install_proxy or wavefront_create_cred_file
+  tags:
+    - install
+    - check
+    - failfast
+    - proxy
+    - redhat
+    - debian
+    - configure
+
+- name: Include OS specific variables
+  include_tasks: "{{ ansible_os_family }}.yml"
+  tags:
+    - install
+    - debian
+    - redhat
+    - proxy
+
+- name: Update Wavefront Proxy config file
+  template:
+    src: wavefront-proxy.conf.j2
+    dest: "{{ wavefront_config }}"
+    mode: 0644
+    owner: root
+    group: root
+  when: wavefront_install_proxy
+  notify: restart wavefront-proxy
+  tags:
+    - install
+    - redhat
+    - debian
+    - proxy
+    - configure
+
+- name: Remove wavefront.conf.default file
+  file: path="{{ wavefront_config }}.default" state=absent
+  notify: restart wavefront-proxy
+  tags:
+    - install
+    - redhat
+    - debian
+    - proxy
+    - configure
+
+- name: Ensure wavefront-proxy is running
+  service:
+    name: wavefront-proxy
+    state: started
+    enabled: yes

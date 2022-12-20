@@ -1,0 +1,7 @@
+---
+jvb_auth_domain: "auth.{{prosody_domain_name}}"
+jvb_auth_domain_path: "/var/lib/prosody/{{jvb_auth_domain|regex_replace('\\.','%2e')|regex_replace('-','%2d')}}/accounts/{{jvb_auth_user}}.dat"
+jvb_auth_password: "{{jvb_xmpp_password | default('jzayveebee')}}"
+# prosody-jvb
+jvb_auth_prosody_jvb_domain_path: "/var/lib/prosody-jvb/{{prosody_jvb_auth_domain_name|regex_replace('\\.','%2e')|regex_replace('-','%2d')}}/accounts/{{jvb_auth_user}}.dat"
+jvb_auth_user: "jvb"

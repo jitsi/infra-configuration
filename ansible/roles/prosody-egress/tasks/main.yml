@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: prosody_egress_install_flag
+
+- include_tasks: configure.yml
+  when: prosody_egress_configure_flag and prosody_egress_enabled

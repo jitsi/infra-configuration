@@ -1,0 +1,663 @@
+map $http_user_agent $unsupportedEtherpad {
+    default                                 0;
+    "~Trident/[7-9]\."                      1;
+    "~MSIE [1-9]\."                         1;
+}
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}    
+map $http_x_proxy_region $user_region {
+    default '';
+    us-west-2 us-west-2;
+    us-east-1 us-east-1;
+    us-east-2 us-east-2;
+    us-west-1 us-west-1;
+    ca-central-1 ca-central-1;
+    eu-central-1 eu-central-1;
+    eu-west-1 eu-west-1;
+    eu-west-2 eu-west-2;
+    eu-west-3 eu-west-3;
+    eu-north-1 eu-north-1;
+    me-south-1 me-south-1;
+    ap-east-1 ap-east-1;
+    ap-south-1 ap-south-1;
+    ap-northeast-2 ap-northeast-2;
+    ap-northeast-1 ap-northeast-1;
+    ap-southeast-1 ap-southeast-1;
+    ap-southeast-2 ap-southeast-2;
+    sa-east-1 sa-east-1;
+}
+{% if jitsi_meet_anonymize_logs %}
+map $remote_addr $remote_addr_anon {
+    ~(?P<ip>\d+\.\d+)\.         $ip.X.X;
+    ~(?P<ip>[^:]+:[^:]+):       $ip::X;
+    127.0.0.1                   $remote_addr;
+    ::1                         $remote_addr;
+    default                     0.0.0.0;
+}
+map $request $request_anon {
+    "~(?P<method>.+) (?P<url>\/.+\?).+ (?P<protocol>.+)"     "$method $url $protocol";
+    default                    $request;
+}
+log_format anon '$remote_addr_anon - $remote_user [$time_local] "$request_anon" '
+    '$status $body_bytes_sent "$http_referer" '
+    '"$http_user_agent" "$http_x_forwarded_for"';
+{% endif %}
+types {
+    application/wasm   wasm;
+    audio/x-wav        wav;
+}
+
+server {
+
+    listen 443 ssl;
+
+    server_name {{jitsi_meet_signal_api_server_name}};
+
+    ssl_certificate {{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_signal_api_server_name }}.crt;
+    ssl_certificate_key {{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_signal_api_server_name }}.key;
+    ssl_dhparam {{ jitsi_meet_ssl_dest_dir }}/dhparam.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 8.8.4.4 8.8.8.8 valid=300s;
+    resolver_timeout 10s;
+    set $prefix "";
+
+{% if jitsi_meet_signal_kick_endpoint %}
+    location = /kick-participant {
+        proxy_pass http://127.0.0.1:5280/kick-participant?prefix=$prefix&$args;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host '{{ jitsi_meet_domain_name }}';
+    }
+
+    location ~ ^/([^/?&:'"]+)/kick-participant {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /kick-participant;
+    }
+{% endif %}
+
+    location ~ ^/jibriqueue(/?)(.*)$ {
+        proxy_pass http://127.0.0.1:5280/jibriqueue/$2$is_args$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host jibriqueue.{{jitsi_meet_xmpp_domain_name}};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+    }
+
+
+    # jibriqueue for subdomains
+    location ~ ^/([^/?&:'"]+)/jibriqueue/(.*)$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+        set $suffix "$2";
+
+        rewrite ^/(.*)$ /jibriqueue/$suffix;
+    }
+
+    location ~ ^/room-password(/?)(.*)$ {
+        proxy_pass http://127.0.0.1:5280/room-password$2$is_args$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+    }
+
+    location = /end-meeting {
+        proxy_pass http://127.0.0.1:5280/end-meeting$is_args$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+    }
+
+    location = /invite-jigasi{
+            proxy_pass http://127.0.0.1:5280/invite-jigasi$is_args$args;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+
+            proxy_buffering off;
+            tcp_nodelay on;
+    }
+
+    location ~ ^/([^/?&:'"]+)/room-password$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /room-password;
+    }
+
+    location ~ ^/([^/?&:'"]+)/end-meeting$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /end-meeting;
+    }
+
+    location ~ ^/([^/?&:'"]+)/invite-jigasi$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /invite-jigasi;
+    }
+}
+
+{% if jitsi_meet_redirect_to_ssl %}
+server {
+    listen *:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+    {% if jitsi_meet_default_server | default(true) %}# server_name {{ jitsi_meet_domain_name }}{% else %}server_name {{ jitsi_meet_domain_name }}{% endif %};
+    return 301 https://$host$request_uri;
+}
+{% endif %}
+{% if jitsi_meet_enable_event_proxy %}
+server {
+    listen *:9880 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+    resolver 8.8.4.4 8.8.8.8 valid=300s ipv6=off;
+    resolver_timeout 10s;
+
+    location = / {
+        access_log off;
+        proxy_pass {{jitsi_meet_api_conference_event_url}}$is_args$args;
+        proxy_ssl_server_name on;
+
+        proxy_buffering off;
+        tcp_nodelay on;
+    }
+}
+{% endif %}
+
+upstream prosody {
+    zone upstreams 64K;
+    server 127.0.0.1:5280;
+    keepalive 2;
+}
+
+server {
+    proxy_connect_timeout       90s;
+    proxy_send_timeout          90s;
+    proxy_read_timeout          90s;
+    send_timeout                90s;
+
+    listen *:443 ssl {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+
+    #also listen on all 127.0.0.1 IPs
+    listen 127.0.0.1:443 ssl {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+    listen [::]:443 ssl {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+
+    listen 127.0.0.1:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+    listen [::]:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+
+{% if not jitsi_meet_redirect_to_ssl %}
+    listen *:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
+{% endif %}
+
+    {% if jitsi_meet_default_server | default(true) %}# server_name {{ jitsi_meet_domain_name }}{% else %}server_name {{ jitsi_meet_domain_name }}{% endif %};
+    ssl_certificate {{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_domain_name }}.crt;
+    ssl_certificate_key {{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_domain_name }}.key;
+    ssl_dhparam {{ jitsi_meet_ssl_dest_dir }}/dhparam.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
+    ssl_prefer_server_ciphers on;
+
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 8.8.4.4 8.8.8.8 valid=300s;
+    resolver_timeout 10s;
+
+{% if jitsi_meet_enable_gzip %}
+    gzip on;
+    gzip_types text/plain application/xml application/json application/x-javascript text/html text/css;
+    gzip_min_length 1000;
+{% endif %}
+
+    add_header Strict-Transport-Security max-age=63072000;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Jitsi-Shard '{{shard_name}}';
+    add_header X-Jitsi-Region '{{shard_region}}';
+    add_header X-Jitsi-Release '{{jitsi_release_number}}';
+    add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region";
+    set $jitsi_shard "{{shard_name}}";
+    set $jitsi_region "{{shard_region}}";
+    set $prefix "";
+
+    # set the root
+    root {{ jitsi_meet_nginx_root }};
+    ssi on;
+    ssi_types application/x-javascript application/javascript;
+    index index.html;
+    error_page 404 /static/404.html;
+{% if jitsi_meet_anonymize_logs %}
+    access_log /var/log/nginx/access.log anon;
+    error_log /dev/null crit;
+{% endif %}
+
+    include /etc/jitsi/meet/*.conf;
+
+{% if jitsi_meet_close_page_redirect_url %}
+    rewrite ^.*/static/close.html$ {{jitsi_meet_close_page_redirect_url}} redirect;
+    rewrite ^.*/static/close2.html$ {{jitsi_meet_close_page_redirect_url}} redirect;
+{% endif %}
+
+{% if jitsi_meet_jiconop_enabled %}
+    location = /connection_optimization/connection_optimization.html {
+        alias /usr/share/jiconop/connection_optimization.html;
+    }
+    location = /http-pre-bind {
+        proxy_pass      http://127.0.0.1:9615/http-bind;
+        # do not cache anything from prebind
+        add_header "Cache-Control" "no-cache, no-store";
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region";
+    }
+{% endif %}
+
+    location = /nginx_status {
+      stub_status on;
+      access_log   off;
+      allow 127.0.0.1;
+      deny all;
+    }
+
+    location = /config.js
+    {
+       add_header 'X-Jitsi-Shard' '{{shard_name}}';
+       add_header 'X-Jitsi-Region' '{{shard_region}}';
+       add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+
+       alias /etc/jitsi/meet/{{jitsi_meet_domain_name}}-config.js;
+    }
+
+    #ensure all static content can always be found first
+    location ~ ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)$
+    {
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+        alias {{ jitsi_meet_nginx_root }}/$1/$2;
+    }
+
+    location = /libs/lib-jitsi-meet.min.js
+    {
+       add_header 'X-Jitsi-Shard' '{{shard_name}}';
+       add_header 'X-Jitsi-Region' '{{shard_region}}';
+       add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       alias {{ jitsi_meet_nginx_root }}$uri;
+    }
+
+    location = /libs/capabilities.json
+    {
+       add_header 'X-Jitsi-Shard' '{{shard_name}}';
+       add_header 'X-Jitsi-Region' '{{shard_region}}';
+       add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       alias {{ jitsi_meet_nginx_root }}$uri;
+    }
+
+
+    location = /external_api.js {
+        alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
+    }
+
+    # Backward compatibility
+    location ~ ^/external_api(.)+ {
+       add_header 'X-Jitsi-Shard' '{{shard_name}}';
+       add_header 'X-Jitsi-Region' '{{shard_region}}';
+       add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       root {{ jitsi_meet_nginx_root }}/libs;
+    }
+
+    # BOSH
+    location = /http-bind {
+        proxy_pass      http://prosody/http-bind?prefix=$prefix&$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Connection "";
+        # proxy_set_header Host $http_host;
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+
+        proxy_hide_header 'Access-Control-Allow-Origin';
+        add_header 'Access-Control-Allow-Origin' '*';
+        proxy_hide_header 'Access-Control-Allow-Credentials';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        proxy_hide_header 'Access-Control-Allow-Methods';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        proxy_hide_header 'Access-Control-Allow-Headers';
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        proxy_hide_header 'Access-Control-Max-Age';
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+
+    }
+{% if jitsi_meet_enable_room_api %}
+    #Room size API
+    location = /room-size {
+        proxy_pass      http://127.0.0.1:5280/room-size?domain=$http_host&subdomain=$prefix&$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # proxy_set_header Host $http_host;
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+
+        proxy_hide_header 'Access-Control-Allow-Origin';
+        add_header 'Access-Control-Allow-Origin' '*';
+        proxy_hide_header 'Access-Control-Allow-Credentials';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        proxy_hide_header 'Access-Control-Allow-Methods';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        proxy_hide_header 'Access-Control-Allow-Headers';
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        proxy_hide_header 'Access-Control-Max-Age';
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+    }
+
+    #Room size API
+    location = /room {
+        proxy_pass      http://127.0.0.1:5280/room?domain=$http_host&subdomain=$prefix&$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # proxy_set_header Host $http_host;
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+
+        proxy_hide_header 'Access-Control-Allow-Origin';
+        add_header 'Access-Control-Allow-Origin' '*';
+        proxy_hide_header 'Access-Control-Allow-Credentials';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        proxy_hide_header 'Access-Control-Allow-Methods';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        proxy_hide_header 'Access-Control-Allow-Headers';
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        proxy_hide_header 'Access-Control-Max-Age';
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+    }
+{% endif %}
+    #Jicofo health check
+    location = /about/health {
+        {% if jitsi_meet_signal_sidecar_enabled %}
+        proxy_pass      http://127.0.0.1:6000/signal/health;
+        {% else %}
+        proxy_pass      http://127.0.0.1:8888/about/health;
+        {% endif %}
+        # do not cache anything from prebind
+        add_header "Cache-Control" "no-cache, no-store";
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+    }
+
+    location = /_unlock {
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header "Cache-Control" "no-cache, no-store";
+    }
+
+   # proxy /etherpad so that is appears local
+    location ~ ^/etherpad(/?)(.*)$ {
+       if ($unsupportedEtherpad = 1){
+          return 302 /static/recommendedBrowsers.html;
+        }
+
+        proxy_pass {{jitsi_meet_etherpad_proxy_pass}}/$2$is_args$args;
+        proxy_set_header Host {{jitsi_meet_domain_name}};
+        proxy_redirect off;
+        proxy_buffering off;
+
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+
+    }
+
+    # xmpp websockets
+    location = /xmpp-websocket {
+        proxy_pass http://prosody/xmpp-websocket?prefix=$prefix&$args;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+{% if jitsi_meet_nginx_ws_timeout %}
+        proxy_read_timeout {{jitsi_meet_nginx_ws_timeout}};
+{% endif %}
+        tcp_nodelay on;
+
+        proxy_hide_header 'Access-Control-Allow-Origin';
+        add_header 'Access-Control-Allow-Origin' '*';
+        proxy_hide_header 'Access-Control-Allow-Credentials';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        proxy_hide_header 'Access-Control-Allow-Methods';
+        add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS';
+        proxy_hide_header 'Access-Control-Allow-Headers';
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        proxy_hide_header 'Access-Control-Max-Age';
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+
+    }
+
+{% if jitsi_meet_enable_colibri_websockets %}
+    # colibri (JVB) websockets for endpoints
+    location ~ ^/colibri-ws(/?)(.*) {
+        proxy_pass http://127.0.0.1:{{jitsi_meet_colibri_websocket_port}}/colibri-ws/$2$is_args$args;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+        tcp_nodelay on;
+    }
+    # colibri (JVB) websockets for bridges
+    location ~ ^/colibri-relay-ws(/?)(.*) {
+        proxy_pass http://127.0.0.1:{{jitsi_meet_colibri_websocket_port}}/colibri-relay-ws/$2$is_args$args;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host {{jitsi_meet_xmpp_domain_name}};
+        tcp_nodelay on;
+    }
+{% endif %}
+
+{% if jitsi_meet_load_test_enabled %}
+    # load test minimal client, uncomment when used
+    location ~ ^/_load-test/([^/?&:'"]+)$ {
+        rewrite ^/_load-test/(.*)$ /load-test/index.html break;
+    }
+    location ~ ^/_load-test/libs/(.*)$ {
+        add_header 'Access-Control-Allow-Origin' '*';
+        alias {{ jitsi_meet_nginx_root }}/load-test/libs/$1;
+    }
+{% endif %}
+
+    #ensure all inappropriate room names are redirected appropriately
+    location ~ ^/(camjerk|children|kids|perv|perv1|pervroom|pervroom1|porn|sex|teens|teenz|tight|vids)$
+    {
+        rewrite ^/(.*)$ https://{{jitsi_meet_domain_name}}/ permanent;
+    }
+
+    #Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
+    location ~ ^/([^/?&:'"]+)$ {
+        try_files $uri @root_path;
+    }
+
+    location @root_path {
+        rewrite ^/(.*)$ /index_conference.html break;
+    }
+
+    location = /index.html {
+        add_header 'X-Jitsi-Shard' '{{shard_name}}';
+        add_header 'X-Jitsi-Region' '{{shard_region}}';
+        add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release, Content-Security-Policy";
+{% if jitsi_meet_content_security_policy_on_root %}
+        add_header 'Content-Security-Policy' 'frame-ancestors https://{{jitsi_meet_domain_name}}';
+{% endif %}
+        ssi on;
+
+    }
+
+    # EDIT: You may need this to prevent return 404; recursion
+    location = /static/404.html {
+        internal;
+    }
+
+{% if jitsi_meet_enable_multi_domain %}
+{% if jitsi_meet_jiconop_enabled %}
+    location ~ ^/([^/?&:'"]+)/http-pre-bind {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+
+        rewrite ^/(.*)$ /http-pre-bind;
+    }
+{% endif %}
+
+    location ~ ^/([^/?&:'"]+)/config.js$
+    {
+       set $subdomain "$1.";
+       set $subdir "$1/";
+       add_header 'X-Jitsi-Shard' '{{shard_name}}';
+       add_header 'X-Jitsi-Region' '{{shard_region}}';
+       add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+
+       alias /etc/jitsi/meet/{{jitsi_meet_domain_name}}-config.js;
+    }
+
+
+
+    location ~ ^/([^/?&:'"]+)/libs/lib-jitsi-meet.min.js
+    {
+       set $subdomain "$1.";
+       set $subdir "$1/";
+       add_header 'X-Jitsi-Shard' '{{shard_name}}';
+       add_header 'X-Jitsi-Region' '{{shard_region}}';
+       add_header 'X-Jitsi-Release' '{{jitsi_release_number}}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       alias {{ jitsi_meet_nginx_root }}/libs/lib-jitsi-meet.min.js;
+    }
+
+    location ~ ^/([^/?&:'"]+)/external_api.js {
+        alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
+    }
+
+    # Matches /(TENANT)/(static path)/(.*) so rewrite to /(static path) and look for file
+    location ~ ^/([^/?&:'"]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        rewrite ^/([^/?&:'"]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)$ /$2/$3;
+    }
+
+    # BOSH for subdomains
+    location ~ ^/([^/?&:'"]+)/http-bind {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /http-bind;
+    }
+
+    # websockets for subdomains
+    location ~ ^/([^/?&:'"]+)/xmpp-websocket {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /xmpp-websocket;
+    }
+
+    #Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
+    # Matches /(TENANT)/(ROOM) pattern only
+    location ~ ^/([^/?&:'"]+)/([^/?&:'"]+)$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        rewrite ^/([^/?&:'"]+)/([^/?&:'"]+)$ /$2;
+    }
+
+{% if jitsi_meet_enable_room_api %}
+    #Room size API
+    location ~ ^/([^/?&:'"]+)/room-size {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /room-size;
+    }
+
+    #Room size API
+    location ~ ^/([^/?&:'"]+)/room {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /room;
+    }
+{% endif %}
+
+{% endif %}
+
+
+
+}

@@ -1,0 +1,13 @@
+---
+- name: add jvb XMPP control authentication
+  command: prosodyctl register {{jvb_auth_user}} {{jvb_auth_domain}} {{jvb_auth_password}}
+  args:
+    creates: "{{jvb_auth_domain_path}}"
+
+# prosody-jvb
+- name: add jvb XMPP control authentication for prosody-jvb
+  command: prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register {{jvb_auth_user}} {{prosody_jvb_auth_domain_name}} {{jvb_auth_password}}
+  args:
+    creates: "{{jvb_auth_prosody_jvb_domain_path}}"
+  when: prosody_jvb_configure_flag
+

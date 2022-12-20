@@ -1,0 +1,68 @@
+---
+- name: Install jicofo prereq list of packages
+  apt: name=jq state=present
+
+- name: mark unhold on jicofo package version
+  command: apt-mark unhold {{jicofo_deb_pkg_name}}
+
+- name: update jicofo
+  apt: name={{ jicofo_deb_pkg_name }}={{jicofo_deb_pkg_version}} state=present
+  notify:
+  - restart jicofo
+
+- name: mark hold on jicofo package version
+  command: apt-mark hold {{jicofo_deb_pkg_name}}
+
+#changes TasksMax in systemd unit file for jicofo
+- name: systemd jicofo service overrides directory
+  file: path=/etc/systemd/system/jicofo.service.d state=directory
+
+- name: systemd jicofo service overrides
+  copy:
+  args:
+    dest: /etc/systemd/system/jicofo.service.d/50-maxtasks.conf
+    mode: 0644
+    owner: root
+    content: |
+      [Service]
+      TasksMax=9830
+
+#script to run ansible updates
+- name: jicofo post-install script upload
+  copy: dest="/usr/local/bin/postinstall-jicofo.sh" src="postinstall-jicofo.sh" mode=755 owner=root
+
+#script to run ansible updates
+- name: jicofo local configure script upload
+  copy: dest="/usr/local/bin/configure-jicofo-local.sh" src="configure-jicofo-local.sh" mode=755 owner=root
+
+- name: jicofo disable service on Install
+  service: name=jicofo state=stopped enabled=no
+  when: (jicofo_install_flag == true) and (jicofo_configure_flag == false)
+  register: jicofoservice
+
+- name: install monitoring pip prereqs - decorator
+  pip: name=decorator state=present
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: freeze check pip pre reqs
+  pip: name=datadog state=present
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: install monitoring pip prereqs - decorator
+  pip: name=decorator version="4.4.2" state=present executable=/usr/bin/pip
+  when: ansible_distribution_release == 'bionic'
+
+- name: freeze check pip pre reqs
+  pip: name=datadog state=present executable=/usr/bin/pip
+  when: ansible_distribution_release == 'bionic'
+  
+# add a stats script to wrap the dd->colibri script
+- name: Jicofo stats script upload
+  template: dest={{ jicofo_stats_script_path }} src="jicofo-stats.sh.j2" mode=755 owner=root
+
+# add a stats script to upload colibri stats to DataDog
+- name: Jicofo stats python script upload
+  copy: dest={{ jicofo_stats_python_script_path }} src="jicofo-stats.py" mode=755 owner=root
+
+- name: Jicofo health script upload
+  copy: src=jicofo-health.sh dest={{jicofo_health_script_path}} mode=0755 owner=root

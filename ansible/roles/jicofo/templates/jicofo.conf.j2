@@ -1,0 +1,149 @@
+jicofo {
+{% if jicofo_auth_url_enable %}
+  authentication {
+    enabled = true
+    type = "{{jicofo_auth_type}}"
+    login-url = "{{jicofo_auth_url}}"
+  }
+{% endif %}
+
+  bridge {
+{% if jicofo_separate_jvb_muc %}
+    brewery-jid = "jvbbrewery@{{prosody_jvb_muc_name}}"
+{% else %}
+    brewery-jid = "{{jicofo_jvb_brewery_muc}}"
+{% endif %}
+
+{% if jicofo_enable_octo %}
+    selection-strategy = RegionBasedBridgeSelectionStrategy
+{% endif %}
+
+    average-participant-stress = {{ jicofo_average_participant_stress }}
+
+    max-bridge-participants = {{ jicofo_max_bridge_participants }}
+
+    # This duplicates oracle_to_aws_region_map and aws_to_oracle_region_map.
+    # Once we're moved to oracle regions everywhere we should remove the extra mappings.
+    region-groups = [
+      ["eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "uk-london-1", "eu-amsterdam-1", "eu-frankfurt-1"],
+      ["us-east-1", "us-west-2", "us-ashburn-1", "us-phoenix-1"],
+      ["ap-mumbai-1", "ap-tokyo-1", "ap-south-1", "ap-northeast-1"],
+      ["ap-sydney-1", "ap-southeast-2"],
+      ["ca-toronto-1", "ca-central-1"],
+      ["me-jeddah-1", "me-south-1"],
+      ["sa-saopaulo-1", "sa-east-1"]
+    ]
+
+    health-checks {
+      use-presence = {{ jicofo_use_presence_for_jvb_health | to_json }}
+    }
+  }
+  codec {
+    video {
+      vp8 {
+        enabled={{ jicofo_enable_vp8 | to_json }}
+      }
+      vp9 {
+        enabled={{ jicofo_enable_vp9 | to_json }}
+      }
+      h264 {
+        enabled={{ jicofo_enable_h264 | to_json }}
+      }
+    }
+    audio {
+      opus {
+        red {
+          enabled = {{ jicofo_enable_opus_red }}
+        }
+      }
+    }
+  }
+
+  colibri {
+    enable-colibri2 = {{ jicofo_enable_colibri2 }}
+  }
+
+  conference {
+    enable-auto-owner = {% if jicofo_disable_auto_owner %} false {% else %} true {% endif %}
+
+{% if jicofo_enable_inject_ssrc %}
+    inject-ssrc-for-recv-only-endpoints = true
+{% endif %}
+
+    enable-lip-sync = {{ jicofo_enable_lipsync }}
+
+    max-audio-senders = {{ jicofo_max_audio_senders }}
+    max-video-senders = {{ jicofo_max_video_senders }}
+
+    strip-simulcast = {{ jicofo_strip_simulcast }}
+
+    use-ssrc-rewriting = {{ jicofo_ssrc_rewriting }}
+
+    {% if jicofo_enable_source_signaling_delay %}
+    source-signaling-delays = {{ jicofo_source_signaling_delay | to_json }}
+    {% endif %}
+
+    enable-multi-stream-backward-compat = true
+  }
+
+
+  health {
+    enabled = true
+  }
+
+  jibri {
+{% if jicofo_jibri_brewery_muc %}
+    brewery-jid = "{{jicofo_jibri_brewery_muc}}"
+{% endif %}
+    pending-timeout = {{jicofo_jibri_pending_timeout}} seconds
+  }
+
+{% if jicofo_sipjibri_brewery_muc %}
+  jibri-sip {
+    brewery-jid = "{{jicofo_sipjibri_brewery_muc}}"
+  }
+{% endif %}
+
+{% if jicofo_jigasi_brewery_muc %}
+  jigasi {
+    brewery-jid = "{{jicofo_jigasi_brewery_muc}}"
+  }
+{% endif %}
+
+  local-region={{ jicofo_region }}
+
+  octo {
+    enabled={{ 'true' if jicofo_enable_octo else 'false' }}
+  }
+
+  rest {
+    host = "127.0.0.1"
+  }
+
+  sctp {
+    enabled = {{ jicofo_enable_sctp | to_json }}
+  }
+
+  xmpp {
+    client {
+      domain = {{ jicofo_auth_domain }}
+      username = {{ jicofo_auth_user }}
+      password = {{ jicofo_auth_password }}
+      xmpp-domain = {{ jicofo_hostname }}
+    }
+{% if jicofo_separate_jvb_muc %}
+    service {
+      enabled = true
+      hostname = "127.0.0.1"
+      port = 6222
+      domain = "{{prosody_jvb_auth_domain_name}}"
+      username = "{{jicofo_auth_user}}"
+      password = "{{jicofo_auth_password}}"
+    }
+{% endif %}
+      # By trusting prosody_domain_name we effectively disable the feature and allow clients to impersonate Jibri. This is
+      # intentional until we are able to have SIP Jibris login to one of the authenticated domains (otherwise SIP Jibris will
+      # not be recognized by jicofo leading to "mute all" affecting them).
+      trusted-domains = [ "{{ prosody_auth_domain_name }}", "recorder.{{ prosody_domain_name }}", "{{ prosody_domain_name }}" ]
+  }
+}

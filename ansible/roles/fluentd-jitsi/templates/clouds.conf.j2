@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+
+<source>
+type tail
+  path /var/log/cloud-init.log
+  pos_file /var/spool/td-agent/cloud-init.pos
+  tag cloud-init
+  format /^(?<syslog_time>[^ ]*) (?<address>[^ ]*) (?<component>[^ ]*) (?<level>[^ ]*) (?<message>.*)$/
+
+  # Date and time format
+  time_format %d/%B/%Y:%H:%M:%S
+</source>
+
+
+# Cloud-init-output
+<source>
+type tail
+  path /var/log/cloud-init-output.log
+  pos_file /var/spool/td-agent/cloud-init-out.pos
+  tag cloud-init-output
+  format /^(?<init-output-message>.*)?$/
+
+  # Date and time format
+  time_format %d/%B/%Y:%H:%M:%S
+</source>

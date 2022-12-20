@@ -1,0 +1,5 @@
+---
+#eventually build a config file for jiconop
+- name: jiconop configuration file
+  template: src="config.j2" dest="/etc/jitsi/jiconop/config"
+  notify: restart jiconop

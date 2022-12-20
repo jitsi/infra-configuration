@@ -1,0 +1,4 @@
+---
+dependencies:
+- { role: nodejs, when: jiconop_install_flag }
+- { role: jitsi-repo, when: jiconop_install_flag }

@@ -1,0 +1,113 @@
+---
+- name: Install list of packages
+  apt:
+    name: ["git"]
+    state: present
+
+- name: remove default nginx site configuration
+  file: path=/etc/nginx/sites-enabled/default state=absent
+
+- name: check installed Meet version
+  shell: dpkg -s jitsi-meet | grep Version | awk '{print $2}'
+  register: jitsi_meet_version_check
+
+- name: mark unhold on jitsi-meet package version
+  command: apt-mark unhold {{jitsi_meet_deb_pkg_name}}
+
+- name: Install jitsi-meet debian package
+  apt: name={{ jitsi_meet_deb_pkg_name }}={{jitsi_meet_deb_pkg_version}} state=present dpkg_options=force-downgrade
+
+#detect currently running prosody (finds either prosody-trunk or prosody))
+- name: register installed prosody package
+  shell: dpkg -l | awk '/^\Si  prosody/ {print $2}'
+  register: jitsi_meet_prosody_package_shell
+
+- name: Set prosody installed version variables
+  set_fact:
+    jitsi_meet_prosody_installed_package: "{{jitsi_meet_prosody_package_shell.stdout}}"
+
+- name: temp dir for jitsi-meet-prosody download
+  tempfile:
+    state: directory
+    suffix: jitsi-meet-prosody
+  register: jitsi_meet_prosody_tempdir
+
+
+- name: Download jitsi-meet-prosody .deb
+  shell: apt-get download {{ jitsi_meet_prosody_deb_pkg_name }}={{jitsi_meet_prosody_deb_pkg_version}}
+  args:
+    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+
+- name: Unpack jitsi-meet-prosody .deb
+  shell: dpkg -x {{ jitsi_meet_prosody_deb_pkg_name }}*.deb .
+  args:
+    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+
+- name: prosody 0.11 hook global patch
+  shell: sed -i 's/module:hook(/module:hook_global(/g' ./usr/share/jitsi-meet/prosody-plugins/mod_auth_token.lua
+  args:
+    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+
+- name: Copy jitsi-meet-prosody plugins to appropriate location
+  shell: cp -a ./usr/share/jitsi-meet/prosody-plugins /usr/share/jitsi-meet
+  args:
+    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+
+- name: Check do we need to drop mod_smacks
+  stat:
+    path: /usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua
+  register: need_to_drop_mod_smacks
+
+- name: Remove mod_smacks as we are running prosody that has that module
+  file: path="/usr/share/jitsi-meet/prosody-plugins/mod_smacks.lua" state=absent
+  when: need_to_drop_mod_smacks.stat.exists
+
+- name: Check do we need to drop mod_external_services
+  stat:
+    path: /usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua
+  register: need_to_drop_mod_external_services
+
+- name: Remove mod_external_services as we are running prosody that has that module
+  file: path="/usr/share/jitsi-meet/prosody-plugins/mod_external_services.lua" state=absent
+  when: need_to_drop_mod_external_services.stat.exists
+
+- name: Remove jitsi-meet-prosody tempdir
+  file: path="{{jitsi_meet_prosody_tempdir.path}}" state=absent
+
+- name: mark hold on jitsi-meet package version
+  command: apt-mark hold {{jitsi_meet_deb_pkg_name}}
+
+- file: path={{ jitsi_meet_site_path }} owner="www-data" group="www-data" recurse=yes state=directory
+
+- name: Assures "/etc/nginx/ssl" dir exists
+  file: path="/etc/nginx/ssl" state=directory
+
+- name: Nginx | Generate dhparam
+  command: "openssl dhparam -out {{ jitsi_meet_ssl_dest_dir }}/dhparam.pem 2048"
+  ignore_errors: True
+  args:
+    creates: "{{ jitsi_meet_ssl_dest_dir }}/dhparam.pem"
+  notify: restart nginx
+
+- name: create home directory for www-data user
+  file: path=/var/www state=directory owner="www-data" group="www-data" recurse=yes
+
+- file: path="/etc/nginx/sites-enabled/{{jitsi_meet_domain_name}}.conf" state=absent
+  notify: restart nginx
+
+- name: remove default nginx server
+  file: path=/etc/nginx/sites-available/default state=absent
+
+- name: copy over the external events lib
+  copy: >
+    src="ext_events.lib.lua"
+    dest="/usr/share/jitsi-meet/prosody-plugins/"
+    mode=0644
+  notify: reload prosody plugins
+
+- name: copy over the asap lib
+  copy: >
+    src="asap.lib.lua"
+    dest="/usr/share/jitsi-meet/prosody-plugins/"
+    mode=0644
+  notify: reload prosody plugins

@@ -1,0 +1,7 @@
+---
+- name: consul service file
+  template: src="standalone.json.j2" dest="/etc/consul.d/standalone.json"
+
+- name: consul service enablement
+  systemd: name=consul state=started enabled=true
+  ignore_errors: true

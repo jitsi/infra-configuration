@@ -1,0 +1,5 @@
+---
+- name: install nodejs from internal repo URL
+  apt: deb="{{ nodejs_url }}" state=present 
+  retries: 3 
+  delay: 1

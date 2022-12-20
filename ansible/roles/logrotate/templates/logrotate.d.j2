@@ -1,0 +1,177 @@
+ # {{ ansible_managed }}
+
+{%for item in logrotate_rules -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+
+{% if logrotate_rules_haproxy_enabled == true %}
+{%for item in logrotate_rules_haproxy -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{% if logrotate_rules_core_enabled == true %}
+{%for item in logrotate_rules_core -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{% if logrotate_rules_sip_jibri_selector_enabled == true %}
+{%for item in logrotate_rules_sip_jibri_selector -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{% if logrotate_rules_sip_jibri_enabled == true %}
+{%for item in logrotate_rules_sip_jibri -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{% if logrotate_rules_jvb_enabled == true %}
+{%for item in logrotate_rules_jvb -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{% if logrotate_rules_coturn_enabled == true %}
+{%for item in logrotate_rules_coturn -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{% if logrotate_rules_jigasi_enabled == true %}
+{%for item in logrotate_rules_jigasi -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}
+{% endif -%}
+
+{%for item in logrotate_rules_consul -%}
+  {% for path in item.path -%}"{{ path }}" {% endfor -%}{
+    {% if item.options is defined -%}
+    {% for option in item.options -%}
+    {{ option }}
+    {% endfor -%}
+    {% endif %}
+    {%- if item.scripts is defined -%}
+    {%- for name, script in item.scripts.iteritems() -%}
+    {{ name }}
+      {{ script }}
+    endscript
+    {% endfor -%}
+    {% endif -%}
+  }
+
+{% endfor -%}

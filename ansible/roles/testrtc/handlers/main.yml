@@ -1,0 +1,10 @@
+---
+- name: generate testRTC credentials
+  command: /usr/local/bin/testrtc_credentials
+  ignore_errors: yes
+
+- name: reload nginx
+  service:
+    name: nginx
+    enabled: yes
+    state: reloaded

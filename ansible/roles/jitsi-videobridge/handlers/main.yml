@@ -1,0 +1,7 @@
+- name: restart jitsi-videobridge
+  service: name={{jvb_service_name}} state=restarted
+  when: ((jvb_image_build_flag == false) and (jvb_configure_from_template_flag == true) and (jvb_reconfigure_on_changes_flag == true))
+
+- name: restart jitsi-videobridge systemd
+  systemd: name={{jvb_systemd_service_name}} state=restarted  daemon_reload=yes
+  when: ((jvb_image_build_flag == false) and (jvb_configure_from_template_flag == true) and (jvb_reconfigure_on_changes_flag == true))

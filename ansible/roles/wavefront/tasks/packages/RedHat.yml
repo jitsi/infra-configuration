@@ -1,0 +1,68 @@
+---
+- name: Set ansible_distribution_major_version if Amazon RedHat machine
+  set_fact: ansible_distribution_major_version="{{ item.version }}"
+  when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "NA" and ansible_distribution_version == "{{ item.ec2_dist_version }}"
+  with_items:
+    - { version: "6", ec2_dist_version: "2016.03" }
+    - { version: "6", ec2_dist_version: "2016.09" }
+  tags:
+    - prereqs
+    - install
+    - redhat
+    - proxy
+    - collector
+
+# Save 4 yum_repository calls with 1 uri call.
+- name: Set yum repos.d files proxy and agent
+  uri:
+    url: "{{ wavefront_repo_install_url }}"
+    method: GET
+    dest: "/etc/yum.repos.d/wavefront-{{ item.tool }}.repo"
+  when: ( "{{ item.install_flag }}" == "true" )
+  with_items:
+    - { tool: "proxy", release: "el", version: "{{ ansible_distribution_major_version }}", install_flag: "{{ wavefront_install_proxy }}" }
+    - { tool: "{{ wavefront_collector }}", release: "el", version: "{{ ansible_distribution_major_version }}", install_flag: "{{ wavefront_install_collector }}" }
+  tags:
+    - prereqs
+    - install
+    - redhat
+    - proxy
+    - collector
+
+- name: Yum complete transaction cleanup only
+  command: yum-complete-transaction --cleanup-only -y
+  become_user: root
+  tags:
+    - prereqs
+    - install
+    - redhat
+
+- name: Install Wavefront pre-requisite packages (RedHat)
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - 'pygpgme'
+    - 'yum-utils'
+    - 'python-pip'
+  tags:
+    - prereqs
+    - install
+    - redhat
+    - proxy
+    - collector
+
+- name: Update yum cache for wavefront proxy
+  yum:
+    name: "*"
+    disablerepo: '*'
+    enablerepo: "wavefront_proxy"
+    state: latest
+    update_cache: yes
+  when: wavefront_install_proxy == "true"
+  tags:
+    - prereqs
+    - install
+    - redhat
+    - proxy

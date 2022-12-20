@@ -1,0 +1,4 @@
+---
+dependencies:
+- { role: rsyslog, when: fluentd_install_flag }
+- { role: fluentd, when: fluentd_install_flag }

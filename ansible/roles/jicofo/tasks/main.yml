@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: jicofo_install_flag
+
+- include_tasks: configure.yml
+  when: jicofo_configure_flag

@@ -1,0 +1,18 @@
+---
+- name: disable JVB health check script cron
+  cron: user={{ jvb_health_check_cron_user }}
+        state=absent
+        name="JVB health check script"
+
+- name: mark unhold on jitsi-videobridge package version
+  command: apt-mark unhold {{jitsi_videobridge_deb_pkg_name}}
+  ignore_errors: true
+
+- name: install jitsi-videobridge package
+  apt: name="{{jitsi_videobridge_deb_pkg_name}}={{jitsi_videobridge_deb_pkg_version}}" state=present
+  notify:
+    - restart jitsi-videobridge systemd
+  when: ansible_service_mgr == "systemd"
+
+- name: mark hold on JVB package version
+  command: apt-mark hold {{jitsi_videobridge_deb_pkg_name}}

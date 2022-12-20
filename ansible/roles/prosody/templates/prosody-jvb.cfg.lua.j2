@@ -1,0 +1,130 @@
+daemonize = false;
+admins = {
+{% for admin in prosody_jvb_admins %}
+"{{admin}}"{% if not loop.last %},{% endif %}
+{% endfor %}
+
+}
+
+data_path = "/var/lib/prosody-jvb/"
+
+-- avoid port conflicts with core prosody
+c2s_ports = { 6222 }
+console_ports = { 5583 }
+
+-- Enable use of native prosody 0.11 support for epoll over select
+network_backend = "epoll";
+-- Set the TCP backlog to 511 since the kernel rounds it up to the next power of 2: 512.
+-- This only applies to the epoll backend but it's harmless to set on the select one.
+network_settings = {
+  tcp_backlog = 511;
+}
+
+debug_traceback_filename = "traceback.txt"
+
+{% if prosody_enable_firewall and prosody_enable_jvb_muc_presence_filter %}
+firewall_scripts = {
+    "/usr/lib/prosody/rules.d/jvb_muc_presence_filter.pfw";
+};
+{% endif %}
+
+modules_disabled = {
+    "offline",
+    "component",
+	"s2s";
+};
+modules_enabled = {
+    -- Generally required
+      "roster";
+      "saslauth";
+      "tls";
+      "disco";
+      "posix";
+      "version";
+      "secure_interfaces";
+      "adhoc";
+      "admin_telnet";
+{% if prosody_enable_log_slow_events %}
+      "log_slow_events";
+{% endif %}
+{% if prosody_enable_firewall and prosody_enable_jvb_muc_presence_filter %}
+      "firewall";
+{% endif %}
+{% if prosody_jvb_mod_log_ringbuffer_size %}
+      "debug_traceback";
+      "log_ringbuffer";
+{% endif %}
+
+};
+
+{% if prosody_enable_log_slow_events %}
+log_slow_events_threshold = {{prosody_slow_events_threshold}};
+{% endif %}
+
+{% if prosody_stats_provider %}
+statistics = "{{prosody_stats_provider}}";
+{% if prosody_stats_provider == "statsd" %}
+statistics_config = {
+  statsd_server = "{{prosody_stats_server}}";
+  statsd_port = {{prosody_stats_port}};
+  prefix = "prosody_jvb";
+};
+{% endif %}
+{% endif %}
+
+{% if prosody_jvb_c2s_stanza_size_limit %}
+c2s_stanza_size_limit = {{ prosody_jvb_c2s_stanza_size_limit }};
+{% endif %}
+
+allow_registration = false;
+c2s_require_encryption = true
+storage = "internal"
+
+log = {
+	{{prosody_log_level}} = "/var/log/prosody-jvb/prosody.log";
+	error = "/var/log/prosody-jvb/prosody.err";
+	-- Syslog:
+	{% if prosody_log_syslog_enabled %}
+    warn = "*syslog";
+    {% endif %}
+	-- Debug filtered:
+  {% if prosody_enable_debug_log %}
+	debug = "/var/log/prosody-jvb/prosody.fifo";
+  {% else %}
+--	debug = "/var/log/prosody-jvb/prosody.fifo";
+  {% endif %}
+{% if prosody_jvb_mod_log_ringbuffer_size %}
+    {
+        level = "debug",
+        to = "ringbuffer",
+        size = {{prosody_jvb_mod_log_ringbuffer_size}},
+        filename_template = "traceback.txt",
+        event = "debug_traceback/triggered";
+    };
+{% endif %}
+}
+
+plugin_paths = { "/usr/share/jitsi-meet/prosody-plugins/" }
+
+----------- Virtual hosts -----------
+VirtualHost "{{ prosody_jvb_auth_domain_name }}"
+    modules_enabled = {
+      "ping";
+    }
+    authentication = "internal_hashed"
+    ssl = {
+        key = "/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.key";
+        certificate = "/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.crt";
+    }
+
+Component "{{ prosody_jvb_muc_name }}" "muc"
+    modules_enabled = {
+      "ping",
+      "muc_hide_all";
+      "muc_filter_access";
+    }
+    storage = "{{prosody_muc_storage_method}}"
+    muc_room_cache_size = 10000
+    muc_filter_whitelist="{{ prosody_jvb_auth_domain_name }}"
+    muc_room_locking = false
+    muc_room_default_public_jids = true

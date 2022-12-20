@@ -1,0 +1,10 @@
+---
+- include_tasks: install.yml
+  when:
+    - signal_sidecar_install_flag
+    - signal_sidecar_enabled
+
+- include_tasks: configure.yml
+  when:
+    - signal_sidecar_configure_flag
+    - signal_sidecar_enabled

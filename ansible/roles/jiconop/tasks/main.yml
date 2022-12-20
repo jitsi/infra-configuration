@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: jiconop_install_flag
+
+- include_tasks: configure.yml
+  when: jiconop_configure_flag

@@ -1,0 +1,20 @@
+[Unit]
+Description=Prosody Log Filter
+After=network.target
+Before=prosody.service
+
+[Service]
+User=root
+Group=prosody
+WorkingDirectory=/var/log/prosody
+ExecStart=/usr/local/bin/prosody-log-filter.sh
+Restart=always
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier=prosody-log-filter
+
+[Install]
+WantedBy=multi-user.target prosody.service

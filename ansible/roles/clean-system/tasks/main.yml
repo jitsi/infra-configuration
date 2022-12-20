@@ -1,0 +1,69 @@
+---
+# stop daemons
+- name: stop fluentd if present
+  service: name="td-agent" state=stopped enabled=false
+  ignore_errors: true
+
+- name: stop telegraf if present
+  service: name="telegraf" state=stopped enabled=false
+  ignore_errors: true
+
+#Disable Ubuntu autoupdates
+- name: Disable automatic updates on boot 
+  command: "{{ item }}"
+  with_items: 
+    - systemctl stop apt-daily.service
+    - systemctl stop apt-daily.timer
+    - systemctl stop apt-daily-upgrade.service
+    - systemctl stop apt-daily-upgrade.timer
+    - systemctl mask apt-daily.service
+    - systemctl mask apt-daily.timer
+    - systemctl mask apt-daily-upgrade.service
+    - systemctl mask apt-daily-upgrade.timer
+    - systemctl kill --kill-who=all apt-daily.service
+    - systemctl daemon-reload
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version >= '16'
+  ignore_errors: yes
+
+- name: Disable automatic updates on boot in the 10periodic
+  lineinfile: 
+    dest: "/etc/apt/apt.conf.d/10periodic"
+    regexp: '^APT::Periodic::Update-Package-Lists'
+    line: 'APT::Periodic::Update-Package-Lists "0";'
+
+- name: Disable automatic updates on boot in the 20auto-upgrades
+  template: 
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+
+
+- name: Unattended upgrade disable via debconf
+  shell: echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean false | debconf-set-selections && dpkg-reconfigure -f noninteractive unattended-upgrades
+
+- name: Remove oracle cloud agent if installed
+  shell: snap list | grep -q oracle-cloud-agent && snap remove oracle-cloud-agent || true
+
+#Remove old kernels and packages
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes
+    purge: yes
+    force: yes
+
+- name: Cleans the local repository of retrieved package files
+  apt: 
+    autoclean: yes
+    force: yes
+
+#Remove ssh uthorized keys
+- name: Remove authorized keys | root
+  file: path=/root/.ssh/authorized_keys state=absent
+
+#Clean logs
+- name: Log cleanup
+  shell: "find /var/log -type f -exec truncate --size 0 {} \\;"
+
+- name: Remove authorized keys | users
+  file: path=/home/ubuntu/.ssh/authorized_keys state=absent

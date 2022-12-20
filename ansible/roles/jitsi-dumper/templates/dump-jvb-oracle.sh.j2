@@ -1,0 +1,78 @@
+#!/bin/bash
+
+#set -e
+#set -x
+
+OCI_BIN="/usr/local/bin/oci"
+
+#first load our local instance information from Oracle (or cache) (ENVIRONMENT, DOMAIN, SHARD)
+. /usr/local/bin/oracle_cache.sh
+
+BUCKET="jvb-dump-logs-${ENVIRONMENT}"
+
+JAVA_USER="jvb"
+
+JPID=`ps aux | grep java | grep -v grep | grep $JAVA_USER | awk '{ print $2; }'`
+JSTAMP=`date +%Y-%m-%d-%H%M`
+JHOST=`hostname -s`
+TMP_DIR=`mktemp -d /mnt/dump-XXXXX`
+
+if [ -z $ARCH_PATH ]; then
+    ARCH_PATH="/mnt/$JHOST-$JSTAMP-$JPID-dump.tar.gz"
+fi
+
+#Run the collect-dump-logs scripts and extract them to the current directory
+pushd $TMP_DIR
+/usr/share/jitsi-videobridge/collect-dump-logs.sh >> $TMP_DIR/jvb_dump.log 2>&1
+tar zxvf jvb-dumps-*.tgz >> $TMP_DIR/jvb_dump.log 2>&1
+rm jvb-dumps-*.tgz >> $TMP_DIR/jvb_dump.log 2>&1
+popd
+
+cp -a /var/log/cloud-init* $TMP_DIR
+
+cp -a /var/log/bootstrap.log $TMP_DIR
+
+cp -a /var/log/postinstall-ansible.log $TMP_DIR
+
+cp -a /var/log/jitsi/* $TMP_DIR
+
+mkdir $TMP_DIR/local
+
+cp -a /var/log/local/* $TMP_DIR/local
+
+cp -a /var/log/syslog $TMP_DIR
+
+cp /tmp/health-check* $TMP_DIR
+cp -r /tmp/jvb-stats $TMP_DIR
+
+cp -a /tmp/*.json $TMP_DIR
+
+echo "HOST: $JHOST, PID: $JPID, STAMP: $JSTAMP, TMP_DIR: $TMP_DIR" > /tmp/jvb_dump.log
+
+echo "HOST: $JHOST, PID: $JPID, STAMP: $JSTAMP, TMP_DIR: $TMP_DIR" > $TMP_DIR/jvb_dump.log
+echo "---------HOST: $JHOST DISK SPACE $JSTAMP---------" > $TMP_DIR/df_dump.log
+df -h >> $TMP_DIR/df_dump.log
+
+echo "---------HOST: $JHOST PS OUTPUT $JSTAMP---------" > $TMP_DIR/ps_dump.log
+ps auxwww >> $TMP_DIR/ps_dump.log
+
+echo "---------HOST: $JHOST PSTREE OUTPUT $JSTAMP---------" > $TMP_DIR/ps_tree.log
+pstree -pal >> $TMP_DIR/ps_tree.log
+
+echo "---------HOST: $JHOST TOP OUTPUT $JSTAMP---------" > $TMP_DIR/top_dump.log
+top -n 1 -b >> $TMP_DIR/top_dump.log
+
+echo "---------HOST: $JHOST LSOF OUTPUT $JSTAMP---------" > $TMP_DIR/lsof_dump.log
+lsof >> $TMP_DIR/lsof_dump.log
+
+echo "---------HOST: $JHOST LSOF -u $JAVA_USER OUTPUT $JSTAMP---------" > $TMP_DIR/jvb_lsof_dump.log
+lsof -u $JAVA_USER >> $TMP_DIR/jvb_lsof_dump.log
+
+
+tar zcf $ARCH_PATH -C $TMP_DIR . && echo "Created $ARCH_PATH" >> /tmp/jvb_dump.log
+
+[ -d $TMP_DIR ] && rm -r $TMP_DIR
+
+echo "Uploading to OCI bucket." >> /tmp/jvb_dump.log
+
+$OCI_BIN os object put -bn $BUCKET --name $JHOST-$JSTAMP-$JPID-dump.tar.gz --file $ARCH_PATH --metadata '{"environment":"'"$ENVIRONMENT"'","release-number":"'"$RELEASE_NUMBER"'"}'

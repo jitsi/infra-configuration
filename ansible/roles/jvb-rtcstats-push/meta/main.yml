@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: nodejs, when: jvb_rtcstats_push_install_flag }

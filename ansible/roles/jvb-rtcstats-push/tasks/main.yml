@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: jvb_rtcstats_push_install_flag
+
+- include_tasks: configure.yml
+  when: jvb_rtcstats_push_configure_flag

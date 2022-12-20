@@ -1,0 +1,306 @@
+---
+ansible_ec2_placement_region:
+callstats_app_id: 1
+callstats_app_secret: s3cr3t
+#give a default shard name in case none is provided
+hcv_environment: all
+jaas_feedback_metadata_url: false
+# URL for branding to redirect users to standalone offering
+jitsi_meet_8x8_video_meetings_url: false
+jitsi_meet_amplitude_api_key: false
+jitsi_meet_analytics_whitelist: false
+jitsi_meet_anonymize_logs: false
+jitsi_meet_anonymousdomain: false
+jitsi_meet_api_billing_counter: false
+jitsi_meet_api_branding_data_url: false
+jitsi_meet_api_conference_event_url: "{{jitsi_meet_api_url}}/conferenceEvent"
+jitsi_meet_api_conference_invite_callflows_url: "{{jitsi_meet_api_url}}/conferenceinvitecallflows"
+jitsi_meet_api_conference_invite_url: "{{jitsi_meet_api_url}}/conferenceInvite"
+jitsi_meet_api_conference_mapper_url: "{{jitsi_meet_api_url}}/conferenceMapper"
+jitsi_meet_api_dialin_numbers_url: "{{jitsi_meet_api_url}}/phoneNumberList"
+jitsi_meet_api_dialout_auth_url: "{{jitsi_meet_api_url}}/authorizephone"
+jitsi_meet_api_dialout_codes_url: "{{jitsi_meet_api_url}}/countrycodes"
+jitsi_meet_api_directory_search_url: "{{jitsi_meet_api_url}}/directorySearch"
+jitsi_meet_api_guest_dial_out_status_url: false
+jitsi_meet_api_guest_dial_out_url: false
+jitsi_meet_api_jaas_token_url: false
+jitsi_meet_api_jaas_webhook_proxy: false
+# endpoint used for getting the sharable recording link
+jitsi_meet_api_recoding_sharing_url: false
+jitsi_meet_api_screenshot_history_url: false
+jitsi_meet_api_screenshot_history_region_url: false
+jitsi_meet_api_sip_invite_url: false
+jitsi_meet_api_url: https://api.jitsi.net
+jitsi_meet_apple_site_associations: |
+  {
+      "applinks": {
+          "apps": [],
+          "details": [
+              {
+                  "appID": "FC967L3QRG.org.jitsi.meet",
+                  "paths": [ "NOT /static/*", "*" ]
+              },
+              {
+                  "appID": "FC967L3QRG.com.atlassian.JitsiMeet.ios",
+                  "paths": [ "NOT /static/*", "*" ]
+              }
+          ]
+      }
+  }
+jitsi_meet_assetlinks: |
+  [{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+          "namespace": "android_app",
+          "package_name": "org.jitsi.meet",
+          "sha256_cert_fingerprints": ["F6:C8:93:15:16:9D:E0:08:0A:B7:EA:36:15:26:24:25:60:93:77:F7:61:79:89:E9:52:05:F4:09:B3:0E:59:44"]
+      }
+  }]
+jitsi_meet_bosh_host: "{{prosody_domain_name}}"
+jitsi_meet_bosh_path: "http-bind"
+jitsi_meet_bosh_protocol: "//"
+jitsi_meet_bosh_url: "{{jitsi_meet_bosh_protocol}}{{jitsi_meet_bosh_host}}/{{jitsi_meet_bosh_path}}"
+jitsi_meet_branding_override: "jitsi-meet"
+jitsi_meet_callstats_app_id: "{{callstats_app_id}}"
+jitsi_meet_callstats_app_secret: "{{callstats_app_secret}}"
+jitsi_meet_callstats_customscript_url: false
+jitsi_meet_callstats_disable_logs: false
+jitsi_meet_callstats_threshold: false
+jitsi_meet_cdn_base_url: "https://web-cdn.jitsi.net"
+jitsi_meet_cdn_deployment_enabled: false
+jitsi_meet_cdn_distribution_id: "E1CYRHC3DEPH0L"
+jitsi_meet_cdn_enabled: false
+jitsi_meet_cdn_prefix: ""
+jitsi_meet_cdn_s3: "jitsi-cdn-origin-20181106"
+jitsi_meet_channel_last_n: -1
+jitsi_meet_chrome_desktop_key: diibjkoicjeejcmhdnailmkgecihlobk
+# These control the extension banner display in jitsi meet when extension is not installed.
+jitsi_meet_chrome_extension_banner_url: false
+jitsi_meet_edge_extension_banner_url: false
+jitsi_meet_chrome_extension_info: false
+jitsi_meet_close_page_enabled: false
+jitsi_meet_close_page_redirect_url: false
+jitsi_meet_conference_info_overwrite: false
+jitsi_meet_conference_info_visible: "[ 'recording', 'local-recording', 'raised-hands-count' ]"
+jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee', 'transcribing', 'video-quality', 'insecure-room' ]"
+jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090)}}"
+jitsi_meet_config_path: "/etc/jitsi/meet"
+jitsi_meet_configure_flag: true
+jitsi_meet_content_security_policy_on_root: false
+jitsi_meet_cors_avatar_urls: false
+jitsi_meet_deb_pkg_name: "jitsi-meet-web"
+jitsi_meet_deb_pkg_version: "*"
+jitsi_meet_disable_reactions: false
+jitsi_meet_disable_reactions_moderation: false
+jitsi_meet_disable_record_audio_notification: false
+jitsi_meet_disable_speaker_stats_search: false
+jitsi_meet_domain_name: "{{ prosody_domain_name }}"
+jitsi_meet_download_apps_url: false
+jitsi_meet_dropbox_app_key: false
+jitsi_meet_e2eping_enabled: false
+jitsi_meet_enable_calendar: false
+jitsi_meet_enable_callstats: false
+jitsi_meet_enable_colibri_websockets: false
+jitsi_meet_enable_email_in_stats: false
+jitsi_meet_enable_event_proxy: true
+jitsi_meet_enable_face_landmarks_enable_centering: false
+jitsi_meet_enable_face_landmarks_detect_expressions: false
+jitsi_meet_enable_face_landmarks_display_expressions: false
+jitsi_meet_enable_face_landmarks_enable_rtc_stats: false
+jitsi_meet_enable_local_recording: false
+jitsi_meet_local_recording_notify_all: true
+jitsi_meet_enable_file_recordings: false
+jitsi_meet_enable_file_recordings_service: false
+jitsi_meet_enable_file_recordings_sharing: false
+jitsi_meet_enable_forced_client_reload: false
+jitsi_meet_giphy_enabled: false
+jitsi_meet_giphy_sdk_key: ''
+jitsi_meet_enable_gzip: false
+jitsi_meet_enable_insecure_room_name_warning: false
+jitsi_meet_enable_layer_suspension: false
+jitsi_meet_enable_lipsync: false
+jitsi_meet_enable_livestreaming: false
+jitsi_meet_enable_local_video_flip: true
+jitsi_meet_enable_lock_room_for_all: false
+jitsi_meet_enable_lock_room_ten_digits: false
+jitsi_meet_enable_multi_domain: false
+jitsi_meet_enable_p2p: false
+jitsi_meet_enable_p2p_h264: false
+#A/B test ratio: controls whether to suspend video in p2p when connectivity issue are detected
+jitsi_meet_enable_p2p_suspend_video_test: false
+jitsi_meet_enable_p2p_turn: false
+jitsi_meet_enable_prejoin_page: false
+jitsi_meet_enable_room_api: false
+jitsi_meet_enable_sanitize_hack: false
+jitsi_meet_enable_save_logs: true
+jitsi_meet_enable_send_multiple_streams: false
+jitsi_meet_enable_shared_document: false
+jitsi_meet_enable_simulcast: false
+jitsi_meet_enable_source_name_signaling: false
+jitsi_meet_enable_ss_resolution_constraints: true
+jitsi_meet_enable_ssrc_rewriting: false
+jitsi_meet_disable_stage_filmstrip: false
+jitsi_meet_enable_stereo: false
+jitsi_meet_enable_thumbnail_reordering: true
+jitsi_meet_enable_transcription: false
+jitsi_meet_enable_turn_udp_jvb: false
+jitsi_meet_enable_unified_plan_chromium: true
+jitsi_meet_enable_unified_plan_chromium_p2p: true
+jitsi_meet_enable_unsafe_room_warning: false
+jitsi_meet_enable_user_roles_based_on_token: false
+jitsi_meet_enable_welcome_page: true
+jitsi_meet_enable_xmpp_websockets: true
+jitsi_meet_environment_type: dev
+jitsi_meet_etherpad_base: "https://{{ jitsi_meet_etherpad_host }}/etherpad/p/"
+jitsi_meet_etherpad_host: "{{jitsi_meet_bosh_host}}"
+jitsi_meet_etherpad_proxy_pass: "https://etherpad.jitsi.net:9001"
+jitsi_meet_feedback_percentage: 100
+# "Math.random() < forceJVB121Ratio" determines whether a 1:1 call should be
+# moved to the JVB (after a successful P2P connection). Math.random()
+# returns a value in [0, 1) uniformly distributed, so, the default "-1" means
+# that no call should be moved to the JVB after a successful P2P.
+jitsi_meet_force_jvb121_ratio: -1
+jitsi_meet_google_analytics_flag: false
+jitsi_meet_google_analytics_hep_flag: false
+jitsi_meet_google_analytics_hep_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"'+jitsi_meet_domain_name+'\" -->/libs/analytics-hep.js'] }}"
+jitsi_meet_google_analytics_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"'+jitsi_meet_domain_name+'\" -->/libs/analytics-ga.min.js'] }}"
+jitsi_meet_google_analytics_tracking_id: ""
+jitsi_meet_google_api_app_client_id: false
+jitsi_meet_haproxy_bind_port: 9092
+#jitsi_meet_hepop_analytics_url: "{{jitsi_meet_hepop_analytics_urls_by_environment_type[jitsi_meet_environment_type] if jitsi_meet_environment_type in jitsi_meet_hepop_analytics_urls_by_environment_type else ''}}"
+jitsi_meet_hepop_analytics_url: ""
+jitsi_meet_hepop_analytics_urls_by_environment_type:
+  dev: https://hepop-dev.jitsi.net/
+  prod: https://hepop.jitsi.net/
+  stage: https://hepop-pilot.jitsi.net/
+jitsi_meet_hidden_from_recorder_feature: false
+jitsi_meet_install_flag: true
+jitsi_meet_jiconop_enabled: true
+jitsi_meet_last_n_limits: false
+jitsi_meet_load_test_enabled: false
+jitsi_meet_load_test_repo: https://github.com/jitsi/jitsi-meet-load-test.git
+jitsi_meet_microsoft_api_app_client_id: false
+jitsi_meet_min_height_quality_level: false
+jitsi_meet_mobile_xmpp_ws_threshold: false
+jitsi_meet_moderated_service_url: false
+jitsi_meet_mouse_move_callback_interval: 1000
+jitsi_meet_nginx_only_flag: false
+jitsi_meet_nginx_redirect_missing_flag: false
+jitsi_meet_nginx_redirect_url: https://hipchat.com/
+jitsi_meet_nginx_root: "/usr/share/{{jitsi_meet_branding_override}}"
+jitsi_meet_nginx_ws_timeout: false
+jitsi_meet_no_audio_detection_enabled: true
+jitsi_meet_no_auto_local_audio: false
+jitsi_meet_noisy_mic_detection_enabled: true
+jitsi_meet_opus_red_enabled: false
+jitsi_meet_override_plugin_contents: ""
+jitsi_meet_p2p_disabled_codec: null
+jitsi_meet_p2p_preferred_codec: "VP9"
+jitsi_meet_people_search_query_types: "['user','conferenceRooms']"
+jitsi_meet_performance_stats: false
+jitsi_meet_polls_disabled: false
+jitsi_meet_prefer_vp9_codec_jvb: true
+jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
+jitsi_meet_prosody_deb_pkg_version: "{{jitsi_meet_deb_pkg_version}}"
+jitsi_meet_redirect_to_ssl: true
+jitsi_meet_require_displayname: false
+jitsi_meet_resolution: false
+jitsi_meet_rtcstats_enabled: false
+jitsi_meet_rtcstats_store_logs: false
+jitsi_meet_rtcstats_endpoint: wss://rtcstats-server.jitsi.net/
+jitsi_meet_rtcstats_poll_interval: 10000
+jitsi_meet_rtcstats_use_legacy: false
+jitsi_meet_screenshot_capture_enabled: false
+jitsi_meet_screenshot_capture_mode: 'recording'
+jitsi_meet_signal_api_server_name: "signal-api-{{jitsi_meet_domain_name}}"
+jitsi_meet_signal_api_ssl_certificate: "{{jitsi_meet_ssl_certificate}}"
+jitsi_meet_signal_api_ssl_key_name: "{{jitsi_meet_ssl_key_name}}"
+jitsi_meet_signal_kick_endpoint: false
+jitsi_meet_signal_sidecar_enabled: true
+jitsi_meet_site_path: /usr/share/jitsi-meet
+jitsi_meet_ssl_certificate: |
+  -----BEGIN CERTIFICATE-----
+  MIIEPDCCAySgAwIBAgIJAJdaEs48ZdrNMA0GCSqGSIb3DQEBBQUAMHExCzAJBgNV
+  BAYTAlVTMQ4wDAYDVQQIEwVUZXhhczEPMA0GA1UEBxMGQXVzdGluMRIwEAYDVQQK
+  EwlBdGxhc3NpYW4xEDAOBgNVBAsTB0hpcENoYXQxGzAZBgNVBAMTEnhtcHAwLmRv
+  bWFpbi5sb2NhbDAeFw0xNTA4MTQxMjA4MjZaFw0yNTA4MTExMjA4MjZaMHExCzAJ
+  BgNVBAYTAlVTMQ4wDAYDVQQIEwVUZXhhczEPMA0GA1UEBxMGQXVzdGluMRIwEAYD
+  VQQKEwlBdGxhc3NpYW4xEDAOBgNVBAsTB0hpcENoYXQxGzAZBgNVBAMTEnhtcHAw
+  LmRvbWFpbi5sb2NhbDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANCq
+  0ZnMABs01QHCxxCfyL78ijp51zQ8m+ICx7UKHcjOX9gBobkiC0Ec+dn4Bgsc7daH
+  vf4U7YY/PW2osjPAlS39z4Qx5caxHR+4BCjfJ6rEZ/sVRn9Mp86V02ZmvMq7h8/X
+  0kzLdUoAw6LVdMMGp66YMlfFs6ZX0YnA87znnI6gE99eH8YBnGK4b5bXEKBvISYF
+  IiR/axwy2EVSZ6IW1oJQQMOZD1kCxbeVb+1BVHn2HBPfg0cOTNAhTtoHbVjliTsp
+  ckHyPBcWBwgz+Blm8bFa42cH9RE4VPUPLZSrK+v0a0VJPQe7lNezaenWazP47an0
+  397oLiDAc10b2hJc3W0CAwEAAaOB1jCB0zAdBgNVHQ4EFgQUVLBLChtV5OqGBcdc
+  xJ5Z3t91mecwgaMGA1UdIwSBmzCBmIAUVLBLChtV5OqGBcdcxJ5Z3t91meehdaRz
+  MHExCzAJBgNVBAYTAlVTMQ4wDAYDVQQIEwVUZXhhczEPMA0GA1UEBxMGQXVzdGlu
+  MRIwEAYDVQQKEwlBdGxhc3NpYW4xEDAOBgNVBAsTB0hpcENoYXQxGzAZBgNVBAMT
+  EnhtcHAwLmRvbWFpbi5sb2NhbIIJAJdaEs48ZdrNMAwGA1UdEwQFMAMBAf8wDQYJ
+  KoZIhvcNAQEFBQADggEBADOj8HcU/Hw3lkQvPxSza3KF84Rs82Ju6ZoCrF5WYHhz
+  6Z4iJ8GGu8Koj77uv5Fqlw62A5upO6ENS8I7uF/vAJn4x4qisstqmzzSfVAGNRpT
+  MPB1WfHvQV9g/O76U3W5JXQKPzT757uMtpfurOOqySCG4P52jjBH+hXEqiqA4KLd
+  Qe87AYiMGa6jmki0ZqicEktwBBb9RpKrjkCXurq2oYavPVmTCHH+HQd2tuANCJME
+  PL/HdnXRz/tCkuBR4uuDj7GCkruUmqxZGcU1KrhpjAiwpGBLd45AoTe9Kxmeq/2K
+  fUGeQIt7Tcbhji2IquZoF8BQMiwScUUTYyLU/MM2PIY=
+  -----END CERTIFICATE-----
+jitsi_meet_ssl_dest_dir: /etc/nginx/ssl
+jitsi_meet_ssl_key_name: |
+  -----BEGIN RSA PRIVATE KEY-----
+  MIIEpQIBAAKCAQEA0KrRmcwAGzTVAcLHEJ/IvvyKOnnXNDyb4gLHtQodyM5f2AGh
+  uSILQRz52fgGCxzt1oe9/hTthj89baiyM8CVLf3PhDHlxrEdH7gEKN8nqsRn+xVG
+  f0ynzpXTZma8yruHz9fSTMt1SgDDotV0wwanrpgyV8WzplfRicDzvOecjqAT314f
+  xgGcYrhvltcQoG8hJgUiJH9rHDLYRVJnohbWglBAw5kPWQLFt5Vv7UFUefYcE9+D
+  Rw5M0CFO2gdtWOWJOylyQfI8FxYHCDP4GWbxsVrjZwf1EThU9Q8tlKsr6/RrRUk9
+  B7uU17Np6dZrM/jtqfTf3uguIMBzXRvaElzdbQIDAQABAoIBAQDCs9D1v6sNt8NV
+  bEhQk7c9tejI3W1XmYIeZlev7muSNjaqGAOt+j0kGYRsxQfmkKy/81LtZNuo2xNX
+  YgQ9U+Ie0ugxwllTh2nUceC3vlmF9tPLLbPlDkK5+YUS1KQuSsNTxV6+N04Oqh3h
+  r2jOnUQTHoJC8f9KJEEpVzhWuIqVbMonmB7dt4EOwj6z2q+hqQYgbkH5hi6Tdz2N
+  cUKra7acA6bzKUoKoEsg7Z8yXKu1h8qJpTfNExOfyA3SzHzOoueZHoOcdmM8gn30
+  m+W8YNS3iEYFIUAQUtXlP+5jzYlNFeXq574VzN7pNiPK4q1OzQ436xtWlT4d2Sb/
+  +u+oD4+lAoGBAPeNPNlkk020UePzZvtZexDyiGqg97wXB28Ll/siB8ILJHx5UZlu
+  2vEProT6vp3cZWveNXmaPe+oluAgXGncxviGd6ktF5Iv5ymacwzySwGeSESbxiMx
+  PvrcP6+6b9igDaF2JvSbZRp/LgpvCL8/i89jH0HCWs8ZVdjeRBBlPn4TAoGBANfJ
+  3OSc8U7NMsZn9vyJ3Hc2gyZLS0QG1zgXbzHKxXAFthAxnLPPcfnvOMxYWCVqPQPp
+  /hxNmZL3bJGV76egk04Yuh8j+axddQsJ5rQEbDtTs6eVaTmm/nIhZK2doVz9T2fI
+  PHkJf4FkHfLvib0lauyuVz4x6r64ah5XEH1GdKZ/AoGAGbVLOnBdc9ZkIr4mVbgH
+  Nc1aKWiqEZh6pyeXEveHwrkRgvO+a6a9igdM4nZ/0TkQN1GOUCCaigcCFCiIMF5D
+  M5ATYThTmFTtNr7Zb+DBtVtQuf9LZmA44Ch7XK6J6v9EKx5wETsKFuRaTa8WQ3Y/
+  +LuchWG/uH4zEiCTBPjeso0CgYEAvOd+dLPfm3iPZplE4rddRQ93qGJptVe3uObq
+  9M/qH7MgOvTzlYWY5Y/CTUFZiQeD+pUxW12jf8ESTjDP6BLuYYPMC87Wl0oJWGyG
+  hjkI9rbDo4Vs5IeIYClTlZlU1a77gIMOTXc/I+qdPTrtfaPwAtpsjYntUqDmZUEa
+  slCndckCgYEAg8f+rJ9kLGpWL8K2nW9GiC/ZI1c31u4RV2VccdBUX6ur8jkytOEO
+  6/9Jm2Y88ISJFGHHMh+Hp9eW3Kca1BE0SSy92qPzk0s/5aVqsZb+DHZYDQsK6/yS
+  ZUN4cJtj5/BRMvNwehgpedebsmzvFgnh4RSS3oHpJZYHLXjKdHai9Z8=
+  -----END RSA PRIVATE KEY-----
+jitsi_meet_start_audio_muted_count: 25
+jitsi_meet_start_video_muted_count: 25
+jitsi_meet_stun_hosts:
+  #ap-ne-1: all-ap-ne-1-turn.jitsi.net:443
+  ap-se-1: all-ap-se-1-turn.jitsi.net:443
+  ap-se-2: all-ap-se-2-turn.jitsi.net:443
+  #ap-south-1: all-ap-south-1-turn.jitsi.net:443
+  #ca-central-1: all-ca-central-1-turn.jitsi.net:443
+  eu-central-1: all-eu-central-1-turn.jitsi.net:443
+  eu-west-1: all-eu-west-1-turn.jitsi.net:443
+  #eu-west-2: all-eu-west-2-turn.jitsi.net:443
+  us-east-1: all-us-east-1-turn.jitsi.net:443
+  #us-east-2: all-us-east-2-turn.jitsi.net:443
+  #us-west-1: all-us-west-1-turn.jitsi.net:443
+  us-west-2: all-us-west-2-turn.jitsi.net:443
+jitsi_meet_talk_while_muted_enabled: true
+jitsi_meet_title_metadata_override: false
+jitsi_meet_toolbar_buttons_filter: []
+jitsi_meet_use_new_bitrate_allocation_strategy: false
+jitsi_meet_user_documentation_url: false
+jitsi_meet_video_quality: false
+jitsi_meet_web_version: false
+jitsi_meet_whiteboard_collab_server_base_url: ''
+jitsi_meet_whiteboard_enabled: false
+jitsi_meet_ws_host: "{{prosody_domain_name}}"
+jitsi_meet_ws_path: "xmpp-websocket"
+jitsi_meet_ws_protocol: "wss://"
+jitsi_meet_ws_url: "{{jitsi_meet_ws_protocol}}{{jitsi_meet_ws_host}}/{{jitsi_meet_ws_path}}"
+jitsi_meet_xmpp_domain_name: "{{ prosody_domain_name }}"
+jitsi_release_number: ''
+shard_name: "{{ hcv_environment }}"

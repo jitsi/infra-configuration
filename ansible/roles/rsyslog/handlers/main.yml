@@ -1,0 +1,12 @@
+---
+- name: restart rsyslog
+  tags:
+    - rsyslog
+    - configuration
+  service: name={{ rsyslog_service_name }} state=restarted
+
+- name: reload apparmor
+  tags:
+    - rsyslog
+    - configuration
+  service: name=apparmor state=reloaded

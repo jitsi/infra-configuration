@@ -1,0 +1,25 @@
+---
+
+- name: install tcpdump
+  apt: name=tcpdump state=latest
+
+- name: create storage folder
+  file: path=/var/lib/tcpdump-prosody-jvb state=directory owner=tcpdump group=root mode=0755
+
+- name: cleanup script
+  copy: src=tcpdump-prosody-jvb-cleanup.sh dest=/usr/local/bin/tcpdump-prosody-jvb-cleanup.sh mode=0755 owner=root
+
+- name: service definition
+  copy: src=tcpdump-prosody-jvb.service dest=/lib/systemd/system/tcpdump-prosody-jvb.service
+
+- name: Start service and set it enabled
+  service: name=tcpdump-prosody-jvb state=started enabled=yes
+
+# Run the cleanup script regularly
+- name: cleanup cron
+  cron: user=root
+        state=present
+        name="=tcpdump-prosody-jvb cleanup script"
+        minute="0,30"
+        hour="*"
+        job="/usr/local/bin/tcpdump-prosody-jvb-cleanup.sh > /tmp/tcpdump-prosody-jvb-cron-output 2>&1"

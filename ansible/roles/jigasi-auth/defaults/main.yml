@@ -1,0 +1,9 @@
+---
+jigasi_auth_domain: "auth.{{prosody_domain_name}}"
+jigasi_auth_domain_path: "/var/lib/prosody/{{jigasi_auth_domain|regex_replace('\\.','%2e')|regex_replace('-','%2d')}}/accounts/{{jigasi_auth_user}}.dat"
+jigasi_auth_password: "{{jigasi_xmpp_password | default('jeegahsee')}}"
+jigasi_auth_user: "{{jigasi_xmpp_jid_username}}"
+jigasi_transcriber_auth_domain: "recorder.{{prosody_domain_name}}"
+jigasi_transcriber_auth_domain_path: "/var/lib/prosody/{{jigasi_transcriber_auth_domain|regex_replace('\\.','%2e')|regex_replace('-','%2d')}}/accounts/{{jigasi_transcriber_auth_user}}.dat"
+jigasi_transcriber_auth_password: "meettranscriber"
+jigasi_transcriber_auth_user: "transcriber"

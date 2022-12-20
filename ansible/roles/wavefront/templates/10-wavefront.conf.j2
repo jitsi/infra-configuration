@@ -1,0 +1,12 @@
+# # Configuration for Wavefront proxy to send metrics to
+[[outputs.wavefront]]
+{% if wavefront_tcp_mode %}
+  host = "{{ wavefront_proxy_address }}"
+  port = {{ wavefront_proxy_port }}
+{% else %}
+  url = "http://{{ wavefront_proxy_address }}:{{wavefront_proxy_json_port}}"
+{% endif %}
+  metric_separator = "."
+  source_override = ["hostname", "snmp_host", "node_host"]
+  convert_paths = true
+  use_regex = false

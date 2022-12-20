@@ -1,0 +1,61 @@
+# {{ ansible_managed }}
+<filter syslog.**>
+    @type record_transformer
+    enable_ruby false
+    <record>
+        hostname ${hostname}
+        logSource "8x8.syslog"
+        environmentName "{{ fluentd_jitsi_environment }}"
+        hostRole "{{ fluentd_jitsi_shard_role }}"
+        hostRegion "{{ fluentd_jitsi_cloud_region }}"
+        businessUnit "{{ fluentd_jitsi_oci_business_unit | lower }}"
+        environment "{{ fluentd_jitsi_oci_env_name | lower }}"
+        tag ${tag}
+    </record>
+</filter>
+
+<match syslog.**>
+        @type copy
+        <store>
+                @id match_0_syslog
+                @type oci_logging
+                log_object_id             {{ fluentd_jitsi_oci_log_object_ocid }}
+                principal_override        user
+                <buffer tag>
+                        @type file
+                        retry_timeout  3h
+                        path /var/spool/td-agent/fluent_oci_outplugin/buffer/0/syslog/
+                        disable_chunk_backup  true
+                        chunk_limit_size  5MB
+                        flush_thread_count 4
+                        flush_interval  180s
+                        total_limit_size  1GB
+                        overflow_action  throw_exception
+                        retry_type  exponential_backoff
+                </buffer>
+        </store>
+{% if fluentd_jitsi_cloudwatch_logs_enabled %}
+        <store>
+                @id match_0_cwlogs
+                @type cloudwatch_logs
+                region {{fluentd_jitsi_region}}
+                log_group_name {{fluentd_jitsi_log_group_name}}
+                log_stream_name {{fluentd_jitsi_log_stream_name}}
+                auto_create_stream true
+                #use_log_stream_name_prefix true
+                #message_keys key1,key2,key3,...
+                #max_message_length 32768
+                #use_tag_as_group false
+                #use_tag_as_stream false
+                #include_time_key true
+                #localtime true
+                #log_group_name_key group_name_key
+                #log_stream_name_key stream_name_key
+                #remove_log_group_name_key true
+                #remove_log_stream_name_key true
+                #put_log_events_retry_wait 1s
+                #put_log_events_retry_limit 17
+                #put_log_events_disable_retry_limit false
+        </store>
+{% endif %}
+</match>

@@ -1,0 +1,11 @@
+---
+- template: src=47-nginx.conf.j2 dest=/etc/rsyslog.d/47-nginx.conf mode=0644
+  register: syslog_template
+  when: nginx_log_syslog_enabled
+
+- file: path=/etc/rsyslog.d/47-nginx.conf state=absent
+  register: syslog_template
+  when: nginx_log_syslog_enabled == false
+
+- service: name=rsyslog state=restarted
+  when: syslog_template.changed

@@ -1,0 +1,36 @@
+{% if fluentd_jitsi_jvb_logs_enabled %}
+# JVB
+<source>
+  @type tail
+  path /var/log/jitsi/jvb.log
+  pos_file /var/spool/td-agent/jvb.pos
+
+  #java with possible multi-line
+
+  format multiline
+  format_firstline /JVB /
+  format1 /^(?<process>[^ ]*) (?<time>[^ ]* [^ ]*) (?<level>[^ ]*) \[(?<thread>.*)\] (?<class>[^ ]*) (?<message>.*)$/
+
+  tag input.jvb
+  # Regex fields
+  # Date and time format
+  time_format %Y-%m-%d %H:%M:%S.%L
+
+</source>
+{% endif %}
+
+
+{% if fluentd_jitsi_jvb_series_enabled %}
+# JVB SERIES
+<source>
+  @type tail
+  path {{jvb_log_series_path}}
+  pos_file /var/spool/td-agent/jvb-series.pos
+  tag input.jitsi.videobridge.series
+  <parse>
+    @type json
+    # time_key default is time
+    # time_type default is float
+  </parse>
+</source>
+{% endif %}

@@ -1,0 +1,10 @@
+---
+- name: service configuration
+  template: src=service.config.j2 dest={{jvb_rtcstats_push_config_path}}
+
+- name: Configure systemd script for service
+  template: src=systemd.j2 dest=/lib/systemd/system/{{jvb_rtcstats_push_service_name}}.service
+
+- name: Start service and set it enabled
+  service: name={{jvb_rtcstats_push_service_name}} state=started enabled=yes
+  when: jvb_rtcstats_enabled
