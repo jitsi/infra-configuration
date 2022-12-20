@@ -6,7 +6,7 @@ java_install_flag: true
 java_package_prefix: openjdk-8
 java_package_suffix: "~{{'18.04' if ansible_distribution_release == 'bionic' else '20.04'}}_{{java_architecture}}.deb"
 java_package_version: "8u282-b08-0ubuntu1"
-java_url_base: "https://repo:{{jitsi_repo_password}}@internal-repo.jitsi.net/debian/misc/"
+java_url_base: "https://{{jitsi_repo_username}}:{{jitsi_repo_password}}@{{jitsi_repo_host}}/debian/misc/"
 java_url_packages:
   - jre-headless
   - jre
