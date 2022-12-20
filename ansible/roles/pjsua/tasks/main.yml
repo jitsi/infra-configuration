@@ -1,0 +1,33 @@
+---
+
+- name: install pjsua dependencies
+  apt: name="{{pjsua_apt_dependencies}}"
+
+- copy: >
+      content="{{pjsua_ssh_private_key}}"
+      dest="{{pjsua_ssh_private_key_path}}"
+      mode=0600
+  no_log: true
+
+- name: checkout pjsua
+  become: true
+  become_user: root
+  git: repo="{{pjsua_repo_url}}" version="{{pjsua_repo_version}}" dest="{{pjsua_src_path}}" update=yes accept_hostkey=yes key_file="{{pjsua_ssh_private_key_path}}"
+
+- name: configure pjsua for compiliation
+  become: true
+  command: >
+    ./configure
+    chdir="{{pjsua_src_path}}"
+    creates="{{pjsua_src_path}}/config.status"
+
+- name: make dep and make for pjsua
+  become: true
+  shell: >
+    make dep && make
+    chdir="{{pjsua_src_path}}"
+    creates="{{pjsua_src_path}}/pjsip-apps/bin/pjsua-{{ansible_architecture}}-unknown-linux-gnu"
+
+- name: copy pjsua into /usr/local/bin
+  become: true
+  copy: remote_src=True src="{{pjsua_src_path}}/pjsip-apps/bin/pjsua-{{ansible_architecture}}-unknown-linux-gnu" dest="/usr/local/bin/pjsua" mode=0755
