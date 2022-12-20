@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: jitsi-repo, when: jibri_install_flag }
+  - { role: chromedriver, when: jibri_install_flag }
+  - { role: google-chrome, when: jibri_install_flag}
+  - { role: openjdk-java, when: jibri_install_flag }

@@ -1,0 +1,165 @@
+---
+# adding chrome overrides
+- name: Add chrome profile directory
+  file: dest=/etc/opt/chrome/policies/managed state=directory mode=0755
+
+- name: Add chrome profile to avoid banner in chrome 76+
+  copy: 
+    dest: "/etc/opt/chrome/policies/managed/managed_policies.json"
+    content: '{ "CommandLineFlagSecurityWarningsEnabled": false }'
+
+- name: Copy termination monitor script
+  template: src="monitor-terminating-instance.j2" dest="{{jibri_scripts_dir}}/monitor-terminating-instance.sh" mode=0755
+  notify:
+    - Restart Monitor Terminating Instance
+  when: jibri_cloud_provider == "aws"
+
+- name: Install JIBRI termination monitoring systemd config
+  template: src=monitor-terminating-instance-systemd.j2 dest=/etc/systemd/system/monitor-terminating-instance.service
+  notify:
+    - Restart Monitor Terminating Instance
+  when: jibri_cloud_provider == "aws"
+
+- name: "folder for failed uploads"
+  file: path="{{jibri_failed_upload_path}}" state=directory mode=0777
+
+- name: "folder for temporary recordings"
+  file: path="{{jibri_recordings_dir}}" state=directory mode=0777
+
+#write jibri environments file
+- name: Jibri Config directory
+  file:
+    path=/etc/jitsi/jibri
+    owner=root
+    group=jitsi
+    recurse=yes
+    state=directory
+
+- name: Jibri Environments configuration
+  template: src="environments.json.j2" dest="/etc/jitsi/jibri/environments.json"
+
+- name: Remove custom fact module for configure-jibri
+  file: path="/etc/ansible/facts.d/configure_jibri.fact" state=absent
+
+- name: Install custom fact script for configure-jibri
+  copy: dest="/usr/local/bin/configure-jibri.py" src="configure-jibri.py" mode=0755 owner=root
+  when: not jibri_pjsua_flag
+
+- name: Run custom facts to build cache
+  command: /usr/local/bin/configure-jibri.py
+  register: facts_result
+  when: not jibri_pjsua_flag
+
+- set_fact:
+    configure_jibri: "{{ facts_result.stdout | from_json }}"
+  when: not jibri_pjsua_flag
+
+- name: set jibri XMPP servers from dynamic fact if available
+  set_fact:
+     jibri_config_hosts: "{{configure_jibri.hosts_by_environment_domain}}"
+  when: 
+    - not jibri_pjsua_flag
+    - configure_jibri is defined
+    - configure_jibri.hosts_by_environment_domain is defined
+
+- name: Jibri dynamic facts failure
+  fail: msg="Failed to properly parse jibri shard information"
+  when:
+    - not jibri_pjsua_flag
+    - configure_jibri is defined
+    - (jibri_config_hosts.keys()|length == 0)
+
+- name: copy jibri ASAP JWT signing key
+  copy: dest="{{jibri_asap_key_path}}" mode=0640 content="{{asap_key['key']}}" owner="jibri"
+
+- name: jibri legacy config file removal
+  file: path=/etc/jitsi/jibri/config.json state=absent
+
+- name: jibri config file
+  template: src=jibri.conf.j2 dest=/etc/jitsi/jibri/jibri.conf group=jitsi mode=0640
+
+- name: override jibri xorg config, to keep resolution 1280x720 for sip-jibri
+  copy: src="sip-jibri-xorg-video-dummy.conf" dest="/etc/jitsi/jibri/xorg-video-dummy.conf" group=jitsi mode=0640
+  when: jibri_pjsua_flag
+
+- name: Configure rsyslogd redirections for jibri components
+  copy: src="jibri.rsyslogd.conf" dest="/etc/rsyslog.d/23-jibri.conf"
+
+- name: restart rsyslogd
+  shell: /etc/init.d/rsyslog rotate
+
+- name: Start Jibri XMPP Service
+  service: name=jibri state=started enabled=yes
+
+- name: Start Jibri termination monitoring Service
+  service: name=monitor-terminating-instance state=started enabled=yes
+  when: jibri_cloud_provider == "aws"
+
+#script to handle stats to cloudwatch
+- name: Copy status cloudwatch script aws
+  copy: src="jibri-status.sh" dest="{{jibri_path_to_status_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "aws"
+
+#script to handle stats to cloudwatch
+- name: Copy status cloudwatch script oracle
+  template: src="jibri-status-oracle.j2" dest="{{jibri_path_to_status_script}}"  owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "oracle"
+
+  #script to handle health check failures
+- name: Copy health check script aws
+  copy: src="jibri-health.sh" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "aws"
+
+  #script to handle health check failures
+- name: Copy terminate instance script oracle
+  template: src="terminate_instance_oracle.j2" dest="{{jibri_path_to_terminate_instance_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "oracle"
+
+- name: Copy health check script oracle
+  template: src="jibri-health-oracle.j2" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "oracle"
+
+#scripts to handle configuration and reconfiguration of jibri
+- name: Copy termination monitor script
+  copy: src="wait_graceful_shutdown.sh" dest="{{jibri_scripts_dir}}/wait_graceful_shutdown.sh" mode=0755
+
+#scripts to handle configuration and reconfiguration of jibri
+- name: Copy graceful termination script aws
+  copy: src="graceful_shutdown_terminate.sh" dest="{{jibri_scripts_dir}}/graceful_shutdown_terminate.sh" mode=0755
+  when: jibri_cloud_provider == "aws"
+
+#scripts to handle configuration and reconfiguration of jibri
+- name: Copy graceful termination script oracle
+  template: src="graceful_shutdown_terminate_oracle.j2" dest="{{jibri_scripts_dir}}/graceful_shutdown_terminate.sh" mode=0755
+  when: jibri_cloud_provider == "oracle"
+
+#aws credentials for oracle to send stats to cloudwatch
+- name: Create directory for AWS credentials for CloudWatch
+  file: path="{{jibri_homedir}}/.aws" state=directory
+  when: jibri_cloud_provider == "oracle"
+
+- name: AWS credentials
+  template: src=aws_credentials.j2
+    dest="{{jibri_homedir}}/.aws/credentials"
+  when: jibri_cloud_provider == "oracle"
+
+  # Run the metric reporting script regularly
+- name: Jibri status script cron
+  cron: user={{ jibri_username }}
+        state=present
+        name="Jibri status script"
+        minute="{{ jibri_status_cron.minute }}"
+        hour="{{ jibri_status_cron.hour }}"
+        job="{{ jibri_status_cron.job }}"
+  when: jibri_enable_status_cron
+
+
+# Run the metric reporting script regularly
+- name: Jibri health script cron
+  cron: user=root
+        state=present
+        name="Jibri health script"
+        minute="{{ jibri_health_cron.minute }}"
+        hour="{{ jibri_health_cron.hour }}"
+        job="{{ jibri_health_cron.job }}"
+  when: jibri_enable_health_cron

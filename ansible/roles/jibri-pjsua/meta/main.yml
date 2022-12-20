@@ -1,0 +1,3 @@
+---
+dependencies:
+  - {"role":"pjsua", when: jibri_pjsua_install_flag}

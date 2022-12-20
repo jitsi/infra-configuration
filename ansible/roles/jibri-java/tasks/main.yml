@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: jibri_install_flag
+
+- include_tasks: configure.yml
+  when: jibri_configure_flag

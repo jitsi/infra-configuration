@@ -1,0 +1,23 @@
+---
+- name: Grab latest chromedriver version string
+  uri:
+    url: "{{chromedriver_latest_release_url}}"
+    return_content: yes 
+  register: chromedriver_version_result
+  when: chromedriver_use_latest
+
+- name: set chromedriver version fact
+  set_fact: chromedriver_version="{{chromedriver_version_result.content|trim}}"
+  when: chromedriver_use_latest
+
+- name: Download chromedriver from google
+  get_url: url={{ chromedriver_url }} dest={{ chromedriver_tmp_path }}
+
+- name: create chromedriver temporary directory
+  file: path={{chromedriver_tmp_dir}} state=directory
+
+- name: unzip downloaded file
+  unarchive: copy=no src={{ chromedriver_tmp_path }} dest={{ chromedriver_tmp_dir }}
+
+- name: copy chromedriver binary into place
+  copy: src={{ chromedriver_tmp_dir }}/chromedriver dest={{ chromedriver_path }} remote_src=True mode=0755

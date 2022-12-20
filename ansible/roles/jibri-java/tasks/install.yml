@@ -1,0 +1,90 @@
+---
+- name: additional fonts for jibri rendering
+  apt: name=fonts-noto state=present
+
+- name: autoload aloop module
+  lineinfile: dest=/etc/modules line=snd-aloop
+
+- name: Update ffmpeg to latest version
+  apt: name=ffmpeg state=latest
+
+# begin install of intended jvb package
+- name: install jibri package
+  apt: name="{{jibri_deb_pkg_name}}={{jibri_deb_pkg_version}}" state=present
+
+#script to handle events from jitsi-system-events subsystem
+- name: jibri event script upload aws
+  copy: dest="/usr/local/bin/event-reconfigure-jibri.sh" src="event-reconfigure-jibri.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "aws"
+
+- name: jibri event script upload oracle
+  copy: dest="/usr/local/bin/event-reconfigure-jibri.sh" src="event-reconfigure-jibri-oracle.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "oracle"
+
+- name: jibri event graceful shutdown script upload oracle
+  copy: dest="/usr/local/bin/event-graceful-shutdown-jibri.sh" src="event-graceful-shutdown-jibri-oracle.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "oracle"
+
+#script to handle initial bootup of jibri
+- name: jibri boot postinstall scripts aws
+  copy: dest="/usr/local/bin/postinstall-jibri.sh" src="postinstall-jibri.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "aws"
+
+- name: jibri boot postinstall scripts oracle
+  copy: dest="/usr/local/bin/postinstall-jibri.sh" src="postinstall-jibri-oracle.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "oracle"
+
+#scripts to handle configuration and reconfiguration of jibri
+- name: jibri reconfiguration script upload aws
+  copy: dest="/usr/local/bin/reconfigure-jibri.sh" src="reconfigure-jibri.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "aws"
+
+- name: jibri reconfiguration script upload oracle
+  copy: dest="/usr/local/bin/reconfigure-jibri.sh" src="reconfigure-jibri-oracle.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "oracle"
+
+- name: jibri configurator script upload aws
+  copy: dest="/usr/local/bin/configure-jibri-local.sh" src="configure-jibri-local.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "aws"
+
+- name: jibri configurator script upload oracle
+  copy: dest="/usr/local/bin/configure-jibri-local.sh" src="configure-jibri-local-oracle.sh" mode=755 owner=root
+  when: jibri_cloud_provider == "oracle"
+
+#script to handle stats to cloudwatch
+- name: Copy status cloudwatch script aws
+  copy: src="jibri-status.sh" dest="{{jibri_path_to_status_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "aws"
+
+  #script to handle health check failures
+- name: Copy health check script aws
+  copy: src="jibri-health.sh" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "aws"
+
+  #script to handle health check failures
+- name: Copy terminate instance script oracle
+  template: src="terminate_instance_oracle.j2" dest="{{jibri_path_to_terminate_instance_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "oracle"
+
+- name: Copy health check script oracle
+  template: src="jibri-health-oracle.j2" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  when: jibri_cloud_provider == "oracle"
+
+#script to handle terminating instance graceful shutdown
+- name: Copy termination monitor script
+  template: src="monitor-terminating-instance.j2" dest="{{jibri_scripts_dir}}/monitor-terminating-instance.sh" mode=0755
+  when: jibri_cloud_provider == "aws"
+
+#scripts to handle configuration and reconfiguration of jibri
+- name: Copy termination monitor script
+  copy: src="wait_graceful_shutdown.sh" dest="{{jibri_scripts_dir}}/wait_graceful_shutdown.sh" mode=0755
+
+#systemd service for monitoring termating instance events
+- name: Install JIBRI termination monitoring systemd config
+  template: src=monitor-terminating-instance-systemd.j2 dest=/etc/systemd/system/monitor-terminating-instance.service
+  when: jibri_cloud_provider == "aws"
+
+- name: register installed jibri version
+  shell: "{{jibri_service_version_shell}}"
+  register: jibri_version_shell
+  when: jibri_cloud_provider == "aws"

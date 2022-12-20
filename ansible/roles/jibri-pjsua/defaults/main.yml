@@ -1,0 +1,15 @@
+---
+jibri_pjsua_camera_framerate: 30
+jibri_pjsua_camera_resolution: "1280x720"
+jibri_pjsua_cameras:
+  - desktop: ":1.0+0,0"
+    device: "/dev/video0"
+    number: 0
+  - desktop: ":0.0+0,0"
+    device: "/dev/video1"
+    number: 1
+jibri_pjsua_configure_flag: true
+jibri_pjsua_dns_server: false
+jibri_pjsua_ffmpeg_path: "/usr/bin/ffmpeg"
+jibri_pjsua_install_flag: true
+jibri_pjsua_v4l2_download_url: http://deb.debian.org/debian/pool/main/v/v4l2loopback/v4l2loopback-dkms_0.12.5-1_all.deb

@@ -1,0 +1,72 @@
+---
+#configure alsa and v4l devices
+- name: alsa loopback module configuration
+  copy: content="options snd-aloop enable=1,1 pcm_substreams=1,1" dest="/etc/modprobe.d/alsa.conf"
+
+- name: v4l module configuration
+  copy: content="options v4l2loopback devices=2 card_label=PJSUA,Chrome exclusive_caps=1,1" dest="/etc/modprobe.d/v4l2loopback.conf"
+
+- name: enable alsa loopback module on boot
+  lineinfile: dest="/etc/modules" line="snd-aloop"
+
+- name: enable v4l2loopback loopback module on boot
+  lineinfile: dest="/etc/modules" line="v4l2loopback"
+
+# snd-aloop module will already be installed by the jibri install role
+# we force its re-addition so that it will use the latest configs from /etc/modprobe.d/alsa.conf
+- name: modprobe alsa loopback module
+  modprobe: name=snd-aloop state=absent
+
+- name: modprobe alsa loopback module
+  modprobe: name=snd-aloop state=present
+
+- name: modprobe v4l loopback module
+  modprobe: name=v4l2loopback
+
+- name: Clean default ALSA devices
+  file:
+    state: absent
+    path: /usr/share/alsa/pcm
+
+#install the proper dependencies and services for v4l
+
+- name: install second xorg systemd services
+  become: true
+  template: src="jibri-xorg2.systemd.j2" dest="/etc/systemd/system/jibri-xorg2.service"
+
+- name: enable second xorg systemd services
+  service: name=jibri-xorg2 state=started enabled=true
+
+- name: Copy icewm graphic into place, overrides the default one
+  copy: src="background.png" dest="/usr/share/icewm/themes/default/default.png" owner=root group=root mode=644
+
+- name: install second icewm systemd services
+  become: true
+  template: src="jibri-icewm2.systemd.j2" dest="/etc/systemd/system/jibri-icewm2.service"
+
+- name: enable second icewm systemd services
+  service: name=jibri-icewm2 state=started enabled=true
+
+- name: install camera systemd services
+  become: true
+  template: src="jibri-camera.systemd.j2" dest="/etc/systemd/system/jibri-camera-{{item.number}}.service"
+  notify: restart jibri cameras
+  with_items:
+    - "{{jibri_pjsua_cameras}}"
+
+- name: enable camera systemd services
+  service: name=jibri-camera-{{item.number}} state=started enabled=true
+  with_items:
+    - "{{jibri_pjsua_cameras}}"
+
+#install the pjsua config file
+- name: install pjsua configuration file
+  template: src="pjsua.config.j2" dest="/etc/jitsi/jibri/pjsua.config" owner="jibri"
+
+#redirect pjsua components
+#redirect pjsua components
+- name: Configure rsyslogd redirections for jibri pjsua components
+  copy: src="jibri-pjsua.rsyslogd.conf" dest="/etc/rsyslog.d/24-jibri-pjsua.conf"
+
+- name: restart rsyslog
+  service: name=rsyslog state=restarted

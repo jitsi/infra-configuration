@@ -1,0 +1,19 @@
+---
+- name: skip chrome repo cron configuration
+  file: path=/etc/default/google-chrome state="touch"
+
+- name: skip chrome beta repo cron configuration
+  file: path=/etc/default/google-chrome-beta state="touch"
+
+- name: Chrome repo signing key
+  apt_key: url=https://dl.google.com/linux/linux_signing_key.pub state=present
+
+- name: Chrome repo
+  apt_repository: repo='deb http://dl.google.com/linux/chrome/deb/ stable main' state=present update_cache=yes filename='google-chrome'
+
+- name: Install google chrome stable
+  apt: name=google-chrome-stable state=latest
+
+- name: Install google chrome beta
+  apt: name=google-chrome-beta state=latest
+  when: google_chrome_beta_flag

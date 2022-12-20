@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: jibri_pjsua_install_flag
+
+- include_tasks: configure.yml
+  when: jibri_pjsua_configure_flag

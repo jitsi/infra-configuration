@@ -1,0 +1,37 @@
+---
+- name: upgrade to the latest kernel image
+  apt: name="{{jibri_kernel_package}}" state=latest
+  register: kernelup
+
+- name: ensure latest headers are available
+  apt: name="{{jibri_kernel_headers_package}}" state=latest
+
+- name: purge aws kernel if found
+  apt: name="linux*aws" state=absent purge=true
+  when: jibri_kernel_clean_aws
+
+- name: Check for reboot hint.
+  shell: if [ $(readlink -f /vmlinuz) != /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: Rebooting ...
+  command: shutdown -r now "Ansible kernel update applied"
+  async: 0
+  poll: 0
+  ignore_errors: true
+  when: jibri_kernel_cloud_provider == 'aws' and (kernelup is changed or reboot_hint.stdout.find('reboot') != -1)
+  register: rebooting
+
+- meta: clear_host_errors
+
+- name: Wait for thing to reboot...
+  pause: seconds=45
+  when: rebooting is changed
+
+- name: register latest kernel version for modules
+  shell: dpkg -l {{jibri_kernel_package}} | tail -1 | awk '{split($3,a,"."); print a[1]"."a[2]"."a[3]"-"a[4]}'
+  register: apt_kernel_version
+
+- name: install latest kernel modules
+  apt: name="linux-modules-extra-{{apt_kernel_version.stdout}}-{{jibri_kernel_package_type}}" state=latest

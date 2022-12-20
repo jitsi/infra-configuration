@@ -1,0 +1,15 @@
+{
+{% if jibri_enable_consul %}
+  "datacenters":{{jibri_datacenters|to_json}},
+  "local_environment":"{{hcv_environment}}",
+  "consul_extra_urls":{{jibri_consul_extra_urls|to_json}},
+  "local_domain":"{{jibri_local_domain}}",
+  "consul_server":"{{jibri_consul_server}}",
+{% endif %}
+  "jid_username":"{{jibri_xmpp_username}}",
+  "brewery_muc_room":"{{jibri_xmpp_room_name}}",
+  "auth_prefix":"{{jibri_jid_prefix}}",
+  "internal_muc_prefix": "{{jibri_brewery_prefix}}",
+  "environments":{{jibri_environments|to_json}},
+  "regions":{{jibri_regions|to_json}}
+}
