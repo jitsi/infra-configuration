@@ -5,17 +5,14 @@
   become: true
   force_handlers: true
   vars_files:
-    - credentials/credentials-jibri.yml
-    - credentials/credentials-css-upload.yml
-    - credentials/credentials-bitbucket.yml
-    - credentials/credentials-asap.yml
-    - credentials/credentials-oci-logging.yml
-    - credentials/credentials-voximplant.yml
-    - credentials/credentials-beta-deploy.yml
-    - environments/all/group_vars/all.yml
-    - credentials/credentials-pubnub.yml
-    - credentials/credentials-aws-cloudwatch.yml
-    - environments/{{hcv_environment}}/group_vars/all.yml
+    - secrets/jibri.yml
+    - secrets/css-upload.yml
+    - secrets/asap.yml
+    - secrets/oci-logging.yml
+    - secrets/voximplant.yml
+    - config/vars.yml
+    - secrets/aws-cloudwatch.yml
+    - sites/{{hcv_environment}}/vars.yml
   vars:
     cloud_provider: oracle
     fluentd_jitsi_region: us-west-2
