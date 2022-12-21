@@ -1,0 +1,17 @@
+---
+
+- name: config jitsi uploader failed dir
+  file: path="{{jitsi_uploader_failed_dir}}" state=directory mode=0777
+  when: upload_integrations_configure_flag
+
+- name: config jitsi uploader dir
+  file: path="/etc/jitsi" state=directory
+  when: upload_integrations_configure_flag
+
+- name: config jitsi uploader - add failed upload dir
+  copy: content="FAILED_UPLOAD_DIR={{jitsi_uploader_failed_dir}}" dest="/etc/jitsi/uploader" owner=root mode=0644
+  when: upload_integrations_configure_flag
+
+- name: install jitsi-upload-integrations package
+  apt: name={{uploader_pkg_name}} state=latest
+  when: upload_integrations_install_flag

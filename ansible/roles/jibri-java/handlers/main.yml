@@ -1,0 +1,11 @@
+---
+- name: restart jibri
+  service: name=jibri state=restarted
+  when: not jibri_configure_only_flag
+
+- name: restart jibri systemd
+  service: name=jibri state=restarted daemon_reload=yes
+  when: not jibri_configure_only_flag
+
+- name: Restart Monitor Terminating Instance
+  service: name=monitor-terminating-instance state=restarted

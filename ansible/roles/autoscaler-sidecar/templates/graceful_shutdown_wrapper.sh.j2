@@ -1,0 +1,38 @@
+#!/bin/bash
+#DELAY AT MOST 6 hours = 21600 seconds
+TERMINATION_DELAY_TIMEOUT={{autoscaler_shutdown_delay_timeout}}
+GRACEFUL_LOG=/tmp/health_log_graceful_shutdown_wrapper.log
+
+function killWithChildren() {
+    KPID=$1
+    for i in `ps -ef| awk '$3 == '${KPID}' { print $2 }'`; do
+        killWithChildren $i
+        echo "killing timer thread child $i" >> $GRACEFUL_LOG
+        kill -9 $i >> $GRACEFUL_LOG
+    done    
+}
+
+MAIN_PID=$$
+echo "Graceful shutdown begun $(date)" > $GRACEFUL_LOG
+#start our timer thread
+(
+    sleep $TERMINATION_DELAY_TIMEOUT
+    echo "Graceful shutdown timer $TERMINATION_DELAY_TIMEOUT reached" >> $GRACEFUL_LOG
+    echo "Emitting force stop command $(date)" >> $GRACEFUL_LOG
+    {% if autoscaler_force_shutdown_command %}
+    sudo {{autoscaler_force_shutdown_command}} >> $GRACEFUL_LOG &
+    sleep 10
+    {% endif %}
+    echo "exiting and killing parent $MAIN_PID $(date)" >> $GRACEFUL_LOG
+    kill -9 $MAIN_PID
+    exit 500
+) >> $GRACEFUL_LOG &
+WAIT_ID=$!
+
+sudo {{autoscaler_graceful_shutdown_script}} >> $GRACEFUL_LOG
+RET=$?
+echo "Graceful shutdown ended normally $(date)" >> $GRACEFUL_LOG
+killWithChildren $WAIT_ID
+echo "killing timer thread $WAIT_ID" >> $GRACEFUL_LOG
+kill -9 $WAIT_ID >> $GRACEFUL_LOG
+exit $RET

@@ -1,0 +1,97 @@
+#!/bin/bash
+set -x
+
+readonly PROGNAME=$(basename "$0")
+readonly LOCKFILE_DIR=/tmp
+readonly LOCK_FD=200
+
+HEALTH_URL="{{ autoscaler_health_url }}"
+HEALTH_OUTPUT="/tmp/health-sidecar-check-output"
+HEALTH_FAILURE_FILE="/tmp/health-sidecar-check-fails"
+
+CURL_BIN="/usr/bin/curl"
+#only allow curl to run for this many seconds
+HEALTH_CHECK_TIMEOUT=30
+CRITICAL_FAILURE_THRESHHOLD=3
+HEALTH_FAIL_LOCK_FILE="/tmp/sidecar-unhealthy-lock"
+
+# path of script to terminate instance
+TERMINATE_SCRIPT="{{ autoscaler_terminate_script }}"
+GRACEFUL_SHUTDOWN_SCRIPT="{{ autoscaler_graceful_shutdown_script }}"
+
+function run_check() {
+    $CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -f $HEALTH_URL > $HEALTH_OUTPUT 2>&1
+    if [ $? -eq 0 ]; then
+        echo "Basic health OK"
+        BASIC_HEALTH_PASSED=true
+    else
+        echo "Basic health failed"
+        BASIC_HEALTH_PASSED=false
+    fi
+
+    if $BASIC_HEALTH_PASSED; then
+        # clear out existing failure file if exists
+        [ -e $HEALTH_FAILURE_FILE ] && rm $HEALTH_FAILURE_FILE
+    else
+        # failure case, read past failure count from file
+        if [ -e $HEALTH_FAILURE_FILE ]; then
+          CHECK_COUNT=$(( $(cat $HEALTH_FAILURE_FILE) +  1))
+        else
+          CHECK_COUNT=1
+        fi
+
+        # write current count to failure tracking file
+        echo $CHECK_COUNT > $HEALTH_FAILURE_FILE
+
+        if [ $CHECK_COUNT -gt $CRITICAL_FAILURE_THRESHHOLD ]; then
+
+            #only dump memory and set unhealthy once, then write to lock file and never do it again unless lock is cleared
+            if [ ! -f $HEALTH_FAIL_LOCK_FILE ]; then
+              echo 'Unhealthy' > $HEALTH_FAIL_LOCK_FILE
+
+              # Begin graceful shutdown of services
+              sudo $GRACEFUL_SHUTDOWN_SCRIPT
+
+              #Dump all logs, must do this as root to access all needed information
+              # TODO: actually do log dump here
+              # sudo /usr/local/bin/dump-jvb.sh
+
+              # actually perform the termination of the instance
+              sudo $TERMINATE_SCRIPT
+            fi
+        fi
+    fi
+}
+
+function lock() {
+    local prefix=$1
+    local fd=${2:-$LOCK_FD}
+    local lock_file=$LOCKFILE_DIR/$prefix.lock
+
+    # create lock file
+    eval "exec $fd>$lock_file"
+
+    # acquier the lock
+    flock -n $fd \
+        && return 0 \
+        || return 1
+}
+
+function eexit() {
+    local error_str="$@"
+
+    echo $error_str
+
+    # TODO: send error or metric when failed to run sidecar health check
+
+    exit 1
+}
+
+function main () {
+    lock $PROGNAME \
+        || eexit "Only one instance of $PROGNAME can run at one time."
+
+    run_check
+}
+
+main

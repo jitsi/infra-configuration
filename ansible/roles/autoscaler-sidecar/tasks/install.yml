@@ -1,0 +1,46 @@
+---
+- name: Install list of packages
+  apt: name=git state=present
+
+- name: User creation
+  user: name="{{autoscaler_user.username}}"
+    groups="{{autoscaler_user.groups | join(',')}}"
+    shell=/bin/bash
+    comment="{{autoscaler_user.real_name}}"
+    home="{{autoscaler_user.homedir}}"
+    createhome=yes
+    state="{{autoscaler_user.state}}"
+
+- name: Code Directory
+  file: path={{ autoscaler_base_path }} state=directory owner={{ autoscaler_username }} group={{autoscaler_groupname}}
+
+- name: Check out codebase
+  become: yes
+  become_user: "{{autoscaler_username}}"
+  git: repo={{autoscaler_git_repo}} dest={{autoscaler_base_path}} update=yes force=yes accept_hostkey=yes
+
+- name: npm Requirements
+  shell: npm install
+  become: yes
+  become_user: "{{autoscaler_username}}"
+  args:
+    chdir: "{{autoscaler_base_path}}"
+
+- name: build from typescript
+  shell: npm run build
+  become: yes
+  become_user: "{{autoscaler_username}}"
+  args:
+    chdir: "{{autoscaler_base_path}}"
+
+- name: application configuration directory
+  file: path={{autoscaler_config_dir}} state=directory
+
+- name: application log directory
+  file: path={{autoscaler_log_dir}} state=directory owner={{ autoscaler_username }}
+
+- name: rsyslog configuration
+  template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/25-autoscaler-sidecar.conf
+
+- name: sidecar health check script
+  template: src="sidecar-health.sh.j2" dest="{{autoscaler_health_script}}" mode=0755

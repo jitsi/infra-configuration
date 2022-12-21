@@ -14,6 +14,7 @@ function build_cache(){
     while [ $counter -le 10 ]; do
         TAGS=$(echo $INSTANCE_DETAILS |  jq '.definedTags | to_entries[] | select((.key | startswith("eghtjitsi")) or (.key == "jitsi")) | .value'|jq -s '.|add')
         if [[ $? == 0 ]] && [[ $TAGS != "" ]] && [[ $TAGS != "{}" ]]; then
+            TAGS=$(echo $TAGS $(echo $INSTANCE_DETAILS |  jq '.freeformTags')  | jq -s '.|add')
             echo $TAGS > $CACHE_PATH
             build_cache_status=0
             break
@@ -52,6 +53,8 @@ export AWS_CLOUD_NAME_TAG="aws_cloud_name"
 export AWS_AUTO_SCALE_GROUP_TAG="aws_auto_scale_group"
 export AUTOSCALER_SIDECAR_JVB_FLAG_TAG="autoscaler_sidecar_jvb_flag"
 export JVB_POOL_MODE_TAG="jvb_pool_mode"
+export INFRA_CONFIGURATION_REPO_TAG="configuration_repo"
+export INFRA_CUSTOMIZATIONS_REPO_TAG="customizations_repo"
 
 export CACHE_PATH="/tmp/oracle_cache-${INSTANCE_ID}"
 
@@ -95,7 +98,19 @@ export AWS_CLOUD_NAME=$(cat $CACHE_PATH | jq -r --arg AWS_CLOUD_NAME_TAG "$AWS_C
 export AWS_AUTO_SCALE_GROUP=$(cat $CACHE_PATH | jq -r --arg AWS_AUTO_SCALE_GROUP_TAG "$AWS_AUTO_SCALE_GROUP_TAG" ".[\"$AWS_AUTO_SCALE_GROUP_TAG\"]")
 export AUTOSCALER_SIDECAR_JVB_FLAG=$(cat $CACHE_PATH | jq -r --arg AUTOSCALER_SIDECAR_JVB_FLAG_TAG "$AUTOSCALER_SIDECAR_JVB_FLAG_TAG" ".[\"$AUTOSCALER_SIDECAR_JVB_FLAG_TAG\"]")
 export JVB_POOL_MODE=$(cat $CACHE_PATH | jq -r --arg JVB_POOL_MODE_TAG "$JVB_POOL_MODE_TAG" ".[\"$JVB_POOL_MODE_TAG\"]")
+export TAGGED_INFRA_CONFIGURATION_REPO=$(cat $CACHE_PATH | jq -r --arg INFRA_CONFIGURATION_REPO_TAG "$INFRA_CONFIGURATION_REPO_TAG" ".[\"$INFRA_CONFIGURATION_REPO_TAG\"]")
+export TAGGED_INFRA_CUSTOMIZATIONS_REPO=$(cat $CACHE_PATH | jq -r --arg INFRA_CUSTOMIZATIONS_REPO_TAG "$INFRA_CUSTOMIZATIONS_REPO_TAG" ".[\"$INFRA_CUSTOMIZATIONS_REPO_TAG\"]")
+
 export CUSTOM_AUTO_SCALE_GROUP=$(echo $INSTANCE_DETAILS |  jq -r ."freeformTags.group")
+
+if [ "$TAGGED_INFRA_CONFIGURATION_REPO" != "null" ]; then
+  export INFRA_CONFIGURATION_REPO="$TAGGED_INFRA_CONFIGURATION_REPO"
+fi
+
+if [ "$TAGGED_INFRA_CUSTOMIZATIONS_REPO" != "null" ]; then
+  export INFRA_CUSTOMIZATIONS_REPO="$TAGGED_INFRA_CUSTOMIZATIONS_REPO"
+fi
+
 export CLOUD_NAME="${ENVIRONMENT}-${ORACLE_REGION}"
 
 if [ "$XMPP_HOST_PUBLIC_IP_ADDRESS" == "null" ]; then

@@ -1,0 +1,21 @@
+---
+pjsua_apt_dependencies:
+  - build-essential
+  - libv4l-dev
+  - libsdl2-dev
+  - libavcodec-dev
+  - libavdevice-dev
+  - libavfilter-dev
+  - libavformat-dev
+  - libavutil-dev
+  - libswresample-dev
+  - libswscale-dev
+  - libasound2-dev
+  - libopus-dev
+  - libvpx-dev
+pjsua_repo_url: "git@github.com:jitsi/pjproject.git"
+pjsua_repo_version: "jibri-2.10-dev1"
+pjsua_src_path: "/usr/src/pjsua"
+pjsua_ssh_path: "/root/.ssh"
+pjsua_ssh_private_key: "{{pjsua_deployment_certificate}}"
+pjsua_ssh_private_key_path: "{{pjsua_ssh_path}}/id_rsa_pjsua_deployment"

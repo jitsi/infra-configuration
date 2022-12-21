@@ -1,0 +1,18 @@
+[Unit]
+Description=Jibri Camera {{item.device}}
+Requires=jibri-xorg.service
+Requires=jibri-xorg2.service
+After=jibri-xorg.service
+After=jibri-xorg2.service
+
+[Service]
+User={{jibri_username}}
+Group={{jibri_groupname}}
+WorkingDirectory={{jibri_homedir}}
+ExecStart={{jibri_pjsua_ffmpeg_path}} -f x11grab -draw_mouse 0 -r {{jibri_pjsua_camera_framerate}} -s {{jibri_pjsua_camera_resolution}} -i {{item.desktop}} -vcodec rawvideo -pix_fmt yuv420p -threads 0 -f v4l2 {{item.device}}
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=simple
+
+[Install]
+WantedBy=jibri.service
