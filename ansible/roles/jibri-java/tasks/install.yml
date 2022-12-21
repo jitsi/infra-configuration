@@ -12,19 +12,6 @@
 - name: install jibri package
   apt: name="{{jibri_deb_pkg_name}}={{jibri_deb_pkg_version}}" state=present
 
-#script to handle events from jitsi-system-events subsystem
-- name: jibri event script upload aws
-  copy: dest="/usr/local/bin/event-reconfigure-jibri.sh" src="event-reconfigure-jibri.sh" mode=755 owner=root
-  when: jibri_cloud_provider == "aws"
-
-- name: jibri event script upload oracle
-  copy: dest="/usr/local/bin/event-reconfigure-jibri.sh" src="event-reconfigure-jibri-oracle.sh" mode=755 owner=root
-  when: jibri_cloud_provider == "oracle"
-
-- name: jibri event graceful shutdown script upload oracle
-  copy: dest="/usr/local/bin/event-graceful-shutdown-jibri.sh" src="event-graceful-shutdown-jibri-oracle.sh" mode=755 owner=root
-  when: jibri_cloud_provider == "oracle"
-
 #script to handle initial bootup of jibri
 - name: jibri boot postinstall scripts aws
   copy: dest="/usr/local/bin/postinstall-jibri.sh" src="postinstall-jibri.sh" mode=755 owner=root
