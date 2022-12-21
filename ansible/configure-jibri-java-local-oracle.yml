@@ -7,7 +7,8 @@
   vars_files:
     - secrets/jibri.yml
     - secrets/css-upload.yml
-    - secrets/asap.yml
+    - secrets/asap-keys.yml
+    - secrets/repo.yml
     - secrets/oci-logging.yml
     - secrets/voximplant.yml
     - config/vars.yml
