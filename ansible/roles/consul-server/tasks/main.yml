@@ -1,0 +1,12 @@
+---
+- name: consul config file
+  template: src="consul.hcl.j2" dest="/etc/consul.d/consul.hcl"
+
+- name: consul env file
+  copy: content="" dest="/etc/consul.d/consul.env"
+
+- name: consul config script
+  copy: src="consul-server-config.sh" dest="/usr/local/bin/consul-server-config.sh" mode=0755
+
+# - name: consul service enablement
+#   systemd: name=consul state=started enabled=true
