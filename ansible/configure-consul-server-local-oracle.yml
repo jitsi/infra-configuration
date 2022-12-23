@@ -7,6 +7,7 @@
     - secrets/ssh-users.yml
     - secrets/wavefront.yml
     - secrets/consul.yml
+    - secrets/repo.yml
     - secrets/oci-logging.yml
     - config/vars.yml
     - sites/{{hcv_environment}}/vars.yml
