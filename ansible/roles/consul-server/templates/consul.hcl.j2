@@ -1,0 +1,18 @@
+datacenter = "{{consul_datacenter}}"
+data_dir = "/opt/consul"
+encrypt = "{{consul_encryption_key}}"
+retry_join = {{consul_retry_join_lan}}
+retry_join_wan = {{consul_retry_join_wan}}
+server = true
+bootstrap_expect = 3
+addresses {
+    http = "0.0.0.0"
+}
+connect {
+  enabled = true
+}
+telemetry {
+  disable_hostname = true
+  dogstatsd_addr = "localhost:8125"
+  prometheus_retention_time  = "5m"
+}

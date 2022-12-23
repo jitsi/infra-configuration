@@ -1,0 +1,52 @@
+---
+
+- name: Open DNS TCP port 8600 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "8600"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open DNS UDP port 8600 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "8600"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+
+- name: Open http TCP port 8500 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "8500"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+
+- name: Open serf TCP port 8301-8302 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "8300:8302"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open serf UDP port 8301-8302 via iptables
+  iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "8300:8302"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+
+- name: Save newly added iptable rules
+  shell: iptables-save > /etc/iptables/rules.v4
