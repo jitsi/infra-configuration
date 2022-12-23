@@ -1,0 +1,46 @@
+---
+- hosts: all
+  gather_facts: true
+  become_user: root
+  become: yes
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/wavefront.yml
+    - secrets/consul.yml
+    - secrets/oci-logging.yml
+    - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+  vars:
+    shard_role: consul
+    cloud_provider: oracle
+  pre_tasks:
+     - apt: update_cache=yes cache_valid_time=86400
+  roles:
+    - { role: "iptables-consul", tags: "iptables"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "common", tags: "common"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "consul-server", tags: "consul-server"}
+    - { role: "consul-server-start", tags: "consul-server-start"}
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled and not datadog_enabled
+      vars:
+        telegraf_inputs:
+          procstat:
+            - systemd_unit: "consul.service"
+              cmdline_tag: false
+              pid_tag: false
+        telegraf_tags:
+          shard-role: "consul"
+          role: "consul"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud_provider: "{{cloud_provider}}"
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: consul_enable_fluentd }
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
