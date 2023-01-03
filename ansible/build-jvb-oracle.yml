@@ -8,6 +8,8 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/jvb-ddns.yml
+    - roles/jitsi-repo/defaults/main.yml
+    - secrets/repo.yml
     - config/vars.yml
   pre_tasks:
     # pause 300 seconds before updating, to ensure that everything is ready to roll
