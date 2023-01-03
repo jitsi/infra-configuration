@@ -1,0 +1,79 @@
+---
+selenium_grid_cloud_provider: "{{cloud_provider | default('aws')}}"
+selenium_grid_config_path: '/etc'
+selenium_grid_configure_flag: true
+selenium_grid_consul_datacenter: "{{cloud_name|default('dc1')}}"
+selenium_grid_consul_server: "{{selenium_grid_consul_server_by_provider[selenium_grid_cloud_provider]}}"
+selenium_grid_consul_server_by_provider:
+  'aws': "consul-{{selenium_grid_consul_server_type}}-{{selenium_grid_consul_datacenter}}.jitsi.net"
+  'oracle': "{{selenium_grid_consul_datacenter}}-consul.jitsi.net"
+selenium_grid_consul_server_type: "{{selenium_grid_consul_server_types[selenium_grid_environment_type]|default('prod')}}"
+selenium_grid_consul_server_types:
+  dev: dev
+  prod: prod
+  stage: prod
+selenium_grid_consul_server_url: "https://{{selenium_grid_consul_server}}"
+selenium_grid_datadog_enabled: false
+selenium_grid_enable_consul: "{{true if selenium_grid_cloud_provider == 'oracle' else false}}"
+selenium_grid_enable_update_check_cron: true
+selenium_grid_environment_type: "{{jitsi_meet_environment_type|default('prod')}}"
+selenium_grid_extras_configure_flag: true
+selenium_grid_extras_file: '{{selenium_grid_extras_path}}/SeleniumGridExtras-jar-with-dependencies.jar'
+selenium_grid_extras_hub_config_file: '{{selenium_grid_extras_path}}/selenium_grid_extras_config.json'
+selenium_grid_extras_hub_config_file2: '{{selenium_grid_extras_path}}/hub_4444.json'
+selenium_grid_extras_hub_service_name: 'selenium-grid-extras-hub'
+selenium_grid_extras_install_flag: true
+selenium_grid_extras_node_config_file: '{{selenium_grid_extras_path}}/selenium_grid_extras_config.json'
+selenium_grid_extras_node_config_file2: '{{selenium_grid_extras_path}}/node_5555.json'
+selenium_grid_extras_node_service_name: 'selenium-grid-extras-node'
+selenium_grid_extras_path: '/opt/selenium_grid_extras'
+selenium_grid_extras_repo: git@github.com:8x8Cloud/selenium-grid-extras.git
+selenium_grid_extras_src_path: /tmp/selenium-grid-extras
+selenium_grid_extras_ssh_private_key_path: /root/.ssh/id_rsa
+selenium_grid_extras_version: '2.0.4'
+selenium_grid_file: '{{selenium_grid_path}}/selenium-server-standalone.jar'
+selenium_grid_groupname: selenium
+selenium_grid_homedir: "/home/{{selenium_grid_username}}"
+selenium_grid_hub_config_file: "{{selenium_grid_config_path}}/selenium-grid-hub.json"
+selenium_grid_hub_host: localhost
+selenium_grid_hub_service_name: 'selenium-grid-hub'
+selenium_grid_install_flag: true
+selenium_grid_jar_url: "https://github.com/SeleniumHQ/selenium/releases/download/selenium-{{selenium_grid_version}}/selenium-server-standalone-{{selenium_grid_version}}.jar"
+selenium_grid_java_path: /usr/bin/java
+selenium_grid_name: localhost
+selenium_grid_node_capabilities:
+  - browserName: chrome
+    maxInstances: "{{selenium_grid_node_max_instance_default}}"
+    seleniumProtocol: WebDriver
+  - browserName: chrome
+    chrome_binary: /usr/bin/google-chrome-beta
+    maxInstances: "{{selenium_grid_node_max_instance_default}}"
+    seleniumProtocol: WebDriver
+    version: beta
+  - browserName: firefox
+    maxInstances: "{{selenium_grid_node_max_instance_default}}"
+    seleniumProtocol: WebDriver
+  - browserName: firefox
+    firefox_binary: /usr/bin/firefox-beta
+    maxInstances: "{{selenium_grid_node_max_instance_default}}"
+    seleniumProtocol: WebDriver
+    version: beta
+selenium_grid_node_config_file: "{{selenium_grid_config_path}}/selenium-grid-node.json"
+selenium_grid_node_max_instance_default: 1
+selenium_grid_node_max_session: 1
+selenium_grid_node_service_name: 'selenium-grid-node'
+selenium_grid_path: '/opt/selenium_grid'
+selenium_grid_private_key_path: "{{ selenium_grid_homedir }}/.ssh/id_rsa"
+selenium_grid_role: 'node'
+selenium_grid_service_path: '/etc/systemd/system'
+selenium_grid_update_check_cron:
+  hour: "2"
+  job: "/opt/selenium_grid_extras/update-node.sh > /tmp/selenium-grid-update-check-output 2>&1"
+  minute: "0"
+selenium_grid_username: selenium
+selenium_grid_users:
+  - groups: ["adm", "audio", "video", "plugdev"]
+    real_name: Selenium Grid User
+    state: present
+    username: "{{selenium_grid_username}}"
+selenium_grid_version: 3.141.59

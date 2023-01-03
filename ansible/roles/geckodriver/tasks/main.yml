@@ -1,0 +1,27 @@
+---
+- name: Grab latest geckodriver version string
+  uri:
+    force_basic_auth: yes
+    url_username: "{{geckodriver_username}}"
+    url_password: "{{geckodriver_password}}"
+    url: "{{geckodriver_latest_release_url}}"
+    return_content: yes 
+  register: geckodriver_version_result
+
+- name: set geckodriver payload fact
+  set_fact: geckodriver_payload="{{geckodriver_version_result.content|from_json}}"
+
+- name: set geckodriver version fact
+  set_fact: geckodriver_version="{{geckodriver_payload.tag_name}}"
+
+- name: Download geckodriver from google
+  get_url: url={{ geckodriver_url }} dest={{ geckodriver_tmp_path }}
+
+- name: create geckodriver temporary directory
+  file: path={{geckodriver_tmp_dir}} state=directory
+
+- name: unarchive downloaded file
+  unarchive: copy=no src={{ geckodriver_tmp_path }} dest={{ geckodriver_tmp_dir }}
+
+- name: copy geckodriver binary into place
+  copy: src={{ geckodriver_tmp_dir }}/geckodriver dest={{ geckodriver_path }} remote_src=True mode=0755

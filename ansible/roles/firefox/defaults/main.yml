@@ -1,0 +1,11 @@
+---
+firefox_beta_flag: false
+firefox_dir: /opt/mozilla
+firefox_latest_beta_dir: /opt/mozilla/firefox-beta
+firefox_latest_beta_path: /usr/bin/firefox-beta
+firefox_latest_beta_url: https://download.mozilla.org/?product=firefox-beta-latest&os=linux64&lang=en-US
+firefox_latest_stable_dir: /opt/mozilla/firefox-stable
+firefox_latest_stable_path: /usr/bin/firefox
+firefox_latest_stable_url: https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US
+# More info at: https://wiki.mozilla.org/Release_Management/Product_details
+firefox_latest_versions_info_url: https://product-details.mozilla.org/1.0/firefox_versions.json

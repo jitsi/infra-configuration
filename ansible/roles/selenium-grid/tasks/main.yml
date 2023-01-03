@@ -1,0 +1,261 @@
+---
+- name: Selenium Grid Pre-requisites
+  apt:
+    name: ["xvfb","imagemagick", "ffmpeg", "libdbus-glib-1-2", "dbus-x11"]
+    state: present
+  when: selenium_grid_install_flag
+
+- name: Node-specific pre-requisites
+  apt: name=socat state=present
+  when: selenium_grid_install_flag
+
+#load jigasi custom facts if not yet set up
+- name: Ensure custom facts directory exists
+  file:
+    path=/etc/ansible/facts.d
+    recurse=yes
+    state=directory
+
+# handle AWS custom facts
+
+- name: Install custom aws fact module for configure-selenium-grid
+  copy: dest="/etc/ansible/facts.d/configure_selenium_grid.fact" src="configure-selenium-grid.py" mode=0755 owner=root
+  when: selenium_grid_cloud_provider == 'aws'
+
+- name: Reload ansible_local for aws facts
+  setup: filter=ansible_local
+  when: selenium_grid_cloud_provider == 'aws'
+
+- name: set selenium grid name and hub host from dynamic facts if available
+  set_fact:
+     selenium_grid_name: "{{ansible_local.configure_selenium_grid.grid}}"
+     selenium_grid_hub_host: "{{ansible_local.configure_selenium_grid.grid_hub_private_ip_address}}"
+     selenium_grid_role: "{{ansible_local.configure_selenium_grid.grid_role}}"
+  when:
+    - selenium_grid_cloud_provider == 'aws'
+    - ansible_local.configure_selenium_grid.grid_hub_private_ip_address is defined
+    - ansible_local.configure_selenium_grid.grid is defined
+    - ansible_local.configure_selenium_grid.grid_role is defined
+
+# handle oracle custom facts
+
+#write out pre-custom facts configuration file
+- name: Ensure selenium grid etc directory exists
+  file:
+    path=/etc/selenium-grid
+    recurse=yes
+    state=directory
+  when: selenium_grid_cloud_provider == 'oracle'
+
+- name: Selenium grid Environments configuration
+  template: src="environments.json.j2" dest="/etc/selenium-grid/environments.json"
+  when: selenium_grid_cloud_provider == 'oracle'
+
+- name: Install custom oracle fact script
+  copy: dest="/usr/local/bin/selenium-grid-facts.py" src="selenium-grid-facts.py" mode=0755 owner=root
+  when: selenium_grid_cloud_provider == 'oracle'
+
+- name: load custom facts script from file
+  shell: /usr/local/bin/selenium-grid-facts.py
+  register: facts_result
+  when: selenium_grid_cloud_provider == 'oracle'
+
+- set_fact:
+    selenium_grid_facts: "{{ facts_result.stdout | from_json }}"
+  when: selenium_grid_cloud_provider == 'oracle'
+
+- name: set selenium grid name and hub host from dynamic facts if available
+  set_fact:
+     selenium_grid_name: "{{selenium_grid_facts.grid}}"
+     selenium_grid_hub_host: "{{selenium_grid_facts.grid_hub_private_ip_address}}"
+     selenium_grid_role: "{{selenium_grid_facts.grid_role}}"
+  when:
+    - selenium_grid_cloud_provider == 'oracle'
+    - selenium_grid_facts.grid_hub_private_ip_address is defined
+    - selenium_grid_facts.grid is defined
+    - selenium_grid_facts.grid_role is defined
+
+- name: Configuration boot script for selenium grid
+  copy: dest="/usr/local/bin/configure-selenium-grid.sh" src="configure-selenium-grid.sh" mode=0755
+
+- name: Directory for selenium grid jar
+  file: path="{{selenium_grid_path}}" state=directory
+- name: Directory for selenium grid extras jar
+  file: path="{{selenium_grid_extras_path}}" state=directory
+- name: Directory for selenium grid extras configs folder
+  file: path="{{selenium_grid_extras_path}}/configs" state=directory
+
+
+- name: Selenium Grid User creation
+  user: name="{{item.username}}"
+    groups="{{item.groups | join(',')}}"
+    shell=/bin/bash
+    comment="{{item.real_name}}"
+    home="/home/{{item.username}}"
+    createhome=yes
+    state="{{item.state}}"
+  with_items: "{{selenium_grid_users}}"
+
+
+- name: Selenium Grid SSH Directory
+  file: path="{{ selenium_grid_homedir }}/.ssh" state=directory mode=0700 owner={{selenium_grid_username}}
+
+- name: Selenium Grid SSH private credentials
+  copy: content="{{ selenium_grid_ssh_private_key }}"
+        dest={{ selenium_grid_private_key_path }}
+        mode=0600
+        owner={{ selenium_grid_username }}
+        group={{ selenium_grid_groupname }}
+  when: selenium_grid_extras_install_flag
+
+- name: Selenium Grid SSH public credentials
+  copy: content="{{ selenium_grid_ssh_public_key }}"
+        dest={{ selenium_grid_homedir }}/.ssh/id_rsa.pub
+        owner={{selenium_grid_username}}
+        group={{selenium_grid_groupname}}
+  when: selenium_grid_extras_install_flag
+
+- name: Download selenium grid jar file
+  get_url: url={{ selenium_grid_jar_url }} dest={{ selenium_grid_file }}
+  when: selenium_grid_install_flag
+- name: Get selenium grid extras
+  become: yes
+  become_user: "{{selenium_grid_username}}"
+  git: repo="{{selenium_grid_extras_repo}}"
+       dest="{{selenium_grid_extras_src_path}}"
+       version="{{selenium_grid_extras_version}}"
+       accept_hostkey=yes
+  when: selenium_grid_extras_install_flag
+
+- name: Remove private credentials
+  file: path={{ selenium_grid_private_key_path }} state=absent
+  when: selenium_grid_extras_install_flag
+
+- name: Copy selenium grid jar file into place
+  copy: src="{{selenium_grid_extras_src_path}}/latest/SeleniumGridExtras-{{selenium_grid_extras_version}}-jar-with-dependencies.jar" dest="{{selenium_grid_extras_file}}" remote_src=True
+  when: selenium_grid_extras_install_flag
+
+- name: Configuration file for selenium grid node
+  template: src="selenium-grid-node.json.j2" dest="{{selenium_grid_node_config_file}}"
+  when: selenium_grid_configure_flag and selenium_grid_role == 'node'
+
+  # TODO it's not great to make the node a router by default, ideally this
+  # should be taken care of by the script that wraps the mm-link command
+  # (this is the mahimahi shell that we use for network emulation). The downside
+  # is that this would require some extra work because we have to manage the
+  # sudoers file. We leave it here for the moment but we should get back to it
+  # at some point.
+- name: sysctl tuning for nodes (required my mahimahi)
+  sysctl: name=net.ipv4.ip_forward value=1 state=present
+  when: selenium_grid_configure_flag and selenium_grid_role == 'node'
+
+- name: Configuration file for selenium grid extras node
+  template: src="selenium_grid_extras_config-node.json.j2" dest="{{selenium_grid_extras_node_config_file}}"
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
+- name: Configuration file for selenium grid extras node
+  template: src="node_5555.json.j2" dest="{{selenium_grid_extras_node_config_file2}}"
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
+
+- name: Configuration file for selenium grid hub
+  template: src="selenium-grid-hub.json.j2" dest="{{selenium_grid_hub_config_file}}"
+  when: selenium_grid_configure_flag and selenium_grid_role == 'hub'
+
+- name: Configuration file for selenium grid extras hub
+  template: src="selenium_grid_extras_config-hub.json.j2" dest="{{selenium_grid_extras_hub_config_file}}"
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
+- name: Configuration file for selenium grid extras hub
+  template: src="hub_4444.json.j2" dest="{{selenium_grid_extras_hub_config_file2}}"
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
+
+- file: path={{ selenium_grid_extras_path }} owner={{ selenium_grid_username }} group={{selenium_grid_groupname}} recurse=yes state=directory
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
+- file: path={{ selenium_grid_extras_path }} owner={{ selenium_grid_username }} group={{selenium_grid_groupname}} recurse=yes state=directory
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
+
+- name: Systemd file for selenium grid service
+  template: src="selenium-grid-node.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_node_service_name}}.service"
+  notify:
+    - reload systemctl daemon
+  when: selenium_grid_configure_flag
+
+- name: Systemd file for selenium grid service
+  template: src="selenium-grid-hub.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_hub_service_name}}.service"
+  notify:
+    - reload systemctl daemon
+  when: selenium_grid_configure_flag
+
+- name: Systemd file for selenium grid service
+  template: src="selenium-xvfb.service.j2" dest="{{selenium_grid_service_path}}/selenium-xvfb.service"
+  notify:
+    - reload systemctl daemon
+  when: selenium_grid_configure_flag
+
+- name: Systemd file for selenium grid extras node service
+  template: src="selenium-grid-extras-node.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_extras_node_service_name}}.service"
+  notify:
+    - reload systemctl daemon
+  when: selenium_grid_extras_configure_flag
+
+- name: Systemd file for selenium grid extras hub service
+  template: src="selenium-grid-extras-hub.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_extras_hub_service_name}}.service"
+  notify:
+    - reload systemctl daemon
+  when: selenium_grid_extras_configure_flag
+
+- name: Configure rsyslogd redirections for selenium grid components
+  copy: src="selenium-grid.rsyslogd.conf" dest="/etc/rsyslog.d/23-selenium-grid.conf"
+  notify: restart rsyslog
+
+- name: Configure grid metrics check in datadog
+  copy: src="selenium-grid.datadog.py" dest="/etc/datadog-agent/checks.d/selenium_grid.py"
+  when:
+    - selenium_grid_role == 'node'
+    - selenium_grid_datadog_enabled
+  notify: restart datadog agent
+
+- name: Configure grid metrics configuration in datadog
+  copy: src="selenium-grid.datadog.conf" dest="/etc/datadog-agent/conf.d/selenium_grid.yaml"
+  when:
+    - selenium_grid_role == 'node'
+    - selenium_grid_datadog_enabled
+  notify: restart datadog agent
+
+
+- name: Start up selenium grid hub service
+  service: name="{{selenium_grid_hub_service_name}}" state=started enabled=true
+  when: selenium_grid_configure_flag and selenium_grid_role == 'hub' and not selenium_grid_extras_configure_flag
+
+- name: Start up selenium grid node service
+  service: name="{{selenium_grid_node_service_name}}" state=started enabled=true
+  when: selenium_grid_configure_flag and selenium_grid_role == 'node' and not selenium_grid_extras_configure_flag
+
+- name: Start up selenium grid extras hub service
+  service: name="{{selenium_grid_extras_hub_service_name}}" state=started enabled=true
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
+
+- name: Start up selenium grid node service
+  service: name="{{selenium_grid_extras_node_service_name}}" state=started enabled=true
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
+
+- name: Script that handles auto-updating selenium,drivers and browsers
+  template: src="update-node.sh" dest="{{selenium_grid_extras_path}}"
+  when: selenium_grid_role == 'node'
+
+- name: Ensure executable flag on update-node.sh
+  command: chmod +x {{selenium_grid_extras_path}}/update-node.sh
+  when: selenium_grid_role == 'node'
+
+# Run the updater regularly
+- name: Update selenium, drivers, browsers script cron
+  cron: user=root
+        state=present
+        name="Update selenium, drivers, browsers script cron"
+        minute="{{ selenium_grid_update_check_cron.minute }}"
+        hour="{{ selenium_grid_update_check_cron.hour }}"
+        job="{{ selenium_grid_update_check_cron.job }}"
+  when: selenium_grid_configure_flag and selenium_grid_enable_update_check_cron
+
+# Run the updater on boot(on configure), as we had updated to the latest chrome, so let's update and to the latest drivers
+- name: Run update-node.sh to update the drivers.
+  shell: "{{selenium_grid_extras_path}}/update-node.sh"
+  when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'

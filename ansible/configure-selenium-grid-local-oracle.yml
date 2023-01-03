@@ -1,0 +1,35 @@
+---
+- hosts: all
+  gather_facts: true
+  become_user: root
+  become: yes
+  vars:
+    cloud_provider: oracle
+    shard_role: selenium-grid
+  vars_files:
+    - secrets/selenium.yml
+    - secrets/consul.yml
+    - secrets/ssh-users.yml
+    - secrets/github.yml
+    - secrets/oci-logging.yml
+    - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+  pre_tasks:
+    - apt: update_cache=yes
+      tags: setup
+    - name: set hostname
+      hostname:
+        name: "{{ansible_fqdn}}"
+      tags: setup
+  roles:
+     - { role: "common", tags: "common"}
+     - { role: "sshusers", tags: "ssh" }
+     - { role: "iptables-selenium-grid", tags: "iptables"}
+     - { role: "ntp", tags: "ntp"}
+     - { role: "logrotate", tags: "logrotate"}
+     - { role: "journald", tags: "journald"}
+     - { role: "rsyslog", tags: "rsyslog"}
+     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: selenium_grid_enable_fluentd }
+    # configure and start selenium grid components
+     - { role: "selenium-grid", tags: "selenium-grid", selenium_grid_install_flag: false, selenium_grid_extras_install_flag: false}
+     - { role: "consul-selenium-grid-hub", tags: "consul", when: selenium_grid_role == 'hub'}
