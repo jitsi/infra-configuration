@@ -1,0 +1,175 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  force_handlers: true
+  gather_timeout: 180
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl-certificates.yml
+    - secrets/jvb.yml
+    - secrets/jvb-ddns.yml
+    - secrets/jvb-ddns-aws.yml
+    - secrets/asap.yml
+    - secrets/oci-logging.yml
+    - roles/jitsi-repo/defaults/main.yml
+    - secrets/repo.yml
+    - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+  vars:
+    cloud_provider: oracle
+    shard_role: JVB
+    adl: "{{ ansible_distribution | lower }}"
+    adrl: "{{ ansible_distribution_release | lower }}"
+  pre_tasks:
+    - name: Remove old jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
+        state: absent
+      tags: setup
+    - name: Remove old jitsi trusted repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url_old }} unstable/"
+        state: absent
+      tags: setup
+    - name: Setup new repo template file
+      ansible.builtin.template:
+        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
+        owner: root
+        mode: 0600
+      tags: setup
+    - name: Setup new trusted jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_repo_url }} unstable/"
+        state: present
+        update_cache: false
+      tags: setup
+    - name: Remove td-agent deb repository
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ adl }}/{{ adrl }}/ {{ adrl }} contrib"
+        state: absent
+        update_cache: false
+      tags: boot
+    - name: Set cloud provider to oracle
+      ansible.builtin.set_fact:
+        cloud_provider: oracle
+      tags: setup
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ ansible_fqdn }}"
+      tags: boot
+    - name: Stop fluentd
+      ansible.builtin.service:
+        name: "td-agent"
+        state: stopped
+        enabled: false
+      register: stop_fluentd_results
+      failed_when: stop_fluentd_results.rc != 0 and not stop_fluentd_results.rc == 5
+      tags: boot
+      when: not jvb_enable_fluentd
+    - name: Stop jitsi-system-events
+      ansible.builtin.service:
+        name: "jitsi-system-events"
+        state: stopped
+        enabled: false
+      register: stop_jitsi_system_events_results
+      failed_when: stop_jitsi_system_events_results.rc != 0 and not stop_jitsi_system_events_results.rc == 5
+      tags: boot
+    - name: Get instance's VNIC
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/vnics/
+      register: vnic_result
+      tags: setup
+    - name: Set vnic fact
+      ansible.builtin.set_fact:
+        jvb_vnic: "{{ vnic_result.json[0].vnicId }}"
+      tags: setup
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set shape fact
+      ansible.builtin.set_fact:
+        jvb_shape: "{{ instance_result.json.shape }}"
+      tags: setup
+    - name: Get instance's Public IP from VNIC
+      ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
+      register: vnic_details_result
+      changed_when: vnic_details_result.rc != 0 # <- Uses the return code to define when the task has changed.
+      tags: setup
+    - name: Set IP facts
+      ansible.builtin.set_fact:
+        jvb_ddns_ipv4_addr: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+        subspace_instance_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+        autoscaler_sidecar_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+      tags: setup
+    - name: Register installed videobridge package
+      # Version: 2.1-198-gb3d9736e-1
+      ansible.builtin.shell: set -o pipefail && dpkg -s jitsi-videobridge2 | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
+      register: jvb_version
+      changed_when: jvb_version.rc != 0 # <- Uses the return code to define when the task has changed.
+      tags: setup
+    - name: Remove NodeSource deb repository
+      ansible.builtin.apt_repository:
+        repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: boot
+    - name: Remove NodeSource deb-src repository
+      ansible.builtin.apt_repository:
+        repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: boot
+  post_tasks:
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
+      tags: boot
+  roles:
+# TODO IPv6 is not yet supported by oracle
+#    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
+    - { role: "iptables", tags: "iptables"}
+    # enable java 11 if set for the environment
+    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{jvb_java_11}}", java_install_flag: false }
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "sshusers", tags: "ssh", ssh_users_config_flag: false, ssh_users_accounts_flag: false, ssh_users_system_flag: true }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jvb_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled and not datadog_enabled
+      vars:
+        telegraf_inputs:
+          nstat:
+            fieldpass: ["UdpInErrors", "Udp6InErrors"]
+        telegraf_tags:
+          shard-role: "JVB"
+          role: "JVB"
+          environment: "{{ hcv_environment }}"
+          environment_type: "{{environment_type|default('prod', True)}}"
+          shard: "{{ shard_name }}"
+          region: "{{oracle_to_aws_region_map[jvb_custom_region]}}"
+          oracle_region: "{{jvb_custom_region}}"
+          release_number: "{{ jitsi_release_number }}"
+          jvb_release_number: "{{ jvb_release_number }}"
+          cloud: "{{cloud_provider}}"
+          jvb_version: "{{jvb_version.stdout}}"
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "JVB", autoscaler_install_flag: false, autoscaler_configure_flag: true,
+        jitsi_autoscaler_sidecar: "{{autoscaler_sidecar_jvb_flag}}", jvb_ddns_cleanup_flag: true}
+    - { role: "jvb-ssl", "tags": "jvb-ssl", when: jvb_nginx_ssl_enabled }
+    - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns",
+        jvb_ddns_install_flag: false, jvb_ddns_configure_flag: true, jvb_ddns_cleanup_flag: true, ipv6_enabled: false }
+    - { role: "jitsi-videobridge", tags: "jitsi-videobridge",
+        jvb_image_build_flag: false, jvb_install_flag: false, jvb_configure_flag: true, jvb_ddns_cleanup_flag: true }
+    # once all JVB images have jvb-rtcstats-push installed we can set install_flag to false below
+    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }

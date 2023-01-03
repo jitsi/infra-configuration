@@ -1,0 +1,39 @@
+---
+- name: Main
+  hosts: default
+  gather_facts: true
+  become: true
+  vars:
+    cloud_provider: oracle
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl-certificates.yml
+    - secrets/jvb-ddns.yml
+    - config/vars.yml
+  pre_tasks:
+    # pause 300 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 30
+      ansible.builtin.pause:
+        seconds: 300
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+  roles:
+    - { role: "common", tags: "common" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true }
+    - { role: "journald", tags: "journald"}
+    - { role: "monit", tags: "monit"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "nginx", tags: "nginx"}
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "JVB", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
+    - { role: jitsi-videobridge, tags: "jitsi-videobridge",
+        jvb_image_build_flag: true, jvb_reconfigure_flag: false, jvb_install_flag: true, jvb_configure_flag: false }
+    - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns",
+        jvb_ddns_install_flag: true, jvb_ddns_configure_flag: false, jvb_ddns_cleanup_flag: false, ipv6_enabled: false }
+    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
+    - { role: jitsi-dumper, tags: "jitsi-dumper"}
+    - { role: "clean-system", tags: "clean-system, build" }
