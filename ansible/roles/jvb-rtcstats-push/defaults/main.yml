@@ -14,7 +14,7 @@ jvb_rtcstats_push_service_name: jvb-rtcstats-push
 jvb_rtcstats_push_username: rtcstatspush
 jvb_rtcstats_user:
   groups: ["adm", "{{ jvb_rtcstats_push_groupname }}"]
-  homedir: "/home/{ {jvb_rtcstats_push_username }}"
+  homedir: "/home/{{jvb_rtcstats_push_username }}"
   real_name: RTC stats pusher user
   state: present
   username: "{{ jvb_rtcstats_push_username }}"

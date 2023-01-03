@@ -42,6 +42,6 @@
     - java_install_flag
 
 - name: Set java alternative setting
-  ansible.builtin.command: "update-java-alternatives -s {{ java_alternatives_version }}"
+  ansible.builtin.command: "update-java-alternatives --jre-headless --set {{ java_alternatives_version }}"
   register: java_alternatives_output # <- Registers the command output.
   changed_when: java_alternatives_output.rc != 0 # <- Uses the return code to define when the task has changed.
