@@ -1,36 +1,44 @@
 ---
 - name: Install list of packages
-  apt: name=git state=present
+  ansible.builtin.apt:
+    name: git
+    state: present
 
 - name: User creation
-  user: name="{{jvb_rtcstats_user.username}}"
-    groups="{{jvb_rtcstats_user.groups | join(',')}}"
-    shell=/bin/bash
-    comment="{{jvb_rtcstats_user.real_name}}"
-    home="{{jvb_rtcstats_user.homedir}}"
-    createhome=yes
-    state="{{jvb_rtcstats_user.state}}"
+  ansible.builtin.user:
+    name: "{{ jvb_rtcstats_user.username }}"
+    groups: "{{ jvb_rtcstats_user.groups | join(',')}}"
+    shell: /bin/bash
+    comment: "{{ jvb_rtcstats_user.real_name }}"
+    home: "{{ jvb_rtcstats_user.homedir }}"
+    createhome: true
+    state: present
 
 - name: Code Directory
-  file: path={{ jvb_rtcstats_push_base_path }} state=directory owner={{ jvb_rtcstats_push_username }} group={{jvb_rtcstats_push_groupname}} recurse=yes
+  ansible.builtin.file: path={{ jvb_rtcstats_push_base_path }} state=directory owner={{ jvb_rtcstats_push_username }} group={{jvb_rtcstats_push_groupname}} recurse=yes
 
 - name: Check out codebase
-  become: yes
-  become_user: "{{jvb_rtcstats_push_username}}"
-  git: repo={{jvb_rtcstats_push_git_repo}} dest={{jvb_rtcstats_push_base_path}} update=yes force=yes accept_hostkey=yes
+  become: true
+  become_user: "{{ jvb_rtcstats_push_username }}"
+  ansible.builtin.git:
+    repo: "{{ jvb_rtcstats_push_git_repo }}"
+    dest: "{{ jvb_rtcstats_push_base_path }}"
+    update: true
+    force: true
+    accept_hostkey: true
 
-- name: npm Requirements
-  shell: npm install
-  become: yes
-  become_user: "{{jvb_rtcstats_push_username}}"
+- name: Install npm Requirements
+  ansible.builtin.command: npm install
+  become: true
+  become_user: "{{ jvb_rtcstats_push_username }}"
   args:
-    chdir: "{{jvb_rtcstats_push_base_path}}"
+    chdir: "{{ jvb_rtcstats_push_base_path }}"
 
-- name: application configuration directory
-  file: path={{jvb_rtcstats_push_config_dir}} state=directory
+- name: Application configuration directory
+  ansible.builtin.file: path={{ jvb_rtcstats_push_config_dir }} state=directory
 
-- name: application log directory
-  file: path={{jvb_rtcstats_push_log_dir}} state=directory
+- name: Application log directory
+  ansible.builtin.file: path={{ jvb_rtcstats_push_log_dir }} state=directory
 
-- name: rsyslog configuration
-  template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/26-jvb-rtcstats-push.conf
+- name: Create rsyslog configuration
+  ansible.builtin.template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/26-jvb-rtcstats-push.conf

@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: nodejs, when: jvb_ddns_install_flag }

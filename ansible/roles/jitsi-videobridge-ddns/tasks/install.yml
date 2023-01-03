@@ -1,0 +1,73 @@
+---
+- name: Install list of packages
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: User creation
+  ansible.builtin.user:
+    name: "{{ jvb_ddns_user.username }}"
+    groups: "{{jvb_ddns_user.groups | join(',')}}"
+    shell: /bin/bash
+    comment: "{{ jvb_ddns_user.real_name }}"
+    home: "{{ jvb_ddns_user.homedir }}"
+    createhome: true
+    state: present
+
+- name: SSH Directory
+  ansible.builtin.file:
+    path: "{{ jvb_ddns_user.homedir }}/.ssh"
+    state: directory
+    mode: 0700
+    owner: "{{ jvb_ddns_username }}"
+
+- name: SSH private credentials
+  ansible.builtin.copy:
+    content: "{{ jvb_ddns_ssh_private_key }}"
+    dest: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa"
+    mode: 0600
+    owner: "{{ jvb_ddns_username }}"
+    group: "{{ jvb_ddns_groupname }}"
+
+- name: SSH public credentials
+  ansible.builtin.copy:
+    content: "{{ jvb_ddns_ssh_public_key }}"
+    dest: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa.pub"
+    owner: "{{ jvb_ddns_username }}"
+    group: "{{ jvb_ddns_groupname }}"
+
+- name: Code Directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jvb_ddns_base_path }}"
+    state: directory
+    owner: "{{ jvb_ddns_username }}"
+    group: "{{ jvb_ddns_groupname }}"
+
+- name: Check out codebase
+  become: true
+  become_user: "{{ jvb_ddns_username }}"
+  git:
+    repo: "{{ jvb_ddns_git_repo }}"
+    dest: "{{ jvb_ddns_base_path }}"
+    version: "{{ jvb_ddns_git_branch }}"
+    update: true
+    force: true
+    accept_hostkey: true
+
+- name: Remove SSH private credentials
+  file:
+    path: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa" 
+    state: absent
+
+- name: Remove SSH public credentials
+  file:
+    path: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa.pub" 
+    state: absent
+
+- name: npm Requirements
+  shell: npm install
+  become: true
+  become_user: "{{ jvb_ddns_username }}"
+  args:
+    chdir: "{{ jvb_ddns_base_path }}"

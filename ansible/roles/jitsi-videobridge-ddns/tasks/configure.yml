@@ -1,0 +1,42 @@
+---
+- name: Set fact about instance mac address
+  ansible.builtin.set_fact:
+    mac: "{{ lookup('vars', 'ansible_ec2_mac') | regex_replace(':', '_') }}"
+  when: ipv6_enabled is undefined or ipv6_enabled
+
+- name: Get ipv6
+  ansible.builtin.set_fact:
+    ipv6_addr: "{{ lookup('vars', 'ansible_ec2_network_interfaces_macs_' + mac + '_ipv6s') | default(false) }}"
+  when: ipv6_enabled is undefined or ipv6_enabled
+
+- name: Set false ipv6 as ipv6 is disabled
+  ansible.builtin.set_fact:
+    ipv6_addr: false
+  when: ipv6_enabled is undefined or not ipv6_enabled
+
+- name: Create directory for AWS credentials
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.aws"
+    state: directory
+  when: jvb_ddns_cloud_provider == "oracle"
+
+- name: AWS credentials
+  ansible.builtin.template:
+    src: aws_credentials.j2
+    dest: "{{ ansible_env.HOME }}/.aws/credentials"
+    mode: 0600
+  when: jvb_ddns_cloud_provider == "oracle"
+
+- name: Create DNS entry for host
+  ansible.builtin.command: node index.js update_by_info --action add --instance_name {{jvb_ddns_hostname}} --zone_id {{jvb_ddns_zone}} --ipv4_addr "{{jvb_ddns_ipv4_addr}}" {% if ipv6_addr %} --ipv6_addr "{{ipv6_addr}}"{% endif %}
+  args:
+    chdir: "{{jvb_ddns_base_path}}"
+  when: jvb_ddns_create_entry
+
+- name: Remove AWS private credentials
+  ansible.builtin.file: path="{{ansible_env.HOME}}/.aws/credentials" state=absent
+  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == false
+
+- name: Copy clean up route 53 script
+  ansible.builtin.template: src="cleanup_route53_dns.j2" dest="{{jvb_path_to_cleanup_route53_dns_script}}" mode=0755
+  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
