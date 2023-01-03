@@ -1,0 +1,10 @@
+---
+dependencies:
+- { role: openjdk-java, when: selenium_grid_install_flag }
+# not used if extras is used
+- { role: chromedriver, when: selenium_grid_install_flag }
+- { role: google-chrome, google_chrome_beta_flag: true }
+- { role: firefox, firefox_beta_flag: true, when: selenium_grid_install_flag }
+# not used if extras is used
+- { role: geckodriver, when: selenium_grid_install_flag }
+- { role: jitsi-torture-checkout }

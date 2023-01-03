@@ -1,0 +1,9 @@
+---
+geckodriver_latest_release_url: https://api.github.com/repos/mozilla/geckodriver/releases/latest
+geckodriver_password: "{{infra_github_password|default('defaultpw')}}"
+geckodriver_path: /usr/bin/geckodriver
+geckodriver_tmp_dir: /tmp
+geckodriver_tmp_path: /tmp/geckodriver.tar.gz
+geckodriver_url: https://github.com/mozilla/geckodriver/releases/download/{{geckodriver_version}}/geckodriver-{{geckodriver_version}}-linux64.tar.gz
+geckodriver_username: "{{infra_github_username|default('defaultuser')}}"
+geckodriver_version: v0.19.1

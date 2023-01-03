@@ -1,0 +1,43 @@
+{
+  "theConfigMap": {
+    "auto_update_browser_versions": "0",
+    "hub_config_files": [],
+    "auto_start_hub": "0",
+    "iedriver": {
+      "version": "3.8.0"
+    },
+    "default_role": "node",
+    "unregisterNodeDuringReboot": "true",
+    "chromedriver": {
+      "bit": "64",
+      "version": "87.0.4280.20"
+    },
+    "auto_update_drivers": "1",
+    "video_recording_options": {
+      "videos_to_keep": "-1",
+      "record_test_videos": "false"
+    },
+    "auto_start_node": "1",
+    "hub_config": {},
+    "geckodriver": {
+      "bit": "64",
+      "version": "0.28.0"
+    },
+    "log_maximum_age_ms": 8.64E8,
+    "reboot_after_sessions": "0",
+    "grid_extras_port": "3000",
+    "webdriver": {
+      "version": "3.141.59"
+    },
+    "node_config_files": [
+      "node_5555.json"
+    ],
+    "tear_down": [
+      "org.jitsi.seleniumgridextras.tasks.PKillChrome",
+      "org.jitsi.seleniumgridextras.tasks.PKillChrome2",
+      "org.jitsi.seleniumgridextras.tasks.PkillChromeDriver",
+      "org.jitsi.seleniumgridextras.tasks.PKillFirefox",
+      "org.jitsi.seleniumgridextras.tasks.CleanupDiskSpace"
+    ]
+  }
+}
