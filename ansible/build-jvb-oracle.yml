@@ -24,7 +24,6 @@
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true }
     - { role: "journald", tags: "journald"}
-    - { role: "monit", tags: "monit"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "nginx", tags: "nginx"}
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
