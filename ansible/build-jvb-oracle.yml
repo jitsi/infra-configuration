@@ -7,7 +7,6 @@
     cloud_provider: oracle
   vars_files:
     - secrets/ssh-users.yml
-    - secrets/ssl-certificates.yml
     - secrets/jvb-ddns.yml
     - config/vars.yml
   pre_tasks:
