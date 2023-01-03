@@ -15,7 +15,7 @@
     # pause 300 seconds before updating, to ensure that everything is ready to roll
     - name: Pause for 30
       ansible.builtin.pause:
-        seconds: 300
+        seconds: 30
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
