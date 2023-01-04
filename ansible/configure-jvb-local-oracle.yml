@@ -108,7 +108,11 @@
       tags: setup
     - name: Register installed videobridge package
       # Version: 2.1-198-gb3d9736e-1
-      ansible.builtin.shell: set -o pipefail && dpkg -s jitsi-videobridge2 | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-videobridge2 | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
+      args:
+        executable: /bin/bash
       register: jvb_version
       changed_when: jvb_version.rc != 0 # <- Uses the return code to define when the task has changed.
       tags: setup
