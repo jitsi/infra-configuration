@@ -1,29 +1,35 @@
 ---
 # consul apt key
-- name: consul apt key
-  apt_key: url="{{consul_apt_key}}" state=present validate_certs=no
+- name: Install consul apt key
+  ansible.builtin.apt_key:
+    url: "{{ consul_apt_key }}"
+    state: present
+    validate_certs: false
 
 # consul apt repo
-- name: consul apt repo
-  apt_repository: >
-    repo="deb [arch={{consul_architecture}}] {{consul_apt_repo}} {{ansible_distribution_release}} main"
-    state=present
-    update_cache=yes
+- name: Install consul apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ consul_architecture }}] {{ consul_apt_repo }} {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: true
 
-- name: consul install
-  apt: name="consul" state="present"
+- name: Install consul
+  ansible.builtin.apt:
+    name: "consul"
+    state: "present"
 
 # remove apt repo after consul install
 # to ensure that at boot-time, apt-get update isn't broken by external dependency failures
-- name: consul apt repo removal
-  apt_repository: >
-    repo="deb [arch={{consul_architecture}}] {{consul_apt_repo}} {{ansible_distribution_release}} main"
-    state=absent
-    update_cache=yes
+- name: Remove consul apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ consul_architecture }}] {{ consul_apt_repo }} {{ ansible_distribution_release }} main"
+    state: absent
+    update_cache: true
 
-- name: rsyslog configuration for consul
-  template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/33-consul.conf
-  register: rsyslog_template
-
-- service: name=rsyslog state=restarted
-  when: rsyslog_template.changed
+- name: Install rsyslog configuration for consul
+  ansible.builtin.template:
+    mode: 0644
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/33-consul.conf
+  notify:
+    - Restart rsyslog service
