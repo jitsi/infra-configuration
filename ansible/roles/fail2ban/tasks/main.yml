@@ -1,20 +1,20 @@
 ---
-- name: install fail2ban
-  apt:
+- name: Install fail2ban
+  ansible.builtin.apt:
     name: fail2ban
-    install_recommends: True
-    state: latest
+    install_recommends: true
+    state: present
   notify: restart fail2ban
 
-- name: make fail2ban sshd aggressive
-  lineinfile:
+- name: Make fail2ban sshd aggressive
+  ansible.builtin.lineinfile:
     path: /etc/fail2ban/jail.conf
     regexp: '^#mode   = normal'
     line: 'mode   = aggressive'
   notify: restart fail2ban
 
-- name: start fail2ban at boot
-  service:
+- name: Start fail2ban at boot
+  ansible.builtin.service:
     name: fail2ban
     state: started
-    enabled: yes
+    enabled: true
