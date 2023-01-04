@@ -12,7 +12,7 @@
     - secrets/jvb.yml
     - secrets/jvb-ddns.yml
     - secrets/jvb-ddns-aws.yml
-    - secrets/asap.yml
+    - secrets/asap-keys.yml
     - secrets/oci-logging.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
@@ -104,7 +104,6 @@
     - name: Set IP facts
       ansible.builtin.set_fact:
         jvb_ddns_ipv4_addr: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
-        subspace_instance_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
         autoscaler_sidecar_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
       tags: setup
     - name: Register installed videobridge package
