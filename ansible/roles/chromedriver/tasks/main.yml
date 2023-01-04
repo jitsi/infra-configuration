@@ -1,23 +1,37 @@
 ---
 - name: Grab latest chromedriver version string
-  uri:
-    url: "{{chromedriver_latest_release_url}}"
-    return_content: yes 
+  ansible.builtin.uri:
+    url: "{{ chromedriver_latest_release_url }}"
+    return_content: true
   register: chromedriver_version_result
   when: chromedriver_use_latest
 
-- name: set chromedriver version fact
-  set_fact: chromedriver_version="{{chromedriver_version_result.content|trim}}"
+- name: Set chromedriver version fact
+  ansible.builtin.set_fact:
+    chromedriver_version: "{{ chromedriver_version_result.content | trim }}"
   when: chromedriver_use_latest
 
 - name: Download chromedriver from google
-  get_url: url={{ chromedriver_url }} dest={{ chromedriver_tmp_path }}
+  ansible.builtin.get_url:
+    mode: 0644
+    url: "{{ chromedriver_url }}"
+    dest: "{{ chromedriver_tmp_path }}"
 
-- name: create chromedriver temporary directory
-  file: path={{chromedriver_tmp_dir}} state=directory
+- name: Create chromedriver temporary directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ chromedriver_tmp_dir }}"
+    state: directory
 
-- name: unzip downloaded file
-  unarchive: copy=no src={{ chromedriver_tmp_path }} dest={{ chromedriver_tmp_dir }}
+- name: Run unzip downloaded file
+  ansible.builtin.unarchive:
+    copy: false
+    src: "{{ chromedriver_tmp_path }}"
+    dest: "{{ chromedriver_tmp_dir }}"
 
-- name: copy chromedriver binary into place
-  copy: src={{ chromedriver_tmp_dir }}/chromedriver dest={{ chromedriver_path }} remote_src=True mode=0755
+- name: Copy chromedriver binary into place
+  ansible.builtin.copy:
+    src: "{{ chromedriver_tmp_dir }}/chromedriver"
+    dest: "{{ chromedriver_path }}"
+    remote_src: true
+    mode: 0755
