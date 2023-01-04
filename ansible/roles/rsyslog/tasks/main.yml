@@ -1,147 +1,99 @@
 # Install and configure rsyslog
 ---
-- name: set OS dependent variables
+- name: Set OS dependent variables
   tags:
     - rsyslog
     - prereq
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
-   - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
-   - "{{ ansible_distribution }}.yml"
-   - "{{ ansible_os_family }}_{{ ansible_distribution_major_version }}.yml"
-   - "{{ ansible_os_family }}.yml"
-   - default.yml
+    - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}_{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - default.yml
 
-#- include_tasks: main_rh.yml
-#  when: ansible_os_family == 'RedHat'
-
-- include_tasks: main_deb.yml
+- name: Include main debian
+  ansible.builtin.include_tasks: main_deb.yml
   when: ansible_os_family == 'Debian'
 
-#- include_tasks: main_arch.yml
-#  when: ansible_os_family == 'Archlinux'
-
-- name: setup main configuration
+- name: Setup main configuration
   tags:
     - rsyslog
     - files
-  template: >
-    src=rsyslog.conf.j2
-    dest={{ rsyslog_main_config }}
-    owner={{ rsyslog_file_owner }}
-    group={{ rsyslog_file_group }}
-    mode={{ rsyslog_file_mode }}
+  ansible.builtin.template:
+    src: rsyslog.conf.j2
+    dest: "{{ rsyslog_main_config }}"
+    owner: "{{ rsyslog_file_owner }}"
+    group: "{{ rsyslog_file_group }}"
+    mode: "{{ rsyslog_file_mode }}"
   notify:
     - restart rsyslog
-  when: rsyslog_os_supported == True
+  when: rsyslog_os_supported
 
-- name: create additional configuration directory
+- name: Create additional configuration directory
   tags:
     - rsyslog
     - files
-  file: >
-    path="{{ rsyslog_include_path }}"
-    owner={{ rsyslog_file_owner }}
-    group={{ rsyslog_file_group }}
-    mode={{ rsyslog_file_mode }}
-    state=directory
-  when: rsyslog_os_supported == True
+  ansible.builtin.file:
+    path: "{{ rsyslog_include_path }}"
+    owner: "{{ rsyslog_file_owner }}"
+    group: "{{ rsyslog_file_group }}"
+    mode: "{{ rsyslog_file_mode }}"
+    state: directory
+  when: rsyslog_os_supported
 
-#- name: setup default additional configuration
-#  tags:
-#    - rsyslog
-#    - files
-#  template: >
-#    src=rsyslog.snippet.conf.j2
-#    dest={{ rsyslog_include_path }}/{{item.name}}.conf
-#    owner={{ rsyslog_file_owner }}
-#    group={{ rsyslog_file_group }}
-#    mode={{ rsyslog_file_mode }}
-#  with_items:
-#    - name: "50-default"
-#      lines:
-#        - '*.info;mail.none;authpriv.none;cron.none /var/log/messages'
-#        - 'kern.*                                   -/var/log/kern.log'
-#        - 'auth.*;authpriv.*                        /var/log/auth.log'
-#        - 'daemon.*                                 /var/log/daemon.log'
-#        - 'cron.*                                   -/var/log/cron.log'
-#        - 'mail.*                                   -/var/log/mail.log'
-#        - 'uucp,news.*                              /var/log/spooler'
-#        - '*.emerg                                  *'
-#        - 'local7.*                                 /var/log/boot.log'
-#        - '*.*                                      /var/log/uncategorized.log'
-#  notify:
-#    - restart rsyslog
-#  when: rsyslog_default_config == "True" and rsyslog_os_supported == True
-
-- file: path="{{ rsyslog_include_path }}/48-ship-syslog.conf" state=absent
+- name: Remove rsyslog ship to syslog
+  ansible.builtin.file:
+    path: "{{ rsyslog_include_path }}/48-ship-syslog.conf"
+    state: absent
   notify: restart rsyslog
 
-- file: path="{{ rsyslog_include_path }}/46-routing-by-programname.conf" state=absent
+- name: Remove routing by program
+  ansible.builtin.file:
+    path: "{{ rsyslog_include_path }}/46-routing-by-programname.conf"
+    state: absent
   notify: restart rsyslog
 
-- file: path="{{ rsyslog_include_path }}/46-ship-syslog.conf" state=absent
+- name: Remove rsyslog ship to syslog
+  ansible.builtin.file:
+    path: "{{ rsyslog_include_path }}/46-ship-syslog.conf"
+    state: absent
   notify: restart rsyslog
 
-# - name: setup additional configurations
-#   tags:
-#     - rsyslog
-#     - files
-#   template: > 
-#     src="rsyslog-shipping.conf.j2"
-#     dest="{{ rsyslog_include_path }}/46-ship-syslog.conf"
-#     owner={{ rsyslog_file_owner }}
-#     group={{ rsyslog_file_group }}
-#     mode={{ rsyslog_file_mode }}
-#   notify:
-#     - restart rsyslog
-#   when: rsyslog_os_supported == True
-
-- name: create directory for local logs
+- name: Create directory for local logs
   tags:
     - rsyslog
     - files
-  file: >
-    dest="{{ rsyslog_local_log_directory }}"
-    state=directory
-    owner={{ rsyslog_file_owner }}
-    group={{ rsyslog_file_group }}
-    mode={{ rsyslog_file_mode }}
+  ansible.builtin.file:
+    dest: "{{ rsyslog_local_log_directory }}"
+    state: directory
+    owner: "{{ rsyslog_file_owner }}"
+    group: "{{ rsyslog_file_group }}"
+    mode: "{{ rsyslog_file_mode }}"
 
-- file: path="{{ rsyslog_include_path }}/48-routing-by-programname.conf" state=absent
+- name: Remove routing by program
+  ansible.builtin.file:
+    path: "{{ rsyslog_include_path }}/48-routing-by-programname.conf"
+    state: absent
   notify:
     - restart rsyslog
 
-
-# - name: setup routing to differnt files per program name
-#   tags:
-#     - rsyslog
-#     - files
-#   template: >
-#     src="rsyslog-programrouting.conf.j2"
-#     dest="{{ rsyslog_include_path }}/48-routing-by-programname.conf"
-
-#     owner={{ rsyslog_file_owner }}
-#     group={{ rsyslog_file_group }}
-#     mode={{ rsyslog_file_mode }}
-#   notify:
-#     - restart rsyslog
-#   when: rsyslog_os_supported == True
-
-
-- name: configure apparmor to enable rsyslog TCP server
-  template: >
-    src="apparmor-usr.sbin.rsyslogd.j2"
-    dest="/etc/apparmor.d/local/usr.sbin.rsyslogd"
-    owner=root
-    group=root
-    mode=600
+- name: Configure apparmor to enable rsyslog TCP server
+  ansible.builtin.template:
+    src: "apparmor-usr.sbin.rsyslogd.j2"
+    dest: "/etc/apparmor.d/local/usr.sbin.rsyslogd"
+    owner: root
+    group: root
+    mode: 0600
   notify:
     - reload apparmor
 
-- name: enable service
+- name: Enable service
   tags:
     - rsyslog
     - configuration
-  service: name={{ rsyslog_service_name }} enabled=yes state=started
-  when: rsyslog_os_supported == True
+  ansible.builtin.service:
+    name: "{{ rsyslog_service_name }}"
+    enabled: true
+    state: started
+  when: rsyslog_os_supported

@@ -1,3 +1,4 @@
 # Debian related tasks
 ---
-- include_tasks: deb_packages.yml
+- name: Install deb packages
+  ansible.builtin.include_tasks: deb_packages.yml

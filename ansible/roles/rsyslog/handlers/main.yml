@@ -1,12 +1,16 @@
 ---
-- name: restart rsyslog
+- name: Restart rsyslog
   tags:
     - rsyslog
     - configuration
-  service: name={{ rsyslog_service_name }} state=restarted
+  ansible.builtin.service:
+    name: "{{ rsyslog_service_name }}"
+    state: restarted
 
-- name: reload apparmor
+- name: Reload apparmor
   tags:
     - rsyslog
     - configuration
-  service: name=apparmor state=reloaded
+  ansible.builtin.service:
+    name: apparmor
+    state: reloaded
