@@ -1,10 +1,23 @@
 ---
-- name: consul service file
-  template: src="signal.json.j2" dest="/etc/consul.d/signal.json"
+- name: Install consul service file
+  ansible.builtin.template:
+    mode: 0644
+    src: "signal.json.j2"
+    dest: "/etc/consul.d/signal.json"
 
-- name: consul service enablement
-  systemd: name=consul state=started enabled=true
+- name: Install consul service enablement
+  ansible.builtin.systemd:
+    mode: 0644
+    name: consul
+    state: started
+    enabled: true
   ignore_errors: true
+  tags:
+    - skip_ansible_lint
 
-- name: consul signal state script
-  copy: src="set-shard-state-consul.sh" dest="/usr/local/bin/set-shard-state-consul.sh" mode=0755 owner=root
+- name: Install consul signal state script
+  ansible.builtin.copy:
+    src: "set-shard-state-consul.sh"
+    dest: "/usr/local/bin/set-shard-state-consul.sh"
+    mode: 0755
+    owner: root
