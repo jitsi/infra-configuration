@@ -1,4 +1,3 @@
 ---
 dependencies:
   - { role: nodejs, when: autoscaler_install_flag and jitsi_autoscaler_sidecar }
-
