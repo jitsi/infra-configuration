@@ -1,178 +1,316 @@
 ---
-- name: AWS credentials
-  template: src=aws_credentials.j2
-    dest="/var/lib/td-agent/.aws/credentials" mode=0600 owner="{{fluentd_jitsi_username}}"
-  when: 
+- name: Install AWS credentials
+  ansible.builtin.template:
+    src: aws_credentials.j2
+    dest: "/var/lib/td-agent/.aws/credentials"
+    mode: 0600
+    owner: "{{ fluentd_jitsi_username }}"
+  when:
     - fluentd_cloud_provider == "oracle"
     - fluentd_jitsi_cloudwatch_logs_enabled
 
-- name: OCI config
-  template: src=config.oci.j2
-    dest="/var/lib/td-agent/.oci/config" mode=0600 owner="{{fluentd_jitsi_username}}"
+- name: Install OCI config
+  ansible.builtin.template:
+    src: config.oci.j2
+    dest: "/var/lib/td-agent/.oci/config"
+    mode: 0600
+    owner: "{{ fluentd_jitsi_username }}"
   when: fluentd_jitsi_oci_logs_enabled
 
 - name: OCI key
-  copy: content="{{oci_logging_private_key}}"
-    dest="/var/lib/td-agent/.oci/private.pem" mode=0600 owner="{{fluentd_jitsi_username}}"
+  ansible.builtin.copy:
+    content: "{{ oci_logging_private_key }}"
+    dest: "/var/lib/td-agent/.oci/private.pem"
+    mode: 0600
+    owner: "{{ fluentd_jitsi_username }}"
   when: fluentd_jitsi_oci_logs_enabled
 
 # Nginx
-- copy: src=nginx.conf dest=/etc/td-agent/config.d/nginx.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect nginx logs
+  ansible.builtin.copy:
+    src: nginx.conf
+    dest: /etc/td-agent/config.d/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_nginx_enabled
 
-- name: remove /etc/td-agent/config.d/nginx.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/nginx.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/nginx.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/nginx.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_nginx_enabled
 
-
-- template: src=in_jvb.conf.j2 dest=/etc/td-agent/config.d/in_jvb.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect JVB logs
+  ansible.builtin.template:
+    src: in_jvb.conf.j2
+    dest: /etc/td-agent/config.d/in_jvb.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_jvb_logs_enabled or fluentd_jitsi_jvb_series_enabled or fluentd_jvb_stats_enabled
 
-- name: remove /etc/td-agent/config.d/in_jvb.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/in_jvb.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/in_jvb.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/in_jvb.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_jvb_logs_enabled and not fluentd_jitsi_jvb_series_enabled and not fluentd_jvb_stats_enabled
 
-#deprecated JVB conf
-- name: remove /etc/td-agent/config.d/jvb.conf (deprecated location)
-  file: path=/etc/td-agent/config.d/jvb.conf state=absent
-  notify: restart jitsi fluentd
+# deprecated JVB conf
+- name: Remove /etc/td-agent/config.d/jvb.conf (deprecated location)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/jvb.conf
+    state: absent
+  notify: Restart jitsi fluentd
 
-- copy: src=jicofo.conf dest=/etc/td-agent/config.d/jicofo.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect jicofo logs
+  ansible.builtin.copy:
+    src: jicofo.conf
+    dest: /etc/td-agent/config.d/jicofo.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_jicofo_enabled
 
-- name: remove /etc/td-agent/config.d/jicofo.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/jicofo.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/jicofo.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/jicofo.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_jicofo_enabled
 
-- copy: src=jigasi.conf dest=/etc/td-agent/config.d/jigasi.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect jigasi logs
+  ansible.builtin.copy:
+    src: jigasi.conf
+    dest: /etc/td-agent/config.d/jigasi.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_jigasi_enabled
 
-- name: remove /etc/td-agent/config.d/jigasi.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/jigasi.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/jigasi.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/jigasi.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_jigasi_enabled
 
-- copy: src=jibri.conf dest=/etc/td-agent/config.d/jibri.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect jibri logs
+  ansible.builtin.copy:
+    src: jibri.conf
+    dest: /etc/td-agent/config.d/jibri.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_jibri_enabled
 
-- name: remove /etc/td-agent/config.d/jibri.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/jibri.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/jibri.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/jibri.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_jibri_enabled
 
-- copy: src=sip-jibri-selector.conf dest=/etc/td-agent/config.d/sip-jibri-selector.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect sip jibri selector logs
+  ansible.builtin.copy:
+    src: sip-jibri-selector.conf
+    dest: /etc/td-agent/config.d/sip-jibri-selector.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_sip_jibri_selector_enabled
 
-- name: remove /etc/td-agent/config.d/sip-jibri-selector.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/sip-jibri-selector.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/sip-jibri-selector.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/sip-jibri-selector.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_sip_jibri_selector_enabled
 
-- copy: src=prosody.conf dest=/etc/td-agent/config.d/prosody.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect prosody logs
+  ansible.builtin.copy:
+    src: prosody.conf
+    dest: /etc/td-agent/config.d/prosody.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_prosody_enabled
 
-- name: remove /etc/td-agent/config.d/prosody.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/prosody.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/prosody.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/prosody.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_prosody_enabled
 
-- copy: src=haproxy-monitor.conf dest=/etc/td-agent/config.d/haproxy-monitor.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect haproxy monitor logs
+  ansible.builtin.copy:
+    src: haproxy-monitor.conf
+    dest: /etc/td-agent/config.d/haproxy-monitor.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_haproxy_monitor_enabled
 
-- name: remove /etc/td-agent/config.d/haproxy-monitor.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/haproxy-monitor.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/haproxy-monitor.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/haproxy-monitor.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_haproxy_monitor_enabled
 
-- copy: src=haproxy.conf dest=/etc/td-agent/config.d/haproxy.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect haproxy logs
+  ansible.builtin.copy:
+    src: haproxy.conf
+    dest: /etc/td-agent/config.d/haproxy.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_haproxy_enabled
 
-- name: remove /etc/td-agent/config.d/haproxy.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/haproxy.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/haproxy.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/haproxy.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_haproxy_enabled
 
-- copy: src=filters.conf dest=/etc/td-agent/config.d/00filters.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Configure filters
+  ansible.builtin.copy:
+    src: filters.conf
+    dest: /etc/td-agent/config.d/00filters.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_filters_enabled
 
-- name: remove /etc/td-agent/config.d/00filters.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/00filters.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/00filters.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/00filters.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_filters_enabled
 
-- template: src=bootstrap.conf.j2 dest=/etc/td-agent/config.d/bootstrap.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect bootstrap logs
+  ansible.builtin.template:
+    src: bootstrap.conf.j2
+    dest: /etc/td-agent/config.d/bootstrap.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_bootstrap_enabled
 
-- name: remove /etc/td-agent/config.d/bootstrap.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/bootstrap.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/bootstrap.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/bootstrap.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_bootstrap_enabled
 
-- template: src=clouds.conf.j2 dest=/etc/td-agent/config.d/clouds.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Cloud configuration
+  ansible.builtin.template:
+    src: clouds.conf.j2 dest=/etc/td-agent/config.d/clouds.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_clouds_enabled
 
-- name: remove /etc/td-agent/config.d/clouds.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/clouds.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/clouds.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/clouds.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_clouds_enabled
 
-- template: src=postinstall_ansible.conf.j2 dest=/etc/td-agent/config.d/postinstall-ansible.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Collect postinstall logs
+  ansible.builtin.template:
+    src: postinstall_ansible.conf.j2
+    dest: /etc/td-agent/config.d/postinstall-ansible.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_postinstall_ansible_enabled
 
-- name: remove /etc/td-agent/config.d/postinstall-ansible.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/postinstall-ansible.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/postinstall-ansible.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/postinstall-ansible.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_postinstall_ansible_enabled
 
-- template: src=fluentd_cloudwatch_logs.conf.j2 dest=/etc/td-agent/config.d/60-out_cloudwatch_logs.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+- name: Configure cloudwatch logging
+  ansible.builtin.template:
+    src: fluentd_cloudwatch_logs.conf.j2
+    dest: /etc/td-agent/config.d/60-out_cloudwatch_logs.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_cloudwatch_logs_enabled or fluentd_jitsi_cloudwatch_boot_logs_enabled
 
-- name: clean old /etc/td-agent/config.d/out_cloudwatch_logs.conf
-  file: path=/etc/td-agent/config.d/out_cloudwatch_logs.conf state=absent
-  notify: restart jitsi fluentd
+- name: Clean old /etc/td-agent/config.d/out_cloudwatch_logs.conf
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/out_cloudwatch_logs.conf
+    state: absent
+  notify: Restart jitsi fluentd
 
-- name: remove /etc/td-agent/config.d/60-out_cloudwatch_logs.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/60-out_cloudwatch_logs.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/60-out_cloudwatch_logs.conf (disabled by flag)
+  ansible.builtin.file: path=/etc/td-agent/config.d/60-out_cloudwatch_logs.conf state=absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_cloudwatch_logs_enabled and not fluentd_jitsi_cloudwatch_boot_logs_enabled
 
 - name: Jitsi default logging configuration /etc/td-agent/config.d/10-jitsi.conf
-  template: src=fluentd_jitsi.conf.j2 dest=/etc/td-agent/config.d/10-jitsi.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+  ansible.builtin.template:
+    src: fluentd_jitsi.conf.j2
+    dest: /etc/td-agent/config.d/10-jitsi.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
 
 - name: OCI logging configuration /etc/td-agent/config.d/50-out_oci_logs.conf
-  template: src=fluentd_oci_logs.conf.j2 dest=/etc/td-agent/config.d/50-out_oci_logs.conf owner=root group=root mode=644
-  notify: restart jitsi fluentd
+  ansible.builtin.template:
+    src: fluentd_oci_logs.conf.j2
+    dest: /etc/td-agent/config.d/50-out_oci_logs.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart jitsi fluentd
   when: fluentd_jitsi_oci_logs_enabled
 
-- name: clean old /etc/td-agent/config.d/out_oci_logs.conf
-  file: path=/etc/td-agent/config.d/out_oci_logs.conf state=absent
-  notify: restart jitsi fluentd
+- name: Clean old /etc/td-agent/config.d/out_oci_logs.conf
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/out_oci_logs.conf
+    state: absent
+  notify: Restart jitsi fluentd
 
-- name: remove /etc/td-agent/config.d/50-out_oci_logs.conf (disabled by flag)
-  file: path=/etc/td-agent/config.d/50-out_oci_logs.conf state=absent
-  notify: restart jitsi fluentd
+- name: Remove /etc/td-agent/config.d/50-out_oci_logs.conf (disabled by flag)
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/50-out_oci_logs.conf
+    state: absent
+  notify: Restart jitsi fluentd
   when: not fluentd_jitsi_oci_logs_enabled
 
-- name: enable fluentd service
-  service: name=td-agent state=started enabled=yes
+- name: Enable fluentd service
+  ansible.builtin.service:
+    name: td-agent
+    state: started
+    enabled: true
 
 - name: Force all notified handlers to run at this point, not waiting for normal sync points
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers

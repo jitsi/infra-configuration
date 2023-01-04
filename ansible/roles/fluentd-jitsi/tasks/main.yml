@@ -1,6 +1,8 @@
 ---
-- include_tasks: install.yml
+- name: Include install steps
+  ansible.builtin.include_tasks: install.yml
   when: fluentd_install_flag
 
-- include_tasks: configure.yml
+- name: Include configure steps
+  ansible.builtin.include_tasks: configure.yml
   when: fluentd_configure_flag
