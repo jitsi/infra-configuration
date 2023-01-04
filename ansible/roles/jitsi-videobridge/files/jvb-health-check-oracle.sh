@@ -157,12 +157,6 @@ EOM
                   $CLEANUP_ROUTE53_DNS
               fi
 
-              # echo "Clean up subspace if present"
-              CLEANUP_SUBSPACE="/usr/local/bin/subspace_deregister.sh"
-              if [ -f "$CLEANUP_SUBSPACE" ]; then
-                  $CLEANUP_SUBSPACE
-              fi
-
               sudo /usr/local/bin/terminate_instance.sh
             fi
           done

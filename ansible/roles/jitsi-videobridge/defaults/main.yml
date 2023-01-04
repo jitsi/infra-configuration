@@ -196,9 +196,6 @@ jvb_stats_cron:
   minute: "*"
 jvb_stats_cron_user: jvb
 jvb_stun_mapping_enabled: true
-jvb_subspace_enabled: false
-jvb_subspace_exclusive_enabled: false
-jvb_subspace_static_mapping: false
 jvb_systemd_service_name: "jitsi-videobridge2"
 jvb_udp_buffer_max_backlog: 100000
 #temporarily increase buffer size until performance work is completed

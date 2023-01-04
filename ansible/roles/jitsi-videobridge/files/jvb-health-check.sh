@@ -187,11 +187,6 @@ else
                 $CLEANUP_ROUTE53_DNS
             fi
 
-            # echo "Clean up subspace if present"
-            CLEANUP_SUBSPACE="/usr/local/bin/subspace_deregister.sh"
-            if [ -f "$CLEANUP_SUBSPACE" ]; then
-                $CLEANUP_SUBSPACE
-            fi
             $AWS_BIN ec2 terminate-instances --instance-ids "$EC2_INSTANCE_ID"
           fi
         done

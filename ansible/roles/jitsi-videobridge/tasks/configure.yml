@@ -23,33 +23,6 @@
 - name: cloud provider debug
   debug: var=jvb_enable_multiple_shards
 
-- name: Check JVB subspace file
-  stat: path=/etc/subspace/accelerator.json
-  register: jvb_subspace_definition
-  when: jvb_subspace_enabled
-
-- name: Read JVB subspace file
-  command: cat /etc/subspace/accelerator.json
-  register: jvb_subspace_read
-  when: 
-    - jvb_subspace_definition is defined and jvb_subspace_definition.stat is defined and jvb_subspace_definition.stat.exists
-    - jvb_subspace_enabled
-
-- name: Set subspace facts from file
-  set_fact:
-    jvb_subspace_static_mapping: "{{jvb_subspace_read.stdout| from_json}}"
-  when:
-    - jvb_subspace_definition is defined and jvb_subspace_definition.stat is defined and jvb_subspace_definition.stat.exists
-    - jvb_subspace_enabled
-
-- name: Set stun off if subspace exclusive flag is set and a static mapping is defined
-  set_fact:
-    jvb_stun_mapping_enabled: false
-  when:
-    - jvb_subspace_static_mapping != false
-    - jvb_subspace_exclusive_enabled
-    - jvb_subspace_enabled
-
 #write out pre-custom facts configuration file
 - name: JVB Environments configuration
   template: src="environments.json.j2" dest="/etc/jitsi/videobridge/environments.json"

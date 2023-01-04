@@ -195,12 +195,6 @@ do
                 $CLEANUP_ROUTE53_DNS
             fi
 
-            # echo "Clean up subspace if present"
-            CLEANUP_SUBSPACE="/usr/local/bin/subspace_deregister.sh"
-            if [ -f "$CLEANUP_SUBSPACE" ]; then
-                $CLEANUP_SUBSPACE
-            fi
-
             # now send the signal to terminate
             aws autoscaling complete-lifecycle-action \
              --lifecycle-hook-name "${LIFECYCLE_HOOK_NAME}" \

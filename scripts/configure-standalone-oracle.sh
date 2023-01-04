@@ -68,7 +68,6 @@ RESOURCE_NAME_ROOT="$ENVIRONMENT-$ORACLE_REGION-$UNIQUE_ID"
 # cd $CURRENT_PATH
 [ -z "$DATADOG_ENABLED" ] && DATADOG_ENABLED="false"
 [ -z "$TELEGRAF_ENABLED" ] && TELEGRAF_ENABLED="false"
-[ -z "$SUBSPACE_ENABLED" ] && SUBSPACE_ENABLED="false"
 [ -z "$WF_PROXY_ENABLED" ] && WF_PROXY_ENABLED="false"
 #Standalone JVB websocket port is 9090 no TLS, overriding default 443 for bridge-only nodes
 [ -z "$JVB_WEBSOCKETS_PORT" ] && JVB_WEBSOCKETS_PORT=9090
