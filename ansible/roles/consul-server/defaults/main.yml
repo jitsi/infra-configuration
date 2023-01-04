@@ -1,36 +1,38 @@
 ---
-consul_region: "{{oracle_region if consul_cloud_provider == 'oracle' else ansible_ec2_placement_region}}"
-consul_environment: "{{hcv_environment|default('all')}}"
-consul_cloud_provider: "{{cloud_provider | default('oracle')}}"
-consul_datacenter: "{{consul_datacenter_by_provider[consul_cloud_provider]}}"
+consul_region: "{{ oracle_region if consul_cloud_provider == 'oracle' else ansible_ec2_placement_region }}"
+consul_environment: "{{ hcv_environment | default('all') }}"
+consul_cloud_provider: "{{ cloud_provider | default('oracle') }}"
+consul_datacenter: "{{ consul_datacenter_by_provider[consul_cloud_provider] }}"
 consul_datacenter_by_provider:
   aws: 'REPLACE_DATACENTER'
-  oracle: "{{consul_datacenter_default}}"
-consul_datacenter_default: "{{cloud_name|default('dc1')}}"
-consul_encryption_key: "{{consul_encryption_key_by_provider[consul_cloud_provider]}}"
+  oracle: "{{ consul_datacenter_default }}"
+consul_datacenter_default: "{{ cloud_name | default('dc1') }}"
+consul_encryption_key: "{{ consul_encryption_key_by_provider[consul_cloud_provider] }}"
 consul_encryption_key_by_provider:
   aws: 'REPLACE_ENC_KEY'
-  oracle: "{{consul_encryption_keys[consul_server_type]|default(false)}}"
-consul_environment_type: "{{jitsi_meet_environment_type|default('dev')}}"
+  oracle: "{{ consul_encryption_keys[consul_server_type] | default(false) }}"
+consul_environment_type: "{{ jitsi_meet_environment_type | default('dev') }}"
 consul_homedir: /home/consul
-consul_retry_join_lan: "{{consul_retry_join_lan_by_provider[consul_cloud_provider]}}"
+consul_retry_join_lan: "{{ consul_retry_join_lan_by_provider[consul_cloud_provider] }}"
 consul_retry_join_lan_by_provider:
   aws: " [\"provider=aws tag_key=consul_server tag_value=REPLACE_SERVER_ENV\"]"
-  oracle: " [\"{{consul_datacenter}}-consul-a.oracle.infra.jitsi.net\",\"{{consul_datacenter}}-consul-b.oracle.infra.jitsi.net\",\"{{consul_datacenter}}-consul-c.oracle.infra.jitsi.net\"]"
-consul_retry_join_wan: "{{consul_retry_join_wan_by_provider[consul_cloud_provider]}}"
+  oracle: " [\"{{ consul_datacenter }}-consul-a.oracle.infra.jitsi.net\",
+    \"{{ consul_datacenter }}-consul-b.oracle.infra.jitsi.net\",
+    \"{{ consul_datacenter }}-consul-c.oracle.infra.jitsi.net\"]"
+consul_retry_join_wan: "{{ consul_retry_join_wan_by_provider[consul_cloud_provider] }}"
 consul_retry_join_wan_by_provider:
-  aws: " [
-    {%- for wan_region in consul_wan_regions_aws -%}
-        \"provider=aws region={{wan_region}} tag_key=consul_server tag_value=REPLACE_SERVER_ENV\"{% if not loop.last %},{% endif %}
-    {%- endfor %}]"
-  oracle: " [
-    {%- for wan_region in consul_wan_regions_oracle -%}
-      \"{{consul_environment}}-{{wan_region}}-consul-a.oracle.infra.jitsi.net\",\"{{consul_environment}}-{{wan_region}}-consul-b.oracle.infra.jitsi.net\",\"{{consul_environment}}-{{wan_region}}-consul-c.oracle.infra.jitsi.net\",
+  aws: " [{%- for wan_region in consul_wan_regions_aws -%}
+    \"provider=aws region={{ wan_region }} tag_key=consul_server tag_value=REPLACE_SERVER_ENV\"
+    {% if not loop.last %},{% endif %}{%- endfor %}]"
+  oracle: " [{%- for wan_region in consul_wan_regions_oracle -%}
+      \"{{ consul_environment }}-{{ wan_region }}-consul-a.oracle.infra.jitsi.net\",
+      \"{{ consul_environment }}-{{ wan_region }}-consul-b.oracle.infra.jitsi.net\",
+      \"{{ consul_environmen t}}-{{ wan_region }}-consul-c.oracle.infra.jitsi.net\",
     {%- endfor -%}]"
-consul_server_type: "{{consul_server_types[consul_environment_type] | default('prod')}}"
+consul_server_type: "{{ consul_server_types[consul_environment_type] | default('prod') }}"
 consul_server_types:
   dev: dev
   prod: prod
   stage: prod
-consul_wan_regions_aws: "{{default_regions.strip().split('\n')}}"
+consul_wan_regions_aws: "{{ default_regions.strip().split('\n') }}"
 consul_wan_regions_oracle: []
