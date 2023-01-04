@@ -1,6 +1,10 @@
 ---
-common_cloud_provider: "{{cloud_provider | default('aws')}}"
-common_install_pip3_flag: "{{true if (ansible_distribution_release == 'jammy') or (ansible_distribution_release == 'focal') or ( common_cloud_provider == 'oracle' ) else false}}"
-common_install_pip_flag: "{{false if (ansible_distribution_release == 'jammy') or (ansible_distribution_release == 'focal') or ( common_cloud_provider == 'oracle' ) else true}}"
-gai_ipv6_resolve_disabled: yes
+common_cloud_provider: "{{ cloud_provider | default('aws') }}"
+common_install_pip3_flag: "{{ true
+  if (ansible_distribution_release == 'jammy') or (ansible_distribution_release == 'focal')
+  or (common_cloud_provider == 'oracle') else false }}"
+common_install_pip_flag: "{{
+  false if (ansible_distribution_release == 'jammy') or (ansible_distribution_release == 'focal')
+  or (common_cloud_provider == 'oracle') else true }}"
+gai_ipv6_resolve_disabled: true
 locale: en_US.UTF-8
