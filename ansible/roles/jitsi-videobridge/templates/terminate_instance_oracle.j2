@@ -13,12 +13,6 @@ if [ -f "$CLEANUP_ROUTE53_DNS" ]; then
     $CLEANUP_ROUTE53_DNS
 fi
 
-echo "Clean up subspace if present"
-CLEANUP_SUBSPACE="/usr/local/bin/subspace_deregister.sh"
-if [ -f "$CLEANUP_SUBSPACE" ]; then
-    $CLEANUP_SUBSPACE
-fi
-
 # now terminate our instance
 echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
 $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
