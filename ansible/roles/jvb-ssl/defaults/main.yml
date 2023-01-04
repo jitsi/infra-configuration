@@ -1,0 +1,9 @@
+---
+jvb_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+jvb_ssl_dest_dir: /etc/nginx/ssl
+jvb_ssl_domain_name: "{{jvb_ssl_server_prefix}}.{{jvb_ssl_domain_suffix}}"
+jvb_ssl_domain_suffix: "jitsi.net"
+jvb_ssl_install_flag: true
+jvb_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
+jvb_ssl_server_prefix: "{{ansible_hostname.split('.')[0]}}"
+jvb_ssl_websockets_port: 9090

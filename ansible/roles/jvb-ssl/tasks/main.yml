@@ -1,0 +1,29 @@
+---
+- name: Assures ssl cert dir exists
+  file: path="{{jvb_ssl_dest_dir}}" state=directory
+
+- name: Nginx | Generate dhparam
+  command: "openssl dhparam -out {{ jvb_ssl_dest_dir }}/dhparam.pem 2048"
+  ignore_errors: True
+  args:
+    creates: "{{ jvb_ssl_dest_dir }}/dhparam.pem"
+  notify: restart nginx
+
+- name: install SSL certificate
+  copy: content="{{ jvb_ssl_certificate }}"
+        dest={{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.crt
+  notify: restart nginx
+
+- name: install SSL private key
+  copy: content="{{ jvb_ssl_key_name }}"
+        dest={{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.key
+        mode=0600
+  notify: restart nginx
+
+- template: src=nginx.site.j2 dest=/etc/nginx/sites-available/{{jvb_ssl_domain_name}} mode=0644
+  notify: restart nginx
+
+- file: path=/etc/nginx/sites-enabled/default state=absent
+
+- file: src=/etc/nginx/sites-available/{{jvb_ssl_domain_name}} dest=/etc/nginx/sites-enabled/{{jvb_ssl_domain_name}} state=link
+  notify: restart nginx

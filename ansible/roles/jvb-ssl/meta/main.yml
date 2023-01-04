@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: nginx, when: jvb_ssl_install_flag}
