@@ -7,7 +7,7 @@ fluentd_jitsi_bootstrap_enabled: false
 fluentd_jitsi_clouds_enabled: false
 fluentd_jitsi_cloudwatch_boot_logs_enabled: false
 fluentd_jitsi_cloudwatch_logs_enabled: false
-fluentd_jitsi_environment: "{{ hcv_environment|default('all') }}"
+fluentd_jitsi_environment: "{{ hcv_environment | default('all') }}"
 fluentd_jitsi_filters_enabled: true
 fluentd_jitsi_haproxy_enabled: false
 fluentd_jitsi_haproxy_monitor_enabled: false
