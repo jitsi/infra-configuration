@@ -1,12 +1,12 @@
 ---
-- hosts: all
-  become: yes
+- name: Wait for cloud-init
+  hosts: all
+  become: true
   become_user: root
   gather_facts: false
-  strategy: free
   pre_tasks:
-    - name: wait for ssh to come up
-      wait_for: 
+    - name: Wait for ssh to come up
+      ansible.builtin.wait_for:
         port: 22
         timeout: 300
         state: started
@@ -15,7 +15,7 @@
       until: response
       retries: 60
       delay: 5
-    - name: wait up to 30 minutes for cloud-init to finish
+    - name: Wait up to 30 minutes for cloud-init to finish
       community.general.cloud_init_data_facts:
         filter: status
       register: res
@@ -23,17 +23,18 @@
       retries: 360
       delay: 5
 
-- hosts: all
+- name: Main
+  hosts: all
   gather_facts: true
-  become: yes
+  become: true
   become_user: root
   vars:
     jvb_region: "{{cloud_region}}"
     java_use_11: true
-    #add proxypass in nginx config for JVB colibri stats
+    # add proxypass in nginx config for JVB colibri stats
     jitsi_meet_enable_colibri_websockets: true
-    jvb_ws_domain: "{{prosody_domain_name}}"
-    #disable egress health in standalone
+    jvb_ws_domain: "{{ prosody_domain_name }}"
+    # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
   vars_files:
@@ -53,125 +54,167 @@
     - sites/{{hcv_environment}}/vars.yml
 
   pre_tasks:
-    - debug: var=jvb_use_public_ip
+    - name: Show JVB use public variable
+      ansible.builtin.debug:
+        var: jvb_use_public_ip
       tags: debug
     - name: Gather AWS facts
-      action: ec2_metadata_facts
+      amazon.aws.ec2_metadata_facts:
       tags: "provision"
       when: cloud_provider == 'aws'
     - name: Get instance's VNIC
-      uri:
+      ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/vnics/
       register: vnic_result
       tags: "provision"
       when: cloud_provider == 'oracle'
-    - set_fact:
+    - name: Set JVB vnic fact
+      ansible.builtin.set_fact:
         jvb_vnic: "{{ vnic_result.json[0].vnicId }}"
       tags: "provision"
       when: cloud_provider == 'oracle'
     - name: Get instance's details
-      uri:
+      ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/instance/
       register: instance_result
       tags: "provision"
       when: cloud_provider == 'oracle'
-    - set_fact:
+    - name: Set JVB shape fact
+      ansible.builtin.set_fact:
         jvb_shape: "{{ instance_result.json.shape }}"
       tags: "provision"
       when: cloud_provider == 'oracle'
     - name: Get instance's Public IP from VNIC
-      shell: "oci network vnic get --vnic-id {{jvb_vnic}} --auth instance_principal"
+      ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
       register: vnic_details_result
       tags: "provision"
+      changed_when: vnic_details_result.rc != 0
       when: cloud_provider == 'oracle'
-    - set_fact:
+    - name: Set public IP facts
+      ansible.builtin.set_fact:
         oracle_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
         jvb_ddns_ipv4_addr: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
         autoscaler_sidecar_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
       tags: "provision"
       when: cloud_provider == 'oracle'
     - name: Set server hostname
-      hostname: name="{{prosody_domain_name}}"
+      ansible.builtin.hostname:
+        name: "{{ prosody_domain_name }}"
       tags: "provision"
     - name: Remove td-agent deb repository
-      apt_repository:
-        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution|lower }}/{{ ansible_distribution_release|lower }}/ {{ ansible_distribution_release|lower }} contrib"
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution
+          | lower }}/{{ ansible_distribution_release | lower }}/ {{ ansible_distribution_release | lower }} contrib"
         state: absent
         update_cache: false
       tags: provision
     - name: Remove NodeSource deb repository 12.x
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
       tags: "provision"
     - name: Remove NodeSource deb-src repository 12.x
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
       tags: "provision"
     - name: Remove NodeSource deb repository 8.x
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_8.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
       tags: "provision"
     - name: Remove NodeSource deb-src repository 8.x
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb-src https://deb.nodesource.com/node_8.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
       tags: "provision"
-    - apt: update_cache=yes
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
       tags: "provision"
-    - name: apt-get clean
-      command: apt-get clean warn=False
+    - name: Clean apt # noqa no-changed-when
+      ansible.builtin.command: apt-get clean
+      args:
+        warn: false
       tags: "provision"
-    - name: journalctl vacuum
-      command: journalctl --vacuum-size=200M
+    - name: Vacuum journalctl # noqa no-changed-when
+      ansible.builtin.command: journalctl --vacuum-size=200M
       tags: "provision"
-    - name: stop fluentd
-      service: name="td-agent" state=stopped enabled=false
+    - name: Stop fluentd # noqa ignore-errors
+      ansible.builtin.service:
+        name: "td-agent"
+        state: stopped
+        enabled: false
       ignore_errors: true
       when: not standalone_enable_fluentd
-    - name: stop jitsi-system-events
-      service: name="jitsi-system-events" state=stopped enabled=false
+    - name: Stop jitsi-system-events # noqa ignore-errors
+      ansible.builtin.service:
+        name: "jitsi-system-events"
+        state: stopped
+        enabled: false
       ignore_errors: true
   post_tasks:
-    - name: consul signal state script
-      copy: src="roles/consul-signal/files/set-shard-state-consul.sh" dest="/usr/local/bin/set-shard-state-consul.sh" mode=0755 owner=root    
+    - name: Install consul signal state script
+      ansible.builtin.copy:
+        src: "roles/consul-signal/files/set-shard-state-consul.sh"
+        dest: "/usr/local/bin/set-shard-state-consul.sh"
+        mode: 0755
+        owner: root
       tags: "provision"
     - name: Remove td-agent deb repository
-      apt_repository:
-        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution|lower }}/{{ ansible_distribution_release|lower }}/ {{ ansible_distribution_release|lower }} contrib"
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution | lower }}/{{ ansible_distribution_release
+          | lower }}/ {{ ansible_distribution_release | lower }} contrib"
         state: absent
         update_cache: false
 
-    - name: register installed Jicofo version
+    - name: Register installed Jicofo version
       tags: "gather_versions"
-      shell: dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+      args:
+        executable: /bin/bash
       register: jicofo_version_shell
+      changed_when: jicofo_version_shell.rc != 0
 
-    - name: register installed Meet version
+    - name: Register installed Meet version
       tags: "gather_versions"
-      shell: dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      args:
+        executable: /bin/bash
       register: jitsi_meet_version_shell
+      changed_when: jitsi_meet_version_shell.rc != 0
 
-    - name: register installed JVB version
+    - name: Register installed JVB version
       tags: "gather_versions"
-      shell: "{{jvb_service_version_shell}}"
+      ansible.builtin.shell: |
+        set -o pipefail
+        {{ jvb_service_version_shell }}
+      args:
+        executable: /bin/bash
       register: jvb_version_shell
+      changed_when: jvb_version_shell.rc != 0
 
-    - name: restart rsyslog
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
       tags: "provision"
-      service: name=rsyslog state=restarted
 
     # change mode on prosody-jvb dump to non-executable to avoid send dump on provision or errors
-    - name: disable prosody-jvb dump exec flag
+    - name: Disable prosody-jvb dump exec flag
       tags: "provision"
-      file: path=/usr/local/bin/dump-prosody-jvb.sh mode=0644
-      when: 
+      ansible.builtin.file:
+        path: /usr/local/bin/dump-prosody-jvb.sh
+        mode: 0644
+      when:
         - not tcpdump_prosody_jvb_enabled
         - cloud_provider == 'aws'
 
@@ -200,7 +243,9 @@
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true}
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true, jitsi_meet_redirect_to_ssl: true}
-    - { role: jitsi-videobridge, tags: "jitsi-videobridge", jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true, jvb_enable_multiple_shards: false, jvb_hostname: "{{prosody_domain_name}}", jvb_reconfigure_on_changes_flag: true }
+    - { role: jitsi-videobridge, tags: "jitsi-videobridge",
+        jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true,
+        jvb_enable_multiple_shards: false, jvb_hostname: "{{prosody_domain_name}}", jvb_reconfigure_on_changes_flag: true }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true}
 
@@ -253,16 +298,17 @@
           release_number: "{{ jitsi_meet_deb_pkg_version }}"
           cloud: "{{ cloud_provider }}"
 
-- hosts: localhost
+- name: Gather versions
+  hosts: localhost
   connection: local
   gather_facts: false
   tasks:
     - name: "Create shell file with new version information"
       tags: "gather_versions"
-      copy:
+      ansible.builtin.copy:
+        mode: 0644
         content: |
           JITSI_MEET_VERSION_NAME="{% for host in groups['all'] %}{{ hostvars[host]['jitsi_meet_version_shell']['stdout'] }}{% endfor %}"
           JICOFO_VERSION_NAME="{% for host in groups['all'] %}{{ hostvars[host]['jicofo_version_shell']['stdout'] }}{% endfor %}"
           JVB_VERSION_NAME="{% for host in groups['all'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}"
         dest: ../../test-results/instance_versions
-

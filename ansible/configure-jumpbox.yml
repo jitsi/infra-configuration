@@ -1,8 +1,9 @@
----
-- hosts: all
+--- # noqa: run_once[play]
+- name: Main
+  hosts: all
   gather_facts: true
   become_user: root
-  become: yes
+  become: true
   strategy: free
   vars_files:
     - secrets/ssh-users.yml
@@ -13,17 +14,20 @@
     shard_role: ssh
     fluentd_jitsi_oci_logs_enabled: true
   pre_tasks:
-     - apt: update_cache=yes cache_valid_time=86400 
-       tags: setup
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+      tags: setup
   roles:
-     - { role: "common", tags: "common" }
-     - { role: "sshusers", tags: "ssh" }
-     - { role: "sshmfa", tags: "sshmfa", when: production_env_flag}
-     - { role: "fail2ban", tags: "fail2ban" }
-     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
-     - { role: "ntp", tags: "ntp"}
-     - { role: "logrotate", tags: "logrotate"}
-     - { role: "journald", tags: "journald"}
-     - { role: "rsyslog", tags: "rsyslog"}
-     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jumpbox_enable_fluentd }
-     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+    - { role: "common", tags: "common" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "sshmfa", tags: "sshmfa", when: production_env_flag}
+    - { role: "fail2ban", tags: "fail2ban" }
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jumpbox_enable_fluentd }
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}

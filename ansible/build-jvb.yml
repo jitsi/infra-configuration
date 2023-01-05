@@ -1,136 +1,149 @@
 ---
-- hosts: localhost
+- name: Provision
+  hosts: localhost
   connection: local
   gather_facts: true
   vars_files:
-    - environments/all/group_vars/all.yml
+    - config/vars.yml
   vars:
-    - ec2_object_name: "BuildJVB"
+    ec2_object_name: "BuildJVB"
   tasks:
-  - name: "Provision ec2 security group"
-    local_action:
-      module: ec2_group
-      name: "{{ec2_security_group_name}}-amibuilder"
-      description: "VaaS Load test security group for temporary ec2 instance"
-      vpc_id: "{{ ec2_vpc_id }}"
-      region: "{{ec2_region}}"
-      rules:
-        - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/0
-      rules_egress:
-        - proto: tcp
-          from_port: 1
-          to_port: 65535
-          cidr_ip: 0.0.0.0/0
+    - name: "Provision ec2 security group"
+      delegate_to: localhost
+      amazon.aws.ec2_group:
+        name: "{{ ec2_security_group_name }}-amibuilder"
+        description: "VaaS Load test security group for temporary ec2 instance"
+        vpc_id: "{{ ec2_vpc_id }}"
+        region: "{{ ec2_region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: tcp
+            from_port: 1
+            to_port: 65535
+            cidr_ip: 0.0.0.0/0
+    - name: "Provision ec2 instance"
+      delegate_to: localhost
+      amazon.aws.ec2:
+        key_name: "{{ ec2_keypair }}"
+        vpc_subnet_id: "{{ ec2_vpc_subnet_id }}"
+        instance_type: "{{ ec2_instance_type }}"
+        image: "{{ ec2_image_id }}"
+        region: "{{ ec2_region }}"
+        exact_count: 1
+        group: "{{ ec2_security_group_name }}-amibuilder"
+        wait: true
+        wait_timeout: 500
+        instance_tags:
+          Name: "{{ ec2_object_name }}-amibuilder"
+          build_id: "{{ build_id }}"
+          Environment: dev
+          Product: meetings
+          Team: meet@8x8.com
+          Service: jitsi-build
+          Owner: Meetings
+          Type: ansible-ami-builder-jvb
+          environment: all
+        count_tag:
+          Name: "{{ ec2_object_name }}-amibuilder"
+          build_id: "{{ build_id }}"
+      register: ec2_output
+    - name: Add new instances to host group
+      ansible.builtin.add_host:
+        hostname: "{{ ec2_output.tagged_instances.0.public_ip }}"
+        groupname: launched
+    - name: Wait for SSH to come up
+      ansible.builtin.wait_for:
+        host: "{{ ec2_output.tagged_instances.0.public_ip }}"
+        port: 22
+        timeout: 500
+        state: started
+        search_regex: OpenSSH
 
-
-  - name: "Provision ec2 instance"
-    local_action:
-      module: ec2
-      key_name: "{{ec2_keypair}}"
-      vpc_subnet_id: "{{ec2_vpc_subnet_id}}"
-      instance_type: "{{ec2_instance_type}}"
-      image: "{{ec2_image_id}}"
-      region: "{{ec2_region}}"
-      exact_count: 1
-      group: "{{ec2_security_group_name}}-amibuilder"
-      wait: true
-      wait_timeout: 500
-      instance_tags:
-        Name:  "{{ec2_object_name}}-amibuilder"
-        build_id: "{{build_id}}"
-        Environment: dev
-        Product: meetings
-        Team: meet@8x8.com
-        Service: jitsi-build
-        Owner: Meetings
-        Type: ansible-ami-builder-jvb
-        environment: all
-      count_tag:
-        Name:  "{{ec2_object_name}}-amibuilder"
-        build_id: "{{build_id}}"
-    register: ec2
-
-  - name: Add new instances to host group
-    add_host: hostname={{ ec2.tagged_instances.0.public_ip }} groupname=launched
-
-  - name: Wait for SSH to come up
-    wait_for: host={{ ec2.tagged_instances.0.public_ip }} port=22 timeout=500 state=started search_regex=OpenSSH
-
-#  - name: Wait for 10 seconds since the above Wait for SSH to come up is unreliable
-#    pause: seconds=10
-#    tags: "provision"
-
-- hosts: launched
+- name: Main
+  hosts: launched
   gather_facts: true
   become_user: root
-  become: yes
+  become: true
   vars_files:
-    - credentials/credentials-ssh.yml
-    - credentials/credentials-bitbucket.yml
-    - credentials/credentials-ssl_certificates.yml
-    - credentials/credentials-pypi.yml
-    - credentials/credentials-laas.yml
-    - credentials/credentials-jvb-ddns.yml
-    - environments/all/group_vars/all.yml
+    - secrets/ssh-users.yml
+    - secrets/jvb-ddns.yml
+    - config/vars.yml
   pre_tasks:
-    #pause 10 seconds before updating, to ensure that everything is ready to roll
-     - pause: seconds=10
-     - apt: update_cache=yes
+    # pause 10 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 10
+      ansible.builtin.pause:
+        seconds: 10
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
 
   post_tasks:
-    - name: register installed JVB version
-      shell: "{{jvb_service_version_shell}}"
+    - name: Register installed JVB version
+      ansible.builtin.shell: "{{ jvb_service_version_shell }}"
       register: jvb_version_shell
+      tags:
+        - skip_ansible_lint
 
   roles:
-     - { role: "common", tags: "common" }
-     - { role: "sshusers", tags: "ssh" }
-     - { role: "ntp", tags: "ntp"}
-     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true }
-     - { role: "journald", tags: "journald"}
-     - { role: "monit", tags: "monit"}
-     - { role: "rsyslog", tags: "rsyslog"}
-     - { role: "aws-scripts-mon", tags: "aws-scripts-mon"}
-     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar", autoscaler_instance_type: "JVB", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
-     - { role: jitsi-videobridge, tags: "jitsi-videobridge", jvb_image_build_flag: true, jvb_reconfigure_flag: false, jvb_install_flag: true, jvb_configure_flag: false }
-     - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns", jvb_ddns_install_flag: true, jvb_ddns_configure_flag: false, jvb_ddns_cleanup_flag: false }
-     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
-     - { role: jitsi-dumper, tags: "jitsi-dumper"}
-     - { role: "clean-system", tags: "clean-system, build" }
+    - { role: "common", tags: "common" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true }
+    - { role: "journald", tags: "journald"}
+    - { role: "monit", tags: "monit"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "aws-scripts-mon", tags: "aws-scripts-mon"}
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "JVB", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
+    - { role: jitsi-videobridge, tags: "jitsi-videobridge",
+        jvb_image_build_flag: true, jvb_reconfigure_flag: false, jvb_install_flag: true, jvb_configure_flag: false }
+    - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns", jvb_ddns_install_flag: true, jvb_ddns_configure_flag: false, jvb_ddns_cleanup_flag: false }
+    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
+    - { role: jitsi-dumper, tags: "jitsi-dumper"}
+    - { role: "clean-system", tags: "clean-system, build" }
 
-- hosts: localhost
+- name: Teardown
+  hosts: localhost
   connection: local
   gather_facts: true
   vars_files:
     - environments/all/group_vars/all.yml
   vars:
-    - ec2_object_name: "BuildJVB"
+    ec2_object_name: "BuildJVB"
   tasks:
   - name: "Get local datetime"
-    shell: date
+    ansible.builtin.command: date
     register: local_date_time
+    changed_when:
+      local_date_time.rc != 0
   - name: "Get local timestamp"
-    shell: date +%s
+    ansible.builtin.command: date +%s
     register: local_date_ts
+    changed_when:
+      local_date_ts.rc != 0
 
   - name: "Build aws ami"
-    local_action:
-      module: ec2_ami
+    delegate_to: localhost
+    amazon.aws.ec2_ami:
       instance_id: "{{ ec2.tagged_instances.0.id }}"
       region: "{{ ec2_region }}"
       state: present
-      description: JVB Version {% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %} Arch {% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %} provisioned {{ local_date_time.stdout }}
-      name: "{{ec2_object_name}}-{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}-{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}"
-      wait: yes
+      description: "JVB Version {% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %} Arch
+         {% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %} provisioned {{ local_date_time.stdout }}"
+      name: "{{ ec2_object_name }}-{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}-
+        {% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}"
+      wait: true
       tags:
-        Name: "{{ec2_object_name}}-{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}-{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}"
-        build_id: "{{build_id}}"
+        Name: "{{ ec2_object_name }}-{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}-
+          {% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}"
+        build_id: "{{ build_id }}"
         Version: "{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}"
         TS: "{{ local_date_ts.stdout }}"
-        MetaVersion: "{{jitsi_meet_meta_version}}"
+        MetaVersion: "{{ jitsi_meet_meta_version }}"
         Type: "JVB"
         Architecture: "{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}"
         Environment: dev
@@ -141,23 +154,31 @@
 
     register: amioutput
 
-  - debug: var=amioutput
+  - name: AMI Output
+    ansible.builtin.debug:
+      var: amioutput
 
   - name: "Create vars directory"
-    file: path=./vars state=directory 
+    ansible.builtin.file:
+      mode: 0755
+      path: ./vars
+      state: directory
 
   - name: "Create vars file with new ami info"
-    copy:
+    ansible.builtin.copy:
+      mode: 0644
       content: |
-             jvb_ec2_image_id: {{ amioutput.image_id }}
-             jvb_installed_version: {% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}
-             
-             jvb_ec2_image_name: {{ec2_object_name}}-{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}-{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}
+        jvb_ec2_image_id: {{ amioutput.image_id }}
+        jvb_installed_version: {% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}
 
-      dest: ./vars/jvb-settings_{{ec2_region}}.yml
+        jvb_ec2_image_name: {{ ec2_object_name }}-{% for host in groups['launched'] %}{{ hostvars[host]['jvb_version_shell']['stdout'] }}{% endfor %}-
+        {% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}
+
+      dest: "./vars/jvb-settings_{{ ec2_region }}.yml"
 
   - name: "Terminate temporary instance"
-    local_action:
+    delegate_to: localhost
+    amazon.aws.ec2:
       module: ec2
       state: absent
       wait: true
@@ -166,11 +187,10 @@
       instance_ids: "{{ ec2.tagged_instances.0.id }}"
 
   - name: "Drop ec2 security group"
-    local_action:
+    delegate_to: localhost
+    amazon.aws.ec2_group:
       module: ec2_group
-      name: "{{ec2_security_group_name}}-amibuilder"
+      name: "{{ ec2_security_group_name }}-amibuilder"
       description: "VaaS Load test security group for temporary ec2 instance"
       state: 'absent'
-      region: "{{ec2_region}}"
-
-
+      region: "{{ ec2_region }}"
