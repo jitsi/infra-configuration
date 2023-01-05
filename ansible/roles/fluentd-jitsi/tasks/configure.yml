@@ -270,7 +270,9 @@
   notify: Restart jitsi fluentd
 
 - name: Remove /etc/td-agent/config.d/60-out_cloudwatch_logs.conf (disabled by flag)
-  ansible.builtin.file: path=/etc/td-agent/config.d/60-out_cloudwatch_logs.conf state=absent
+  ansible.builtin.file:
+    path: /etc/td-agent/config.d/60-out_cloudwatch_logs.conf
+    state: absent
   notify: Restart jitsi fluentd
   when: not fluentd_jitsi_cloudwatch_logs_enabled and not fluentd_jitsi_cloudwatch_boot_logs_enabled
 
