@@ -14,7 +14,7 @@
     - secrets/github.yml
     - secrets/oci-logging.yml
     - config/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:

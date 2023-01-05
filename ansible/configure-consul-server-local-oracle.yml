@@ -11,7 +11,7 @@
     - secrets/repo.yml
     - secrets/oci-logging.yml
     - config/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     shard_role: consul
     cloud_provider: oracle

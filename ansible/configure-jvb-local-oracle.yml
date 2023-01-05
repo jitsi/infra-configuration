@@ -17,7 +17,7 @@
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
     - config/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
     shard_role: JVB

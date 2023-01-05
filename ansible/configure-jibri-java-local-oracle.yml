@@ -14,7 +14,7 @@
     - secrets/voximplant.yml
     - config/vars.yml
     - secrets/aws-cloudwatch.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
     fluentd_jitsi_region: us-west-2

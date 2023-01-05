@@ -51,7 +51,7 @@
     - secrets/oci-logging.yml
     - secrets/repo.yml
     - config/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
     - name: Show JVB use public variable

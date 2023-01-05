@@ -3,26 +3,26 @@
 jitsi_ddns_lambda_ssh_private_key:
 jitsi_ddns_lambda_ssh_public_key:
 jvb_ddns_base_path: /usr/share/jitsi-ddns-lambda
-jvb_ddns_cloud_provider: "{{cloud_provider | default('aws')}}"
+jvb_ddns_cloud_provider: "{{ cloud_provider | default('aws') }}"
 jvb_ddns_configure_flag: true
 jvb_ddns_create_entry: false
 jvb_ddns_domain: jitsi.net
 jvb_ddns_git_branch: master
 jvb_ddns_git_repo: git@github.com:8x8Cloud/jitsi-ddns-lambda.git
 jvb_ddns_groupname: jvbddns
-jvb_ddns_hostname: "{{jvb_ddns_hostname_prefix}}.{{jvb_ddns_domain}}"
-jvb_ddns_hostname_prefix: "{{ansible_hostname.split('.')[0]}}"
+jvb_ddns_hostname: "{{ jvb_ddns_hostname_prefix }}.{{ jvb_ddns_domain }}"
+jvb_ddns_hostname_prefix: "{{ ansible_hostname.split('.')[0] }}"
 # flags to control install vs configure steps
 jvb_ddns_install_flag: true
-jvb_ddns_ipv4_addr: "{{ansible_ec2_public_ipv4}}"
-jvb_ddns_ssh_private_key: "{{jitsi_ddns_lambda_ssh_private_key}}"
-jvb_ddns_ssh_public_key: "{{jitsi_ddns_lambda_ssh_public_key}}"
+jvb_ddns_ipv4_addr: "{{ ansible_ec2_public_ipv4 }}"
+jvb_ddns_ssh_private_key: "{{ jitsi_ddns_lambda_ssh_private_key }}"
+jvb_ddns_ssh_public_key: "{{ jitsi_ddns_lambda_ssh_public_key }}"
 jvb_ddns_user:
   groups: ["adm"]
-  homedir: "/home/{{jvb_ddns_username}}"
+  homedir: "/home/{{ jvb_ddns_username }}"
   real_name: jvb dDNS user
   state: present
-  username: "{{jvb_ddns_username}}"
+  username: "{{ jvb_ddns_username }}"
 jvb_ddns_username: jvbddns
 jvb_ddns_zone: ZJ6O8D5EJO64L
 jvb_path_to_cleanup_route53_dns_script: /usr/local/bin/cleanup_route53_dns.sh

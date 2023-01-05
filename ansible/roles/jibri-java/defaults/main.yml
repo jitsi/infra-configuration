@@ -1,7 +1,7 @@
 ---
 default_jibri_environments: []
 environment_domain_name: ""
-java_jibri_nick: "jibri-{{jibri_component_id}}"
+java_jibri_nick: "jibri-{{ jibri_component_id }}"
 # By default we're not overriding the all_muted_timeout.  If an env wants to override it, they should re-assign
 # this variable to the overridden value
 jibri_all_muted_timeout_override: false
@@ -9,25 +9,26 @@ jibri_asap_audience: "jibri-queue"
 jibri_asap_issuer: "jibri"
 jibri_asap_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
 jibri_asap_key_path: "/etc/jitsi/jibri/asap.key"
-jibri_brewery_prefix: "{{internal_muc_prefix | default('internal.auth') }}."
-jibri_brewery_prosody_jvb_prefix: "{{internal_jvb_prosody_muc_prefix | default('muc.jvb') }}."
+jibri_brewery_prefix: "{{ internal_muc_prefix | default('internal.auth') }}."
+jibri_brewery_prosody_jvb_prefix: "{{ internal_jvb_prosody_muc_prefix | default('muc.jvb') }}."
 # Whether or not any value in the call-status-checks block is overridden
 # Note: if/when we add overrides for the other values in call-status-checks (like all_muted_timeout above) then those
 # variables should be added here.
 jibri_call_status_checks_overridden: "{{ true if jibri_all_muted_timeout_override else false }}"
 jibri_chrome_binary_path: /usr/bin/google-chrome
-jibri_cloud_provider: "{{cloud_provider | default('aws')}}"
-#use regexp to extract the last two octet of the IP address and use it as the component ID for the jibri
-jibri_component_id: "{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
+jibri_cloud_provider: "{{ cloud_provider | default('aws') }}"
+# use regexp to extract the last two octet of the IP address and use it as the component ID for the jibri
+jibri_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 jibri_conference_prefix: "conference."
 jibri_config_hosts: []
 jibri_configure_flag: true
 jibri_configure_only_flag: false
 jibri_consul_cross_datacenter: false
-jibri_consul_datacenter: "{{cloud_name|default('dc1')}}"
+jibri_consul_datacenter: "{{ cloud_name | default('dc1') }}"
 jibri_consul_extra_urls: []
-jibri_consul_server: "{{hcv_environment}}-{{oracle_region}}-consul.jitsi.net"
-jibri_datacenters: "{{[jibri_consul_datacenter] if cloud_name==jibri_consul_datacenter or not jibri_consul_cross_datacenter else [jibri_consul_datacenter,cloud_name]}}"
+jibri_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
+jibri_datacenters: "{{ [jibri_consul_datacenter] if cloud_name == jibri_consul_datacenter or not jibri_consul_cross_datacenter
+  else [jibri_consul_datacenter, cloud_name] }}"
 jibri_deb_pkg_name: "jibri"
 jibri_deb_pkg_version: "*"
 jibri_dropbox_upload_wrapper: /usr/local/bin/dropbox_wrapper
@@ -35,7 +36,7 @@ jibri_enable_consul: true
 jibri_enable_health_cron: true
 jibri_enable_pulse_verbose_logs: false
 jibri_enable_status_cron: true
-jibri_environments: "{{default_jibri_environments}}"
+jibri_environments: "{{ default_jibri_environments }}"
 jibri_failed_upload_path: /opt/jitsi/jibri/failed
 jibri_finalize_recording_script: /usr/bin/jitsi_uploader.sh
 jibri_groupname: jibri
@@ -43,13 +44,13 @@ jibri_health_cron:
   hour: "*"
   job: "{{ jibri_path_to_health_script }} > /tmp/health-cron-output 2>&1"
   minute: "*"
-jibri_homedir: "/home/{{jibri_username}}"
+jibri_homedir: "/home/{{ jibri_username }}"
 jibri_install_flag: true
 jibri_jid_prefix: "auth."
-jibri_local_domain: "{{environment_domain_name}}"
+jibri_local_domain: "{{ environment_domain_name }}"
 jibri_max_usage: 61
 jibri_new_version_scheme: true
-jibri_nick: "{{java_jibri_nick if not jibri_pjsua_flag else sip_jibri_nick}}"
+jibri_nick: "{{ java_jibri_nick if not jibri_pjsua_flag else sip_jibri_nick }}"
 jibri_path_to_health_script: /usr/local/bin/jibri-health.sh
 jibri_path_to_status_script: /usr/local/bin/jibri-status.sh
 jibri_path_to_terminate_instance_script: /usr/local/bin/terminate_instance.sh
@@ -59,26 +60,26 @@ jibri_preserve_boot_volume_if_needed: false
 jibri_queue_webhook: false
 jibri_randomize_control_muc_nickname: true
 jibri_recordings_dir: /opt/jitsi/jibri/recordings
-jibri_regions: ["{{ansible_ec2_placement_region| default('us-west-2')}}"]
+jibri_regions: ["{{ ansible_ec2_placement_region | default('us-west-2') }}"]
 jibri_scripts_dir: /opt/jitsi/jibri
 jibri_selenium_prefix: "recorder."
-jibri_service_version_shell: "{{jibri_service_version_shell_new if jibri_new_version_scheme else jibri_service_version_shell_old}}"
-jibri_service_version_shell_new: "dpkg -s {{jibri_deb_pkg_name}} | grep Version | awk '{print $2}' | cut -d'-' -f1,2,3"
-jibri_service_version_shell_old: "dpkg -s {{jibri_deb_pkg_name}} | grep Version | awk '{print $2}' | cut -d'-' -f1 | cut -d'.' -f3"
+jibri_service_version_shell: "{{ jibri_service_version_shell_new if jibri_new_version_scheme else jibri_service_version_shell_old }}"
+jibri_service_version_shell_new: "dpkg -s {{ jibri_deb_pkg_name }} | grep Version | awk '{print $2}' | cut -d'-' -f1,2,3"
+jibri_service_version_shell_old: "dpkg -s {{ jibri_deb_pkg_name }} | grep Version | awk '{print $2}' | cut -d'-' -f1 | cut -d'.' -f3"
 jibri_sidecar_webhook: false
 jibri_status_cron:
   hour: "*"
   job: "{{ jibri_path_to_status_script }} > /tmp/status-cron-output 2>&1"
   minute: "*"
 jibri_username: jibri
-jibri_xmpp_password: "{{jibri_auth_password}}"
+jibri_xmpp_password: "{{ jibri_auth_password }}"
 jibri_xmpp_port: 5222
 # controls whether to connect to shards on public or private address
 jibri_xmpp_public_ip: false
-jibri_xmpp_room_name: "{{jibri_xmpp_room_name_default if not jibri_pjsua_flag else jibri_xmpp_room_name_sip}}"
+jibri_xmpp_room_name: "{{ jibri_xmpp_room_name_default if not jibri_pjsua_flag else jibri_xmpp_room_name_sip }}"
 jibri_xmpp_room_name_default: "JibriBrewery"
 jibri_xmpp_room_name_sip: "SipBrewery"
 jibri_xmpp_room_password: ""
 jibri_xmpp_username: "jibri"
-sip_jibri_nick: "sip-jibri-{{jibri_component_id}}"
+sip_jibri_nick: "sip-jibri-{{ jibri_component_id }}"
 sip_jibri_sidecar_webhook: false

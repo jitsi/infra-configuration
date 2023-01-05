@@ -1,12 +1,12 @@
 ---
-jitsi_uploader_cloud_provider: "{{cloud_provider | default('aws')}}"
+jitsi_uploader_cloud_provider: "{{ cloud_provider | default('aws') }}"
 instance_volume_id: "undefined"
-jibri_private_ip: "{{ansible_default_ipv4.address}}"
+jibri_private_ip: "{{ ansible_default_ipv4.address }}"
 jitsi_upload_cloud_provider: "{{ cloud_provider | default('aws') }}"
-jitsi_uploader_dropbox_failed_bucket: "dropbox-failed-recordings-{{hcv_environment}}-{{oracle_region}}"
-jitsi_uploader_failed_bucket: "failed-recordings-{{hcv_environment}}-{{oracle_region}}"
+jitsi_uploader_dropbox_failed_bucket: "dropbox-failed-recordings-{{ hcv_environment }}-{{ oracle_region }}"
+jitsi_uploader_failed_bucket: "failed-recordings-{{ hcv_environment }}-{{ oracle_region }}"
 jitsi_uploader_failed_dir: /opt/jitsi/jibri/failed
-jitsi_uploader_vpaas_failed_bucket: "vpaas-failed-recordings-{{hcv_environment}}-{{oracle_region}}"
+jitsi_uploader_vpaas_failed_bucket: "vpaas-failed-recordings-{{ hcv_environment }}-{{ oracle_region }}"
 upload_integrations_configure_flag: true
 upload_integrations_install_flag: true
 uploader_pkg_name: jitsi-upload-integrations
