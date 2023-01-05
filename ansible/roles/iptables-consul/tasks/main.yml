@@ -1,7 +1,7 @@
 ---
 
 - name: Open DNS TCP port 8600 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
@@ -10,7 +10,7 @@
     action: insert
     comment: Added via ansible post-launch configuration script
 - name: Open DNS UDP port 8600 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: udp
@@ -20,7 +20,7 @@
     comment: Added via ansible post-launch configuration script
 
 - name: Open http TCP port 8500 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
@@ -30,7 +30,7 @@
     comment: Added via ansible post-launch configuration script
 
 - name: Open serf TCP port 8301-8302 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
@@ -39,7 +39,7 @@
     action: insert
     comment: Added via ansible post-launch configuration script
 - name: Open serf UDP port 8301-8302 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: udp
@@ -49,4 +49,6 @@
     comment: Added via ansible post-launch configuration script
 
 - name: Save newly added iptable rules
-  shell: iptables-save > /etc/iptables/rules.v4
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+  tags:
+    - skip_ansible_lint
