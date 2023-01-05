@@ -22,11 +22,9 @@
     owner: "{{ autoscaler_username }}"
     group: "{{ autoscaler_groupname }}"
 
-- name: Check out codebase
+- name: Check out codebase # noqa latest[git]
   become: true
   become_user: "{{ autoscaler_username }}"
-  tags:
-    - skip_ansible_lint # tagged to avoid complaint about git updates on subsequent runs
   ansible.builtin.git:
     repo: "{{ autoscaler_git_repo }}"
     dest: "{{ autoscaler_base_path }}"
@@ -76,7 +74,7 @@
 - name: Rsyslog configuration
   ansible.builtin.template:
     mode: 0755
-    src: rsyslog.config.j2 
+    src: rsyslog.config.j2
     dest: /etc/rsyslog.d/25-autoscaler-sidecar.conf
 
 - name: Sidecar health check script

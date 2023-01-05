@@ -29,24 +29,22 @@
     - name: Set hostname
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
-    - name: Stop fluentd
+    - name: Stop fluentd # noqa ignore-errors
       ansible.builtin.service:
         name: "td-agent"
         state: stopped
         enabled: false
       ignore_errors: true
-      tags:
-        - skip_ansible_lint
       when: not jibri_enable_fluentd
     - name: Register installed jibri package
       ansible.builtin.shell: |
         set -o pipefail
         dpkg -s jibri | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
-      register: jibri_version
       args:
         executable: /bin/bash
-      tags:
-        - skip_ansible_lint
+      register: jibri_version
+      changed_when: jibri_version.rc != 0
+
     - name: Remove NodeSource deb repository
       ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
@@ -57,14 +55,12 @@
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
-    - name: Stop jitsi-system-events
+    - name: Stop jitsi-system-events # noqa ignore-errors
       ansible.builtin.service:
         name: "jitsi-system-events"
         state: stopped
         enabled: false
       ignore_errors: true
-      tags:
-        - skip_ansible_lint
       when: not jitsi_system_events_enabled
   post_tasks:
     - name: Restart rsyslog

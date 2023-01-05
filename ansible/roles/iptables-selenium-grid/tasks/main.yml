@@ -29,7 +29,5 @@
     action: insert
     rule_num: 6
     comment: Added via ansible post-launch configuration script
-- name: Save newly added iptable rules
+- name: Save newly added iptable rules # noqa no-changed-when
   ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
-  tags:
-    - skip_ansible_lint

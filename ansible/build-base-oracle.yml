@@ -20,17 +20,16 @@
     - name: Upgrade packages
       ansible.builtin.apt:
         upgrade: true
-    - name: Upgrade to the latest kernel image
+    - name: Upgrade to the latest kernel image # noqa package-latest
       ansible.builtin.apt:
         name: linux-oracle
         state: latest
-      tags:
-        - skip_ansible_lint
 
   post_tasks:
     - name: Remove td-agent deb repository
       ansible.builtin.apt_repository:
-        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution | lower }}/{{ ansible_distribution_release | lower }}/ {{ ansible_distribution_release | lower }} contrib"
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution |
+          lower }}/{{ ansible_distribution_release | lower }}/ {{ ansible_distribution_release | lower }} contrib"
         state: absent
         update_cache: false
 
@@ -54,4 +53,3 @@
           role: "base"
           cloud: "oracle"
     - { role: "clean-system", tags: "clean-system, build" }
-  

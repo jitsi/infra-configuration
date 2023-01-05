@@ -5,15 +5,12 @@
     src: "signal.json.j2"
     dest: "/etc/consul.d/signal.json"
 
-- name: Install consul service enablement
+- name: Install consul service enablement # noqa ignore-errors
   ansible.builtin.systemd:
-    mode: 0644
     name: consul
     state: started
     enabled: true
   ignore_errors: true
-  tags:
-    - skip_ansible_lint
 
 - name: Install consul signal state script
   ansible.builtin.copy:

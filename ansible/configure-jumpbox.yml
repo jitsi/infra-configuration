@@ -1,4 +1,4 @@
---- # noqa: run_once[play]
+---
 - name: Main
   hosts: all
   gather_facts: true
