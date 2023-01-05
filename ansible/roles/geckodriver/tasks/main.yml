@@ -1,27 +1,42 @@
 ---
 - name: Grab latest geckodriver version string
-  uri:
-    force_basic_auth: yes
-    url_username: "{{geckodriver_username}}"
-    url_password: "{{geckodriver_password}}"
-    url: "{{geckodriver_latest_release_url}}"
-    return_content: yes 
+  ansible.builtin.uri:
+    force_basic_auth: true
+    url_username: "{{ geckodriver_username }}"
+    url_password: "{{ geckodriver_password }}"
+    url: "{{ geckodriver_latest_release_url }}"
+    return_content: true
   register: geckodriver_version_result
 
-- name: set geckodriver payload fact
-  set_fact: geckodriver_payload="{{geckodriver_version_result.content|from_json}}"
+- name: Set geckodriver payload fact
+  ansible.builtin.set_fact:
+    geckodriver_payload: "{{ geckodriver_version_result.content | from_json }}"
 
-- name: set geckodriver version fact
-  set_fact: geckodriver_version="{{geckodriver_payload.tag_name}}"
+- name: Set geckodriver version fact
+  ansible.builtin.set_fact:
+    geckodriver_version: "{{ geckodriver_payload.tag_name }}"
 
 - name: Download geckodriver from google
-  get_url: url={{ geckodriver_url }} dest={{ geckodriver_tmp_path }}
+  ansible.builtin.get_url:
+    mode: 0644
+    url: "{{ geckodriver_url }}"
+    dest: "{{ geckodriver_tmp_path }}"
 
-- name: create geckodriver temporary directory
-  file: path={{geckodriver_tmp_dir}} state=directory
+- name: Create geckodriver temporary directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ geckodriver_tmp_dir }}"
+    state: directory
 
-- name: unarchive downloaded file
-  unarchive: copy=no src={{ geckodriver_tmp_path }} dest={{ geckodriver_tmp_dir }}
+- name: Unarchive downloaded file
+  ansible.builtin.unarchive:
+    copy: false
+    src: "{{ geckodriver_tmp_path }}"
+    dest: "{{ geckodriver_tmp_dir }}"
 
-- name: copy geckodriver binary into place
-  copy: src={{ geckodriver_tmp_dir }}/geckodriver dest={{ geckodriver_path }} remote_src=True mode=0755
+- name: Copy geckodriver binary into place
+  ansible.builtin.copy:
+    src: "{{ geckodriver_tmp_dir }}/geckodriver"
+    dest: "{{ geckodriver_path }}"
+    remote_src: true
+    mode: 0755
