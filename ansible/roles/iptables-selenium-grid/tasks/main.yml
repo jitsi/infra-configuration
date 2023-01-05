@@ -1,6 +1,6 @@
 ---
 - name: Open TCP port 4444 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
@@ -10,7 +10,7 @@
     rule_num: 6
     comment: Added via ansible post-launch configuration script
 - name: Open TCP port 5555 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
@@ -20,7 +20,7 @@
     rule_num: 6
     comment: Added via ansible post-launch configuration script
 - name: Open TCP port 3000 via iptables
-  iptables:
+  ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
@@ -30,4 +30,6 @@
     rule_num: 6
     comment: Added via ansible post-launch configuration script
 - name: Save newly added iptable rules
-  shell: iptables-save > /etc/iptables/rules.v4
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+  tags:
+    - skip_ansible_lint
