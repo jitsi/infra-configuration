@@ -7,7 +7,7 @@
 - name: User creation
   ansible.builtin.user:
     name: "{{ jvb_ddns_user.username }}"
-    groups: "{{jvb_ddns_user.groups | join(',')}}"
+    groups: "{{ jvb_ddns_user.groups | join(',') }}"
     shell: /bin/bash
     comment: "{{ jvb_ddns_user.real_name }}"
     home: "{{ jvb_ddns_user.homedir }}"
@@ -31,6 +31,7 @@
 
 - name: SSH public credentials
   ansible.builtin.copy:
+    mode: 0640
     content: "{{ jvb_ddns_ssh_public_key }}"
     dest: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa.pub"
     owner: "{{ jvb_ddns_username }}"
@@ -47,7 +48,7 @@
 - name: Check out codebase
   become: true
   become_user: "{{ jvb_ddns_username }}"
-  git:
+  ansible.builtin.git:
     repo: "{{ jvb_ddns_git_repo }}"
     dest: "{{ jvb_ddns_base_path }}"
     version: "{{ jvb_ddns_git_branch }}"
@@ -56,17 +57,17 @@
     accept_hostkey: true
 
 - name: Remove SSH private credentials
-  file:
-    path: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa" 
+  ansible.builtin.file:
+    path: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa"
     state: absent
 
 - name: Remove SSH public credentials
-  file:
-    path: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa.pub" 
+  ansible.builtin.file:
+    path: "{{ jvb_ddns_user.homedir }}/.ssh/id_rsa.pub"
     state: absent
 
-- name: npm Requirements
-  shell: npm install
+- name: Install npm Requirements # noqa no-changed-when
+  ansible.builtin.command: npm install
   become: true
   become_user: "{{ jvb_ddns_username }}"
   args:
