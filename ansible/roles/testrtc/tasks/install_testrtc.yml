@@ -1,69 +1,76 @@
 ---
 - name: TestRTC | Create testrtc folder
-  file: 
-    state: directory 
-    path: "{{testrtc_base_path}}"
+  ansible.builtin.file:
+    state: directory
+    path: "{{ testrtc_base_path }}"
     owner: ubuntu
     group: ubuntu
     mode: 0755
 
-- name: TestRTC | Pull source files from GIT
-  git:
-    repo: "{{testrtc_git_repository}}"
-    dest: "{{testrtc_base_path}}"
-    force: yes
+- name: TestRTC | Pull source files from GIT # noqa latest[git]
+  ansible.builtin.git:
+    repo: "{{ testrtc_git_repository }}"
+    dest: "{{ testrtc_base_path }}"
+    force: true
 
-- name: TestRTC | Install developer tools and frameworks
-  shell: npm install
+- name: TestRTC | Install developer tools and frameworks # noqa no-changed-when
+  ansible.builtin.command: npm install
   become: true
   become_user: ubuntu
   args:
-    chdir: "{{testrtc_base_path}}"
+    chdir: "{{ testrtc_base_path }}"
 
 - name: TestRTC | Install grunt and bower
-  npm:
-    path: "{{testrtc_base_path}}"
+  community.general.npm:
+    path: "{{ testrtc_base_path }}"
     name: "{{ item }}"
-    global: yes
-    production: yes
-    state: latest
+    global: true
+    production: true
+    state: present
   with_items:
     - grunt
     - bower
 
-- name: TestRTC | Build testrtc
-  shell: "{{ item }}"
+- name: TestRTC | Build testrtc # noqa no-changed-when
+  ansible.builtin.command: "{{ item }}"
   become: true
   become_user: ubuntu
   args:
-    chdir: "{{testrtc_base_path}}"
+    chdir: "{{ testrtc_base_path }}"
   with_items:
     - bower update
     - grunt
     - grunt build
 
 - name: TestRTC | Deploy testrtc
-  command: cp -a {{ testrtc_base_path }}/out/src {{ testrtc_web_root_path }} creates="{{ testrtc_web_root_path }}"
+  ansible.builtin.command: cp -a {{ testrtc_base_path }}/out/src {{ testrtc_web_root_path }}
+  args:
+    creates: "{{ testrtc_web_root_path }}"
 
 - name: TestRTC | Postinstall libs dir
-  file: path={{ testrtc_web_root_path }}/libs state=directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ testrtc_web_root_path }}/lib"
+    state: directory
 
 - name: TestRTC | Postinstall move main.js
-  command: mv {{ testrtc_web_root_path }}/main.js {{ testrtc_web_root_path }}/libs creates={{ testrtc_web_root_path }}/libs/main.js
-
-- name: TestRTC | Postinstall fix index.html
-  command: sed -i 's/"main.js/"libs\/main.js/' {{ testrtc_web_root_path }}/index.html  
-
-- name: TestRTC | Clean testrtc
-  shell: "{{ item }}"
+  ansible.builtin.command: mv {{ testrtc_web_root_path }}/main.js {{ testrtc_web_root_path }}/libs
   args:
-    chdir: "{{testrtc_base_path}}"
+    creates: "{{ testrtc_web_root_path }}/libs/main.js"
+
+- name: TestRTC | Postinstall fix index.html # noqa no-changed-when command-instead-of-module
+  ansible.builtin.command: sed -i 's/"main.js/"libs\/main.js/' {{ testrtc_web_root_path }}/index.html
+
+- name: TestRTC | Clean testrtc # noqa no-changed-when
+  ansible.builtin.command: "{{ item }}"
+  args:
+    chdir: "{{ testrtc_base_path }}"
   with_items:
     - grunt clean
 
-- name: TestRTC | Clean testrtc again
-  shell: "{{ item }}"
+- name: TestRTC | Clean testrtc again # noqa no-changed-when
+  ansible.builtin.command: "{{ item }}"
   args:
-    chdir: "{{testrtc_base_path}}"
+    chdir: "{{ testrtc_base_path }}"
   with_items:
     - grunt clean

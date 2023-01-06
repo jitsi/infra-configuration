@@ -1,9 +1,9 @@
 ---
-npm_modules_path: "{{testrtc_base_path}}/node_modules/.bin/"
+npm_modules_path: "{{ testrtc_base_path }}/node_modules/.bin/"
 testrtc_base_path: "/opt/testrtc"
 testrtc_configure_flag: false
 testrtc_creds_dir: /etc/testrtc
-testrtc_creds_path: "{{testrtc_creds_dir}}/turn_credentials"
+testrtc_creds_path: "{{ testrtc_creds_dir }}/turn_credentials"
 testrtc_domain_name: "test.{{ jitsi_meet_domain_name }}"
 testrtc_git_repository: "https://github.com/aaronkvanmeerten/testrtc.git"
 testrtc_install_flag: false
