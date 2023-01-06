@@ -4,28 +4,28 @@
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^CENSUS_POLL='
     line: "CENSUS_POLL={{ 'true' if signal_sidecar_census_enabled else 'false' }}"
-  notify: restart signal-sidecar
+  notify: Restart signal-sidecar
 
 - name: Set signal-sidecar census host
   ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^CENSUS_HOST='
     line: "CENSUS_HOST={{ signal_sidecar_domain_name }}"
-  notify: restart signal-sidecar
+  notify: Restart signal-sidecar
 
 - name: Enable signal-sidecar sends drain above max jicofo participants
   ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^PARTICIPANT_MAX='
     line: "PARTICIPANT_MAX={{ signal_sidecar_max_participants }}"
-  notify: restart signal-sidecar
+  notify: Restart signal-sidecar
 
 - name: Enable signal-sidecar send weight based on jicofo participants
   ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^WEIGHT_PARTICIPANTS='
     line: "WEIGHT_PARTICIPANTS={{ signal_sidecar_weight | to_json }}"
-  notify: restart signal-sidecar
+  notify: Restart signal-sidecar
 
 - name: Start signal-sidecar service
   ansible.builtin.service:
