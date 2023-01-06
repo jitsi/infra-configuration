@@ -16,6 +16,7 @@
 
 - name: Create directory for AWS credentials
   ansible.builtin.file:
+    mode: 0750
     path: "{{ ansible_env.HOME }}/.aws"
     state: directory
   when: jvb_ddns_cloud_provider == "oracle"
@@ -28,15 +29,21 @@
   when: jvb_ddns_cloud_provider == "oracle"
 
 - name: Create DNS entry for host
-  ansible.builtin.command: node index.js update_by_info --action add --instance_name {{jvb_ddns_hostname}} --zone_id {{jvb_ddns_zone}} --ipv4_addr "{{jvb_ddns_ipv4_addr}}" {% if ipv6_addr %} --ipv6_addr "{{ipv6_addr}}"{% endif %}
+  ansible.builtin.command: node index.js update_by_info --action add --instance_name {{ jvb_ddns_hostname }}
+     --zone_id {{ jvb_ddns_zone }} --ipv4_addr "{{ jvb_ddns_ipv4_addr }}" {% if ipv6_addr %} --ipv6_addr "{{ ipv6_addr }}"{% endif %}
   args:
-    chdir: "{{jvb_ddns_base_path}}"
+    chdir: "{{ jvb_ddns_base_path }}"
   when: jvb_ddns_create_entry
 
 - name: Remove AWS private credentials
-  ansible.builtin.file: path="{{ansible_env.HOME}}/.aws/credentials" state=absent
-  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == false
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.aws/credentials"
+    state: absent
+  when: jvb_ddns_cloud_provider == "oracle" and not jvb_ddns_cleanup_flag
 
 - name: Copy clean up route 53 script
-  ansible.builtin.template: src="cleanup_route53_dns.j2" dest="{{jvb_path_to_cleanup_route53_dns_script}}" mode=0755
-  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
+  ansible.builtin.template:
+    src: "cleanup_route53_dns.j2"
+    dest: "{{ jvb_path_to_cleanup_route53_dns_script }}"
+    mode: 0755
+  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag
