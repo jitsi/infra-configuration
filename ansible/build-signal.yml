@@ -9,6 +9,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/jibri.yml
+    - secrets/repo.yml
     - secrets/prosody-egress-aws.yml
     - config/vars.yml
   pre_tasks:
