@@ -1,38 +1,41 @@
 ---
-- name: signal-sidecar enable census poll
-  lineinfile:
+- name: Enable signal-sidecar census poll
+  ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^CENSUS_POLL='
     line: "CENSUS_POLL={{ 'true' if signal_sidecar_census_enabled else 'false' }}"
   notify: restart signal-sidecar
 
-- name: signal-sidecar set census host
-  lineinfile:
+- name: Set signal-sidecar census host
+  ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^CENSUS_HOST='
     line: "CENSUS_HOST={{ signal_sidecar_domain_name }}"
   notify: restart signal-sidecar
 
-- name: signal-sidecar sends drain above max jicofo participants
-  lineinfile:
+- name: Enable signal-sidecar sends drain above max jicofo participants
+  ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^PARTICIPANT_MAX='
     line: "PARTICIPANT_MAX={{ signal_sidecar_max_participants }}"
   notify: restart signal-sidecar
 
-- name: signal-sidecar send weight based on jicofo participants
-  lineinfile:
+- name: Enable signal-sidecar send weight based on jicofo participants
+  ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
     regexp: '^WEIGHT_PARTICIPANTS='
     line: "WEIGHT_PARTICIPANTS={{ signal_sidecar_weight | to_json }}"
   notify: restart signal-sidecar
 
-- name: signal-sidecar service start
-  service: name=signal-sidecar state=started enabled=yes
-  when: signal_sidecar_enabled  
+- name: Start signal-sidecar service
+  ansible.builtin.service:
+    name: signal-sidecar
+    state: started
+    enabled: true
+  when: signal_sidecar_enabled
 
-- name: signal-sidecar service test
-  uri:
+- name: Test signal-sidecar service
+  ansible.builtin.uri:
     url: http://localhost:6000/health
   register: ss_uri_response
   until: ss_uri_response.status == 200

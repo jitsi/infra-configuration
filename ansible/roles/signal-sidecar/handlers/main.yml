@@ -1,3 +1,5 @@
 ---
-- name: restart signal-sidecar
-  service: name=signal-sidecar state=restarted
+- name: Restart signal-sidecar
+  ansible.builtin.service:
+    name: signal-sidecar
+    state: restarted
