@@ -1,15 +1,17 @@
 ---
-- name: vacuum any existing journal with journalctl
-  command: journalctl --vacuum-size=200M
-- name: config to limit journald size
-  lineinfile:
+- name: Vacuum any existing journal with journalctl # noqa no-changed-when
+  ansible.builtin.command: journalctl --vacuum-size=200M
+
+- name: Config to limit journald size
+  ansible.builtin.lineinfile:
     path: /etc/systemd/journald.conf
     regexp: '^#SystemMaxUse='
     line: 'SystemMaxUse=200M'
-  notify: restart journald
-- name: config so journald will always leave free space
-  lineinfile:
+  notify: Restart journald
+
+- name: Config so journald will always leave free space
+  ansible.builtin.lineinfile:
     path: /etc/systemd/journald.conf
     regexp: '^#SystemKeepFree'
     line: 'SystemKeepFree=500M'
-  notify: restart journald
+  notify: Restart journald
