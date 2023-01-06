@@ -26,7 +26,7 @@
     - secrets/aws-cloudwatch.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
-    - configu/vars.yml
+    - config/vars.yml
     - sites/{{hcv_environment}}/vars.yml
   pre_tasks:
     - name: Remove old jitsi repo
