@@ -11,6 +11,8 @@
     core_public_ip: "{{oracle_public_ip | default('') if core_cloud_provider == 'oracle' else ansible_ec2_public_ipv4 | default('')}}"
     core_private_ip: "{{ansible_default_ipv4.address}}"
     consul_cloud_provider: "{{core_cloud_provider}}"
+    adl: "{{ ansible_distribution | lower }}"
+    adrl: "{{ ansible_distribution_release | lower }}"
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
