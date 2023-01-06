@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Main
+  hosts: all
   gather_facts: true
   become_user: root
   become: true
@@ -13,47 +14,62 @@
     - secrets/voximplant.yml
     - config/vars.yml
     - secrets/aws-cloudwatch.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
     fluentd_jitsi_region: us-west-2
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{jibri_enable_fluentd}}"
   pre_tasks:
-    - name: set cloud provider to oracle
-      set_fact:
+    - name: Set cloud provider to oracle
+      ansible.builtin.set_fact:
         cloud_provider: oracle
-        shard_role: "{{'sip-jibri' if jibri_pjsua_flag else 'java-jibri'}}"
+        shard_role: "{{ 'sip-jibri' if jibri_pjsua_flag else 'java-jibri' }}"
       tags: setup
-    - name: set hostname
-      hostname:
-        name: "{{ansible_fqdn}}"
-    - name: stop fluentd
-      service: name="td-agent" state=stopped enabled=false
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ ansible_fqdn }}"
+    - name: Stop fluentd # noqa ignore-errors
+      ansible.builtin.service:
+        name: "td-agent"
+        state: stopped
+        enabled: false
       ignore_errors: true
       when: not jibri_enable_fluentd
-    - name: register installed jibri package
-      shell: dpkg -s jibri | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
+    - name: Register installed jibri package
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jibri | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
+      args:
+        executable: /bin/bash
       register: jibri_version
+      changed_when: jibri_version.rc != 0
+
     - name: Remove NodeSource deb repository
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
     - name: Remove NodeSource deb-src repository
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
-    - name: stop jitsi-system-events
-      service: name="jitsi-system-events" state=stopped enabled=false
+    - name: Stop jitsi-system-events # noqa ignore-errors
+      ansible.builtin.service:
+        name: "jitsi-system-events"
+        state: stopped
+        enabled: false
       ignore_errors: true
       when: not jitsi_system_events_enabled
   post_tasks:
-    - name: restart rsyslog
-      service: name=rsyslog state=restarted
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
   roles:
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, fluentd_jitsi_jibri_enabled: "{{jibri_enable_fluentd}}", when: jibri_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd",
+        fluentd_install_flag: false, fluentd_configure_flag: true, fluentd_jitsi_jibri_enabled: "{{jibri_enable_fluentd}}", when: jibri_enable_fluentd}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
@@ -70,9 +86,13 @@
           cloud: "oracle"
           jibri_version: "{{ jibri_version.stdout }}"
 
-    - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations", upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
-    - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations", upload_customizations_install_flag: false, upload_customizations_configure_flag: true }
-    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar", autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{autoscaler_sidecar_jibri_flag}}"}
+    - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
+        upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
+    - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
+        upload_customizations_install_flag: false, upload_customizations_configure_flag: true }
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
+        autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{autoscaler_sidecar_jibri_flag}}"}
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{jibri_java_11}}", java_install_flag: false }
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}

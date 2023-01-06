@@ -1,8 +1,9 @@
 ---
-- hosts: all
+- name: Main
+  hosts: all
   gather_facts: true
   become_user: root
-  become: yes
+  become: true
   vars_files:
     - secrets/ssh-users.yml
     - secrets/wavefront.yml
@@ -10,12 +11,15 @@
     - secrets/repo.yml
     - secrets/oci-logging.yml
     - config/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     shard_role: consul
     cloud_provider: oracle
   pre_tasks:
-     - apt: update_cache=yes cache_valid_time=86400
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
   roles:
     - { role: "iptables-consul", tags: "iptables"}
     - { role: "logrotate", tags: "logrotate"}

@@ -1,9 +1,9 @@
 ---
 - name: Install telegraf agent/collector (RedHat)
-  yum:
+  ansible.builtin.yum:
     name: "{{ wavefront_collector }}"
-    state: "{{ wavefront_pkg_state }}"
-    update_cache: yes
+    state: present
+    update_cache: true
   register: result
   until: result.rc == 0
   tags:

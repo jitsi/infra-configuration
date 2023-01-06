@@ -1,4 +1,15 @@
 ---
+galaxy_info:
+  role_name: fluentd_jitsi
+  author: Aaron van Meerten
+  description: configure fluentd for jitsi
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
-- { role: rsyslog, when: fluentd_install_flag }
-- { role: fluentd, when: fluentd_install_flag }
+  - { role: rsyslog, when: fluentd_install_flag }
+  - { role: fluentd, when: fluentd_install_flag }

@@ -1,6 +1,8 @@
 ---
-- include_tasks: install.yml
+- name: Install autoscaler
+  ansible.builtin.include_tasks: install.yml
   when: autoscaler_install_flag and jitsi_autoscaler_sidecar
 
-- include_tasks: configure.yml
+- name: Configure autoscaler
+  ansible.builtin.include_tasks: configure.yml
   when: autoscaler_configure_flag and jitsi_autoscaler_sidecar

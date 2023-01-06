@@ -1,4 +1,4 @@
 ---
-consul_standalone_cloud_provider: "{{cloud_provider | default('aws')}}"
-consul_standalone_private_ip: "{{ansible_default_ipv4.address}}"
-consul_standalone_public_ip: "{{oracle_public_ip if consul_standalone_cloud_provider == 'oracle' else ansible_ec2_public_ipv4}}"
+consul_standalone_cloud_provider: "{{ cloud_provider | default('aws') }}"
+consul_standalone_private_ip: "{{ ansible_default_ipv4.address }}"
+consul_standalone_public_ip: "{{ oracle_public_ip if consul_standalone_cloud_provider == 'oracle' else ansible_ec2_public_ipv4 }}"

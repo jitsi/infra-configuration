@@ -1,10 +1,10 @@
 ---
 - name: Install telegraf agent/collector (Ubuntu) from apt
-  apt:
-    name: "{{ wavefront_collector }}={{wavefront_collector_version}}"
-    state: "{{ wavefront_pkg_state }}"
-    force: 'yes'
-    update_cache: yes
+  ansible.builtin.apt:
+    name: "{{ wavefront_collector }}={{ wavefront_collector_version }}"
+    state: present
+    force: true
+    update_cache: true
   register: result
   until: result is succeeded
   when: wavefront_telegraf_from_apt
@@ -14,7 +14,10 @@
     - collector
 
 - name: Download telegraf agent/collector (Ubuntu) from url
-  get_url: url="{{ wavefront_telegraf_deb_url }}" dest="{{ wavefront_telegraf_deb_path }}"
+  ansible.builtin.get_url:
+    mode: 0640
+    url: "{{ wavefront_telegraf_deb_url }}"
+    dest: "{{ wavefront_telegraf_deb_path }}"
   when: not wavefront_telegraf_from_apt
   tags:
     - install
@@ -22,9 +25,9 @@
     - collector
 
 - name: Install telegraf agent/collector (Ubuntu) from file
-  apt:
+  ansible.builtin.apt:
     deb: "{{ wavefront_telegraf_deb_path }}"
-    force: 'yes'
+    force: true
   register: result
   when: not wavefront_telegraf_from_apt
   tags:

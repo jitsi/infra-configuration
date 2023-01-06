@@ -1,7 +1,8 @@
 ---
-- hosts: default
+- name: Main
+  hosts: default
   gather_facts: true
-  become: yes
+  become: true
   vars:
     jibri_kernel_package_type: oracle
     cloud_provider: oracle
@@ -12,9 +13,13 @@
     - config/vars.yml
     - secrets/release-bucket-aws.yml
   pre_tasks:
-    - pause: seconds=60
+    - name: Pause for 60
+      ansible.builtin.pause:
+        seconds: 60
       tags: "provision"
-    - apt: update_cache=yes
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
       tags: "provision"
 
   roles:
@@ -35,10 +40,13 @@
         telegraf_tags:
           role: "jibri"
           cloud: "oracle"
-    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar", autoscaler_instance_type: "jibri", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "jibri", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: true, jibri_configure_flag: false}
-    - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations", upload_integrations_install_flag: true, upload_integrations_configure_flag: false }
-    - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations", upload_customizations_install_flag: true, upload_customizations_configure_flag: false }
+    - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
+        upload_integrations_install_flag: true, upload_integrations_configure_flag: false }
+    - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
+        upload_customizations_install_flag: true, upload_customizations_configure_flag: false }
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: true, jibri_pjsua_configure_flag: false}
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: true, sip_jibri_configure_flag: false}
     - { role: "clean-system", tags: "clean-system, build" }

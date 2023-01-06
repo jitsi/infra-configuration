@@ -1,46 +1,84 @@
 ---
 - name: Install list of packages
-  apt: name=git state=present
+  ansible.builtin.apt:
+    name: git
+    state: present
 
 - name: User creation
-  user: name="{{autoscaler_user.username}}"
-    groups="{{autoscaler_user.groups | join(',')}}"
-    shell=/bin/bash
-    comment="{{autoscaler_user.real_name}}"
-    home="{{autoscaler_user.homedir}}"
-    createhome=yes
-    state="{{autoscaler_user.state}}"
+  ansible.builtin.user:
+    name: "{{ autoscaler_user.username }}"
+    groups: "{{ autoscaler_user.groups | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ autoscaler_user.real_name }}"
+    home: "{{ autoscaler_user.homedir }}"
+    createhome: true
+    state: present
 
 - name: Code Directory
-  file: path={{ autoscaler_base_path }} state=directory owner={{ autoscaler_username }} group={{autoscaler_groupname}}
+  ansible.builtin.file:
+    mode: 0750
+    path: "{{ autoscaler_base_path }}"
+    state: directory
+    owner: "{{ autoscaler_username }}"
+    group: "{{ autoscaler_groupname }}"
 
-- name: Check out codebase
-  become: yes
-  become_user: "{{autoscaler_username}}"
-  git: repo={{autoscaler_git_repo}} dest={{autoscaler_base_path}} update=yes force=yes accept_hostkey=yes
+- name: Check out codebase # noqa latest[git]
+  become: true
+  become_user: "{{ autoscaler_username }}"
+  ansible.builtin.git:
+    repo: "{{ autoscaler_git_repo }}"
+    dest: "{{ autoscaler_base_path }}"
+    update: true
+    force: true
+    accept_hostkey: true
 
-- name: npm Requirements
-  shell: npm install
-  become: yes
-  become_user: "{{autoscaler_username}}"
+- name: Stat node_modules
+  ansible.builtin.stat:
+    path: "{{ autoscaler_base_path }}/node_modules"
+  register: autoscaler_sidecar_node_modules
+
+- name: Install npm Requirements
+  ansible.builtin.command: npm install
+  become: true
+  become_user: "{{ autoscaler_username }}"
   args:
-    chdir: "{{autoscaler_base_path}}"
+    chdir: "{{ autoscaler_base_path }}"
+  when: not autoscaler_sidecar_node_modules.stat.exists
 
-- name: build from typescript
-  shell: npm run build
-  become: yes
-  become_user: "{{autoscaler_username}}"
+- name: Stat built code
+  ansible.builtin.stat:
+    path: "{{ autoscaler_base_path }}/dist"
+  register: autoscaler_sidecar_dist
+
+- name: Build from typescript
+  ansible.builtin.command: npm run build
+  become: true
+  become_user: "{{ autoscaler_username }}"
   args:
-    chdir: "{{autoscaler_base_path}}"
+    chdir: "{{ autoscaler_base_path }}"
+  when: not autoscaler_sidecar_dist.stat.exists
 
-- name: application configuration directory
-  file: path={{autoscaler_config_dir}} state=directory
+- name: Application configuration directory
+  ansible.builtin.file:
+    mode: 0750
+    path: "{{ autoscaler_config_dir }}"
+    state: directory
 
-- name: application log directory
-  file: path={{autoscaler_log_dir}} state=directory owner={{ autoscaler_username }}
+- name: Application log directory
+  ansible.builtin.file:
+    mode: 0750
+    path: "{{ autoscaler_log_dir }}"
+    state: directory
+    owner: "{{ autoscaler_username }}"
 
-- name: rsyslog configuration
-  template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/25-autoscaler-sidecar.conf
+- name: Rsyslog configuration
+  ansible.builtin.template:
+    mode: 0755
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/25-autoscaler-sidecar.conf
 
-- name: sidecar health check script
-  template: src="sidecar-health.sh.j2" dest="{{autoscaler_health_script}}" mode=0755
+- name: Sidecar health check script
+  ansible.builtin.template:
+    src: "sidecar-health.sh.j2"
+    dest: "{{ autoscaler_health_script }}"
+    mode: 0755

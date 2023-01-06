@@ -1,40 +1,73 @@
 ---
-- name: nginx apt key
-  apt_key: url="{{nginx_apt_key_url}}" state=present validate_certs=no
+- name: Install nginx apt key
+  ansible.builtin.apt_key:
+    url: "{{ nginx_apt_key_url }}"
+    state: present
+    validate_certs: false
 
-- apt_repository: >
-    repo="deb {{nginx_apt_repo_url}} {{ansible_distribution_release}} nginx"
-    state=present
-    update_cache=yes
+- name: Setup nginx repo
+  ansible.builtin.apt_repository:
+    repo: "deb {{ nginx_apt_repo_url }} {{ ansible_distribution_release }} nginx"
+    state: present
+    update_cache: true
 
-- name: mark unhold on nginx package version
-  command: apt-mark unhold {{nginx_package}} nginx-extras
+- name: Mark unhold on nginx package version # noqa no-changed-when
+  ansible.builtin.command: apt-mark unhold {{ nginx_package }} nginx-extras
 
-- name: install nginx
-  apt: name="nginx={{ nginx_version }}" state=present
+- name: Install nginx
+  ansible.builtin.apt:
+    name: "nginx={{ nginx_version }}"
+    state: present
   register: nginx_apt_output
+  notify: Stop nginx
 
-- name: stop nginx
-  service: name=nginx state=stopped
-  when: nginx_apt_output.changed
+- name: Mark hold on nginx package version # noqa no-changed-when
+  ansible.builtin.command: apt-mark hold {{ nginx_package }} nginx-extras
 
-- name: mark hold on nginx package version
-  command: apt-mark hold {{nginx_package}} nginx-extras
+# main nginx configuration tweaks
+- name: Configure nginx
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: 0644
+  notify: Restart nginx
 
-#main nginx configuration tweaks
-- template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf mode=0644
-  notify: restart nginx
+# directories for custom configuration
+- name: Sites available directory
+  ansible.builtin.file:
+    path: '/etc/nginx/sites-available'
+    state: directory
+    mode: 0755
+- name: Sites enabled directory
+  ansible.builtin.file:
+    path: '/etc/nginx/sites-enabled'
+    state: directory
+    mode: 0755
+- name: Configuration directory
+  ansible.builtin.file:
+    path: '/etc/nginx/conf.d'
+    state: directory
+    mode: 0755
 
-#directories for custom configuration
-- file: path='/etc/nginx/sites-available' state=directory mode=0755
-- file: path='/etc/nginx/sites-enabled' state=directory mode=0755
-- file: path='/etc/nginx/conf.d' state=directory mode=0755
+- name: Configure status server
+  ansible.builtin.copy:
+    src: 'status_server'
+    dest: '/etc/nginx/sites-available/status_server'
+    mode: 0644
+  notify: Restart nginx
+- name: Enable status server
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/status_server
+    dest: /etc/nginx/sites-enabled/status_server
+    state: link
+  notify: Restart nginx
 
-- copy: src='status_server' dest='/etc/nginx/sites-available/status_server' mode=0644
-  notify: restart nginx
-- file: src=/etc/nginx/sites-available/status_server dest=/etc/nginx/sites-enabled/status_server state=link
-  notify: restart nginx
+- name: Include rsyslog tasks
+  ansible.builtin.include_tasks: rsyslog.yml
 
-- include_tasks: rsyslog.yml
-
-- service: name=nginx state=started enabled=yes
+- name: Enable nginx server
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+  when: nginx_start_service

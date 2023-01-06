@@ -432,7 +432,7 @@ whiteboard: {
         server: "{{ jitsi_meet_xmpp_domain_name }}"
     },
     deploymentInfo: {
-        environment: '{{hcv_environment}}',
+        environment: '{{ hcv_environment }}',
         envType: '{{jitsi_meet_environment_type}}',
         releaseNumber: '{{jitsi_release_number}}',
         shard: '<!--# echo var="jitsi_shard" default="" -->',

@@ -1,3 +1,5 @@
 - name: Ubuntu jenkins service key
-  authorized_key: user="ubuntu" key="{{item}}"
-  with_items: "{{jenkins_deploy_keys}}"
+  ansible.posix.authorized_key:
+    user: "ubuntu"
+    key: "{{ item }}"
+  with_items: "{{ jenkins_deploy_keys }}"

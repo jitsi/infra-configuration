@@ -22,7 +22,7 @@ jvb_consul_datacenter: "{{cloud_name|default('dc1')}}"
 jvb_consul_datacenters: []
 jvb_consul_extra_urls: []
 jvb_consul_local_datacenters: ["{{jvb_consul_datacenter}}"]
-jvb_consul_server: "{{hcv_environment}}-{{oracle_region}}-consul.jitsi.net"
+jvb_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
 jvb_consul_server_type: "{{jvb_consul_server_types[jitsi_meet_environment_type]|default('prod')}}"
 jvb_consul_server_types:
   dev: dev

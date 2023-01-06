@@ -1,11 +1,18 @@
 ---
-- name: restart jibri
-  service: name=jibri state=restarted
+- name: Restart jibri
+  ansible.builtin.service:
+    name: jibri
+    state: restarted
   when: not jibri_configure_only_flag
 
-- name: restart jibri systemd
-  service: name=jibri state=restarted daemon_reload=yes
+- name: Restart jibri systemd
+  ansible.builtin.systemd:
+    name: jibri
+    state: restarted
+    daemon_reload: true
   when: not jibri_configure_only_flag
 
 - name: Restart Monitor Terminating Instance
-  service: name=monitor-terminating-instance state=restarted
+  ansible.builtin.service:
+    name: monitor-terminating-instance
+    state: restarted

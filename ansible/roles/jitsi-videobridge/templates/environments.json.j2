@@ -3,7 +3,7 @@
   "datacenters": {{ jvb_consul_datacenters | to_json }},
   "local_datacenters": {{jvb_consul_local_datacenters | to_json }},
   "pool_mode":"{{jvb_pool_mode}}",
-  "environment": "{{hcv_environment}}",
+  "environment": "{{ hcv_environment }}",
   "domain": "{{ jvb_domain_name }}",
   "shard": "{{ shard_name }}",
   "release_number": "{{ jitsi_release_number }}",

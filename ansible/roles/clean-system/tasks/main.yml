@@ -1,17 +1,23 @@
 ---
 # stop daemons
-- name: stop fluentd if present
-  service: name="td-agent" state=stopped enabled=false
+- name: Stop fluentd if present # noqa ignore-errors
+  ansible.builtin.service:
+    name: "td-agent"
+    state: stopped
+    enabled: false
   ignore_errors: true
 
-- name: stop telegraf if present
-  service: name="telegraf" state=stopped enabled=false
+- name: Stop telegraf if present # noqa ignore-errors
+  ansible.builtin.service:
+    name: "telegraf"
+    state: stopped
+    enabled: false
   ignore_errors: true
 
-#Disable Ubuntu autoupdates
-- name: Disable automatic updates on boot 
-  command: "{{ item }}"
-  with_items: 
+# Disable Ubuntu autoupdates
+- name: Disable automatic updates on boot # noqa ignore-errors
+  ansible.builtin.command: "{{ item }}"
+  with_items:
     - systemctl stop apt-daily.service
     - systemctl stop apt-daily.timer
     - systemctl stop apt-daily-upgrade.service
@@ -23,47 +29,61 @@
     - systemctl kill --kill-who=all apt-daily.service
     - systemctl daemon-reload
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version >= '16'
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Disable automatic updates on boot in the 10periodic
-  lineinfile: 
+  ansible.builtin.lineinfile:
     dest: "/etc/apt/apt.conf.d/10periodic"
     regexp: '^APT::Periodic::Update-Package-Lists'
     line: 'APT::Periodic::Update-Package-Lists "0";'
 
 - name: Disable automatic updates on boot in the 20auto-upgrades
-  template: 
+  ansible.builtin.template:
+    mode: 0644
     src: 20auto-upgrades.j2
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     owner: root
     group: root
 
 
-- name: Unattended upgrade disable via debconf
-  shell: echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean false | debconf-set-selections && dpkg-reconfigure -f noninteractive unattended-upgrades
+- name: Unattended upgrade disable via debconf # noqa no-changed-when
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean false \
+    | debconf-set-selections && dpkg-reconfigure -f noninteractive unattended-upgrades
+  args:
+    executable: /bin/bash
 
-- name: Remove oracle cloud agent if installed
-  shell: snap list | grep -q oracle-cloud-agent && snap remove oracle-cloud-agent || true
+- name: Remove oracle cloud agent if installed # noqa no-changed-when
+  ansible.builtin.shell: |
+    set -o pipefail
+    snap list | grep -q oracle-cloud-agent && snap remove oracle-cloud-agent || true
+  args:
+    executable: /bin/bash
 
-#Remove old kernels and packages
+# Remove old kernels and packages
 - name: Remove dependencies that are no longer required
-  apt:
-    autoremove: yes
-    purge: yes
-    force: yes
+  ansible.builtin.apt:
+    autoremove: true
+    purge: true
+    force: true
 
 - name: Cleans the local repository of retrieved package files
-  apt: 
-    autoclean: yes
-    force: yes
+  ansible.builtin.apt:
+    autoclean: true
+    force: true
 
-#Remove ssh uthorized keys
+# Remove ssh uthorized keys
 - name: Remove authorized keys | root
-  file: path=/root/.ssh/authorized_keys state=absent
+  ansible.builtin.file:
+    path: /root/.ssh/authorized_keys
+    state: absent
 
-#Clean logs
-- name: Log cleanup
-  shell: "find /var/log -type f -exec truncate --size 0 {} \\;"
+# Clean logs
+- name: Log cleanup # noqa no-changed-when
+  ansible.builtin.shell: "find /var/log -type f -exec truncate --size 0 {} \\;"
 
 - name: Remove authorized keys | users
-  file: path=/home/ubuntu/.ssh/authorized_keys state=absent
+  ansible.builtin.file:
+    path: /home/ubuntu/.ssh/authorized_keys
+    state: absent

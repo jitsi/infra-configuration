@@ -1,6 +1,12 @@
 ---
-- name: consul config file
-  template: src="consul.hcl.j2" dest="/etc/consul.d/consul.hcl"
+- name: Install consul config file
+  ansible.builtin.template:
+    mode: 0640
+    src: "consul.hcl.j2"
+    dest: "/etc/consul.d/consul.hcl"
 
-- name: consul env file
-  copy: content="" dest="/etc/consul.d/consul.env"
+- name: Install consul env file
+  ansible.builtin.copy:
+    mode: 0640
+    content: ""
+    dest: "/etc/consul.d/consul.env"

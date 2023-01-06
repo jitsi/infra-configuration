@@ -1,7 +1,7 @@
 ---
-- name: restart autoscaler sidecar service
-  systemd:
+- name: Restart autoscaler sidecar service
+  ansible.builtin.systemd:
     state: restarted
-    daemon_reload: yes
-    enabled: yes
-    name: "{{autoscaler_sidecar_service_name}}"
+    daemon_reload: true
+    enabled: true
+    name: "{{ autoscaler_sidecar_service_name }}"

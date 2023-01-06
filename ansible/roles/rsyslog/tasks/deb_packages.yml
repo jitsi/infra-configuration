@@ -1,11 +1,16 @@
 # Install packages for Debian
 ---
-- name: 'Add rsyslog apt repo'
-  apt_repository: repo="ppa:adiscon/v8-stable" state=present update_cache=yes
+- name: Add rsyslog apt repo
+  ansible.builtin.apt_repository:
+    repo: "ppa:adiscon/v8-stable"
+    state: present
+    update_cache: true
   when: ansible_distribution == "Ubuntu"
 
-- name: install packages for Debian
+- name: Install packages for Debian
   tags:
     - rsyslog
     - packages
-  apt: pkg="{{rsyslog_package_names}}" state=latest
+  ansible.builtin.apt:
+    pkg: "{{ rsyslog_package_names }}"
+    state: present

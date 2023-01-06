@@ -1,11 +1,19 @@
 ---
-- template: src=47-nginx.conf.j2 dest=/etc/rsyslog.d/47-nginx.conf mode=0644
+- name: Install syslog for nginx
+  ansible.builtin.template:
+    src: 47-nginx.conf.j2
+    dest: /etc/rsyslog.d/47-nginx.conf
+    mode: 0644
   register: syslog_template
   when: nginx_log_syslog_enabled
 
-- file: path=/etc/rsyslog.d/47-nginx.conf state=absent
+- name: Remove syslog for nginx
+  ansible.builtin.file:
+    path: /etc/rsyslog.d/47-nginx.conf
+    state: absent
   register: syslog_template
-  when: nginx_log_syslog_enabled == false
+  when: not nginx_log_syslog_enabled
 
-- service: name=rsyslog state=restarted
+- name: Restart syslog after nginx rules applied
+  ansible.builtin.service: name=rsyslog state=restarted
   when: syslog_template.changed

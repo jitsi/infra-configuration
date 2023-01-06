@@ -1,33 +1,49 @@
 ---
-#stub for jitsi group
+# stub for jitsi group
 - name: Stub group for jitsi in case it doesn't exist yet
-  group: name=jitsi
+  ansible.builtin.group:
+    name: jitsi
 
 - name: Stub group for prosody in case it doesn't exist yet
-  group: name=prosody
+  ansible.builtin.group:
+    name: prosody
 
-#make sure the td-agent user can access the right logs
-- name: Adding existing user '{{ fluentd_jitsi_username }}' to group sudo
-  user: name='{{ fluentd_jitsi_username }}'
-        groups=adm,jitsi,prosody
-        append=yes
+# make sure the td-agent user can access the right logs
+- name: Adding fluentd existing user to group sudo
+  ansible.builtin.user:
+    name: "{{ fluentd_jitsi_username }}"
+    groups: "adm,jitsi,prosody"
+    append: true
 
 - name: AWS directory
-  file: path="/var/lib/td-agent/.aws" state=directory mode=0700 owner="{{fluentd_jitsi_username}}"
+  ansible.builtin.file:
+    path: "/var/lib/td-agent/.aws"
+    state: directory
+    mode: 0700
+    owner: "{{ fluentd_jitsi_username }}"
   when: fluentd_cloud_provider == "oracle"
 
-- name: spool directory for fluentd position files
-  file: path=/var/spool/td-agent state=directory mode=755 owner="{{ fluentd_jitsi_username }}" group="td-agent"
+- name: Spool directory for fluentd position files
+  ansible.builtin.file:
+    path: /var/spool/td-agent
+    state: directory
+    mode: 0755
+    owner: "{{ fluentd_jitsi_username }}"
+    group: "td-agent"
 
 # ElasticSearch plugin
-- name: install fluentd plugins
-  shell: td-agent-gem install fluent-plugin-cloudwatch-logs
+- name: Install fluentd plugins # noqa no-changed-when
+  ansible.builtin.command: td-agent-gem install fluent-plugin-cloudwatch-logs
 
 # OCI dir
 - name: OCI directory
-  file: path="/var/lib/td-agent/.oci" state=directory mode=0700 owner="{{fluentd_jitsi_username}}"
+  ansible.builtin.file:
+    path: "/var/lib/td-agent/.oci"
+    state: directory
+    mode: 0700
+    owner: "{{ fluentd_jitsi_username }}"
 
 # ElasticSearch plugin
-- name: install fluentd OCI plugins
-  shell: td-agent-gem install {{ item }}
-  loop: "{{fluentd_jitsi_plugins_oci}}"
+- name: Install fluentd OCI plugins # noqa no-changed-when
+  ansible.builtin.command: td-agent-gem install {{ item }}
+  loop: "{{ fluentd_jitsi_plugins_oci }}"
