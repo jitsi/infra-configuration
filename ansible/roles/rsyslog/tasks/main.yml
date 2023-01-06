@@ -86,7 +86,7 @@
     group: root
     mode: 0600
   notify:
-    - reload apparmor
+    - Reload apparmor
 
 - name: Enable service
   tags:
