@@ -1,8 +1,8 @@
 ---
 - name: Install Wavefront Proxy (RedHat)
-  yum:
+  ansible.builtin.yum:
     name: "{{ wavefront_proxy_pkg }}"
-    state: "{{ wavefront_pkg_state }}"
+    state: present
   register: result
   until: result.rc == 0
   tags:
