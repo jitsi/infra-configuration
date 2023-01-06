@@ -1,33 +1,38 @@
 ---
 - name: SSH cipher configuration
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^Ciphers '
     insertafter: "# Ciphers and keying"
     line: "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
     state: present
-  notify: restart sshd for sshusers
+  notify: Restart sshd for sshusers
   when: ssh_users_config_flag
 
 - name: SSH HMACs configuration
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^MACs '
     insertafter: "# Ciphers and keying"
     line: "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256"
     state: present
-  notify: restart sshd for sshusers
+  notify: Restart sshd for sshusers
   when: ssh_users_config_flag
 
 - name: Create sshsudousers group
-  group: name=sshsudousers state=present
+  ansible.builtin.group:
+    name: sshsudousers
+    state: present
   when: ssh_users_config_flag
 
-- file: path="/etc/sudoers.d/sshusers" state="absent"
+- name: Remove sshusers sudoers
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/sshusers"
+    state: "absent"
   when: ssh_users_config_flag
 
 - name: Create sudoers
-  template:
+  ansible.builtin.template:
     src: sudoers.d.sshusers.j2
     dest: "/etc/sudoers.d/100-sshsudousers"
     mode: 0440
@@ -36,8 +41,8 @@
     validate: "/usr/sbin/visudo -cf %s"
   when: ssh_users_config_flag
 
-- name: device42 sudoers
-  template:
+- name: Configure device42 sudoers
+  ansible.builtin.template:
     src: sudoers.d.device42.j2
     dest: "/etc/sudoers.d/101-device42"
     mode: 0440
@@ -46,8 +51,8 @@
     validate: "/usr/sbin/visudo -cf %s"
   when: ssh_users_config_flag
 
-- name: rapid7 sudoers
-  template:
+- name: Configure rapid7 sudoers
+  ansible.builtin.template:
     src: sudoers.d.rapid7.j2
     dest: "/etc/sudoers.d/102-rapid7"
     mode: 0440
@@ -56,53 +61,61 @@
     validate: "/usr/sbin/visudo -cf %s"
   when: ssh_users_config_flag
 
-- name: User creation
-  user: name="{{item.username}}"
-        groups="{{item.groups | join(',')}}"
-        shell=/bin/bash
-        comment="{{item.real_name}}"
-        password="{{item.password|default('*')}}"
-        createhome=yes
-        state="{{item.state}}"
-        update_password="on_create"
-  with_items: "{{ssh_users}}"
-  no_log: True
+- name: User creation # noqa args[module]
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups: "{{ item.groups | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ item.real_name }}"
+    password: "{{ item.password | default('*') }}"
+    createhome: true
+    state: "{{ item.state }}"
+    update_password: "on_create"
+  with_items: "{{ ssh_users }}"
+  no_log: true
   when: ssh_users_accounts_flag
 
 - name: Deploy ssh keys
-  authorized_key: user="{{ item.0.username }}" key="{{ item.1 }}"
+  ansible.posix.authorized_key:
+    user: "{{ item.0.username }}"
+    key: "{{ item.1 }}"
   when:
     - item.0.state != "absent"
     - ssh_users_accounts_flag
   with_subelements:
-    - "{{ssh_users}}"
+    - "{{ ssh_users }}"
     - ssh_key
-  no_log: True
+  no_log: true
 
-- name: Security User creation
-  user: name="{{item.username}}"
-        groups="{{ (item.groups + security_additional_groups) | join(',') }}"
-        shell=/bin/bash
-        comment="{{item.real_name}}"
-        password="{{item.password|default('*')}}"
-        createhome=yes
-        state="{{item.state}}"
-        update_password="on_create"
-  with_items: "{{security_users}}"
-  no_log: True
+- name: Security User creation # noqa args[module]
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups: "{{ (item.groups + security_additional_groups) | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ item.real_name }}"
+    password: "{{ item.password | default('*') }}"
+    createhome: true
+    state: "{{ item.state }}"
+    update_password: "on_create"
+  with_items: "{{ security_users }}"
+  no_log: true
   when: ssh_users_accounts_flag
 
 - name: Deploy security ssh keys
-  authorized_key: user="{{ item.0.username }}" key="{{ item.1 }}"
+  ansible.posix.authorized_key:
+    user: "{{ item.0.username }}"
+    key: "{{ item.1 }}"
   when:
     - item.0.state != "absent"
     - ssh_users_accounts_flag
   with_subelements:
-    - "{{security_users}}"
+    - "{{ security_users }}"
     - ssh_key
-  no_log: True
+  no_log: true
 
 - name: Ubuntu jenkins service key
-  authorized_key: user="ubuntu" key="{{item}}"
-  with_items: "{{jenkins_deploy_keys}}"
+  ansible.posix.authorized_key:
+    user: "ubuntu"
+    key: "{{ item }}"
+  with_items: "{{ jenkins_deploy_keys }}"
   when: ssh_users_system_flag

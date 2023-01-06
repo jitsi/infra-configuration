@@ -1,3 +1,6 @@
 ---
-- name: restart sshd for sshusers
-  service: name=ssh state=restarted enabled=yes
+- name: Restart sshd for sshusers
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+    enabled: true
