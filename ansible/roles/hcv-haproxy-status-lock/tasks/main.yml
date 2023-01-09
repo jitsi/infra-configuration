@@ -1,0 +1,13 @@
+---
+- name: Lock haproxy to freeze proxymonitor scan
+  ansible.builtin.file:
+    mode: 0644
+    path: '{{ hcv_haproxy_status_lock_file }}'
+    state: touch
+  when: hcv_haproxy_status_lock_action == 'lock'
+
+- name: Unlock haproxy to allow proxymonitor scan
+  ansible.builtin.file:
+    path: '{{ hcv_haproxy_status_lock_file }}'
+    state: absent
+  when: hcv_haproxy_status_lock_action == 'unlock'

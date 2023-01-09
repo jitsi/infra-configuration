@@ -1,0 +1,2 @@
+---
+haproxy_configure_log_dest: ../../test-results

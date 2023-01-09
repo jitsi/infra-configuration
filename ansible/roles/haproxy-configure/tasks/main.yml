@@ -1,0 +1,15 @@
+- name: Configure local haproxy # noqa ignore-errors no-changed-when
+  ansible.builtin.shell: /usr/local/bin/configure-haproxy.sh > /tmp/configure-haproxy.log 2>&1
+  ignore_errors: true
+  register: configure_result
+
+- name: Fetch configure logs
+  ansible.builtin.fetch:
+    src: /tmp/configure-haproxy.log
+    dest: "{{ haproxy_configure_log_dest }}/{{ ansible_hostname }}.log"
+    flat: true
+
+- name: Fail on reconfigure failure
+  ansible.builtin.fail:
+    msg: "Reconfiguration step failed on {{ ansible_hostname }}, check logs for details"
+  when: configure_result.rc != 0

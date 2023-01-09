@@ -1,0 +1,4 @@
+---
+hcv_environment: all
+hcv_haproxy_status_lock_file: '/tmp/haproxy-status.lock'
+hcv_haproxy_status_lock_action: 'unlock'

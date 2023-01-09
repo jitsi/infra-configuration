@@ -1,0 +1,21 @@
+[Unit]
+Description=HAProxy Load Balancer
+Documentation=man:haproxy(1)
+Documentation=file:/usr/share/doc/haproxy/configuration.txt.gz
+After=network.target syslog.service
+Wants=syslog.service
+
+[Service]
+Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid"
+EnvironmentFile=-/etc/default/haproxy
+ExecStartPre=/usr/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
+ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
+ExecReload=/bin/bash -c 'echo show servers state|socat {{ haproxy_stats_socket }} stdio > {{ haproxy_state_file }}'
+ExecReload=/bin/kill -USR2 $MAINPID
+ExecStop=/bin/bash -c 'echo show servers state|socat {{ haproxy_stats_socket }} stdio > {{ haproxy_state_file }}'
+
+KillMode=mixed
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
