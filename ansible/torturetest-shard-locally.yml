@@ -98,11 +98,13 @@
       args:
         chdir: "{{ jitsi_torture_path_tempdir.path }}"
       register: jitsi_torture_tenant_jwt_command_result
+      no_log: true
       when: torture_jwt_private_key[hcv_environment] is defined and prosody_muc_moderated_subdomains is defined
 
     - name: Set torture tenant JWT
       ansible.builtin.set_fact:
         jitsi_torture_tenant_jwt: "{{ jitsi_torture_tenant_jwt_command_result.stdout }}"
+      no_log: true
       when: jitsi_torture_tenant_jwt_command_result['skipped'] is not defined or not jitsi_torture_tenant_jwt_command_result.skipped
 
     - name: Changes torture path
