@@ -37,8 +37,9 @@
   gather_facts: true
   vars_files:
     - roles/jitsi-torture/defaults/main.yml
-    - environments/lonely/group_vars/all.yml
-    - environments/{{hcv_environment}}/group_vars/all.yml
+    - config/vars.yml
+    - sites/lonely/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
     - credentials/credentials-torture.yml
   tasks:
     - name: Create temporary build directory
