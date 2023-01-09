@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+function checkmeet {
+    sleep 30
+    "$@"
+    local exitcode=$?
+    echo "pass two, instance $2, exit code $exitcode"
+    if [ $exitcode -ne 0 ]; then
+        echo -e "There has been a problem with creating new conference on\n\n\t$2\n\nThe test script exited with code $exitcode for two consecutive times. Next test will occur in 10 minutes. Please investigate if needed." | EMAIL="Jitsi Meet Monitor <root@browsertest.jitsi.net>" mutt -s "$2 conference test failed" -a /tmp/$2-test-reports.zip -a /tmp/$2-to-mail.log -- $5
+        #/root/dump-jvb $3 $4 >> /tmp/dumps.log  2>&1
+    fi
+    return $exitcode
+}
+
+function testmeet {
+    "$@"
+    local exitcode=$?
+    echo "pass one, instance $2, exit code $exitcode"
+    if [ $exitcode -ne 0 ]; then
+        checkmeet $@
+        exitcode=$?
+    fi
+    return $exitcode
+}
+
+cd {{jitsi_torture_path}}
+
+testmeet ./test-runner.sh {{jitsi_torture_domain}} {{jitsi_torture_sitename}} jvb0.meet,jvb1.meet {{jitsi_torture_results_email}}

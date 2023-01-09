@@ -1,0 +1,12 @@
+{
+  "name": "auth0-authenticate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "auth0-authenticate.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "set-cookie-parser": "^2.4.7"
+  }
+}

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+function checkmeet {
+    "$@"
+    local exitcode=$?
+    echo " instance $2, exit code $exitcode"
+    if [ $exitcode -ne 0 ]; then
+        echo -e "There has been a problem with long conference on\n\n\t$2\n\nThe test script exited with code $exitcode. Please investigate if needed." | EMAIL="Jitsi Meet Monitor <root@browsertest.jitsi.net>" mutt -s "$2 long conference test failed" -a /tmp/$2-long-test-reports.zip -a /tmp/$2-long-to-mail.log -- $4
+        #/root/dump-jvb $3 >> /tmp/dumps-long.log  2>&1
+    fi
+    return $exitcode
+}
+
+function testmeet {
+    checkmeet $@
+    exitcode=$?
+    return $exitcode
+}
+
+cd {{jitsi_torture_path}}
+
+testmeet ./test-runner-long.sh {{jitsi_torture_domain}} {{jitsi_torture_sitename}} {{jitsi_torture_results_email}}

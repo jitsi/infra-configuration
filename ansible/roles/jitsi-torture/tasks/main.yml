@@ -1,0 +1,189 @@
+---
+
+- name: Install list of packages
+  ansible.builtin.apt:
+    name:
+      - git
+      - mc
+      - default-jdk
+      - google-chrome-stable
+      - google-chrome-unstable
+      - google-chrome-beta
+      - firefox
+      - xvfb
+      - zip
+      - ant
+      - maven
+      - mutt
+      - ssmtp
+      - imagemagick
+    state: present
+
+- name: Upgrade list of packages # noqa package-latest
+  ansible.builtin.apt:
+    name: ["google-chrome-stable", "google-chrome-beta", "google-chrome-unstable"]
+    state: latest
+
+- name: Configure Root Email for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "root={{ jitsi_torture_ssmtp_user }}"
+    regexp: ^root=
+
+- name: Configure MailHub for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "mailhub={{ jitsi_torture_ssmtp_mailhub }}"
+    regexp: ^mailhub=
+
+- name: Configure AuthUser for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "AuthUser={{ jitsi_torture_ssmtp_user }}"
+    regexp: ^AuthUser=
+
+- name: Configure AuthPass for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "AuthPass={{ jitsi_torture_ssmtp_pass }}"
+    regexp: ^AuthPass=
+
+- name: Configure FromLineOverride for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "FromLineOverride=YES"
+    regexp: ^FromLineOverride=
+
+- name: Configure UseTLS for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "UseTLS=Yes"
+    regexp: ^UseTLS=
+  when: jitsi_torture_ssmtp_use_tls
+- name: Configure UseSTARTTLS for ssmtp
+  ansible.builtin.lineinfile:
+    dest: "/etc/ssmtp/ssmtp.conf"
+    line: "UseSTARTTLS=Yes"
+    regexp: ^UseSTARTTLS=
+  when: jitsi_torture_ssmtp_use_tls
+
+- name: User creation
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups: "{{ item.groups | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ item.real_name }}"
+    home: "{{ jitsi_torture_homedir }}"
+    createhome: true
+    state: present
+  with_items: "{{ jitsi_torture_users }}"
+
+- name: Grant jitsitest iptables access
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^{{ item.username }}'
+    line: '{{ item.username }} ALL=NOPASSWD:/sbin/iptables'
+  with_items: "{{ jitsi_torture_users }}"
+
+- name: Torture directory
+  ansible.builtin.file:
+    mode: 0755
+    name: "{{ jitsi_torture_path }}/jitsi-meet-torture"
+    state: directory
+    owner: "{{ jitsi_torture_username }}"
+
+- name: Torture directory
+  ansible.builtin.file:
+    mode: 0755
+    name: "{{ jitsi_torture_path }}/jitsi-meet-torture-long"
+    state: directory
+    owner: "{{ jitsi_torture_username }}"
+
+- name: Pull torture test
+  ansible.builtin.git:
+    repo: "{{ jitsi_torture_git_repo }}"
+    version: "{{ jitsi_torture_git_branch }}"
+    dest: "{{ jitsi_torture_path }}/jitsi-meet-torture"
+
+- name: Pull long torture test
+  ansible.builtin.git:
+    repo: "{{ jitsi_torture_git_repo }}"
+    version: "{{ jitsi_torture_git_branch }}"
+    dest: "{{ jitsi_torture_path }}/jitsi-meet-torture-long"
+
+- name: Make torture test owned by test user
+  ansible.builtin.file:
+    mode: 0755
+    owner: "{{ jitsi_torture_username }}"
+    path: "{{ jitsi_torture_path }}"
+    state: directory
+
+  # set the PAM limits to allow more open files for JVB user
+- name: JVB file open limits # noqa no-tabs
+  ansible.builtin.copy:
+    mode: 0644
+    dest: "/etc/security/limits.d/{{ jitsi_torture_username }}.conf"
+    content: "{{ jitsi_torture_username }} - nofile 400000\n"
+- name: PAM common session applies limits # noqa no-tabs
+  ansible.builtin.lineinfile:
+    dest: /etc/pam.d/common-session
+    line: "session required\tpam_limits.so"
+- name: PAM common noninteractive-session applies limits # noqa no-tabs
+  ansible.builtin.lineinfile:
+    dest: /etc/pam.d/common-session-noninteractive
+    line: "session required\tpam_limits.so"
+
+- name: Xorg dummy configuration
+  ansible.builtin.copy:
+    src: "xorg-video-dummy.conf"
+    dest: "{{ jitsi_torture_path }}/xorg-video-dummy.conf"
+    mode: 0644
+
+- name: Script for keepalive run
+  ansible.builtin.copy:
+    src: "test-runner.sh"
+    dest: "{{ jitsi_torture_path }}/test-runner.sh"
+    mode: 0755
+- name: Script for long test run
+  ansible.builtin.copy:
+    src: "test-runner-long.sh"
+    dest: "{{ jitsi_torture_path }}/test-runner-long.sh"
+    mode: 0755
+- name: Script for complete test run
+  ansible.builtin.copy:
+    src: "test-runner-all.sh"
+    dest: "{{ jitsi_torture_path }}/test-runner-all.sh"
+    mode: 0755
+
+- name: Automated script to email keepalive test run
+  ansible.builtin.template:
+    src: "check.j2"
+    dest: "{{ jitsi_torture_keepalive_check_script }}"
+    mode: 0755
+
+- name: Automated script to email long test run
+  ansible.builtin.template:
+    src: "check-long.j2"
+    dest: "{{ jitsi_torture_longrunning_check_script }}"
+    mode: 0755
+
+- name: Cron job for keepalive test
+  ansible.builtin.cron:
+    user: "{{ jitsi_torture_username }}"
+    state: present
+    name: "keepalive test email"
+    minute: "{{ jitsi_torture_keepalive_cron.minute }}"
+    hour: "{{ jitsi_torture_keepalive_cron.hour }}"
+    job: "{{ jitsi_torture_keepalive_cron.job }}"
+  when: jitsi_torture_keeplive_cron_enabled
+
+- name: Cron job for longrunning test
+  ansible.builtin.cron:
+    user: "{{ jitsi_torture_username }}"
+    state: present
+    name: "longrunning test email"
+    minute: "{{ jitsi_torture_longrunning_cron.minute }}"
+    hour: "{{ jitsi_torture_longrunning_cron.hour }}"
+    job: "{{ jitsi_torture_longrunning_cron.job }}"
+  when: jitsi_torture_longrunning_cron_enabled
