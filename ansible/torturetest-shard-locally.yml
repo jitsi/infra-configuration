@@ -40,7 +40,7 @@
     - config/vars.yml
     - sites/lonely/vars.yml
     - sites/{{hcv_environment}}/vars.yml
-    - credentials/credentials-torture.yml
+    - secrets/torture.yml
   tasks:
     - name: Create temporary build directory
       ansible.builtin.tempfile:
