@@ -13,7 +13,7 @@ jitsi_torture_domain: "{{ test_xmpp_domain_name }}"
 jitsi_torture_exclude_tests:
 jitsi_torture_git_branch: 'master'
 jitsi_torture_git_repo: https://github.com/jitsi/jitsi-meet-torture.git
-jitsi_torture_grid_address: http://torture-test-us-phoenix-1-selenium-grid-validate.oracle.infra.jitsi.net:4444/wd/hub
+jitsi_torture_grid_address: http://yourgrid.example.com:4444/wd/hub
 jitsi_torture_groupname: "{{ jitsi_torture_username }}"
 jitsi_torture_homedir: "/home/{{ jitsi_torture_username }}"
 jitsi_torture_include_tests:
@@ -30,7 +30,7 @@ jitsi_torture_longrunning_cron:
   minute: "*"
 jitsi_torture_longrunning_cron_enabled: false
 jitsi_torture_path: /usr/share/jitsi-meet-torture
-jitsi_torture_results_email: "jimpdev@bluejimp.com,aaron.van.meerten@8x8.com"
+jitsi_torture_results_email: "admin@example.com"
 jitsi_torture_sitename: "{{ jitsi_torture_domain }}"
 jitsi_torture_ssmtp_mailhub: smtp.gmail.com:587
 jitsi_torture_ssmtp_pass: abc123
@@ -43,5 +43,7 @@ jitsi_torture_users:
     state: present
     username: "{{ jitsi_torture_username }}"
 test_xmpp_domain_name: "{{ hcv_domain }}"
+torture_github_token: replaceme
+torture_github_user: replaceme
 torture_longtest_duration: 350
 torture_longtest_only: true

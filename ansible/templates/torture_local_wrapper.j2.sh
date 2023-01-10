@@ -54,8 +54,8 @@ mvn test \
  -Dweb.participant3.isRemote=true \
  -Dweb.participant4.isRemote=true \
  -Dchrome.enable.headless=true \
- -Dwdm.gitHubTokenName=jitsi-jenkins \
- -Dwdm.gitHubTokenSecret=0efeda3d6a5dfa3feeeb5c42ef878c02614e0064 \
+ -Dwdm.gitHubTokenName={{ torture_github_user }} \
+ -Dwdm.gitHubTokenSecret={{ torture_github_token }} \
  -Djitsi-meet.instance.url="https://{{hcv_domain}}" \
  -DhostResolverRules="MAP {{hcv_domain}} {{shard_ip_address}}" \
  -DallowInsecureCerts=true \
