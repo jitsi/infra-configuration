@@ -17,6 +17,7 @@ jitsi_torture_grid_address: http://yourgrid.example.com:4444/wd/hub
 jitsi_torture_groupname: "{{ jitsi_torture_username }}"
 jitsi_torture_homedir: "/home/{{ jitsi_torture_username }}"
 jitsi_torture_include_tests:
+jitsi_torture_iframe_page: https://example.com
 jitsi_torture_keepalive_check_script: "{{ jitsi_torture_path }}/check-{{ jitsi_torture_domain }}"
 jitsi_torture_keepalive_cron:
   hour: "*"

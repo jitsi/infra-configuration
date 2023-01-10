@@ -59,7 +59,7 @@ mvn test \
  -Djitsi-meet.instance.url="https://{{hcv_domain}}" \
  -DhostResolverRules="MAP {{hcv_domain}} {{shard_ip_address}}" \
  -DallowInsecureCerts=true \
- -Dorg.jitsi.iframe.page_path="https://jenkins.jitsi.net" \
+ -Dorg.jitsi.iframe.page_path="{{ jitsi_torture_iframe_page }}" \
  -Dtest.report.directory=target/chrome-2-chrome \
  -Djitsi-meet.tests.toExclude=$TORTURE_EXCLUDE_TESTS \
  -Djitsi-meet.tests.toInclude=$TORTURE_INCLUDE_TESTS \
