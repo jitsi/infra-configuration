@@ -1,15 +1,24 @@
-- hosts: all
-  become: yes
+- name: Main
+  hosts: all
+  become: true
   become_user: root
   gather_facts: false
   tasks:
-  - name: copy clear shard state script
-    copy: src="roles/consul-signal/files/clear-shard-state-consul.sh" dest="/usr/local/bin/clear-shard-state-consul.sh" mode=0755 owner=root
-  - name: clear shard state
-    shell: /usr/local/bin/clear-shard-state-consul.sh
-  - name: clear signal report
-    shell: /usr/local/bin/clear-shard-state-consul.sh signal-report
-  - name: stop consul
-    service: name=consul state=stopped    
-  - name: stop nginx
-    service: name=nginx state=stopped
+  - name: Copy clear shard state script
+    ansible.builtin.copy:
+      src: "roles/consul-signal/files/clear-shard-state-consul.sh"
+      dest: "/usr/local/bin/clear-shard-state-consul.sh"
+      mode: 0755
+      owner: root
+  - name: Clear shard state # noqa no-changed-when
+    ansible.builtin.command: /usr/local/bin/clear-shard-state-consul.sh
+  - name: Clear signal report # noqa no-changed-when
+    ansible.builtin.command: /usr/local/bin/clear-shard-state-consul.sh signal-report
+  - name: Stop consul
+    ansible.builtin.service:
+      name: consul
+      state: stopped
+  - name: Stop nginx
+    ansible.builtin.service:
+      name: nginx
+      state: stopped
