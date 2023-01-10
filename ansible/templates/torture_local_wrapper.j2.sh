@@ -1,6 +1,6 @@
 #!/bin/bash
-SSH_CONFIG="{{ infra_path }}/environments/all/ssh.config"
-BLIP_SCRIPT="{{ infra_path }}/environments/all/bin/blip.sh"
+SSH_CONFIG="{{ infra_path }}/config/ssh.config"
+BLIP_SCRIPT="{{ infra_path }}/scripts/blip.sh"
 export BLIP_SSH="ssh -F $SSH_CONFIG -l {{ ansible_ssh_user }}"
 export TORTURE_EXCLUDE_TESTS="{{jitsi_torture_exclude_tests}}"
 export TORTURE_INCLUDE_TESTS="{{jitsi_torture_include_tests}}"
