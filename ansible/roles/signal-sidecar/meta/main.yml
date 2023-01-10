@@ -1,4 +1,16 @@
 ---
+galaxy_info:
+  role_name: signal_sidecar
+  author: Aaron van Meerten
+  description: install and configure signal sidecar
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
+
 dependencies:
-- { role: nodejs, when: signal_sidecar_install_flag }
-- { role: jitsi-repo, when: signal_sidecar_install_flag }
+  - { role: nodejs, when: signal_sidecar_install_flag }
+  - { role: jitsi-repo, when: signal_sidecar_install_flag }

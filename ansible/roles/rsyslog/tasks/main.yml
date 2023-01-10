@@ -27,7 +27,7 @@
     group: "{{ rsyslog_file_group }}"
     mode: "{{ rsyslog_file_mode }}"
   notify:
-    - restart rsyslog
+    - Restart rsyslog
   when: rsyslog_os_supported
 
 - name: Create additional configuration directory
@@ -46,19 +46,19 @@
   ansible.builtin.file:
     path: "{{ rsyslog_include_path }}/48-ship-syslog.conf"
     state: absent
-  notify: restart rsyslog
+  notify: Restart rsyslog
 
 - name: Remove routing by program
   ansible.builtin.file:
     path: "{{ rsyslog_include_path }}/46-routing-by-programname.conf"
     state: absent
-  notify: restart rsyslog
+  notify: Restart rsyslog
 
 - name: Remove rsyslog ship to syslog
   ansible.builtin.file:
     path: "{{ rsyslog_include_path }}/46-ship-syslog.conf"
     state: absent
-  notify: restart rsyslog
+  notify: Restart rsyslog
 
 - name: Create directory for local logs
   tags:
@@ -76,7 +76,7 @@
     path: "{{ rsyslog_include_path }}/48-routing-by-programname.conf"
     state: absent
   notify:
-    - restart rsyslog
+    - Restart rsyslog
 
 - name: Configure apparmor to enable rsyslog TCP server
   ansible.builtin.template:
@@ -86,7 +86,7 @@
     group: root
     mode: 0600
   notify:
-    - reload apparmor
+    - Reload apparmor
 
 - name: Enable service
   tags:

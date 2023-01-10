@@ -2,7 +2,8 @@
 # Setup tasks
 
 - name: Fail_Fast if non-Ubuntu debian
-  fail: msg="We do not currently support your distribution"
+  ansible.builtin.fail:
+    msg: "We do not currently support your distribution"
   when: ansible_os_family == "Debian" and ansible_distribution != "Ubuntu"
   tags:
     - install
@@ -11,7 +12,7 @@
     - failfast
 
 - name: Install WaveFront Repositories
-  include_tasks: "packages/{{ ansible_os_family }}.yml"
+  ansible.builtin.include_tasks: "packages/{{ ansible_os_family }}.yml"
   when: wavefront_install_proxy or wavefront_install_collector
   tags:
     - prereqs
@@ -20,7 +21,7 @@
     - redhat
 
 - name: Install Wavefront Proxy
-  include_tasks: proxy/configure.yml
+  ansible.builtin.include_tasks: proxy/configure.yml
   when: wavefront_install_proxy
   tags:
     - install
@@ -29,7 +30,7 @@
     - redhat
 
 - name: Install collector (telegraf)
-  include_tasks: telegraf/configure.yml
+  ansible.builtin.include_tasks: telegraf/configure.yml
   when: wavefront_install_collector
   tags:
     - install
@@ -38,7 +39,7 @@
     - redhat
 
 - name: Configure collector (telegraf)
-  include_tasks: telegraf/configure_no_install.yml
+  ansible.builtin.include_tasks: telegraf/configure_no_install.yml
   when: wavefront_configure_collector
   tags:
     - install
@@ -47,7 +48,7 @@
     - redhat
 
 - name: Install wave cli (as well)
-  pip:
+  ansible.builtin.pip:
     name: "{{ wavefront_pip_pkg }}"
     umask: "0022"
   when: wavefront_install_proxy or wavefront_install_collector

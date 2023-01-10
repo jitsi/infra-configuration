@@ -1,3 +1,5 @@
 ---
-- name: restart jiconop
-  service: name=jiconop state=restarted
+- name: Restart jiconop
+  ansible.builtin.service:
+    name: jiconop
+    state: restarted

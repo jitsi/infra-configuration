@@ -1,0 +1,165 @@
+---
+- name: Debug output
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - config/vars.yml
+  vars:
+    ec2_object_name: "torture.lonely.jitsi.net"
+  tasks:
+    - name: Debug output
+      ansible.builtin.debug:
+        var: torture_longtest_only
+    - name: Debug output
+      ansible.builtin.debug:
+        var: torture_longtest_duration
+    - name: Debug output
+      ansible.builtin.debug:
+        var: hcv_domain
+    - name: Debug output
+      ansible.builtin.debug:
+        var: shard_name
+    - name: Debug output
+      ansible.builtin.debug:
+        var: shard_ip_address
+    - name: Debug output
+      ansible.builtin.debug:
+        var: test_id
+    - name: Debug output
+      ansible.builtin.debug:
+        var: ec2_torture_image_id
+
+# Section for the tests execution
+- name: Setup to run torture tests
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars_files:
+    - roles/jitsi-torture/defaults/main.yml
+    - config/vars.yml
+    - sites/lonely/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+    - secrets/torture.yml
+  tasks:
+    - name: Create temporary build directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: build
+      register: jitsi_torture_path_tempdir
+    - name: Pull torture test
+      ansible.builtin.git:
+        repo: "{{ jitsi_torture_git_repo }}"
+        version: "{{ jitsi_torture_git_branch }}"
+        dest: "{{ jitsi_torture_path_tempdir.path }}/jitsi-meet-torture"
+
+    - name: Copy jwt private key
+      ansible.builtin.copy:
+        mode: 0600
+        content: "{{ torture_jwt_private_key[hcv_environment].content }}"
+        dest: "{{ jitsi_torture_path_tempdir.path }}/{{ torture_jwt_private_key[hcv_environment].name }}"
+      when: torture_jwt_private_key[hcv_environment] is defined
+
+    - name: Copy jwt generate script
+      ansible.builtin.copy:
+        mode: 0644
+        src: "roles/jitsi-torture/files/generate-jwt.js"
+        dest: "{{ jitsi_torture_path_tempdir.path }}"
+      when: torture_jwt_private_key[hcv_environment] is defined
+
+    - name: Install dependencies # noqa no-changed-when
+      ansible.builtin.command: npm install jsonwebtoken@8.5.1
+      args:
+        chdir: "{{ jitsi_torture_path_tempdir.path }}"
+
+    - name: Copy auth0 authenticate script
+      ansible.builtin.copy:
+        mode: 0644
+        src: "roles/jitsi-torture/files/auth0-authenticate/auth0-authenticate.js"
+        dest: "{{ jitsi_torture_path_tempdir.path }}"
+      when: torture_auth0_credentials[hcv_environment] is defined
+
+    - name: Copy auth0 authenticate package.json
+      ansible.builtin.copy:
+        mode: 0644
+        src: "roles/jitsi-torture/files/auth0-authenticate/package.json"
+        dest: "{{ jitsi_torture_path_tempdir.path }}"
+      when: torture_auth0_credentials[hcv_environment] is defined
+
+    - name: Install auth0 authenticate dependencies
+      ansible.builtin.command: npm install
+      args:
+        chdir: "{{ jitsi_torture_path_tempdir.path }}"
+      when: torture_auth0_credentials[hcv_environment] is defined
+
+    - name: Generate token
+      ansible.builtin.command: node generate-jwt.js
+         {{ jitsi_torture_path_tempdir.path }}/{{ torture_jwt_private_key[hcv_environment].name }} '{{ prosody_muc_moderated_subdomains | first }}'
+      args:
+        chdir: "{{ jitsi_torture_path_tempdir.path }}"
+      register: jitsi_torture_tenant_jwt_command_result
+      no_log: true
+      when: torture_jwt_private_key[hcv_environment] is defined and prosody_muc_moderated_subdomains is defined
+
+    - name: Set torture tenant JWT
+      ansible.builtin.set_fact:
+        jitsi_torture_tenant_jwt: "{{ jitsi_torture_tenant_jwt_command_result.stdout }}"
+      no_log: true
+      when: jitsi_torture_tenant_jwt_command_result['skipped'] is not defined or not jitsi_torture_tenant_jwt_command_result.skipped
+
+    - name: Changes torture path
+      ansible.builtin.set_fact:
+        jitsi_torture_path: "{{ jitsi_torture_path_tempdir.path }}/jitsi-meet-torture"
+
+    - name: Fill in credentials json in a tmp file
+      ansible.builtin.copy:
+        mode: 0600
+        content: "{{ torture_auth0_credentials[hcv_environment].content }}"
+        dest: "{{ jitsi_torture_path_tempdir.path }}/credentials.json"
+      when: torture_auth0_credentials[hcv_environment] is defined
+
+    - name: Get credentials for torture auth0 tests
+      ansible.builtin.command: node auth0-authenticate.js {{ jitsi_torture_path_tempdir.path }}/credentials.jsons
+      args:
+        chdir: "{{ jitsi_torture_path_tempdir.path }}"
+      register: jitsi_torture_auth0_jwt_command_result
+      no_log: true
+      when: torture_auth0_credentials[hcv_environment] is defined
+
+    - name: Set torture auth0 JWT
+      ansible.builtin.set_fact:
+        jitsi_torture_auth0_jwts: "{{ jitsi_torture_auth0_jwt_command_result.stdout | to_json }}"
+      no_log: true
+      when: jitsi_torture_auth0_jwt_command_result['skipped'] is not defined or not jitsi_torture_auth0_jwt_command_result.skipped
+
+    - name: Deploy wrapper that executes test
+      tags: "torture_run"
+      ansible.builtin.template:
+        src: templates/torture_local_wrapper.j2.sh
+        dest: "{{ jitsi_torture_path_tempdir.path }}/torture_wrapper.sh"
+        mode: 0744
+
+    - name: Run torture application, that runs the tests # noqa no-changed-when ignore-errors
+      tags: "torture_run"
+      ansible.builtin.command: ./torture_wrapper.sh chdir="{{ jitsi_torture_path_tempdir.path }}"
+      ignore_errors: true
+
+    - name: Fetch test results # noqa ignore-errors
+      ansible.builtin.fetch:
+        src: "{{ jitsi_torture_path_tempdir.path }}/test-reports.zip"
+        dest: "../../test-results/{{ test_id }}/torture_test-{{ test_id }}-test-reports.zip"
+        flat: true
+      ignore_errors: true
+
+    - name: Fetch results # noqa ignore-errors
+      ansible.builtin.fetch:
+        src: "{{ jitsi_torture_path_tempdir.path }}/torture.log"
+        dest: "../../test-results/{{ test_id }}/torture_test.log"
+        flat: true
+      ignore_errors: true
+
+    - name: Delete tmp folder
+      ansible.builtin.file:
+        path: "{{ jitsi_torture_path_tempdir.path }}"
+        state: absent
+      when: jitsi_torture_path_tempdir.path is defined

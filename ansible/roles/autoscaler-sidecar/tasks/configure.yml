@@ -1,6 +1,10 @@
 ---
 - name: Register installed sidecar software version
-  ansible.builtin.command: "{{ autoscaler_sidecar_instance_version_command }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    {{ autoscaler_sidecar_instance_version_command }}
+  args:
+    executable: /bin/bash
   register: autoscaler_sidecar_instance_version_shell
   when: (autoscaler_sidecar_instance_version_command | length) > 0
 

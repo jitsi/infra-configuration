@@ -3,7 +3,7 @@ signal_sidecar_configure_flag: true
 signal_sidecar_census_enabled: true
 signal_sidecar_deb_pkg_name: "signal-sidecar"
 signal_sidecar_deb_pkg_version: "*"
-signal_sidecar_domain_name: "{{prosody_domain_name|default('localhost')}}"
+signal_sidecar_domain_name: "{{ prosody_domain_name | default('localhost') }}"
 signal_sidecar_enabled: true
 signal_sidecar_install_flag: true
 signal_sidecar_log_dir: "/var/log/jitsi"

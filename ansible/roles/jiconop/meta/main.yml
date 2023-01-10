@@ -1,4 +1,15 @@
 ---
+galaxy_info:
+  role_name: jiconop
+  author: Aaron van Meerten
+  description: install and configure jiconop
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
-- { role: nodejs, when: jiconop_install_flag }
-- { role: jitsi-repo, when: jiconop_install_flag }
+  - { role: nodejs, when: jiconop_install_flag }
+  - { role: jitsi-repo, when: jiconop_install_flag }

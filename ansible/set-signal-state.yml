@@ -1,0 +1,22 @@
+- name: Main
+  hosts: all
+  become: true
+  become_user: root
+  gather_facts: false
+  vars:
+    shard_state: drain
+  tasks:
+    - name: Set signal shard state
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ shard_state }}"
+        dest: "/etc/jitsi/shard-status"
+
+    - name: Copy set shard state script
+      ansible.builtin.copy:
+        src: "roles/consul-signal/files/set-shard-state-consul.sh"
+        dest: "/usr/local/bin/set-shard-state-consul.sh"
+        mode: 0755
+        owner: root
+    - name: Set consul shard state # noqa no-changed-when
+      ansible.builtin.command: /usr/local/bin/set-shard-state-consul.sh {{ shard_state }}

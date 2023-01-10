@@ -1,0 +1,33 @@
+- name: Main
+  hosts: tag_shard_role_haproxy
+  become: true
+  become_user: root
+  gather_facts: false
+  strategy: free
+  pre_tasks:
+    - name: Wait for ssh to come up
+      ansible.builtin.wait_for:
+        port: 22
+        timeout: 300
+        state: started
+        search_regex: OpenSSH
+      register: response
+      until: response
+      retries: 60
+      delay: 5
+    - name: Wait up to 30 minutes for cloud-init to finish
+      community.general.cloud_init_data_facts:
+        filter: status
+      register: res
+      until: "res.cloud_init_data_facts.status.v1.stage is defined and not res.cloud_init_data_facts.status.v1.stage"
+      retries: 360
+      delay: 5
+    - name: Gather hostname # noqa no-changed-when
+      ansible.builtin.command: hostname
+      register: hostname_output
+    - name: Set hostname fact
+      ansible.builtin.set_fact:
+        ansible_hostname: "{{ hostname_output.stdout }}"
+  roles:
+    # first reconfigure the haproxy and reload it
+    - { role: "haproxy-configure", tags: "haproxy-configure"}

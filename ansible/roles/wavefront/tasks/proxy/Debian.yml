@@ -1,8 +1,8 @@
 ---
 - name: Install Wavefront Proxy (Ubuntu)
-  apt:
+  ansible.builtin.apt:
     name: "{{ wavefront_proxy_pkg }}={{ wavefront_proxy_version }}"
-    state: "{{ wavefront_pkg_state }}"
+    state: present
   register: result
   until: result is succeeded
   tags:

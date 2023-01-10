@@ -1,0 +1,50 @@
+---
+hcv_domain: "lonely.jitsi.net"
+jitsi_malleus_audio_senders: 2
+jitsi_malleus_conferences: 1
+jitsi_malleus_duration: 120
+jitsi_malleus_join_delay: 0
+jitsi_malleus_max_disrupted_bridges_pct: 0.5
+jitsi_malleus_participants: 2
+jitsi_malleus_use_load_test: false
+jitsi_malleus_video_senders: 2
+jitsi_torture_docker: false
+jitsi_torture_domain: "{{ test_xmpp_domain_name }}"
+jitsi_torture_exclude_tests:
+jitsi_torture_git_branch: 'master'
+jitsi_torture_git_repo: https://github.com/jitsi/jitsi-meet-torture.git
+jitsi_torture_grid_address: http://yourgrid.example.com:4444/wd/hub
+jitsi_torture_groupname: "{{ jitsi_torture_username }}"
+jitsi_torture_homedir: "/home/{{ jitsi_torture_username }}"
+jitsi_torture_include_tests:
+jitsi_torture_iframe_page: https://example.com
+jitsi_torture_keepalive_check_script: "{{ jitsi_torture_path }}/check-{{ jitsi_torture_domain }}"
+jitsi_torture_keepalive_cron:
+  hour: "*"
+  job: "{{ jitsi_torture_keepalive_check_script }} > /tmp/keepalive-cron-output 2>&1"
+  minute: "*/10"
+jitsi_torture_keeplive_cron_enabled: false
+jitsi_torture_longrunning_check_script: "{{ jitsi_torture_path }}/check-long-{{ jitsi_torture_domain }}"
+jitsi_torture_longrunning_cron:
+  hour: "*/6"
+  job: "{{ jitsi_torture_longrunning_check_script }} > /tmp/longrunning-cron-output 2>&1"
+  minute: "*"
+jitsi_torture_longrunning_cron_enabled: false
+jitsi_torture_path: /usr/share/jitsi-meet-torture
+jitsi_torture_results_email: "admin@example.com"
+jitsi_torture_sitename: "{{ jitsi_torture_domain }}"
+jitsi_torture_ssmtp_mailhub: smtp.gmail.com:587
+jitsi_torture_ssmtp_pass: abc123
+jitsi_torture_ssmtp_use_tls: true
+jitsi_torture_ssmtp_user: keepalivetests@gmail.com
+jitsi_torture_username: jitsitest
+jitsi_torture_users:
+  - groups: ["adm", "audio", "video", "plugdev"]
+    real_name: Jitsi Test User
+    state: present
+    username: "{{ jitsi_torture_username }}"
+test_xmpp_domain_name: "{{ hcv_domain }}"
+torture_github_token: replaceme
+torture_github_user: replaceme
+torture_longtest_duration: 350
+torture_longtest_only: true

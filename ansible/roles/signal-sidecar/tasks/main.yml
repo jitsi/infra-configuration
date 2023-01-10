@@ -1,10 +1,12 @@
 ---
-- include_tasks: install.yml
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
   when:
     - signal_sidecar_install_flag
     - signal_sidecar_enabled
 
-- include_tasks: configure.yml
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
   when:
     - signal_sidecar_configure_flag
     - signal_sidecar_enabled

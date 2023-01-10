@@ -1,15 +1,15 @@
 ---
 security_additional_groups: []
-security_users: "{{ssh_users_security}}"
+security_users: "{{ ssh_users_security }}"
 # How to manage users
-#ssh_users:
+# ssh_users:
 #  - username: vfedorov
 #    groups: ["sshsudousers"]
 #    real_name: Vadym Fedorov
 #    state: absent
 #    ssh_key:
 #      - "ssh-rsa AAAA....Q== vfedorov@spider"
-ssh_users: "{{ssh_users_jitsi}}"
+ssh_users: "{{ ssh_users_jitsi }}"
 ssh_users_config_flag: true
 ssh_users_accounts_flag: true
 ssh_users_system_flag: true
