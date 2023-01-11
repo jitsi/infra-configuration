@@ -7,7 +7,7 @@
 - name: User creation
   ansible.builtin.user:
     name: "{{ jvb_rtcstats_user.username }}"
-    groups: "{{ jvb_rtcstats_user.groups | join(',')}}"
+    groups: "{{ jvb_rtcstats_user.groups | join(',') }}"
     shell: /bin/bash
     comment: "{{ jvb_rtcstats_user.real_name }}"
     home: "{{ jvb_rtcstats_user.homedir }}"
@@ -15,9 +15,15 @@
     state: present
 
 - name: Code Directory
-  ansible.builtin.file: path={{ jvb_rtcstats_push_base_path }} state=directory owner={{ jvb_rtcstats_push_username }} group={{jvb_rtcstats_push_groupname}} recurse=yes
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jvb_rtcstats_push_base_path }}"
+    state: directory
+    owner: "{{ jvb_rtcstats_push_username }}"
+    group: "{{ jvb_rtcstats_push_groupname }}"
+    recurse: true
 
-- name: Check out codebase
+- name: Check out codebase # noqa latest[git]
   become: true
   become_user: "{{ jvb_rtcstats_push_username }}"
   ansible.builtin.git:
@@ -27,7 +33,7 @@
     force: true
     accept_hostkey: true
 
-- name: Install npm Requirements
+- name: Install npm Requirements # noqa no-changed-when
   ansible.builtin.command: npm install
   become: true
   become_user: "{{ jvb_rtcstats_push_username }}"
@@ -35,10 +41,19 @@
     chdir: "{{ jvb_rtcstats_push_base_path }}"
 
 - name: Application configuration directory
-  ansible.builtin.file: path={{ jvb_rtcstats_push_config_dir }} state=directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jvb_rtcstats_push_config_dir }}"
+    state: directory
 
 - name: Application log directory
-  ansible.builtin.file: path={{ jvb_rtcstats_push_log_dir }} state=directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jvb_rtcstats_push_log_dir }}"
+    state: directory
 
 - name: Create rsyslog configuration
-  ansible.builtin.template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/26-jvb-rtcstats-push.conf
+  ansible.builtin.template:
+    mode: 0644
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/26-jvb-rtcstats-push.conf
