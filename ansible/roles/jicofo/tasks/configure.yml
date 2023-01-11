@@ -24,11 +24,13 @@
 - service: name=jicofo state=started enabled=yes
   register: jicofoservice
 
-- lineinfile: 
+- name: Jicofo stats cron allow
+  ansible.builtin.lineinfile:
+    mode: 0644
     path: /etc/cron.allow
-    regexp: "^{{jicofo_stats_cron_user}}"
-    line: "{{jicofo_stats_cron_user}}"
-    create: yes 
+    regexp: "^{{ jicofo_stats_cron_user }}"
+    line: "{{ jicofo_stats_cron_user }}"
+    create: true
   when: jicofo_enable_stats
 
 # Run the the health checker regularly
@@ -46,11 +48,13 @@
   copy: src=jicofo-health.sh dest=/usr/local/bin/jicofo-health.sh mode=755 owner=root
   when: jicofo_enable_health
 
-- lineinfile: 
+- name: Jicofo stats cron allow
+  ansible.builtin.lineinfile:
+    mode: 0644
     path: /etc/cron.allow
-    regexp: "^{{jicofo_health_cron_user}}"
-    line: "{{jicofo_health_cron_user}}"
-    create: yes 
+    regexp: "^{{ jicofo_health_cron_user }}"
+    line: "{{ jicofo_health_cron_user }}"
+    create: true
   when: jicofo_enable_health
 
 # Run the the health checker regularly
