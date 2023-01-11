@@ -11,9 +11,9 @@
     cloud_provider: oracle
   pre_tasks:
     # pause 10 seconds before updating, to ensure that everything is ready to roll
-    - name: Pause for 60
+    - name: Pause for 300
       ansible.builtin.pause:
-        seconds: 60
+        seconds: 300
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
