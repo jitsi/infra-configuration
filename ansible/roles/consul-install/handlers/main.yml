@@ -3,4 +3,3 @@
   ansible.builtin.service:
     name: rsyslog
     state: restarted
-  when: rsyslog_template.changed
