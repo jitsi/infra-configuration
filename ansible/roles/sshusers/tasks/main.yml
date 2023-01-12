@@ -23,13 +23,13 @@
   ansible.builtin.group:
     name: sshsudousers
     state: present
-  when: ssh_users_config_flag
+  when: ssh_users_accounts_flag
 
 - name: Remove sshusers sudoers
   ansible.builtin.file:
     path: "/etc/sudoers.d/sshusers"
     state: "absent"
-  when: ssh_users_config_flag
+  when: ssh_users_accounts_flag
 
 - name: Create sudoers
   ansible.builtin.template:
@@ -39,7 +39,7 @@
     owner: root
     group: root
     validate: "/usr/sbin/visudo -cf %s"
-  when: ssh_users_config_flag
+  when: ssh_users_accounts_flag
 
 - name: Configure device42 sudoers
   ansible.builtin.template:
