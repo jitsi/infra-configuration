@@ -16,7 +16,7 @@
 
 - name: Code Directory
   ansible.builtin.file:
-    mode: 0750
+    mode: 0755
     path: "{{ autoscaler_base_path }}"
     state: directory
     owner: "{{ autoscaler_username }}"
@@ -60,13 +60,13 @@
 
 - name: Application configuration directory
   ansible.builtin.file:
-    mode: 0750
+    mode: 0755
     path: "{{ autoscaler_config_dir }}"
     state: directory
 
 - name: Application log directory
   ansible.builtin.file:
-    mode: 0750
+    mode: 0755
     path: "{{ autoscaler_log_dir }}"
     state: directory
     owner: "{{ autoscaler_username }}"

@@ -1,0 +1,10 @@
+---
+- name: Main
+  hosts: all
+  become_user: root
+  become: true
+  gather_facts: true
+  vars_files:
+    - secrets/ssh-users.yml
+  roles:
+    - { role: "sshusers", tags: "users", ssh_users_accounts_flag: true, ssh_users_config_flag: false }

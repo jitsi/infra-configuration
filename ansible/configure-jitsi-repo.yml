@@ -1,0 +1,10 @@
+---
+- name: Main
+  hosts: all
+  become_user: root
+  become: true
+  gather_facts: true
+  vars_files:
+    - secrets/repo.yml
+  roles:
+    - { role: "jitsi-repo", tags: "repo" }
