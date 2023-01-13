@@ -4,14 +4,14 @@
     name: fail2ban
     install_recommends: true
     state: present
-  notify: restart fail2ban
+  notify: Restart fail2ban
 
 - name: Make fail2ban sshd aggressive
   ansible.builtin.lineinfile:
     path: /etc/fail2ban/jail.conf
     regexp: '^#mode   = normal'
     line: 'mode   = aggressive'
-  notify: restart fail2ban
+  notify: Restart fail2ban
 
 - name: Start fail2ban at boot
   ansible.builtin.service:
