@@ -1,4 +1,15 @@
 ---
+galaxy_info:
+  role_name: jicofo
+  author: Aaron van Meerten
+  description: install and configure jicofo
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
-- { role: jitsi-repo, when: jicofo_install_flag }
-- { role: openjdk-java, when: jicofo_install_flag }
+  - { role: jitsi-repo, when: jicofo_install_flag }
+  - { role: openjdk-java, when: jicofo_install_flag }

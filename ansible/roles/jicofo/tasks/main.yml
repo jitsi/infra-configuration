@@ -1,6 +1,8 @@
 ---
-- include_tasks: install.yml
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
   when: jicofo_install_flag
 
-- include_tasks: configure.yml
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
   when: jicofo_configure_flag

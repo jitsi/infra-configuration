@@ -1,4 +1,6 @@
 ---
-- name: restart jicofo
-  service: name=jicofo state=restarted
-  when: (jicofoservice.changed == false) and (jicofo_configure_flag == true)
+- name: Restart jicofo
+  ansible.builtin.service:
+    name: jicofo
+    state: restarted
+  when: not jicofoservice.changed and jicofo_configure_flag
