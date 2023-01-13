@@ -7,6 +7,7 @@ hcv_environment: all
 jaas_feedback_metadata_url: false
 # URL for branding to redirect users to standalone offering
 jitsi_meet_8x8_video_meetings_url: false
+jitsi_meet_custom_landing_page_url: false
 jitsi_meet_amplitude_api_key: false
 jitsi_meet_analytics_whitelist: false
 jitsi_meet_anonymize_logs: false
@@ -80,9 +81,19 @@ jitsi_meet_edge_extension_banner_url: false
 jitsi_meet_chrome_extension_info: false
 jitsi_meet_close_page_enabled: false
 jitsi_meet_close_page_redirect_url: false
+jitsi_meet_colibri_proxy_enabled: "{{ jvb_colibri_proxy_enabled | default(false) }}"
+# match only 10.52 and 10.53 by default (lonely CIDRs) overridden for each environment
+jitsi_meet_colibri_proxy_second_octet_regexp: "{{ jvb_colibri_proxy_second_octet_regexp | default('5[2-3]') }}"
+# match 64-127
+jitsi_meet_colibri_proxy_third_octet_regexp: "{{ jvb_colibri_proxy_third_octet_regexp | default('6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7]') }}"
+# match 0-255
+jitsi_meet_colibri_proxy_fourth_octet_regexp: "{{ jvb_colibri_proxy_fourth_octet_regexp | default('25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?') }}"
+
 jitsi_meet_conference_info_overwrite: false
 jitsi_meet_conference_info_visible: "[ 'recording', 'local-recording', 'raised-hands-count' ]"
 jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee', 'transcribing', 'video-quality', 'insecure-room' ]"
+jitsi_meet_conference_request_host: "{{prosody_domain_name}}"
+jitsi_meet_conference_request_path: "conference-request/v1"
 jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090)}}"
 jitsi_meet_config_path: "/etc/jitsi/meet"
 jitsi_meet_configure_flag: true
@@ -101,6 +112,7 @@ jitsi_meet_e2eping_enabled: false
 jitsi_meet_enable_calendar: false
 jitsi_meet_enable_callstats: false
 jitsi_meet_enable_colibri_websockets: false
+jitsi_meet_enable_conference_request_http: false
 jitsi_meet_enable_email_in_stats: false
 jitsi_meet_enable_event_proxy: true
 jitsi_meet_enable_face_landmarks_enable_centering: false
@@ -125,7 +137,6 @@ jitsi_meet_enable_lock_room_for_all: false
 jitsi_meet_enable_lock_room_ten_digits: false
 jitsi_meet_enable_multi_domain: false
 jitsi_meet_enable_p2p: false
-jitsi_meet_enable_p2p_h264: false
 #A/B test ratio: controls whether to suspend video in p2p when connectivity issue are detected
 jitsi_meet_enable_p2p_suspend_video_test: false
 jitsi_meet_enable_p2p_turn: false
@@ -134,14 +145,12 @@ jitsi_meet_enable_room_api: false
 jitsi_meet_enable_sanitize_hack: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
-jitsi_meet_enable_shared_document: false
-jitsi_meet_enable_simulcast: false
+jitsi_meet_enable_simulcast: true
 jitsi_meet_enable_source_name_signaling: false
 jitsi_meet_enable_ss_resolution_constraints: true
 jitsi_meet_enable_ssrc_rewriting: false
 jitsi_meet_disable_stage_filmstrip: false
 jitsi_meet_enable_stereo: false
-jitsi_meet_enable_thumbnail_reordering: true
 jitsi_meet_enable_transcription: false
 jitsi_meet_enable_turn_udp_jvb: false
 jitsi_meet_enable_unified_plan_chromium: true
@@ -151,9 +160,6 @@ jitsi_meet_enable_user_roles_based_on_token: false
 jitsi_meet_enable_welcome_page: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
-jitsi_meet_etherpad_base: "https://{{ jitsi_meet_etherpad_host }}/etherpad/p/"
-jitsi_meet_etherpad_host: "{{jitsi_meet_bosh_host}}"
-jitsi_meet_etherpad_proxy_pass: "https://etherpad.jitsi.net:9001"
 jitsi_meet_feedback_percentage: 100
 # "Math.random() < forceJVB121Ratio" determines whether a 1:1 call should be
 # moved to the JVB (after a successful P2P connection). Math.random()
@@ -176,6 +182,7 @@ jitsi_meet_hepop_analytics_urls_by_environment_type:
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
 jitsi_meet_jiconop_enabled: true
+jitsi_meet_jvb_disabled_codec: "H264"
 jitsi_meet_last_n_limits: false
 jitsi_meet_load_test_enabled: false
 jitsi_meet_load_test_repo: https://github.com/jitsi/jitsi-meet-load-test.git
@@ -188,13 +195,15 @@ jitsi_meet_nginx_only_flag: false
 jitsi_meet_nginx_redirect_missing_flag: false
 jitsi_meet_nginx_redirect_url: https://hipchat.com/
 jitsi_meet_nginx_root: "/usr/share/{{jitsi_meet_branding_override}}"
+# Our networks and cloudflare (cloudflare ranges come from https://www.cloudflare.com/en-gb/ips/)
+jitsi_meet_nginx_trusted_proxies: ["127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32", "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"]
 jitsi_meet_nginx_ws_timeout: false
 jitsi_meet_no_audio_detection_enabled: true
 jitsi_meet_no_auto_local_audio: false
 jitsi_meet_noisy_mic_detection_enabled: true
 jitsi_meet_opus_red_enabled: false
 jitsi_meet_override_plugin_contents: ""
-jitsi_meet_p2p_disabled_codec: null
+jitsi_meet_p2p_disabled_codec: "H264"
 jitsi_meet_p2p_preferred_codec: "VP9"
 jitsi_meet_people_search_query_types: "['user','conferenceRooms']"
 jitsi_meet_performance_stats: false
@@ -291,9 +300,10 @@ jitsi_meet_stun_hosts:
 jitsi_meet_talk_while_muted_enabled: true
 jitsi_meet_title_metadata_override: false
 jitsi_meet_toolbar_buttons_filter: []
-jitsi_meet_use_new_bitrate_allocation_strategy: false
 jitsi_meet_user_documentation_url: false
 jitsi_meet_video_quality: false
+jitsi_meet_visitors_enabled: false
+jitsi_meet_visitors_count: 0
 jitsi_meet_web_version: false
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
@@ -304,3 +314,19 @@ jitsi_meet_ws_url: "{{jitsi_meet_ws_protocol}}{{jitsi_meet_ws_host}}/{{jitsi_mee
 jitsi_meet_xmpp_domain_name: "{{ prosody_domain_name }}"
 jitsi_release_number: ''
 shard_name: "{{ hcv_environment }}"
+# start deeplinking config
+jitsi_meet_desktop_app_name: "Jitsi Meet"
+jitsi_meet_mobile_app_name: "Jitsi Meet"
+jitsi_meet_ios_download_link: "https://itunes.apple.com/us/app/jitsi-meet/id1165103905"
+jitsi_meet_android_download_link: "https://play.google.com/store/apps/details?id=org.jitsi.meet"
+jitsi_meet_f_droid_url: "https://f-droid.org/en/packages/org.jitsi.meet/"
+jitsi_meet_android_app_package: "org.jitsi.meet"
+jitsi_meet_app_scheme: "org.jitsi.meet"
+jitsi_meet__deeplink_hide_logo: false
+jitsi_meet_deeplink_show_image: false
+jitsi_meet_dynamic_linking:
+    apn: "org.jitsi.meet"
+    appCode: "w2atb"
+    ibi: "com.atlassian.JitsiMeet.ios"
+    isi: "1165103905"
+# end deeplinking config
