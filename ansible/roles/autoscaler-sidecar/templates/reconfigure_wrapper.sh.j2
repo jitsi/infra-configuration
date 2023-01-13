@@ -1,3 +1,6 @@
 #!/bin/bash
+#first wait for cloud init to finish
+cloud-init status --wait
+#run reconfiguration script
 sudo {{autoscaler_reconfigure_script}}
 exit $?
