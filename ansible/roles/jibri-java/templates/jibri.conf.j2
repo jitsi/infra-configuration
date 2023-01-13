@@ -6,7 +6,7 @@ jibri {
         finalize-script = "{{jibri_finalize_recording_script}}"
     }
     webhook {
-      subscribers = [{% if jibri_queue_webhook %}"{{ jibri_queue_webhook }}"{% endif %}{% if jibri_sidecar_webhook %}{% if jibri_queue_webhook %},{% endif %}"{{ jibri_sidecar_webhook }}"{% endif %}{% if sip_jibri_sidecar_webhook %}{% if jibri_queue_webhook or jibri_sidecar_webhook %},{% endif %}"{{ sip_jibri_sidecar_webhook }}"{% endif %}]
+      subscribers = [{% if jibri_sidecar_webhook %}"{{ jibri_sidecar_webhook }}"{% endif %}{% if sip_jibri_sidecar_webhook %}{% if jibri_sidecar_webhook %},{% endif %}"{{ sip_jibri_sidecar_webhook }}"{% endif %}]
     }
     jwt-info {
         signing-key-path = "{{jibri_asap_key_path}}"
