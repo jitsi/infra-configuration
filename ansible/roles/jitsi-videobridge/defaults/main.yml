@@ -22,7 +22,7 @@ jvb_consul_datacenter: "{{cloud_name|default('dc1')}}"
 jvb_consul_datacenters: []
 jvb_consul_extra_urls: []
 jvb_consul_local_datacenters: ["{{jvb_consul_datacenter}}"]
-jvb_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
+jvb_consul_server: "{{hcv_environment}}-{{oracle_region}}-consul.jitsi.net"
 jvb_consul_server_type: "{{jvb_consul_server_types[jitsi_meet_environment_type]|default('prod')}}"
 jvb_consul_server_types:
   dev: dev
@@ -179,6 +179,7 @@ jvb_rest_ssl_certificate_key_filename: "jvb_rest.service.consul.key"
 jvb_rest_ssl_dest_dir: /etc/nginx/ssl
 jvb_route_loudest_only: true
 jvb_server_prefix: "{{ansible_hostname.split('.')[0]}}"
+jvb_server_id: "jvb-{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 jvb_service_name: "jitsi-videobridge2"
 jvb_service_version_shell: "dpkg -s {{jitsi_videobridge_deb_pkg_name}} | grep Version | awk '{print $2}' | sed 's/..$//'"
 jvb_set_memory: true
@@ -188,8 +189,6 @@ jvb_single_harvester_port: 10000
 jvb_skip_authentication_for_silence: false
 jvb_ssrc_limit_audio: 50
 jvb_ssrc_limit_video: 50
-#flag to control if JVB is standalone (localhost only) or in a pool/shard setting
-jvb_standalone: false
 jvb_stats_cron:
   hour: "*"
   job: "{{ path_to_stats_script }} > /tmp/stats-cron-output 2>&1"
@@ -212,8 +211,9 @@ jvb_websockets_port: "{{ 9090 if jvb_nginx_ssl_enabled else 443 }}"
 jvb_websockets_ssl_keystore_password: jitsimeet
 jvb_websockets_ssl_keystore_path: /etc/jitsi/videobridge/ssl.store
 jvb_websockets_ssl_keystore_pkcs12_path: /etc/jitsi/videobridge/ssl.pkcs12
-jvb_ws_domain: "{{jvb_server_prefix}}.{{jvb_ws_domain_suffix}}"
+jvb_ws_domain: "{{ environment_domain_name if jvb_colibri_proxy_enabled else jvb_server_prefix+'.'+jvb_ws_domain_suffix}}"
 jvb_ws_domain_suffix: "jitsi.net"
+jvb_ws_relay_domain: "{{jvb_server_prefix+'.'+jvb_ws_domain_suffix if jvb_colibri_proxy_enabled else false}}"
 jvb_xmpp_port: "{{6222 if prosody_jvb_configure_flag else 5222}}"
 jvb_yourkit_agent_path: "{{jvb_yourkit_base_path}}/bin/linux-x86-64/libyjpagent.so"
 jvb_yourkit_base_path: "/opt/YourKit-JavaProfiler-2020.9"

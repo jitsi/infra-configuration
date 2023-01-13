@@ -105,6 +105,36 @@
 #  when: "\"{{prosody_version}}\" == \"1nightly718-1\""
 
 #now patch prosody if necessary
+- name: copy muc_lib_visitor_broadcast patch
+  copy: src="muc_lib_visitor_broadcast.patch" dest="/tmp/muc_lib_visitor_broadcast.patch"
+  # when:
+  #   - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
+
+- name: apply muc_lib_visitor_broadcast patch
+  shell: patch -b -Y .visitor_ < /tmp/muc_lib_visitor_broadcast.patch
+  args:
+    chdir: /usr/lib/prosody/modules/muc
+    creates: /usr/lib/prosody/modules/muc/.visitor_muc.lib.lua
+  # when:
+  #   - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
+
+#now patch prosody if necessary
+- name: copy mod_smacks_session_close patch
+  copy: src="mod_smacks_session_close.patch" dest="/tmp/mod_smacks_session_close.patch"
+  # when:
+  #   - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
+
+- name: apply mod_smacks_session_close patch
+  shell: patch -b -Y .session_close_ < /tmp/mod_smacks_session_close.patch
+  args:
+    chdir: /usr/lib/prosody/modules
+    creates: /usr/lib/prosody/modules/.session_close_mod_smacks.lua
+  # when:
+  #   - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
+
+
+
+#now patch prosody if necessary
 - name: copy mod_websocket_auth_token patch
   copy: src="mod_websocket_auth_token.patch" dest="/tmp/mod_websocket_auth_token.patch"
   when: 

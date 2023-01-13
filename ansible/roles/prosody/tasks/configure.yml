@@ -209,6 +209,44 @@
     dest="/usr/lib/prosody/rules.d/jvb_muc_presence_filter.pfw"
     mode=0644
 
+# setup visitors prosody
+- name: the prosody visitor directory
+  file: path=/etc/prosody-v{{ item }} state=directory
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: build prosody.cfg.lua from template for visitor
+  template: src=prosody.cfg.lua.visitor.j2 dest=/etc/prosody-v{{ item }}/prosody.cfg.lua mode=0644
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: link certs prosody
+  file: state=link src=/etc/prosody/certs dest=/etc/prosody-v{{ item }}/certs
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: build systemd unit file for visitor
+  template: src=prosody-v.service.j2 dest=/lib/systemd/system/prosody-v{{ item }}.service
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: systemd prosody service overrides directory visitors
+  file: path=/etc/systemd/system/prosody-v{{ item }}.service.d state=directory
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: systemd prosody visitors service overrides
+  copy:
+  args:
+    dest: /etc/systemd/system/prosody-v{{ item }}.service.d/50-accounting.conf
+    mode: 0644
+    owner: root
+    content: |
+      [Service]
+      MemoryAccounting=yes
+      CPUAccounting=yes
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: systemd daemon-reload for prosody accounting for visitors
+  command: systemctl daemon-reload
+- name: Add jicofo user for visitors
+  shell: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua register focus auth.meet.jitsi "{{prosody_focus_user_secret}}"
+  args:
+    creates: /var/lib/prosody-v{{ item }}/auth%2meet%2jitsi/accounts/focus.dat
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+- name: start and enable prosody visitors service
+  systemd: name=prosody-v{{ item }} state=started enabled=yes daemon_reload=yes masked=no
+  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+
 - name: copy over the plugin for filtering internal muc access
   copy: >
     src="mod_muc_filter_access.lua"
@@ -329,7 +367,7 @@
   command: prosodyctl register {{moderator_auth_user}} {{prosody_domain_name}} "{{moderator_auth_password}}" creates="{{moderator_auth_domain_path}}"
   when: prosody_create_users
 
-  # Run the the health checker regularly
+  # Run the health checker regularly
 - name: enable prosody health check cron
   cron: user=root
         state=present

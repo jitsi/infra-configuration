@@ -1,27 +1,43 @@
 ---
-- template: src=config.j2 dest=/etc/jitsi/jicofo/config mode=0644
-  notify: restart jicofo
+- name: Jicofo shell config
+  ansible.builtin.template:
+    src: config.j2
+    dest: /etc/jitsi/jicofo/config
+    mode: 0644
+  notify: Restart jicofo
 
-- template: src=logging.properties.j2 dest=/etc/jitsi/jicofo/logging.properties mode=0644
-  notify: restart jicofo
+- name: Jicofo logging properties
+  ansible.builtin.template:
+    src: logging.properties.j2
+    dest: /etc/jitsi/jicofo/logging.properties
+    mode: 0644
+  notify: Restart jicofo
 
-- lineinfile:
+- name: Jicofo java params
+  ansible.builtin.lineinfile:
     path: /usr/share/jicofo/jicofo.sh
     regexp: '^exec java'
     line: 'exec java -Xmx4096m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp $LOGGING_CONFIG_PARAM $JAVA_SYS_PROPS -cp $cp $mainClass $@'
 
-- template: >
-    src=jicofo.conf.j2
-    dest=/etc/jitsi/jicofo/jicofo.conf
-    mode=0600
-    owner=jicofo
-    group=jitsi
-  notify: restart jicofo
+- name: Jicofo configuration file
+  ansible.builtin.template:
+    src: jicofo.conf.j2
+    dest: /etc/jitsi/jicofo/jicofo.conf
+    mode: 0600
+    owner: jicofo
+    group: jitsi
+  notify: Restart jicofo
 
 - name: Remove leftover sip-communicator.properties file
-  file: path=/etc/jitsi/jicofo/sip-communicator.properties state=absent
+  ansible.builtin.file:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    state: absent
 
-- service: name=jicofo state=started enabled=yes
+- name: Start jicofo service
+  ansible.builtin.service:
+    name: jicofo
+    state: started
+    enabled: true
   register: jicofoservice
 
 - name: Jicofo stats cron allow
@@ -35,17 +51,22 @@
 
 # Run the the health checker regularly
 - name: Jicofo stats script cron
-  cron: user={{ jicofo_stats_cron_user }}
-        state=present
-        name="Jicofo stats script"
-        minute="{{ jicofo_stats_cron.minute }}"
-        hour="{{ jicofo_stats_cron.hour }}"
-        job="{{ jicofo_stats_cron.job }}"
+  ansible.builtin.cron:
+    user: "{{ jicofo_stats_cron_user }}"
+    state: present
+    name: "Jicofo stats script"
+    minute: "{{ jicofo_stats_cron.minute }}"
+    hour: "{{ jicofo_stats_cron.hour }}"
+    job: "{{ jicofo_stats_cron.job }}"
   when: jicofo_enable_stats
 
 
 - name: Jicofo health script upload
-  copy: src=jicofo-health.sh dest=/usr/local/bin/jicofo-health.sh mode=755 owner=root
+  ansible.builtin.copy:
+    src: jicofo-health.sh
+    dest: /usr/local/bin/jicofo-health.sh
+    mode: 0755
+    owner: root
   when: jicofo_enable_health
 
 - name: Jicofo stats cron allow
@@ -59,10 +80,11 @@
 
 # Run the the health checker regularly
 - name: Jicofo health script cron
-  cron: user={{ jicofo_health_cron_user }}
-        state=present
-        name="Jicofo health script"
-        minute="{{ jicofo_health_cron.minute }}"
-        hour="{{ jicofo_health_cron.hour }}"
-        job="{{ jicofo_health_cron.job }}"
+  ansible.builtin.cron:
+    user: "{{ jicofo_health_cron_user }}"
+    state: present
+    name: "Jicofo health script"
+    minute: "{{ jicofo_health_cron.minute }}"
+    hour: "{{ jicofo_health_cron.hour }}"
+    job: "{{ jicofo_health_cron.job }}"
   when: jicofo_enable_health

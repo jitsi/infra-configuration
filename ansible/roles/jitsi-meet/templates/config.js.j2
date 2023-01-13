@@ -14,9 +14,9 @@ var config = {
 {% if jitsi_meet_anonymousdomain %}        anonymousdomain: '{{jitsi_meet_anonymousdomain}}',{% endif %}
 
 {% if jitsi_meet_enable_multi_domain %}
-        muc: 'conference.'+subdomain+'{{ jitsi_meet_xmpp_domain_name }}', // FIXME: use XEP-0030
+        muc: 'conference.'+subdomain+'{{ jitsi_meet_xmpp_domain_name }}',
 {% else %}
-        muc: 'conference.{{ jitsi_meet_xmpp_domain_name }}', // FIXME: use XEP-0030
+        muc: 'conference.{{ jitsi_meet_xmpp_domain_name }}',
 {% endif %}
         focus: 'focus.{{ jitsi_meet_xmpp_domain_name }}',
     },
@@ -35,7 +35,8 @@ var config = {
                 min: 320
             },
             frameRate: {
-                max: 30
+                max: 30,
+                min: 15
             }
         }
     },
@@ -91,33 +92,30 @@ var config = {
 {% if jitsi_meet_p2p_disabled_codec %}
         disabledCodec: '{{ jitsi_meet_p2p_disabled_codec }}',
 {% endif %}
-{% if jitsi_meet_enable_p2p_h264 %}
-        preferH264: true,
-        disableH264: false,
-{% else %}
-        disableH264: true,
-{% endif %}
         useStunTurn: {% if jitsi_meet_enable_p2p_turn %}true{% else %}false{% endif %} // use XEP-0215 to fetch STUN and TURN servers for the P2P connection
     },
     useStunTurn: true, // use XEP-0215 to fetch TURN servers for the JVB connection
     useTurnUdp: {% if jitsi_meet_enable_turn_udp_jvb %}true{% else %}false{% endif %},
 {% if jitsi_meet_enable_multi_domain %}
-    bosh: '{{jitsi_meet_bosh_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/<!--# echo var="subdir" default="" -->{{jitsi_meet_bosh_path}}', // FIXME: use xep-0156 for that
+    bosh: '{{jitsi_meet_bosh_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/<!--# echo var="subdir" default="" -->{{jitsi_meet_bosh_path}}',
 {% if jitsi_meet_enable_xmpp_websockets %}
-    websocket: '{{jitsi_meet_ws_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->{{jitsi_meet_ws_path}}', // FIXME: use xep-0156 for that
+    websocket: '{{jitsi_meet_ws_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->{{jitsi_meet_ws_path}}',
     websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->_unlock',
 {% endif %}
+{% if jitsi_meet_enable_conference_request_http %}
+    conferenceRequestUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_conference_request_host }}" -->/<!--# echo var="subdir" default="" -->{{ jitsi_meet_conference_request_path }}',
+{% endif %}
 {% else %}
-    bosh: '{{jitsi_meet_bosh_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->{{jitsi_meet_bosh_path}}', // FIXME: use xep-0156 for that
+    bosh: '{{jitsi_meet_bosh_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->{{jitsi_meet_bosh_path}}',
 {% if jitsi_meet_enable_xmpp_websockets %}
-    websocket: '{{jitsi_meet_ws_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->{{jitsi_meet_ws_path}}', // FIXME: use xep-0156 for that
+    websocket: '{{jitsi_meet_ws_protocol}}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->{{jitsi_meet_ws_path}}',
     websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/_unlock',
 {% endif %}
+{% if jitsi_meet_enable_conference_request_http %}
+    conferenceRequestUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_conference_request_host }}" -->{{ jitsi_meet_conference_request_path }}',
+{% endif %}
 {% endif %}
 
-{% if jitsi_meet_enable_shared_document %}    etherpad_base: '{{jitsi_meet_etherpad_base}}',{% endif %}
-
-    clientNode: 'http://jitsi.org/jitsimeet', // The name of client node advertised in XEP-0115 'c' stanza
     //deprecated desktop sharing settings, included only because older version of jitsi-meet require them
     desktopSharing: 'ext', // Desktop sharing method. Can be set to 'ext', 'webrtc' or false to disable.
     chromeExtensionId: '{{jitsi_meet_chrome_desktop_key}}', // Id of desktop streamer Chrome extension
@@ -155,6 +153,9 @@ var config = {
     },
 {% if jitsi_meet_video_quality %}
     videoQuality: {
+{% if jitsi_meet_jvb_disabled_codec %}
+        disabledCodec: '{{ jitsi_meet_jvb_disabled_codec }}',
+{% endif %}
     {% if jitsi_meet_prefer_vp9_codec_jvb %}
     preferredCodec: 'VP9',
     maxBitratesVideo: {
@@ -184,10 +185,6 @@ var config = {
     {% endif %}
     },
 {% endif %}
-{% if jitsi_meet_use_new_bitrate_allocation_strategy %}
-    useNewBandwidthAllocationStrategy: true,
-{% endif %}
-    startBitrate: "800",
     disableAudioLevels: false,
     stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
 {% if jitsi_meet_force_jvb121_ratio %}
@@ -244,6 +241,12 @@ var config = {
     },
     requireDisplayName: {% if jitsi_meet_require_displayname %}true{% else %}false{% endif %},
     enableWelcomePage: {% if jitsi_meet_enable_welcome_page %}true{% else %}false{% endif %},
+    welcomePage: {
+    {% if jitsi_meet_custom_landing_page_url %}
+        customUrl: "{{jitsi_meet_custom_landing_page_url}}",
+    {% endif %}
+        disabled: {% if jitsi_meet_enable_welcome_page %}false{% else %}true{% endif %}
+    },
     isBrand: false,
 {% if jitsi_meet_enable_callstats %}
 // To enable sending statistics to callstats.io you should provide Applicaiton ID and Secret.
@@ -432,13 +435,13 @@ whiteboard: {
         server: "{{ jitsi_meet_xmpp_domain_name }}"
     },
     deploymentInfo: {
-        environment: '{{ hcv_environment }}',
+        environment: '{{hcv_environment}}',
         envType: '{{jitsi_meet_environment_type}}',
         releaseNumber: '{{jitsi_release_number}}',
         shard: '<!--# echo var="jitsi_shard" default="" -->',
         region: '<!--# echo var="jitsi_region" default="" -->',
         userRegion: '<!--# echo var="user_region" default="" -->',
-        crossRegion: (!'<!--# echo var="user_region" default="" -->' || '<!--# echo var="jitsi_region" default="default_region" -->' === '<!--# echo var="http_x_proxy_region" default="default_region" -->') ? 0 : 1
+        crossRegion: (!'<!--# echo var="user_region" default="" -->' || '<!--# echo var="jitsi_region" default="default_region" -->' === '<!--# echo var="user_region" default="default_region" -->') ? 0 : 1
     },
     e2eping: {
         enabled: {{ jitsi_meet_e2eping_enabled | to_json }}
@@ -448,8 +451,32 @@ whiteboard: {
         enableSuspendVideoTest: true
 {% endif %}
     },
+    deeplinking: {
+        desktop: {
+            appName: "{{ jitsi_meet_desktop_app_name }}"
+        },
+        hideLogo: {{ jitsi_meet__deeplink_hide_logo | to_json }},
+        showImage: {{ jitsi_meet_deeplink_show_image | to_json }},
+        ios: {
+            appName: "{{ jitsi_meet_mobile_app_name }}",
+            appScheme: "{{ jitsi_meet_app_scheme }}",
+        {% if jitsi_meet_dynamic_linking %}
+            dynamicLink: {{jitsi_meet_dynamic_linking | to_json}},
+        {% endif %}
+            downloadLink: "{{ jitsi_meet_ios_download_link }}"
+        },
+        android: {
+            appName: "{{ jitsi_meet_mobile_app_name }}",
+            appScheme: "{{ jitsi_meet_app_scheme }}",
+            appPackage: "{{ jitsi_meet_android_app_package }}",
+            fDroidUrl: "{{ jitsi_meet_f_droid_url }}",
+        {% if jitsi_meet_dynamic_linking %}
+            dynamicLink: {{jitsi_meet_dynamic_linking | to_json}},
+        {% endif %}
+            downloadLink: "{{ jitsi_meet_android_download_link }}"
+        }
+    },
     testing: {
-        enableThumbnailReordering: {% if jitsi_meet_enable_thumbnail_reordering %}true{% else %}false{% endif %},
     {% if jitsi_meet_callstats_threshold %}
         callStatsThreshold: {{jitsi_meet_callstats_threshold}}, // % of users that will have callStats enabled.
     {% endif %}
@@ -459,7 +486,6 @@ whiteboard: {
     {% if jitsi_meet_no_auto_local_audio %}
         noAutoLocalAudio: true,
     {% endif %}
-        capScreenshareBitrate: 1,
     {% if jitsi_meet_enable_ss_resolution_constraints %}
         setScreenSharingResolutionConstraints: true,
     {% endif %}

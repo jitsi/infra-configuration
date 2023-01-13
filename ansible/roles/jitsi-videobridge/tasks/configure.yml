@@ -1,7 +1,4 @@
 ---
-- name: cloud provider debug
-  debug: var=jvb_cloud_provider
-
 - name: force install jitsi-videobridge package
   apt: name="{{jitsi_videobridge_deb_pkg_name}}={{jitsi_videobridge_force_deb_pkg_version}}" state=present force=yes
   when: jitsi_videobridge_force_deb_pkg_version
@@ -18,10 +15,7 @@
 - name: Set jvb_enable_multiple_shards=false for oracle
   set_fact:
     jvb_enable_multiple_shards: false
-  when: (jvb_cloud_provider == "oracle" and not jvb_enable_consul) or jvb_standalone
-
-- name: cloud provider debug
-  debug: var=jvb_enable_multiple_shards
+  when: jvb_cloud_provider == "oracle" and not jvb_enable_consul
 
 #write out pre-custom facts configuration file
 - name: JVB Environments configuration

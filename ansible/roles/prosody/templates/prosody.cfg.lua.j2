@@ -94,6 +94,12 @@ modules_enabled = {
 {% if prosody_mod_measure_stanza_counts %}
       "measure_stanza_counts";
 {% endif %}
+{% if prosody_visitors_enabled %}
+      "s2s_bidi";
+      "certs_s2soutinjection";
+      "s2soutinjection";
+      "s2s_whitelist";
+{% endif %}
 };
 
 {% if prosody_enable_log_slow_events %}
@@ -179,11 +185,6 @@ prosody_password_public_key_repo_url = "{{prosody_password_public_key_repo_url}}
 {% endif %}
 {% endif %}
 
-{% if prosody_jibri_queue_enabled %}
-jibri_queue_url = "{{prosody_jibri_queue_url}}"
-accepted_rayo_iq_token_issuers = { "jibri-queue" };
-{% endif %}
-
 {% if prosody_xmpp_resume %}
 -- https://prosody.im/doc/modules/mod_smacks
 smacks_max_unacked_stanzas = 5;
@@ -232,7 +233,10 @@ modules_disabled = {
 	-- "s2s"; -- Handle server-to-server connections
 	{% for module in prosody_disabled_modules %}
    "{{ module }}";
-	{% endfor %}
+    {% endfor %}
+    {% if not prosody_visitors_enabled %}
+    "s2s";
+    {% endif %}
 };
 
 -- Disable account creation by default, for security
@@ -311,6 +315,20 @@ trusted_proxies = {
 
 bosh_max_inactivity = {{prosody_bosh_max_inactivity}};
 
+{% if prosody_visitors_enabled %}
+s2s_connect_overrides = {
+{% for i in range(prosody_visitors_count|int) %}
+        ["conference.v{{i}}.meet.jitsi"] = { "127.0.0.1", {{52690+i}} };
+{% endfor %}
+};
+s2s_whitelist = {
+{% for i in range(prosody_visitors_count|int) %}
+        "conference.v{{i}}.meet.jitsi";
+{% endfor %}
+};
+{% endif %}
+
+
 plugin_paths = { "/usr/share/jitsi-meet/prosody-plugins/" }
 
 ----------- Virtual hosts -----------
@@ -368,9 +386,6 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_lobby %}
           "muc_lobby_rooms";
 {% endif %}
-{% if prosody_jibri_queue_enabled %}
-          "jibri_queue";
-{% endif %}
 {% if prosody_enable_jiconop_module %}
           "jiconop";
 {% endif %}
@@ -385,6 +400,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_meet_room_metadata_enabled %}
           "room_metadata";
+{% endif %}
+{% if prosody_visitors_enabled %}
+          "xxl_conference";
 {% endif %}
         }
         shard_name = "{{shard_name}}"
@@ -401,9 +419,6 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_meet_conf_duration_enabled %}
         conference_duration_component = "conferenceduration.{{ prosody_domain_name }}"
-{% endif %}
-{% if prosody_jibri_queue_enabled %}
-        jibri_queue_component = "jibriqueue.{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_enable_lobby %}
         lobby_muc = "lobby.{{ prosody_domain_name }}"
@@ -530,6 +545,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 	rate_limit_timeout = {{ prosody_rate_limit_timeout }};
 	-- List of regular expressions for IP addresses that are not limited by this module.
 	rate_limit_whitelist = {
+      "127.0.0.1";
 {% for i in prosody_rate_limit_whitelist %}
       "{{i}}";
 {% endfor %}
@@ -631,20 +647,6 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
         "muc_rate_limit";
     }
     {% endif %}
-{% endif %}
-
-{% if prosody_jibri_queue_enabled %}
-Component "jibriqueue.{{ prosody_domain_name }}" "jibri_queue_component"
-    muc_component = "conference.{{ prosody_domain_name }}"
-    external_api_url = "https://{{ jitsi_meet_api_server_name }}"
-    jibri_region = "{{prosody_jibri_queue_region}}"
-    asap_issuer = "signal-api-jibri-queue"
-    asap_audience = "jibri-queue"
-    asap_accepted_issuers = { "jibri-queue" }
-    asap_accepted_audiences = { "signal-api-jibri-queue" }
-{% if prosody_server_public_key_repo_url %}
-    asap_key_server = "{{prosody_server_public_key_repo_url}}"
-{% endif %}
 {% endif %}
 
 {% if prosody_breakout_rooms_enabled %}

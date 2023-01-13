@@ -1,0 +1,202 @@
+---------- Server-wide settings ----------
+s2s_ports = { 52690 + {{ item }} };
+c2s_ports = { 52220 + {{ item }} }
+http_ports = { 52800 + {{ item }} }
+https_ports = { 52810 + {{ item }} }
+
+daemonize = true;
+
+-- we use a common jid for jicofo
+admins = {
+    'focus@auth.meet.jitsi'
+}
+
+-- Enable use of native prosody 0.11 support for epoll over select
+network_backend = 'epoll';
+network_settings = {
+  tcp_backlog = 511;
+}
+
+modules_enabled = {
+      'roster';
+      'saslauth';
+      'tls';
+      'disco';
+      'posix';
+
+      'secure_interfaces';
+
+    -- jitsi
+      'websocket';
+      'bosh';
+      's2s_bidi';
+      's2s_whitelist';
+      'certs_s2soutinjection';
+{% if prosody_enable_firewall and prosody_disable_messaging %}
+      "firewall";
+{% endif %}
+{% if prosody_mod_limits_rate %}
+      "limits";
+{% endif %}
+};
+
+s2s_whitelist = {};
+
+{% if prosody_enable_mod_turncredentials %}
+{% if prosody_mod_turncredentials_secret %}
+external_service_secret = "{{prosody_mod_turncredentials_secret}}";
+{% endif %}
+
+external_services = {
+{% for turnhost in prosody_mod_turncredentials_hosts %}
+  { type = "stun", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "udp" },
+  { type = "turn", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "udp", secret = true, ttl = 86400, algorithm = "turn" },
+    {% if prosody_mod_turncredentials_enable_tcp %}
+  { type = "turns", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "tcp", secret = true, ttl = 86400, algorithm = "turn" },
+    {% endif %}
+{% endfor %}
+};
+{% endif %}
+
+muc_mapper_domain_base = 'v{{ item }}.meet.jitsi';
+
+-- https://prosody.im/doc/modules/mod_smacks
+smacks_max_unacked_stanzas = 5;
+smacks_hibernation_time = 60;
+-- this is dropped in 0.12
+smacks_max_hibernated_sessions = 1;
+smacks_max_old_sessions = 1;
+
+{% if prosody_stats_provider %}
+statistics = "{{prosody_stats_provider}}";
+{% if prosody_stats_provider == "statsd" %}
+statistics_config = {
+  statsd_server = "{{prosody_stats_server}}";
+  statsd_port = {{prosody_stats_port}};
+};
+{% endif %}
+{% endif %}
+
+{% if prosody_c2s_stanza_size_limit %}
+c2s_stanza_size_limit = {{ prosody_c2s_stanza_size_limit }};
+{% endif %}
+
+{% if prosody_mod_limits_rate %}
+unlimited_jids = { "focus@{{prosody_auth_domain_name}}" }
+limits = {
+    c2s = {
+        rate = "{{prosody_mod_limits_rate}}";
+    };
+}
+{% endif %}
+
+modules_disabled = {
+    'offline';
+    'pubsub';
+    'register';
+};
+
+allow_registration = false;
+authentication = 'internal_hashed'
+storage = 'internal'
+log = {
+    -- Log files (change 'info' to 'debug' for debug logs):
+    {{prosody_log_level}} = '/var/log/prosody-v{{ item }}/prosody.log';
+    error = '/var/log/prosody-v{{ item }}/prosody.err';
+}
+
+consider_websocket_secure = true;
+consider_bosh_secure = true;
+bosh_max_inactivity = {{prosody_bosh_max_inactivity}};
+
+trusted_proxies = {
+  {% for proxy in prosody_trusted_proxies %}
+  "{{ proxy }}";
+  {% endfor %}
+}
+
+-- this is added to make certs_s2soutinjection work
+s2s_connect_overrides = {
+    ["{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 };
+}
+
+plugin_paths = { '/usr/share/jitsi-meet/prosody-plugins/' }
+
+----------- Virtual hosts -----------
+VirtualHost 'v{{ item }}.meet.jitsi'
+    authentication = 'jitsi-anonymous'
+    ssl = {
+        key = '/etc/prosody/certs/{{ prosody_domain_name }}.key';
+        certificate = '/etc/prosody/certs/{{ prosody_domain_name }}.crt';
+    }
+    modules_enabled = {
+      'bosh';
+      'ping';
+    {% if mod_external_services_exists %}
+      "external_services";
+    {% endif %}
+    {% if prosody_xmpp_resume %}
+      "smacks";
+    {% endif %}
+    {% if prosody_enable_jiconop_module %}
+      "jiconop";
+    {% endif %}
+    }
+    main_muc = 'conference.v{{ item }}.meet.jitsi';
+    shard_name = "{{shard_name}}"
+    region_name = "{{prosody_region}}"
+    release_number = "{{jitsi_release_number}}"
+
+
+VirtualHost 'auth.meet.jitsi'
+    modules_enabled = {
+      'limits_exception';
+      'ping';
+    }
+    authentication = 'internal_hashed'
+
+Component 'conference.v{{ item }}.meet.jitsi' 'muc'
+    storage = 'memory'
+    muc_room_cache_size = 10000
+    restrict_room_creation = true
+    modules_enabled = {
+{% if prosody_hide_all_rooms %}
+        "muc_hide_all";
+{% endif %}
+{% if prosody_enable_muc_domain_mapper %}
+        "muc_domain_mapper";
+{% endif %}
+{% if prosody_enable_muc_rate_limit %}
+        "muc_rate_limit";
+{% endif %}
+{% if muc_meeting_id_exists.stat.exists %}
+        "muc_meeting_id";
+{% endif %}
+{% if prosody_enable_rate_limit %}
+        "rate_limit";
+{% endif %}
+        'fmuc';
+    }
+    muc_room_default_presence_broadcast = {
+        visitor = false;
+        participant = true;
+        moderator = true;
+    };
+    muc_room_locking = false
+    muc_room_default_public_jids = true
+{% if prosody_enable_rate_limit %}
+    -- Max allowed join/login rate in events per second.
+	rate_limit_login_rate = {{ prosody_rate_limit_login_rate }};
+	-- The rate to which sessions from IPs exceeding the join rate will be limited, in bytes per second.
+	rate_limit_session_rate = {{ prosody_rate_limit_session_rate }};
+	-- The time in seconds, after which the limit for an IP address is lifted.
+	rate_limit_timeout = {{ prosody_rate_limit_timeout }};
+	-- List of regular expressions for IP addresses that are not limited by this module.
+	rate_limit_whitelist = {
+{% for i in prosody_rate_limit_whitelist %}
+      "{{i}}";
+{% endfor %}
+    };
+	-- The size of the cache that saves state for IP addresses
+	rate_limit_cache_size = {{ prosody_rate_limit_cache_size }};
+{% endif %}

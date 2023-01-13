@@ -2,7 +2,7 @@
 jicofo_auth_domain: auth.domain.local
 jicofo_auth_password: iwishthattoo!
 jicofo_auth_type: XMPP
-jicofo_auth_url: "{{prosody_domain_name}}"
+jicofo_auth_url: "{{ prosody_domain_name }}"
 jicofo_auth_url_enable: false
 jicofo_auth_user: focus
 jicofo_average_participant_stress: 0.005
@@ -35,20 +35,21 @@ jicofo_health_cron_user: ubuntu
 jicofo_health_script_path: /usr/local/bin/jicofo-health.sh
 jicofo_hostname: domain.local
 jicofo_install_flag: true
-jicofo_internal_muc_prefix: "{{internal_muc_prefix | default('internal.auth')}}"
-jicofo_jibri_brewery_muc: JibriBrewery@{{jicofo_internal_muc_prefix}}.{{prosody_domain_name}}
+jicofo_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
+jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
 # Note the units are seconds
 jicofo_jibri_pending_timeout: 90
-jicofo_jigasi_brewery_muc: JigasiBrewery@{{jicofo_internal_muc_prefix}}.{{prosody_domain_name}}
-jicofo_jvb_brewery_muc: JvbBrewery@{{jicofo_internal_muc_prefix}}.{{prosody_domain_name}}
+jicofo_jigasi_brewery_muc: JigasiBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
+jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
 jicofo_max_audio_senders: 999999
 # Max participants in a single conference on a single bridge.
 jicofo_max_bridge_participants: 80
 jicofo_max_video_senders: 999999
 jicofo_opts: ""
-jicofo_region: "{{ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default'}}"
-jicofo_separate_jvb_muc: "{{prosody_jvb_configure_flag}}"
-jicofo_sipjibri_brewery_muc: SipBrewery@{{jicofo_internal_muc_prefix}}.{{prosody_domain_name}}
+jicofo_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
+  else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
+jicofo_separate_jvb_muc: "{{ prosody_jvb_configure_flag }}"
+jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
 # No delay for conferences with <=25, 1 second for 25-50, etc.
 jicofo_source_signaling_delay: { 50: 1000, 100: 2000 }
 jicofo_ssrc_rewriting: false
@@ -61,5 +62,7 @@ jicofo_stats_python_script_path: "/usr/local/bin/jicofo-stats.py"
 jicofo_stats_script_path: "/usr/local/bin/jicofo-stats.sh"
 jicofo_strip_simulcast: true
 jicofo_use_presence_for_jvb_health: false
+jicofo_visitors_enabled: false
+jicofo_visitors_count: 0
 jicofo_xmpp_logging_enabled: false
 shard_number: "65535"

@@ -342,9 +342,9 @@ local function queryForPassword(room)
             if code_ == 200 then
                 logLevel = 'debug';
                 local r = json.decode(content_)
-                if r['passcodeProtected'] ~= nil then
-                    if r['passcode'] then
-                        module:log("info","Found passcode in response, setting for room %s",room)
+                if r['passcodeProtected'] then
+                    if r['passcode'] and r['passcode'] ~= "" then
+                        module:log("info", "Found passcode in response, setting for room %s", room)
                         room:set_password(r['passcode'])
                     end
                 end

@@ -1,0 +1,25 @@
+Index: plugins/mod_smacks.lua
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/plugins/mod_smacks.lua b/plugins/mod_smacks.lua
+--- a/plugins/mod_smacks.lua	(revision d4daf40caa518a89e51222e6e1d9c230db02839a)
++++ b/plugins/mod_smacks.lua	(date 1670649730425)
+@@ -493,13 +493,13 @@
+ 		sessionmanager.destroy_session(session, "Hibernating too long");
+ 		sessions_expired(1);
+ 	end);
++	-- we need the queue in advance because on conn:close the session will be destroyed and queue cleaned
++	local queue = session.outgoing_stanza_queue;
+ 	if session.conn then
+ 		local conn = session.conn;
+-		c2s_sessions[conn] = nil;
+-		session.conn = nil;
+ 		conn:close();
+ 	end
+-	module:fire_event("smacks-hibernation-start", { origin = session; queue = session.outgoing_stanza_queue:table() });
++	module:fire_event("smacks-hibernation-start", { origin = session; queue = queue:table() });
+ 	return true; -- Postpone destruction for now
+ end);
+ 

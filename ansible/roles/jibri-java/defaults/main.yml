@@ -56,8 +56,6 @@ jibri_path_to_status_script: /usr/local/bin/jibri-status.sh
 jibri_path_to_terminate_instance_script: /usr/local/bin/terminate_instance.sh
 jibri_pjsua_flag: false
 jibri_preserve_boot_volume_if_needed: false
-# by default don't enable jibri queue webhooks
-jibri_queue_webhook: false
 jibri_randomize_control_muc_nickname: true
 jibri_recordings_dir: /opt/jitsi/jibri/recordings
 jibri_regions: ["{{ ansible_ec2_placement_region | default('us-west-2') }}"]

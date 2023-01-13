@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: jicofo
+  role_name: jvb_colibri_proxy
   author: Aaron van Meerten
-  description: install and configure jicofo
+  description: install and configure nginx to proxy jvb colibri
   license: Apache License Version 2.0
   min_ansible_version: '6.6.0'
   platforms:
@@ -11,5 +11,4 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - { role: jitsi-repo, when: jicofo_install_flag }
-  - { role: openjdk-java, when: jicofo_install_flag }
+  - { role: nginx, nginx_start_service: false, when: jvb_colibri_proxy_install_flag}

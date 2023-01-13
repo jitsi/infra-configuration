@@ -1,0 +1,30 @@
+---
+- name: Install colibri proxy nginx site config
+  ansible.builtin.template:
+    src: nginx.site.j2
+    dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
+    mode: 0644
+  notify: Restart nginx
+
+- name: Remove nginx default site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Remove nginx default configuration
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d/default.conf
+    state: absent
+
+- name: Enable colibri proxy nginx site config
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ jvb_colibri_proxy_domain_name }}"
+    state: link
+  notify: Restart nginx
+
+- name: Start nginx service
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
