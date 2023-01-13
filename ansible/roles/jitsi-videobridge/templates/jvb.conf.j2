@@ -131,6 +131,10 @@ videobridge {
     enabled = true
     tls = true
     domain = "{{jvb_ws_domain}}:{{jvb_websockets_advertise_port}}"
+    server-id = "{{jvb_server_id}}"
+{% if jvb_ws_relay_domain %}
+    relay-domain = "{{jvb_ws_relay_domain}}:{{jvb_websockets_advertise_port}}"
+{% endif %}
 {% else %}
     enabled = false
 {% endif %}
@@ -242,6 +246,9 @@ ice4j {
     mapping.stun.addresses = [ "meet-jit-si-turnrelay.jitsi.net:443" ]
 {% else %}
     mapping.stun.enabled = false
+{% endif %}
+{% if jvb_subspace_static_mapping %}
+    mapping.static-mappings = [ { name = "subspace", local-address = "{{ansible_default_ipv4.address}}", local-port = {{jvb_single_harvester_port}}, public-address = "{{jvb_subspace_static_mapping['subspace_ipv4']}}", public-port = {{jvb_subspace_static_mapping['subspace_port']}} } ]
 {% endif %}
   }
 }
