@@ -98,6 +98,11 @@ fi
 CLOUD_PROVIDER="oracle"
 [ -z "$PRIVATE_IP" ] && PRIVATE_IP="$(dig $RESOURCE_NAME_ROOT-internal.$DNS_ZONE_NAME +short)"
 
+if [ -z "$PRIVATE_IP" ]; then
+    echo "No PRIVATE_IP set or found from name $RESOURCE_NAME_ROOT-internal.$DNS_ZONE_NAME.  Exiting..."
+    exit 3
+fi
+
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
 PROSODY_APT_FLAG=''
