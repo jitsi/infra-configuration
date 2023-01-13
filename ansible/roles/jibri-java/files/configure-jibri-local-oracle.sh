@@ -5,10 +5,7 @@
 export BOOTSTRAP_DIRECTORY="/tmp/bootstrap"
 
 #if we get "null" back from the tags, then assume master
-[ "$GIT_BRANCH" == "null" ] && GIT_BRANCH="master"
-
-#if there's still no git branch set, assume master
-[ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
+[ "$GIT_BRANCH" == "null" ] && GIT_BRANCH=
 
 if [ "$CONFIGURE_ONLY" == "true" ]; then
   JIBRI_CONFIGURE_ONLY_FLAG="true"
@@ -51,6 +48,9 @@ DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 PLAYBOOK="configure-jibri-java-local-oracle.yml"
 
 if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
+  # if there's still no git branch set, assume main
+  [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
+
   checkout_repos
 
   cd $BOOTSTRAP_DIRECTORY/infra-configuration
@@ -69,6 +69,9 @@ if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
       --vault-password-file=/root/.vault-password \
       ansible/$PLAYBOOK
 else
+  # if there's still no git branch set, assume master
+  [ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
+
   ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
     -d /tmp/bootstrap --purge \
     -i \"127.0.0.1,\" \
