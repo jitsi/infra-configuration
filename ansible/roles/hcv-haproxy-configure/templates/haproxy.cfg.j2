@@ -1,5 +1,5 @@
 global
-  log 127.0.0.1  local0 {{haproxy_log_level}}
+  log 127.0.0.1  local0 {{ haproxy_log_level }}
   log 127.0.0.1  local1 warning
   chroot /var/lib/haproxy
   stats socket {{ haproxy_stats_socket }} mode 660 level admin expose-fd listeners
@@ -70,11 +70,11 @@ defaults
 peers mypeers
 {% if haproxy_enable_vpc_peering|bool() %}
 {% for item in haproxy_facts.peers %}
-  peer {{item['peername']}} {{item['private_ip']}}:{{haproxy_peer_port}}
+  peer {{ item['peername'] }} {{ item['private_ip'] }}:{{ haproxy_peer_port }}
 {% endfor %}
 {% else %}
 {% for item in haproxy_facts.peers %}
-  peer {{item['peername']}} {{item['peer_ip']}}:{{haproxy_peer_port}}
+  peer {{ item['peername'] }} {{ item['peer_ip'] }}:{{ haproxy_peer_port }}
 {% endfor %}
 {% endif %}
 {% endif %}
@@ -90,7 +90,7 @@ listen admin
 frontend health
   bind *:8081
   http-request set-log-level silent
-  http-request set-var(txn.is_up) str(up),map_str({{haproxy_health_up_map_path}},false)
+  http-request set-var(txn.is_up) str(up),map_str({{ haproxy_health_up_map_path }},false)
   acl is_up var(txn.is_up) -m sub true
 
   http-request deny deny_status 503 if !is_up
@@ -107,7 +107,7 @@ frontend www-http{{ i }}
    http-request deny if bad_guy_wordpress
 
 {% if haproxy_domain_blacklist_enabled %}
-   acl match_referer_blacklist hdr(referer) -i -m dom {{haproxy_domain_blacklist}}
+   acl match_referer_blacklist hdr(referer) -i -m dom {{ haproxy_domain_blacklist }}
    http-request deny deny_status 429 if match_referer_blacklist
 {% endif %}
 {% if haproxy_corp_headers_enabled %}
@@ -116,9 +116,9 @@ frontend www-http{{ i }}
 
 {% if haproxy_enable_https_redirect %}
    http-request add-header X-Forwarded-Proto http
-   http-request add-header X-Proxy-Region {{haproxy_region}}
-   http-request add-header X-Proxy-Host {{ansible_hostname.split('.')[0]}}
-   default_backend {{haproxy_backend_name}}
+   http-request add-header X-Proxy-Region {{ haproxy_region }}
+   http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
+   default_backend {{ haproxy_backend_name }}
 {% else %}
    #detect if we're a health check, if so do not put it in access log
    acl is_healthcheck url /about/health
@@ -128,17 +128,17 @@ frontend www-http{{ i }}
    acl url_room url_reg [?&]room=
 
    #detect if path contains anything from our whitelist, if so then it's NOT a room path
-   acl not_room path_end config.js interface_config.js favicon.ico http-bind xmpp-websocket http-pre-bind /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock pwa-worker.js manifest.json
-   acl not_room path_beg /etherpad/ /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
-   acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|etherpad|.well-known)/(.*)
+   acl not_room path_end config.js interface_config.js favicon.ico http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock pwa-worker.js manifest.json
+   acl not_room path_beg /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
+   acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
    acl not_room path_beg /about/health
    #whitelist includes any paths which start with a group but still contain our whitelist string
-   acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|etherpad|.well-known)/(.*)
-   acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|pwa-worker.js|manifest.json)$
+   acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
+   acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|conference-request|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|pwa-worker.js|manifest.json)$
    acl not_room path /
 
    #if the path should go to a shard
-   acl not_web path_end config.js http-bind xmpp-websocket http-pre-bind /room /room-size /room-password /_unlock
+   acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password /_unlock
    acl not_web hdr_beg(host) -i signal-api-
    acl not_web path_beg /about/health
 
@@ -146,7 +146,7 @@ frontend www-http{{ i }}
    acl has_group path_reg ^/([^/]+)/(.*)
 
    #if the path contains our whitelist of subdirectories, it is not a group
-   acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|etherpad|.well-known)/(.*)
+   acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
 
    #if the path is about/health it is not a group
    acl not_group path_beg /about/health
@@ -162,8 +162,8 @@ frontend www-http{{ i }}
    acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
    http-request deny if bad_guy_wordpress
 
-   acl bad_room path /sex /porn /kids /children /teens /teenz /camjerk /perv /pervroom /pervroom1 /tight /vids
-   acl bad_room_param urlp(room) sex porn kids children teens teenz camjerk perv pervroom pervroom1 tight vids
+   acl bad_room path /sex /porn /kids /onlycutiesss /children /cuties /teens /teenz /camjerk /perv /pervroom /pervroom1 /tight /youtubecuties /vids
+   acl bad_room_param urlp(room) sex porn kids onlycutiesss children cuties teens teenz camjerk perv pervroom pervroom1 tight youtubecuties vids
 
    http-request deny if bad_room_param
    http-request redirect location / if bad_room
@@ -192,29 +192,33 @@ frontend www-http{{ i }}
    http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
    http-request add-header X-Forwarded-Proto https
-   http-request add-header X-Proxy-Region {{haproxy_region}}
+   http-request add-header X-Proxy-Region {{ haproxy_region }}
 {% if haproxy_release_backends %}
    # find the default live release (GA)
-   http-request set-var(req.live_backend) str(live),map({{haproxy_release_live_map_path}},{{haproxy_release_live}})
+   http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_release_live }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
    acl url_release urlp_reg(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
    http-request set-var(req.tenant_pin) url_param(release),lower if url_release
    # check to see if there's a tenant pin and use this if there is no override
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
-   http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{haproxy_release_tenant_map_path}}) if !url_release
+   http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
 {% endif %}
 
-   http-response add-header X-Proxy-Region {{haproxy_region}}
-   http-response add-header X-Proxy-Host {{ansible_hostname.split('.')[0]}}
+   http-response add-header X-Proxy-Region {{ haproxy_region }}
+   http-response add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
    tcp-request inspect-delay 5s
-
+{% if haproxy_jvb_colibri_proxy_enabled %}
+   acl jvb_path path_beg /colibri-ws/
+   acl jvb_path path_beg /colibri-relay-ws/
+   use_backend jvb-colibri-proxy if jvb_path
+{% endif %}
 {% if haproxy_web_backend_enabled %}
 {% if haproxy_sticky_enabled %}
    http-request lua.http_backend_action
    use_backend %[var(req.nodeId)] if not_web
 {% else %}
-   use_backend {{haproxy_backend_name}} if not_web
+   use_backend {{ haproxy_backend_name }} if not_web
 {% endif %}
    default_backend web
 {% else %}
@@ -223,14 +227,14 @@ frontend www-http{{ i }}
    use_backend %[var(req.nodeId)]
 {% else %}
 {% for item in haproxy_facts.backends %}
-   use_backend {{item['shard']}} if { path_beg /{{item['shard']}}/ }
+   use_backend {{ item['shard'] }} if { path_beg /{{ item['shard'] }}/ }
 {% endfor %}
 {% if haproxy_release_backends %}
    # use release override or tenant pin if there are servers for it
    use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
    use_backend %[var(req.live_backend)]
 {% else %}
-   default_backend {{haproxy_backend_name}}
+   default_backend {{ haproxy_backend_name }}
 {% endif %}
 
 {% endif -%}
@@ -238,10 +242,15 @@ frontend www-http{{ i }}
 {% endif -%}
 {% endfor -%}
 
+{% if haproxy_jvb_colibri_proxy_enabled %}
+backend jvb-colibri-proxy
+  server jvb localhost:{{ haproxy_jvb_colibri_proxy_port }} id 1 no-check
+{% endif -%} 
+
 {% if haproxy_web_backend_enabled %}
 backend web
    # set the Host header to the one the ingress expects
-   http-request set-header Host {{haproxy_web_backend}}
+   http-request set-header Host {{ haproxy_web_backend }}
 {% if haproxy_corp_headers_enabled %}
    acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
    acl corp_path capture.req.uri -i -m end /static/[^/]+$
@@ -257,7 +266,7 @@ backend web
 {% endif %}
    option forwardfor
 
-   server web {{haproxy_web_backend}}:{{haproxy_web_backend_port}} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
+   server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
 {% endif %}
 
 backend local_health
@@ -268,7 +277,7 @@ backend local_health
 {% endif %}
 
 {% if not haproxy_sticky_enabled %}
-backend {{haproxy_backend_name}}
+backend {{ haproxy_backend_name }}
 {% if haproxy_corp_headers_enabled %}
   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
   acl corp_path capture.req.uri -i -m end /static/[^/]+$
@@ -288,12 +297,12 @@ backend {{haproxy_backend_name}}
   option forwardfor
 
   balance hdr(X-StickToken)
-  hash-type consistent {{haproxy_hash_function}}
+  hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
 
   stick-table type string len 200 size 200k peers mypeers expire 5m srvkey addr 
-  stick match hdr(X-StickToken) table {{haproxy_backend_name}}
-  stick on hdr(X-StickToken) table {{haproxy_backend_name}} if stick_token_flag
+  stick match hdr(X-StickToken) table {{ haproxy_backend_name }}
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
 
 {% if haproxy_use_allbackups %}
   # use all backup servers like normal if primary is down
@@ -309,20 +318,20 @@ backend {{haproxy_backend_name}}
   option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
 {% endif %}
 
-  default-server maxconn 2000000 inter {{haproxy_check_interval}} fall {{haproxy_backend_fall_count}} rise {{haproxy_backend_rise_count}}
+  default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% if not haproxy_release_backends -%}
 {% for item in haproxy_facts.backends %}
-  server {{item['shard']}} {% if haproxy_backend_use_private_ip -%}
-      {{item['private_ip']}}
+  server {{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
+      {{ item['private_ip'] }}
   {%- else -%}
-      {{item['public_ip']}}
+      {{ item['public_ip'] }}
   {%- endif -%}
-      :{{haproxy_backend_port}} id {{item['id']}} 
+      :{{ haproxy_backend_port }} id {{ item['id'] }} 
   {%- if not item['local'] %} backup{% endif -%}
   {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check -%} no-check agent-check agent-port {{haproxy_agent_check_port}} agent-inter {{haproxy_check_interval}} weight 256
+  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
-  {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{haproxy_check_port}}
+  {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
   
 {% endfor %}
@@ -330,7 +339,7 @@ backend {{haproxy_backend_name}}
 {% endif %} {# ends if not haproxy_sticky_enabled #}
 
 {% for item in haproxy_facts.backends %}
-backend {{item['shard']}}
+backend {{ item['shard'] }}
 {% if haproxy_corp_headers_enabled %}
   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
   acl corp_path capture.req.uri -i -m end /static/[^/]+$
@@ -344,12 +353,12 @@ backend {{item['shard']}}
   redirect scheme https if !{ ssl_fc }
 {%- endif %}
   option forwardfor
-  server shard-{{item['shard']}} {% if haproxy_backend_use_private_ip -%}
-      {{item['private_ip']}}
+  server shard-{{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
+      {{ item['private_ip'] }}
   {%- else -%}
-      {{item['public_ip']}}
+      {{ item['public_ip'] }}
   {%- endif -%}
-      :{{haproxy_backend_port}} 
+      :{{ haproxy_backend_port }} 
   {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
       no-check
 
@@ -374,7 +383,7 @@ backend release-{{ release }}
 
   option forwardfor      # pass client IP to server
   no option allbackups   # use only the first backup server to ensure fallbacks will be by release 
-  default-server maxconn 2000000 inter {{haproxy_check_interval}} fall {{haproxy_backend_fall_count}} rise {{haproxy_backend_rise_count}}
+  default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 
   # custom http health checks for our nodes
 {% if haproxy_installed_version is version('2.2','>=') %}
@@ -386,39 +395,39 @@ backend release-{{ release }}
 {% endif %}
   
   balance hdr(X-StickToken)
-  hash-type consistent {{haproxy_hash_function}}
+  hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
-  stick match hdr(X-StickToken) table {{haproxy_backend_name}}
-  stick on hdr(X-StickToken) table {{haproxy_backend_name}} if stick_token_flag
+  stick match hdr(X-StickToken) table {{ haproxy_backend_name }}
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
 
 {% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
 {% if item['release_number'] == release %}
-  server {{release}}-{{item['shard']}} {% if haproxy_backend_use_private_ip -%}
-    {{item['private_ip']}}
+  server {{ release }}-{{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
+    {{ item['private_ip'] }}
   {%- else -%}
-    {{item['public_ip']}}
+    {{ item['public_ip'] }}
   {%- endif -%}
-    :{{haproxy_backend_port}} id {{item['id']}} 
+    :{{ haproxy_backend_port }} id {{ item['id'] }} 
   {%- if not item['local'] %} backup{% endif -%}
   {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-  {%- if haproxy_agent_check -%} no-check agent-check agent-port {{haproxy_agent_check_port}} agent-inter {{haproxy_check_interval}} weight 256
+  {%- if haproxy_agent_check -%} no-check agent-check agent-port {{ haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
-    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{haproxy_check_port}}
+    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
 {%- endif %}  
 {% endfor %}
 {% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
 {% if item['release_number'] != release %}
-  server {{release}}-fallback-{{item['shard']}} {% if haproxy_backend_use_private_ip -%}
-    {{item['private_ip']}}
+  server {{ release }}-fallback-{{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
+    {{ item['private_ip'] }}
   {%- else -%}
-    {{item['public_ip']}}
+    {{ item['public_ip'] }}
   {%- endif -%}
-    :{{haproxy_backend_port}} id {{item['id']}} backup 
+    :{{ haproxy_backend_port }} id {{ item['id'] }} backup 
   {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check -%} no-check agent-check agent-port {{haproxy_agent_check_port}} agent-inter {{haproxy_check_interval}} weight 256
+  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
-    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{haproxy_check_port}}
+    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
 {%- endif %}  
 {% endfor %}

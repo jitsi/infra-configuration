@@ -41,6 +41,8 @@ haproxy_frontend_count: 4
 haproxy_hash_function: sdbm avalanche
 # by default do not enable http logging in haproxy
 haproxy_http_log_enabled: false
+haproxy_jvb_colibri_proxy_enabled: "{{ jvb_colibri_proxy_enabled | default(false) }}"
+haproxy_jvb_colibri_proxy_port: "{{ jvb_colibri_proxy_port | default(8088) }}"
 haproxy_init_d_path: '/etc/init.d/haproxy'
 haproxy_installed_version: ""
 haproxy_log_level: "{{ 'info' if haproxy_http_log_enabled else 'notice' }}"
