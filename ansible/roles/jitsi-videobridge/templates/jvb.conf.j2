@@ -247,8 +247,5 @@ ice4j {
 {% else %}
     mapping.stun.enabled = false
 {% endif %}
-{% if jvb_subspace_static_mapping %}
-    mapping.static-mappings = [ { name = "subspace", local-address = "{{ansible_default_ipv4.address}}", local-port = {{jvb_single_harvester_port}}, public-address = "{{jvb_subspace_static_mapping['subspace_ipv4']}}", public-port = {{jvb_subspace_static_mapping['subspace_port']}} } ]
-{% endif %}
   }
 }
