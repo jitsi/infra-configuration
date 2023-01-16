@@ -118,7 +118,7 @@
   when: haproxy_build_ami or not haproxy_configure_only
 
 - name: PAM common session applies limits # noqa no-tabs
-  ansible.builtin.ineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/pam.d/common-session
     line: "session required\tpam_limits.so"
   when: haproxy_build_ami or not haproxy_configure_only
