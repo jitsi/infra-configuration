@@ -106,7 +106,6 @@ frontend www-http-{{ type }}
 {% else %}
 {% for i in range(haproxy_frontend_count) %}
    bind *:{{ 80 + i }}
-
 {% endfor %}
 {% endif %}
    acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
