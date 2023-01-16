@@ -1,0 +1,2 @@
+---
+haproxy_reconfigure_rsyslog: false

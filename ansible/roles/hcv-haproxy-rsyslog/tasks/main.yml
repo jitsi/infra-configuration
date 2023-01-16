@@ -1,0 +1,8 @@
+---
+- name: Suppress recurring drain log message from agent
+  ansible.builtin.lineinfile:
+    dest: /etc/rsyslog.d/49-haproxy.conf
+    insertafter: "^$$AddUnixListenSocket \/var\/lib/haproxy\/dev\/log$"
+    line: ":msg, contains, \"remains in forced drain mode.\" stop"
+  when: haproxy_reconfigure_rsyslog
+  notify: Restart haproxy rsyslog
