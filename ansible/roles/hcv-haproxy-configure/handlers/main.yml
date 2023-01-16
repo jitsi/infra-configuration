@@ -4,20 +4,20 @@
   ansible.builtin.service:
     name: haproxy
     state: reloaded
-  notify: set shard states
+  notify: Set shard states
 
 - name: Reload haproxy systemd
   ansible.builtin.systemd:
     name: haproxy
     state: reloaded
     daemon_reload: true
-  notify: set shard states
+  notify: Set shard states
 
 - name: Restart haproxy systemd
   ansible.builtin.systemd:
     name: haproxy state=restarted
     daemon_reload: true
-  notify: set shard states
+  notify: Set shard states
 
 - name: Set shard states
   ansible.builtin.shell: |
