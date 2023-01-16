@@ -1,0 +1,30 @@
+{
+  "service": {
+    "name": "haproxy",
+    "tags":["{{ hcv_environment }}"],
+    "meta": {
+        "environment":"{{ hcv_environment }}",
+        "domain":"{{ environment_domain_name }}"
+    },
+    "tagged_addresses": {
+      "lan": {
+        "address": "{{ consul_haproxy_private_ip }}",
+        "port": 80
+      },
+      "wan": {
+        "address": "{{ consul_haproxy_public_ip }}",
+        "port": 80
+      }
+    },
+    "port": 80,
+    "checks": [
+      {
+        "name": "HAProxy REST Health",
+        "http": "http://localhost:8080/haproxy_health",
+        "method": "GET",
+        "interval": "10s",
+        "timeout": "1s"
+      }
+    ]
+  }
+}
