@@ -68,6 +68,8 @@ if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
       -e "{jibri_configure_only_flag: $JIBRI_CONFIGURE_ONLY_FLAG, jibri_pjsua_flag: $JIBRI_PJSUA_FLAG}" \
       --vault-password-file=/root/.vault-password \
       ansible/$PLAYBOOK
+  RET=$?
+  cd -
 else
   # if there's still no git branch set, assume master
   [ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
@@ -88,4 +90,7 @@ else
     -e "{jibri_consul_datacenter: $AWS_CLOUD_NAME}" \
     -e "{jibri_configure_only_flag: $JIBRI_CONFIGURE_ONLY_FLAG, jibri_pjsua_flag: $JIBRI_PJSUA_FLAG}" \
     ansible/$PLAYBOOK
+    RET=$?
 fi
+
+exit $RET
