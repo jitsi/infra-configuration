@@ -60,6 +60,7 @@ haproxy_regions: "{{ haproxy_regions_by_region[haproxy_region] | default(default
 # required due to changes in configuration scripts which check for specific haproxy version
 haproxy_rest_check: true
 haproxy_set_shard_states_on_reconfigure: false
+haproxy_ssl_certificates: false
 haproxy_state_file: '/tmp/server_state'
 haproxy_stats_cron:
   hour: "*"

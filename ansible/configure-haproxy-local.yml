@@ -48,7 +48,7 @@
         jvb_shape: "{{ instance_result.json.shape }}"
       when: cloud_provider == 'oracle'
     - name: Get instance's Public IP from VNIC
-      shell: "oci network vnic get --vnic-id {{jvb_vnic}} --auth instance_principal"
+      ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
       register: vnic_details_result
       when: cloud_provider == 'oracle'
     - name: Set Public IP fact
@@ -59,55 +59,52 @@
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
-    - name: Install SSL Certificate meet.jit.si
+    - name: Install SSL Certificates
       ansible.builtin.copy:
         mode: 0640
-        content: "{{jitsi_meet_si_ssl_certificate}}{{jitsi_meet_si_ssl_extras}}{{jitsi_meet_si_ssl_key_name}}"
-        dest: "/etc/ssl/meet.jit.si.pem"
-    - name: Install SSL Certificate jitsi.net
-      ansible.builtin.copy:
-        mode: 0640
-        content: "{{jitsi_net_ssl_certificate}}{{jitsi_net_ssl_extras}}{{jitsi_net_ssl_key_name}}"
-        dest: "/etc/ssl/jitsi.net.pem"
-    - name: Install SSL Certificate 8x8.vc
-      ansible.builtin.copy:
-        mode: 0640
-        content: "{{star_8x8_vc_ssl_certificate}}{{star_8x8_vc_ssl_extras}}{{star_8x8_vc_ssl_key_name}}"
-        dest: "/etc/ssl/8x8.vc.pem"
+        content: "{{ item.content }}"
+        dest: "/etc/ssl/{{ item.name }}.pem"
+      with_items: "{{ haproxy_ssl_certificates }}"
 
     - name: Install pip boto3
-      pip:
+      ansible.builtin.pip:
         name: boto3
         state: present
     - name: Ensure custom facts directory exists
-      file:
+      ansible.builtin.file:
         mode: 0755
         path: /etc/ansible/facts.d
         recurse: true
         state: directory
     - name: Change instance hostname
-      hostname:
+      ansible.builtin.hostname:
         name: "{{ full_hostname }}"
     - name: Add instance name tag
-      ec2_tag:
+      amazon.aws.ec2_tag:
         state: present
         resource: "{{ ansible_ec2_instance_id }}"
         tags:
           Name: "{{ full_hostname }}"
       when: cloud_provider == 'aws'
     - name: Add local instance hostname and private ip to the hosts file
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: /etc/hosts
         state: present
         line: "{{ private_ip }} {{ full_hostname }}"
       when: not haproxy_configure_only
 
-    - name: ensure that fluentd stopped
-      service: name="td-agent" state=stopped enabled=false
+    - name: Ensure that fluentd stopped # noqa ignore-errors
+      ansible.builtin.service:
+        name: "td-agent"
+        state: stopped
+        enabled: false
       ignore_errors: true
       when: not haproxy_enable_fluentd
-    - name: stop jitsi-system-events
-      service: name="jitsi-system-events" state=stopped enabled=false
+    - name: Stop jitsi-system-events # noqa ignore-errors
+      ansible.builtin.service:
+        name: "jitsi-system-events"
+        state: stopped
+        enabled: false
       ignore_errors: true
   roles:
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
@@ -141,7 +138,7 @@
           cloud: "{{ cloud_provider }}"
 
     - { role: "haproxy", tags: "haproxy"}
-    - { role: "consul-haproxy", tags: "consul-haproxy", consul_haproxy_public_ip: "{{public_ip}}", consul_haproxy_private_ip: "{{private_ip}}" }
+    - { role: "consul-haproxy", tags: "consul-haproxy", consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure", haproxy_reconfigure_run: false }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
     - { role: "haproxy-tenant-pin", tags: "haproxy-tenant-pin", haproxy_tenant_pin_install_flag: true, haproxy_tenant_pin_configure_flag: true }
