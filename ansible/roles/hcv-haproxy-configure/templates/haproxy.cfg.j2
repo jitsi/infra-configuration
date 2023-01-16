@@ -96,15 +96,18 @@ frontend health
   http-request deny deny_status 503 if !is_up
   default_backend local_health
 
-{% for i in range(haproxy_frontend_count)|list + ['s'] %}
-frontend www-http{{ i }}
-{% if i == 's' %}
+{% for type in ['ssl', 'non-ssl'] %}
+frontend www-http-{{ type }}
+{% if type == 'ssl' %}
 {% if haproxy_ssl_certificates %}
    bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
 
 {% endif %}
 {% else %}
+{% for i in range(haproxy_frontend_count) %}
    bind *:{{ 80 + i }}
+
+{% endfor %}
 {% endif %}
    acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
    http-request deny if bad_guy_wordpress
