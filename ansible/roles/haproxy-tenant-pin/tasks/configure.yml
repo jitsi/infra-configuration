@@ -1,0 +1,14 @@
+---
+- name: Generate config file
+  ansible.builtin.template:
+    mode: 0644
+    src: config.j2
+    dest: '/etc/{{ haproxy_tenant_pin_service_name }}.conf'
+  notify:
+    - Restart tenant-pin
+
+- name: Start tenant-pin service
+  ansible.builtin.service:
+    name: tenant-pin
+    state: started
+    enabled: true
