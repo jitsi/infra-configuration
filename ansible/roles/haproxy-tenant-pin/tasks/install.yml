@@ -26,7 +26,7 @@
     mode: 0755
     owner: root
   notify:
-    - restart tenant-pin
+    - Restart tenant-pin
 
 - name: Generate service file
   ansible.builtin.template:
