@@ -44,10 +44,6 @@
         url: http://169.254.169.254/opc/v1/instance/
       register: instance_result
       when: cloud_provider == 'oracle'
-    - name: Set JVB Shape facot
-      ansible.builtin.set_fact:
-        jvb_shape: "{{ instance_result.json.shape }}"
-      when: cloud_provider == 'oracle'
     - name: Get instance's Public IP from VNIC
       ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
       register: vnic_details_result
