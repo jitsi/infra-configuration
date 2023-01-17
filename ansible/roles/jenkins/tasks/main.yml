@@ -17,7 +17,7 @@
     mode: 0644
     content: "{{ jenkins_ssl_certificate }}"
     dest: "{{ jenkins_ssl_dest_dir }}/{{ jenkins_sitename }}.crt"
-  notify: restart nginx
+  notify: Restart nginx
 
 - name: Install SSL private key
   ansible.builtin.copy:
