@@ -1,0 +1,44 @@
+---
+- name: Check for lock file
+  ansible.builtin.stat:
+    path: "{{ hcv_haproxy_status_lock_file }}"
+  register: lockfile
+
+- name: Respect lock if found
+  ansible.builtin.meta: end_host
+  when: lockfile.stat.exists and not (hcv_haproxy_status_ignore_lock | bool)
+
+- name: Collect room list
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "show table nodes" | sudo socat /var/run/haproxy/admin.sock stdio > /tmp/haproxy-table-nodes
+  args:
+    executable: /bin/bash
+
+- name: Collect stats
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "show stat" | sudo socat /var/run/haproxy/admin.sock stdio > /tmp/haproxy-stat
+  args:
+    executable: /bin/bash
+
+- name: Fetch room list
+  ansible.builtin.fetch:
+    src: "/tmp/haproxy-table-nodes"
+    dest: "{{ hcv_haproxy_status_path }}/haproxy-table-nodes-{{ ansible_hostname }}"
+    flat: true
+
+- name: Fetch stats
+  ansible.builtin.fetch:
+    src: "/tmp/haproxy-stat"
+    dest: "{{ hcv_haproxy_status_path }}/haproxy-stat-{{ ansible_hostname }}"
+    flat: true
+
+- name: Remove room list
+  ansible.builtin.file:
+    path: /tmp/haproxy-table-nodes
+    state: absent
+- name: Remove stats
+  ansible.builtin.file:
+    path: /tmp/haproxy-stat
+    state: absent

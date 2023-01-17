@@ -1,0 +1,7 @@
+- name: Main
+  hosts: tag_shard_role_haproxy
+  become_user: root
+  become: true
+  strategy: free
+  roles:
+    - { role: "hcv-haproxy-status", tags: "hcv-haproxy-status"}

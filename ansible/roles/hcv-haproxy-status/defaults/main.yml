@@ -1,0 +1,6 @@
+---
+hcv_environment: all
+hcv_haproxy_status_snapshot: false
+hcv_haproxy_status_path: "../../haproxy-status/{{ hcv_environment }}{{ '_snapshot' if hcv_haproxy_status_snapshot == 'true' else '' }}"
+hcv_haproxy_status_lock_file: '/tmp/haproxy-status.lock'
+hcv_haproxy_status_ignore_lock: false
