@@ -1,0 +1,15 @@
+server {
+    listen 443 ssl default;
+    ssl_certificate {{ jenkins_ssl_dest_dir }}/{{ jenkins_sitename }}.crt;
+    ssl_certificate_key {{ jenkins_ssl_dest_dir }}/{{ jenkins_sitename }}.key;
+    ssl_dhparam {{ jenkins_ssl_dest_dir }}/dhparam.pem;
+
+    server_name {{ jenkins_sitename }};
+    charset utf-8;
+
+    location / {
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_pass http://localhost:8080;
+    }
+}

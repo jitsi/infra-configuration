@@ -1,0 +1,6 @@
+---
+jenkins_sitename: "jenkins-opsdev.jitsi.net"
+jenkins_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+jenkins_ssl_dest_dir: /etc/nginx/ssl
+jenkins_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
+jenkins_install_flag: true
