@@ -1,0 +1,46 @@
+---
+- name: Check pip install click
+  ansible.builtin.pip:
+    name: click
+    state: present
+
+- name: Check pip install datadog
+  ansible.builtin.pip:
+    name: datadog
+    state: present
+
+- name: Check pip install haproxyadmin
+  ansible.builtin.pip:
+    name: haproxyadmin
+    state: present
+
+- name: Check pip install requests
+  ansible.builtin.pip:
+    name: datadog
+    state: present
+
+- name: Install haproxy_tenant_sync.py daemon script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/haproxy_tenant_sync.py"
+    src: "haproxy_tenant_sync.py"
+    mode: 0755
+    owner: root
+  notify:
+    - Restart tenant-pin
+
+- name: Generate service file
+  ansible.builtin.template:
+    mode: 0644
+    src: tenant-pin.service.j2
+    dest: '/etc/systemd/system/tenant-pin.service'
+
+- name: Rsyslog configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/55-tenant-pin.conf
+
+- name: Restart rsyslog with new configuration
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted

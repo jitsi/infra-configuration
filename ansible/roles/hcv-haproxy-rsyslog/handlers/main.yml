@@ -1,0 +1,5 @@
+---
+- name: Restart haproxy rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted

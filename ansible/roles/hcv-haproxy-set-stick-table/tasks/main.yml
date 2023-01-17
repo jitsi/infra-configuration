@@ -1,0 +1,24 @@
+---
+- name: Provide stick table entries
+  ansible.builtin.copy:
+    mode: 0644
+    dest: "/tmp/{{ stick_table_filename }}"
+    src: "{{ stick_table_entries_file }}"
+
+- name: Push entries to haproxy
+  ansible.builtin.shell: |
+    set -o pipefail
+    cat /tmp/{{ stick_table_filename }} | \
+    jq -r '.|map("set table {{ backend_name }} key \(.key) data.server_id \(.id)")|.[]' | sudo socat /var/run/haproxy/admin.sock stdio
+  args:
+    executable: /bin/bash
+  register: socat_output
+  when: stick_table_entries_file is defined
+
+- name: Clean stick table entries
+  ansible.builtin.file:
+    path: "/tmp/{{ stick_table_filename }}"
+    state: "absent"
+
+# - debug: var=socat_output.stdout
+#  when: show_shard_state

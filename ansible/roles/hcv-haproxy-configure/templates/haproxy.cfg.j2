@@ -96,13 +96,14 @@ frontend health
   http-request deny deny_status 503 if !is_up
   default_backend local_health
 
-{% for i in range(haproxy_frontend_count)|list + ['s'] %}
-frontend www-http{{ i }}
-{% if i == 's' %}
-   bind *:443 ssl crt /etc/ssl/jitsi.net.pem crt /etc/ssl/meet.jit.si.pem crt /etc/ssl/8x8.vc.pem
-{% else %}
-   bind *:{{ 80 + i }}
+frontend www-http
+{% if haproxy_ssl_certificates %}
+   bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
+
 {% endif %}
+{% for i in range(haproxy_frontend_count) %}
+   bind *:{{ 80 + i }}
+{% endfor %}
    acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
    http-request deny if bad_guy_wordpress
 
@@ -240,7 +241,6 @@ frontend www-http{{ i }}
 {% endif -%}
 {% endif -%}
 {% endif -%}
-{% endfor -%}
 
 {% if haproxy_jvb_colibri_proxy_enabled %}
 backend jvb-colibri-proxy

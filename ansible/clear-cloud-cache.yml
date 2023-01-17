@@ -1,0 +1,19 @@
+- name: Main
+  hosts: all
+  gather_facts: false
+  strategy: free
+  become_user: root
+  become: true
+
+  tasks:
+    - name: Find cache files
+      ansible.builtin.find:
+        paths: /tmp
+        patterns: "*_cache-*"
+      register: find_results
+
+    - name: Delete cache files
+      ansible.builtin.file:
+        path: "{{ item['path'] }}"
+        state: absent
+      with_items: "{{ find_results['files'] }}"

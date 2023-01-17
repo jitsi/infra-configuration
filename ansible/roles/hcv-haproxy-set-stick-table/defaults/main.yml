@@ -1,0 +1,5 @@
+---
+backend_name: 'nodes'
+stick_table_entries: false
+stick_table_entries_file: false
+stick_table_filename: stick-table-entries.json

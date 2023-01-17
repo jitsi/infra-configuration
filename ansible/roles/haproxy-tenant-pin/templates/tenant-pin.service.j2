@@ -1,0 +1,15 @@
+[Unit]
+Description=haproxy tenant pin updater service
+After=multi-user.target
+
+[Service]
+EnvironmentFile=/etc/{{ haproxy_tenant_pin_service_name }}.conf
+ExecStart=/usr/bin/python /usr/local/bin/haproxy_tenant_sync.py
+Type=simple
+User=root
+Group=root
+Restart=always
+SyslogIdentifier={{ haproxy_tenant_pin_service_name }}
+
+[Install]
+WantedBy=multi-user.target

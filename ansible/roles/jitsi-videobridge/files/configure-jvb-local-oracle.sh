@@ -12,9 +12,11 @@ function checkout_repos() {
   git clone $INFRA_CUSTOMIZATIONS_REPO $BOOTSTRAP_DIRECTORY/infra-customizations
   cd $BOOTSTRAP_DIRECTORY/infra-configuration
   git checkout $GIT_BRANCH
+  git submodule update --init --recursive
   cd -
   cd $BOOTSTRAP_DIRECTORY/infra-customizations
   git checkout $GIT_BRANCH
+  git submodule update --init --recursive
   cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
   cd -
 }
@@ -89,6 +91,8 @@ if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
     -e "{autoscaler_sidecar_jvb_flag: $AUTOSCALER_SIDECAR_JVB_FLAG}" \
     -e "{jvb_pool_mode: $JVB_POOL_MODE}" \
     ansible/$PLAYBOOK
+  RET=$?
+  cd -
 else
     #if there's still no git branch set, assume master
     [ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
@@ -116,6 +120,7 @@ else
     -e "{autoscaler_sidecar_jvb_flag: $AUTOSCALER_SIDECAR_JVB_FLAG}" \
     -e "{jvb_pool_mode: $JVB_POOL_MODE}" \
     ansible/$PLAYBOOK
+    RET=$?
 fi
-#eventually if this is all successful, then notify other system components via jitsi-system-events
-#TODO: actually do the above
+
+exit $RET

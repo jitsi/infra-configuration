@@ -1,0 +1,142 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  gather_timeout: 180
+  become_user: root
+  become: true
+  force_handlers: true
+  vars:
+    shard_role: haproxy
+    cloud_provider: oracle
+    cloud_public_ip: ""
+    public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
+    private_ip: "{{ ansible_default_ipv4.address }}"
+    host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
+    ip_component: "{{ host_ip.split('.')[2:4] | join('') }}"
+    hostname_component: "{{ hcv_environment }}-haproxy-{{ ip_component }}"
+    full_hostname: "{{ hostname_component }}.{{ environment_domain_name }}"
+    telegraf_hostname: "{{ full_hostname }}"
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl-certificates.yml
+    - secrets/consul.yml
+    - secrets/oci-logging.yml
+    - secrets/repo.yml
+    - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+  pre_tasks:
+    - name: Gather AWS facts
+      amazon.aws.ec2_metadata_facts:
+      tags: "ec2_facts"
+      when: cloud_provider == 'aws'
+    - name: Get instance's VNIC
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/vnics/
+      register: vnic_result
+      when: cloud_provider == 'oracle'
+    - name: Set JVB VNIC Fact
+      ansible.builtin.set_fact:
+        jvb_vnic: "{{ vnic_result.json[0].vnicId }}"
+      when: cloud_provider == 'oracle'
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      when: cloud_provider == 'oracle'
+    - name: Get instance's Public IP from VNIC
+      ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
+      register: vnic_details_result
+      when: cloud_provider == 'oracle'
+    - name: Set Public IP fact
+      ansible.builtin.set_fact:
+        cloud_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+      when: cloud_provider == 'oracle'
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+    - name: Install SSL Certificates
+      ansible.builtin.copy:
+        mode: 0640
+        content: "{{ item.content }}"
+        dest: "/etc/ssl/{{ item.name }}.pem"
+      with_items: "{{ haproxy_ssl_certificates }}"
+
+    - name: Install pip boto3
+      ansible.builtin.pip:
+        name: boto3
+        state: present
+    - name: Ensure custom facts directory exists
+      ansible.builtin.file:
+        mode: 0755
+        path: /etc/ansible/facts.d
+        recurse: true
+        state: directory
+    - name: Change instance hostname
+      ansible.builtin.hostname:
+        name: "{{ full_hostname }}"
+    - name: Add instance name tag
+      amazon.aws.ec2_tag:
+        state: present
+        resource: "{{ ansible_ec2_instance_id }}"
+        tags:
+          Name: "{{ full_hostname }}"
+      when: cloud_provider == 'aws'
+    - name: Add local instance hostname and private ip to the hosts file
+      ansible.builtin.lineinfile:
+        dest: /etc/hosts
+        state: present
+        line: "{{ private_ip }} {{ full_hostname }}"
+      when: not haproxy_configure_only
+
+    - name: Ensure that fluentd stopped # noqa ignore-errors
+      ansible.builtin.service:
+        name: "td-agent"
+        state: stopped
+        enabled: false
+      ignore_errors: true
+      when: not haproxy_enable_fluentd
+    - name: Stop jitsi-system-events # noqa ignore-errors
+      ansible.builtin.service:
+        name: "jitsi-system-events"
+        state: stopped
+        enabled: false
+      ignore_errors: true
+  roles:
+    - { role: "jitsi-dumper", tags: "jitsi-dumper" }
+    - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: haproxy_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled and not datadog_enabled
+      vars:
+        telegraf_inputs:
+          haproxy:
+            # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
+            # fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr", "wredis"]
+            fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis"]
+            servers: ["http://localhost:8080/haproxy_stats"]
+            username: "admin"
+            password: "admin"
+          nstat:
+            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+        telegraf_tags:
+          role: "haproxy"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud: "{{ cloud_provider }}"
+
+    - { role: "haproxy", tags: "haproxy"}
+    - { role: "consul-haproxy", tags: "consul-haproxy", consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
+    - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure", haproxy_reconfigure_run: false }
+    - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
+    - { role: "haproxy-tenant-pin", tags: "haproxy-tenant-pin", haproxy_tenant_pin_install_flag: true, haproxy_tenant_pin_configure_flag: true }
+    - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
