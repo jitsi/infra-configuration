@@ -1,0 +1,7 @@
+- name: Main
+  hosts: all
+  become: true
+  become_user: root
+  gather_facts: false
+  roles:
+     - { role: "hcv-haproxy-set-stick-table", tags: "set-stick-table" }
