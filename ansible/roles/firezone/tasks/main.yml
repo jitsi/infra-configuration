@@ -1,0 +1,58 @@
+---
+- name: install docker compose
+  apt:
+    name: docker-compose-plugin
+    state: present
+
+- name: create /opt/firezone
+  file:
+    path: /opt/firezone
+    state: directory
+
+- name: download firezone docker compose file
+  shell:
+    cmd: curl -fsSL https://raw.githubusercontent.com/firezone/firezone/master/docker-compose.prod.yml -o docker-compose.yml
+    chdir: /opt/firezone
+
+- name: generate firezone environment
+  shell: docker run --rm firezone/firezone bin/gen-env > /opt/firezone/.env
+
+- name: change config URL
+  lineinfile:
+    dest: /opt/firezone/.env
+    state: present
+    regexp: "^EXTERNAL_URL="
+    line: "EXTERNAL_URL=https://{{dns_name}}"
+
+- name: change config email
+  lineinfile:
+    dest: /opt/firezone/.env
+    state: present
+    regexp: "^ADMIN_EMAIL="
+    line: "ADMIN_EMAIL=meetings-ops@8x8.com"
+
+- name: change config TLS options
+  blockinfile:
+    path: /opt/firezone/.env
+    block: |
+      TLS_OPTS="tls {
+          on_demand
+      }"
+
+- name: bring up firezone in docker
+  shell:
+    cmd: docker compose up -d
+    chdir: /opt/firezone
+
+- name: wait for docker to come up
+  wait_for:
+    timeout: 60
+
+- name: install default admin user
+  shell:
+    cmd: docker compose exec firezone bin/create-or-reset-admin
+    chdir: /opt/firezone
+
+- name: make sure docker comes up on restart
+  shell:
+    cmd: systemctl enable docker
