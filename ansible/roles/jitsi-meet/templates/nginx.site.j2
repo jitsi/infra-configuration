@@ -544,7 +544,7 @@ server {
 {% endif %}
 
     #ensure all inappropriate room names are redirected appropriately
-    location ~* ^/(camjerk|children|cuties|kids|onlycutiesss|perv|perv1|pervroom|pervroom1|porn|sex|teens|teenz|tight|vids|youtubecuties)$
+    location ~* ^/(camjerk|children|cuties|cuties2|kids|onlycutiesss|perv|perv1|pervroom|pervroom1|porn|sex|teens|teenz|tight|vids|youtubecuties)$
     {
         rewrite ^/(.*)$ https://{{jitsi_meet_domain_name}}/ permanent;
     }

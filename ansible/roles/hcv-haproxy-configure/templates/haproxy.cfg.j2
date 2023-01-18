@@ -163,8 +163,8 @@ frontend www-http
    acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
    http-request deny if bad_guy_wordpress
 
-   acl bad_room path /sex /porn /kids /onlycutiesss /children /cuties /teens /teenz /camjerk /perv /pervroom /pervroom1 /tight /youtubecuties /vids
-   acl bad_room_param urlp(room) sex porn kids onlycutiesss children cuties teens teenz camjerk perv pervroom pervroom1 tight youtubecuties vids
+   acl bad_room path /sex /porn /kids /onlycutiesss /children /cuties /cuties2 /teens /teenz /camjerk /perv /pervroom /pervroom1 /tight /youtubecuties /vids
+   acl bad_room_param urlp(room) sex porn kids onlycutiesss children cuties cuties2 teens teenz camjerk perv pervroom pervroom1 tight youtubecuties vids
 
    http-request deny if bad_room_param
    http-request redirect location / if bad_room
