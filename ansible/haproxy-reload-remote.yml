@@ -39,6 +39,19 @@
         src: "roles/hcv-haproxy-configure/files/configure-haproxy-oracle.sh"
         mode: 0755
         owner: root
+    # clear cloud cache
+    - name: Find cache files
+      ansible.builtin.find:
+        paths: /tmp
+        patterns: "*_cache-*"
+      register: find_results
+
+    - name: Delete cache files
+      ansible.builtin.file:
+        path: "{{ item['path'] }}"
+        state: absent
+      with_items: "{{ find_results['files'] }}"
+
   roles:
     # first reconfigure the haproxy and reload it
     - { role: "haproxy-configure", tags: "haproxy-configure"}
