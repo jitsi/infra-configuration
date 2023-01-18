@@ -28,6 +28,12 @@
     - name: Set hostname fact
       ansible.builtin.set_fact:
         ansible_hostname: "{{ hostname_output.stdout }}"
+    - name: Copy configure-haproxy.sh
+      ansible.builtin.copy:
+        dest: "/usr/local/bin/configure-haproxy.sh"
+        src: "roles/hcv-haproxy-configure/configure-haproxy-oracle.sh"
+        mode: 0755
+        owner: root
   roles:
     # first reconfigure the haproxy and reload it
     - { role: "haproxy-configure", tags: "haproxy-configure"}
