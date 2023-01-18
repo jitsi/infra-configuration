@@ -91,7 +91,7 @@ jvb_memory_by_shape:
   "VM.Standard.E3.Flex": "6g"
   "VM.Standard.E4.Flex": "6g"
   "default": "3072m"
-jvb_nginx_ssl_enabled: false
+jvb_nginx_ssl_enabled: true
 jvb_nomination_strategy: "NominateFirstHostOrReflexiveValid"
 jvb_suppress_private_candidates: true
 jvb_open_file_limit: 65536
