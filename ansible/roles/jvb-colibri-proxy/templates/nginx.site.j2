@@ -10,8 +10,8 @@ server {
     send_timeout                90s;
 
     #only listen on 127.0.0.1 IPs
-    listen 127.0.0.1:{{ jvb_colibri_proxy_nginx_port }};
-    listen [::]:{{ jvb_colibri_proxy_nginx_port }};
+    listen 127.0.0.1:{{ jvb_colibri_proxy_nginx_port }} default_server;
+    listen [::]:{{ jvb_colibri_proxy_nginx_port }} default_server;
 
     server_name {{ jvb_colibri_proxy_domain_name }};
 
