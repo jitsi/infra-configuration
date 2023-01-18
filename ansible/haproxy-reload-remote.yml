@@ -28,6 +28,11 @@
     - name: Set hostname fact
       ansible.builtin.set_fact:
         ansible_hostname: "{{ hostname_output.stdout }}"
+    - name: Install oracle_cache.sh helper script
+      ansible.builtin.copy:
+        src: "roles/common/files/oracle_cache.sh"
+        dest: "/usr/local/bin/oracle_cache.sh"
+        mode: "0755"
     - name: Copy configure-haproxy.sh
       ansible.builtin.copy:
         dest: "/usr/local/bin/configure-haproxy.sh"
