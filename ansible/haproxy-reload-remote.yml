@@ -31,7 +31,7 @@
     - name: Copy configure-haproxy.sh
       ansible.builtin.copy:
         dest: "/usr/local/bin/configure-haproxy.sh"
-        src: "roles/hcv-haproxy-configure/configure-haproxy-oracle.sh"
+        src: "roles/hcv-haproxy-configure/files/configure-haproxy-oracle.sh"
         mode: 0755
         owner: root
   roles:
