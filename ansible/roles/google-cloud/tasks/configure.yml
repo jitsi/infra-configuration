@@ -1,0 +1,21 @@
+---
+- name: Google cloud config directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ google_cloud_conf_dir }}"
+    state: "directory"
+
+- name: Confirm jitsi group exists
+  ansible.builtin.group:
+    name: jitsi
+    state: present
+
+- name: Install google cloud key file
+  ansible.builtin.copy:
+    dest: "{{ google_cloud_conf_dir }}/google-cloud-s2t-key-file.json"
+    content: "{{ google_cloud_service_key_json }}"
+    mode: 0640
+    group: jitsi
+
+- name: Activate google cloud service account
+  ansible.builtin.command: gcloud auth activate-service-account --key-file={{ google_cloud_conf_dir }}/google-cloud-s2t-key-file.json

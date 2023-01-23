@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: consul_haproxy
+  author: Aaron van Meerten
+  description: configure consul for jigasi
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
+dependencies:
+  - {role: consul-agent, consul_install_flag: false}

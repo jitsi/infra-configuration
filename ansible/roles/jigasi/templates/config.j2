@@ -1,0 +1,18 @@
+# Jigasi settings
+JIGASI_OPTS="--nocomponent=true"
+
+# adds java system props that are passed to jigasi (default are for logging config file)
+JAVA_SYS_PROPS="-Djava.util.logging.config.file=/etc/jitsi/jigasi/logging.properties"
+
+# Credential for Google Cloud Speech API
+GOOGLE_APPLICATION_CREDENTIALS=/etc/google-cloud/google-cloud-s2t-key-file.json
+export GOOGLE_APPLICATION_CREDENTIALS=/etc/google-cloud/google-cloud-s2t-key-file.json
+
+{% if jigasi_enable_css_integration %}
+CSS_AUTH_URL={{jigasi_css_auth_url}}
+CSS_AUTH_CLIENT_ID={{jigasi_css_auth_client_id}}
+CSS_AUTH_CLIENT_SECRET={{jigasi_css_auth_client_secret}}
+CSS_AUTH_USERNAME={{jigasi_css_auth_username}}
+CSS_AUTH_PASS={{jigasi_css_auth_pass}}
+CSS_STORAGE_SERVICE_URL={{jigasi_css_storage_service_url}}
+{% endif %}

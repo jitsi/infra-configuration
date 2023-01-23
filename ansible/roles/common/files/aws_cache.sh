@@ -37,6 +37,8 @@ export CLOUD_PROVIDER_TAG="cloud_provider"
 export GIT_BRANCH_TAG="git_branch"
 export RELEASE_NUMBER_TAG="release_number"
 export ASG_TAG="aws:autoscaling:groupName"
+export INFRA_CONFIGURATION_REPO_TAG="configuration_repo"
+export INFRA_CUSTOMIZATIONS_REPO_TAG="customizations_repo"
 
 CACHE_PATH="/tmp/aws_cache-${EC2_INSTANCE_ID}"
 
@@ -67,3 +69,13 @@ export AWS_NAME=$(cat $CACHE_PATH | jq -r ".Tags[] | select(.Key == \"$NAME_TAG\
 export AUTO_SCALE_GROUP=$(cat $CACHE_PATH | jq -r ".Tags[] | select(.Key == \"$ASG_TAG\") | .Value")
 export RELEASE_NUMBER=$(cat $CACHE_PATH | jq -r ".Tags[] | select(.Key == \"$RELEASE_NUMBER_TAG\") | .Value")
 export GIT_BRANCH=$(cat $CACHE_PATH | jq -r ".Tags[] | select(.Key == \"$GIT_BRANCH_TAG\") | .Value")
+export TAGGED_INFRA_CONFIGURATION_REPO=$(cat $CACHE_PATH | jq -r ".Tags[] | select(.Key == \"$INFRA_CONFIGURATION_REPO_TAG\") | .Value")
+export TAGGED_INFRA_CUSTOMIZATIONS_REPO=$(cat $CACHE_PATH | jq -r ".Tags[] | select(.Key == \"$INFRA_CUSTOMIZATIONS_REPO_TAG\") | .Value")
+
+if [ "$TAGGED_INFRA_CONFIGURATION_REPO" != "null" ]; then
+  export INFRA_CONFIGURATION_REPO="$TAGGED_INFRA_CONFIGURATION_REPO"
+fi
+
+if [ "$TAGGED_INFRA_CUSTOMIZATIONS_REPO" != "null" ]; then
+  export INFRA_CUSTOMIZATIONS_REPO="$TAGGED_INFRA_CUSTOMIZATIONS_REPO"
+fi

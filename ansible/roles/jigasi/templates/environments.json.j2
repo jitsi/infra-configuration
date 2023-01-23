@@ -1,0 +1,21 @@
+{
+{% if jigasi_enable_consul %}
+  "local_environment":"{{hcv_environment}}",
+  "consul_enabled":{{jigasi_consul_enabled|to_json}},
+  "consul_extra_urls":{{jigasi_consul_extra_urls|to_json}},
+{% if jigasi_shard_role=='jigasi-transcriber' %}
+  "consul_server":"{{jigasi_consul_server}}",
+{% endif %}
+{% if jigasi_enable_local_datacenters and jigasi_shard_role!='jigasi-transcriber' %}
+  "datacenters":{{jigasi_local_datacenters|to_json}},
+{% else %}
+  "enable_cross_region": true,
+{% endif %}
+{% endif %}
+  "jid_username":"{{jigasi_xmpp_jid_username}}",
+  "brewery_muc_room":"{{jigasi_brewery_muc_room}}",
+  "auth_prefix":"{{jigasi_auth_prefix}}",
+  "internal_muc_prefix": "{{jigasi_internal_muc_prefix}}",
+  "environments":{{jigasi_environments|to_json}},
+  "regions":{{jigasi_regions|to_json}}
+}

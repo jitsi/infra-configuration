@@ -1,0 +1,15 @@
+[Unit]
+Description=Jigasi Terminating Instance Monitor
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/local/bin/monitor-terminating-instance.sh
+Restart=on-failure
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=monitor-terminating-instance
+
+[Install]
+WantedBy=multi-user.target
