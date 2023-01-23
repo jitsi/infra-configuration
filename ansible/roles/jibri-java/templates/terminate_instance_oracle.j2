@@ -14,7 +14,7 @@ PRESERVE_BOOT_VOLUME="false"
 if [ "$PRESERVE_BOOT_VOLUME_IF_NEEDED" == "true" ]; then
   # check for non-empty recording sub-directories under JIBRI_RECORDINGS_DIR
   RECORDINGS=$(find "$JIBRI_RECORDINGS_DIR" -mindepth 1  -not -empty -type d)
-  if [ ! -z "$RECORDINGS" ]; then
+  if [ -n "$RECORDINGS" ]; then
     PRESERVE_BOOT_VOLUME="true"
   fi
 fi

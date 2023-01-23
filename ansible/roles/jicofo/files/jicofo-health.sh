@@ -35,7 +35,7 @@ fi
 
 SIGNAL_REPORT=$(curl $SIGNAL_REPORT_URL)
 if [ $? -eq 0 ]; then
-    if [ ! -z "$SIGNAL_REPORT" ]; then
+    if [ -n "$SIGNAL_REPORT" ]; then
         $SHARD_DATA_SCRIPT "$SIGNAL_REPORT" "signal-report"
     fi
 fi

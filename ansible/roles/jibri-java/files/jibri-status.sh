@@ -75,13 +75,13 @@ if [ $? == 0 ]; then
     # change in recording status, act accordingly
     if [[ $recordingValue == 1 ]]; then
       # begin recording
-      if [ ! -z "$AUTO_SCALE_GROUP" ]; then
+      if [ -n "$AUTO_SCALE_GROUP" ]; then
         # set instance protection, if we are in an ASG
         $AWS_BIN autoscaling set-instance-protection --protected-from-scale-in --instance-ids $EC2_INSTANCE_ID --auto-scaling-group-name $AUTO_SCALE_GROUP
       fi
     else
       # end recording
-      if [ ! -z "$AUTO_SCALE_GROUP" ]; then
+      if [ -n "$AUTO_SCALE_GROUP" ]; then
         # clear instance protection, if we are in an ASG
         $AWS_BIN autoscaling set-instance-protection --no-protected-from-scale-in --instance-ids $EC2_INSTANCE_ID --auto-scaling-group-name $AUTO_SCALE_GROUP
       fi

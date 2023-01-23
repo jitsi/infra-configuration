@@ -1,0 +1,39 @@
+---
+- name: Open TCP port 80 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "80"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open TCP 7070 for the haproxy agent
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "7070"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open serf TCP port 8301 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "8301"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open serf UDP port 8301 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "8301"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Save newly added iptable rules
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4

@@ -1,0 +1,130 @@
+---
+default_jigasi_environments: []
+environment_domain_name: "jigasi"
+jigasi_auth_domain: "{{ jigasi_auth_prefix }}.{{ prosody_domain_name }}"
+jigasi_auth_prefix: "{{ auth_prefix | default('auth') }}"
+jigasi_bosh_host_override: false
+jigasi_bosh_url_pattern: "https://{host}{subdomain}/http-bind?room={roomName}"
+jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix }}.{{ jigasi_xmpp_domain }}"
+jigasi_brewery_muc_room: JigasiBrewery
+jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc
+jigasi_cloud_provider: "{{ cloud_provider | default('aws') }}"
+# use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
+jigasi_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g3>_\\g<g4>') }}"
+jigasi_conferences_threshold: 80
+jigasi_configure_flag: true
+jigasi_configure_only_flag: false
+jigasi_consul_enabled: true
+jigasi_consul_datacenter: "{{ cloud_name | default('dc1') }}"
+jigasi_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
+jigasi_consul_extra_urls: []
+jigasi_css_auth_client_id: false
+jigasi_css_auth_client_secret: false
+jigasi_css_auth_pass: false
+jigasi_css_auth_url: false
+jigasi_css_auth_username: false
+jigasi_css_storage_service_url: false
+# when jigasi_enable_local_datacenters, jigasis in phoenix/us-west-2 connect to shards in US, Tokyo and South America
+# while jigasis in the EU connect to shards in EU, Sydney and Mumbai
+jigasi_local_datacenters_by_cloud:
+  us-west-2-peer1: [
+    "{{ hcv_environment }}-us-phoenix-1",
+    'us-west-2-peer1',
+    "{{ hcv_environment }}-us-ashburn-1",
+    'us-east-1-peer1',
+    "{{ hcv_environment }}-ap-tokyo-1",
+    'ap-ne-1-peer1',
+    "{{ hcv_environment }}-sa-saopaulo-1",
+    'sa-east-1-peer1',
+    "{{ hcv_environment }}-ap-sydney-1",
+    'ap-se-2-peer1'
+  ]
+  eu-central-1-peer1: [
+    "{{ hcv_environment }}-uk-london-1",
+    'eu-west-2-peer1',
+    "{{ hcv_environment }}-eu-frankfurt-1",
+    'eu-central-1-peer1',
+    "{{ hcv_environment }}-ap-mumbai-1",
+    'ap-south-1-peer1'
+  ]
+jigasi_deb_pkg_name: "jigasi"
+jigasi_deb_pkg_version: "*"
+jigasi_default_sip_server: "jigasi.atlassian.n2.voximplant.com"
+jigasi_enable_accounting: false
+# enable jigasi login instead of anonymous
+jigasi_enable_bosh_auth: false
+jigasi_enable_consul: true
+jigasi_enable_css_integration: false
+jigasi_enable_dial_out: true
+# only enable external mixing on voximplant
+jigasi_enable_external_mixing: true
+jigasi_enable_health_check_cron: true
+jigasi_enable_local_datacenters: false
+jigasi_enable_muting: false
+jigasi_enable_stats_cron: true
+# enable the use of tcp - needed mostly for oracle, as oracle has problems with sip over udp
+jigasi_enable_tcp: "{{ true if jigasi_cloud_provider == 'oracle' else false }}"
+jigasi_enable_tls: false
+jigasi_enable_translations: false
+jigasi_environments: "{{ default_jigasi_environments }}"
+jigasi_extra_prefix: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>_') }}"
+jigasi_health_check_cron:
+  hour: "*"
+  job: "{{ jigasi_path_to_health_script }} > /tmp/health-check-cron-output 2>&1"
+  minute: "*"
+jigasi_health_check_cron_user: ubuntu
+jigasi_heartbeat_seconds: false
+jigasi_hole_punch_pkt_count: 6
+jigasi_image_build_flag: false
+jigasi_install_flag: true
+jigasi_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
+jigasi_local_datacenters: "{{ jigasi_local_datacenters_by_cloud[jigasi_consul_datacenter]
+  if jigasi_local_datacenters_by_cloud[jigasi_consul_datacenter] is defined else [] }}"
+# timeout in seconds to join muc on dial-out, after which we report an error (default is 5 seconds)
+jigasi_muc_join_timeout: false
+jigasi_new_version_scheme: true
+jigasi_number: "{{ jigasi_number_prefix }}{{ jigasi_component_id }}"
+jigasi_number_prefix: "{{ jigasi_extra_prefix if jigasi_cloud_provider == 'oracle' else '' }}"
+jigasi_open_file_limit: 65536
+jigasi_outbound_flag: false
+jigasi_outbound_prefix: false
+jigasi_outbound_sip_server: "outbound.atlassian.voximplant.com"
+# enables jigasi reverse lookup of identity by phone number
+jigasi_participant_info_callback_url: false
+jigasi_path_to_health_script: "/usr/local/bin/jigasi-health-check.sh"
+jigasi_path_to_stats_python_script: "/usr/local/bin/jigasi-stats.py"
+jigasi_path_to_stats_script: "/usr/local/bin/jigasi-stats.sh"
+jigasi_path_to_terminate_instance_script: /usr/local/bin/terminate_instance.sh
+jigasi_regions: "{{ default_regions.strip().split('\n') }}"
+jigasi_servers: []
+jigasi_servers_to_remove: []
+jigasi_service_version_shell: "{{ jigasi_service_version_shell_new if jigasi_new_version_scheme else jigasi_service_version_shell_old }}"
+jigasi_service_version_shell_new: "dpkg -s jigasi | grep Version | awk '{print $2}' | cut -d'-' -f1,2,3"
+jigasi_service_version_shell_old: "dpkg -s jigasi | grep Version | awk '{print $2}' | cut -d'-' -f2"
+# controls whether jigasi is meant for dial in/out or transcription
+jigasi_shard_role: jigasi
+jigasi_sip_password: "j1g@s1"
+# disable pcma and pcmu for voximplant, enable for voxbone
+jigasi_sip_pcma_priority: 0
+jigasi_sip_pcmu_priority: 0
+jigasi_sip_server: "{{ jigasi_outbound_sip_server if jigasi_outbound_flag else jigasi_default_sip_server }}"
+jigasi_sip_username: "jigasi"
+jigasi_stats_cron:
+  hour: "*"
+  job: "{{ jigasi_path_to_stats_script }} > /tmp/stats-cron-output 2>&1"
+  minute: "*"
+jigasi_stats_cron_user: ubuntu
+jigasi_transcriber_auth_domain: "recorder.{{ jigasi_xmpp_domain }}"
+jigasi_transcriber_auth_password: "meettranscriber"
+jigasi_transcriber_auth_user: "transcriber"
+jigasi_transcriber_enable_debug: false
+jigasi_transcriber_filter_silence: false
+jigasi_transcription_path: /var/lib/jigasi/transcripts
+jigasi_udp_buffer_max_backlog: 2000
+# temporarily increase buffer size until performance work is completed
+jigasi_udp_buffer_size: 2097152
+jigasi_xmpp_domain: "{{ environment_domain_name }}"
+jigasi_xmpp_jid_username: jigasi
+jigasi_xmpp_password: "jeegahsee"
+jigasi_xmpp_port: 5222
+jigasi_xmpp_server: 127.0.0.1

@@ -32,7 +32,7 @@ DEPLOY_TAGS=${ANSIBLE_TAGS-"common,hcv-haproxy-configure"}
 
 PLAYBOOK="configure-haproxy-local.yml"
 
-if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
+if [ -n "$INFRA_CONFIGURATION_REPO" ]; then
   # if there's still no git branch set, assume main
   [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
 

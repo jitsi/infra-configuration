@@ -49,7 +49,7 @@ DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
 PLAYBOOK="configure-jibri-java-local-oracle.yml"
 
-if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
+if [ -n "$INFRA_CONFIGURATION_REPO" ]; then
   # if there's still no git branch set, assume main
   [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
 
