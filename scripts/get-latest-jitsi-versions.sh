@@ -9,6 +9,11 @@ LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 # first configure and update jitsi repo
 "$LOCAL_PATH/configure-jitsi-repo.sh"
 
+if [[ $? -ne 0 ]]; then
+    echo "Failed to configure jitsi repo, failing job..."
+    exit 2
+fi
+
 # find meta version
 [ -z "$JITSI_MEET_META_VERSION" ] && JITSI_MEET_META_VERSION=$(apt-cache madison jitsi-meet | awk '{print $3;}' | head -1 |  cut -d'-' -f1)
 
