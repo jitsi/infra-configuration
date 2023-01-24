@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: consul_jigasi
+  role_name: jigasi_haproxy_agent
   author: Aaron van Meerten
-  description: configure consul for jigasi
+  description: configure haproxy agent for jigasi
   license: Apache License Version 2.0
   min_ansible_version: '6.6.0'
   platforms:
@@ -11,4 +11,4 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - {role: consul-agent, consul_install_flag: false}
+  - { role: nodejs, when: jigasi_haproxy_agent_install_flag }

@@ -1,0 +1,23 @@
+---
+jigasi_haproxy_agent_base_path: /opt/jitsi/jigasi-haproxy-agent
+jigasi_haproxy_agent_config_dir: /etc/jitsi/jigasi-haproxy-agent
+jigasi_haproxy_agent_config_path: /etc/jitsi/jigasi-haproxy-agent/service.env
+jigasi_haproxy_agent_configure_flag: true
+jigasi_haproxy_agent_git_repo: git@github.com:jitsi/jigasi-haproxy-agent.git
+jigasi_haproxy_agent_groupname: jhagent
+jigasi_haproxy_agent_health_interval: 5000
+jigasi_haproxy_agent_install_flag: true
+jigasi_haproxy_agent_listen_port: 7070
+jigasi_haproxy_agent_log_dir: /var/log/jitsi/jigasi-haproxy-agent
+jigasi_haproxy_agent_max_participants: 250
+jigasi_haproxy_agent_service_name: jigasi-haproxy-agent
+# define empty key, use jibri credentials fle for real values
+jigasi_haproxy_agent_ssh_private_key:
+jigasi_haproxy_agent_ssh_public_key:
+jigasi_haproxy_agent_user:
+  groups: ["adm"]
+  homedir: "/home/{{ jigasi_haproxy_agent_username }}"
+  real_name: jigasi haproxy agent user
+  state: present
+  username: "{{ jigasi_haproxy_agent_username }}"
+jigasi_haproxy_agent_username: jhagent
