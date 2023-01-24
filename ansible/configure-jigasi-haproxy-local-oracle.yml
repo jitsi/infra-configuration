@@ -11,6 +11,7 @@
     - secrets/consul.yml
     - config/vars.yml
     - secrets/oci-logging.yml
+    - secrets/repo.yml
     - sites/{{hcv_environment}}/vars.yml
   vars:
     cloud_provider: oracle
