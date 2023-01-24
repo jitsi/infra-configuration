@@ -22,9 +22,9 @@
     - secrets/jigasi-css.yml
     - secrets/upload-customizations.yml
     - secrets/consul.yml
+    - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
     - secrets/oci-logging.yml
-    - roles/jitsi-repo/defaults/main.yml
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
