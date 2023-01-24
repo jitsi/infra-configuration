@@ -27,7 +27,7 @@ consul_retry_join_wan_by_provider:
   oracle: " [{%- for wan_region in consul_wan_regions_oracle -%}
       \"{{ consul_environment }}-{{ wan_region }}-consul-a.oracle.infra.jitsi.net\",
       \"{{ consul_environment }}-{{ wan_region }}-consul-b.oracle.infra.jitsi.net\",
-      \"{{ consul_environmen t}}-{{ wan_region }}-consul-c.oracle.infra.jitsi.net\",
+      \"{{ consul_environment }}-{{ wan_region }}-consul-c.oracle.infra.jitsi.net\",
     {%- endfor -%}]"
 consul_server_type: "{{ consul_server_types[consul_environment_type] | default('prod') }}"
 consul_server_types:
