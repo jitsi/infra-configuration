@@ -56,6 +56,7 @@ if [ -n "$INFRA_CONFIGURATION_REPO" ]; then
       -i "127.0.0.1," \
       -c local \
       --tags "$DEPLOY_TAGS" \
+      --extra-vars "hcv_environment=$ENVIRONMENT" \
       --extra-vars "cloud_name=$CLOUD_NAME jigasi_shard_role=$SHARD_ROLE prosody_domain_name=$DOMAIN cloud_provider=oracle region=$ORACLE_REGION oracle_region=$ORACLE_REGION jigasi_release_number=$JIGASI_RELEASE_NUMBER" \
       -e "{oracle_instance_id: $INSTANCE_ID}" \
       -e "{autoscaler_group: $CUSTOM_AUTO_SCALE_GROUP}" \
