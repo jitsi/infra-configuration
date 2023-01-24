@@ -1,0 +1,20 @@
+[Unit]
+Description=Jigasi HAProxy Agent
+After=network.target
+
+[Service]
+User={{ jigasi_haproxy_agent_username }}
+Group={{ jigasi_haproxy_agent_groupname }}
+EnvironmentFile={{ jigasi_haproxy_agent_config_path }}
+WorkingDirectory={{ jigasi_haproxy_agent_base_path }}
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier={{ jigasi_haproxy_agent_service_name }}
+
+[Install]
+WantedBy=multi-user.target

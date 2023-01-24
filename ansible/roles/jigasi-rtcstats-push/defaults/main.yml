@@ -1,0 +1,20 @@
+---
+jigasi_rtcstats_enabled: false
+jigasi_rtcstats_push_base_path: /opt/jitsi/jigasi-rtcstats-push
+jigasi_rtcstats_push_config_dir: /etc/jitsi/jigasi-rtcstats-push
+jigasi_rtcstats_push_config_path: /etc/jitsi/jigasi-rtcstats-push/service.env
+jigasi_rtcstats_push_configure_flag: true
+jigasi_rtcstats_push_git_repo: https://github.com/jitsi/jigasi-rtcstats-push.git
+jigasi_rtcstats_push_groupname: jitsi
+jigasi_rtcstats_push_install_flag: true
+jigasi_rtcstats_push_jigasi_address: http://localhost:8788
+jigasi_rtcstats_push_log_dir: /var/log/jitsi/jigasi-rtcstats-push
+jigasi_rtcstats_push_rtcstats_server: wss://rtcstats-server.jitsi.net
+jigasi_rtcstats_push_service_name: jigasi-rtcstats-push
+jigasi_rtcstats_push_username: rtcstatspush
+jigasi_rtcstats_user:
+  groups: ["adm", "{{ jigasi_rtcstats_push_groupname }}"]
+  homedir: "/home/{{ jigasi_rtcstats_push_username }}"
+  real_name: RTC stats pusher user
+  state: present
+  username: "{{ jigasi_rtcstats_push_username }}"

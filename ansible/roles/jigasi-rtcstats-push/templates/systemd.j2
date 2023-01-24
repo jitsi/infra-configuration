@@ -1,0 +1,20 @@
+[Unit]
+Description=JIGASI RTC Stats Pusher
+After=network.target
+
+[Service]
+User={{ jigasi_rtcstats_push_username }}
+Group={{ jigasi_rtcstats_push_groupname }}
+EnvironmentFile={{ jigasi_rtcstats_push_config_path }}
+WorkingDirectory={{ jigasi_rtcstats_push_base_path }}
+ExecStart=/usr/bin/node app.js
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier={{ jigasi_rtcstats_push_service_name }}
+
+[Install]
+WantedBy=multi-user.target

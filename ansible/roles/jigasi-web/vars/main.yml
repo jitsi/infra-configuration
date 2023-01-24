@@ -1,0 +1,8 @@
+---
+jigasi_placement_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
+  else oracle_to_aws_region_map[oracle_region] if oracle_region is defined else default(cloud_name) }}"
+jigasi_voximplant_users: "{{ voximplant_users[hcv_environment] | default({jigasi_placement_region: {jigasi_number: {'name':
+  voximplant_users['outbound']['global']['outbound']['name'], 'password': voximplant_users['outbound']['global']['outbound']['password']}}}) }}"
+jigasi_voximplant_user: "{{ jigasi_voximplant_users[jigasi_placement_region][jigasi_number] | default({'name':
+  voximplant_users['outbound']['global']['outbound']['name'], 'password': voximplant_users['outbound']['global']['outbound']['password']}) }}"
+jigasi_web_username: "{{ jigasi_voximplant_user['name'] | default('jigasi') }}"

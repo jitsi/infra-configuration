@@ -1,0 +1,59 @@
+---
+- name: Install list of packages
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: User creation
+  ansible.builtin.user:
+    name: "{{ jigasi_rtcstats_user.username }}"
+    groups: "{{ jigasi_rtcstats_user.groups | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ jigasi_rtcstats_user.real_name }}"
+    home: "{{ jigasi_rtcstats_user.homedir }}"
+    createhome: true
+    state: present
+
+- name: Code Directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jigasi_rtcstats_push_base_path }}"
+    state: directory
+    owner: "{{ jigasi_rtcstats_push_username }}"
+    group: "{{ jigasi_rtcstats_push_groupname }}"
+    recurse: true
+
+- name: Check out codebase # noqa latest[git]
+  become: true
+  become_user: "{{ jigasi_rtcstats_push_username }}"
+  ansible.builtin.git:
+    repo: "{{ jigasi_rtcstats_push_git_repo }}"
+    dest: "{{ jigasi_rtcstats_push_base_path }}"
+    update: true
+    force: true
+    accept_hostkey: true
+
+- name: Install npm Requirements
+  ansible.builtin.command: npm install
+  become: true
+  become_user: "{{ jigasi_rtcstats_push_username }}"
+  args:
+    chdir: "{{ jigasi_rtcstats_push_base_path }}"
+
+- name: Create application configuration directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jigasi_rtcstats_push_config_dir }}"
+    state: directory
+
+- name: Create application log directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jigasi_rtcstats_push_log_dir }}"
+    state: directory
+
+- name: Install rsyslog configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/26-jigasi-rtcstats-push.conf
