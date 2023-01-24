@@ -6,6 +6,8 @@
   become: true
   force_handlers: true
   vars:
+    adl: "{{ ansible_distribution | lower }}"
+    adrl: "{{ ansible_distribution_release | lower }}"
     cloud_provider: oracle
     jigasi_enable_consul: true
     shard_role: "{{ jigasi_shard_role | default('jigasi') }}"
