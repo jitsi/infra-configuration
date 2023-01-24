@@ -42,6 +42,6 @@
       when: jigasi_telegraf_enabled
       vars:
         telegraf_tags:
-        role: "jigasi"
-        cloud: "oracle"
+          role: "jigasi"
+          cloud: "oracle"
     - { role: "clean-system", tags: "clean-system, build" }
