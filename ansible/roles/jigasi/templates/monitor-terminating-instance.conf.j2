@@ -1,0 +1,11 @@
+description "Terminating Instance Monitor"
+
+start on filesystem and net-device-up IFACE={{ ansible_default_ipv4.interface }}
+
+stop on runlevel [016]
+
+respawn
+chdir /usr/local/bin
+
+exec /usr/local/bin/monitor-terminating-instance.sh
+respawn limit 10 90

@@ -1,0 +1,13 @@
+---
+- name: Consul service file
+  ansible.builtin.template:
+    mode: 0644
+    src: "jigasi.json.j2"
+    dest: "/etc/consul.d/jigasi.json"
+
+- name: Enable consul service # noqa ignore-errors
+  ansible.builtin.systemd:
+    name: consul
+    state: started
+    enabled: true
+  ignore_errors: true

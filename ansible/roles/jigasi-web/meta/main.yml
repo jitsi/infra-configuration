@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: jigasi_web
+  author: Aaron van Meerten
+  description: configure web server for jigasi user output
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
+dependencies:
+  - { role: nginx, when: jigasi_web_install_flag }

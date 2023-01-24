@@ -45,7 +45,7 @@ if [ $HEALTH_STATUS_RETURN -eq 0 ]; then
         if [[ "$BUSY_STATUS" == "EXPIRED" ]]; then
           # Jibri has expired, needs to be rebooted
           TELEGRAF_PID=$(pidof telegraf)
-          if [ ! -z "$TELEGRAF_PID" ]; then
+          if [ -n "$TELEGRAF_PID" ]; then
             echo "Will sleep for 60 seconds to give time for telegraf metrics to be written."
             sleep 60
 
@@ -65,7 +65,7 @@ if [ $HEALTH_STATUS_RETURN -eq 0 ]; then
           if [ -z "$FFMPEG_PID" ]; then
             echo "ffmpeg not found but jibri reports BUSY, checking chromedriver state"
             CHROMEDRIVER_PID=$($PIDOF_BIN chromedriver)
-            if [ ! -z "$CHROMEDRIVER_PID" ]; then
+            if [ -n "$CHROMEDRIVER_PID" ]; then
               echo "ffmpeg not found but chromedriver still running at pid $CHROMEDRIVER_PID, marking jibri as unhealthy"
               BASIC_HEALTH_PASSED=false
             else
@@ -110,7 +110,7 @@ else
       #Dump all Jigasi logs to S3, must do this as root to access all needed information
       /usr/local/bin/dump-jibri.sh
 
-      if [ ! -z "$AUTO_SCALE_GROUP" ]; then
+      if [ -n "$AUTO_SCALE_GROUP" ]; then
         #Detach our instance from the autoscaling group so a new Jibri can replace us
         $AWS_BIN autoscaling detach-instances --instance-ids "$EC2_INSTANCE_ID" --auto-scaling-group-name "$AUTO_SCALE_GROUP" --no-should-decrement-desired-capacity
 

@@ -1,0 +1,158 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  force_handlers: true
+  vars:
+    adl: "{{ ansible_distribution | lower }}"
+    adrl: "{{ ansible_distribution_release | lower }}"
+    cloud_provider: oracle
+    jigasi_enable_consul: true
+    shard_role: "{{ jigasi_shard_role | default('jigasi') }}"
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl-certificates.yml
+    - secrets/asap-keys.yml
+    - secrets/voximplant.yml
+    - config/vars.yml
+    - secrets/google-cloud.yml
+    - secrets/jigasi.yml
+    - secrets/jigasi-css.yml
+    - secrets/upload-customizations.yml
+    - secrets/consul.yml
+    - roles/jitsi-repo/defaults/main.yml
+    - secrets/repo.yml
+    - secrets/oci-logging.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  pre_tasks:
+    - name: Remove old jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
+        state: absent
+      tags: setup
+    - name: Remove old jitsi trusted repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url_old }} unstable/"
+        state: absent
+      tags: setup
+    - name: Setup new repo template file
+      ansible.builtin.template:
+        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
+        owner: root
+        mode: 0600
+      tags: setup
+    - name: Setup new trusted jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_repo_url }} unstable/"
+        state: present
+        update_cache: false
+      tags: setup
+    - name: Remove td-agent deb repository
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ adl }}/{{ adrl }}/ {{ adrl }} contrib"
+        state: absent
+        update_cache: false
+      tags: boot
+    - name: Set cloud provider to oracle
+      ansible.builtin.set_fact:
+        cloud_provider: oracle
+      tags: setup
+    - name: Remove NodeSource deb repository
+      ansible.builtin.apt_repository:
+        repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: boot
+    - name: Remove NodeSource deb-src repository
+      ansible.builtin.apt_repository:
+        repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
+        state: absent
+        update_cache: false
+      tags: boot
+    - name: Remove Google cloud repository
+      ansible.builtin.apt_repository:
+        repo: 'deb http://packages.cloud.google.com/apt cloud-sdk-bionic main'
+        state: absent
+        update_cache: false
+      when: jigasi_shard_role == 'jigasi'
+    - name: Google Cloud repo signing key
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: absent
+      when: jigasi_shard_role == 'jigasi-transcriber'
+    - name: Google Cloud repo signing key
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+      when: jigasi_shard_role == 'jigasi-transcriber'
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags: setup
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ ansible_fqdn }}"
+      tags: boot
+    - name: Stop jitsi-system-events
+      ansible.builtin.service:
+        name: "jitsi-system-events"
+        state: stopped
+        enabled: false
+      register: stop_jitsi_system_events_results
+      ignore_errors: true
+      tags: boot
+    - name: Register installed jigasi package
+      # Version: 2.1-198-gb3d9736e-1
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jigasi | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
+      args:
+        executable: /bin/bash
+      register: jigasi_version
+      changed_when: jigasi_version.rc != 0 # <- Uses the return code to define when the task has changed.
+      tags: setup
+
+  roles:
+    - { role: "iptables-jigasi", tags: "iptables"}
+  # enable java 11 if set for the environment
+    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jigasi_java_11 }}", java_install_flag: false }
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_jigasi_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
+    - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true}
+    - { role: "jitsi-dumper", tags: "jitsi-dumper"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jigasi_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: jigasi_telegraf_enabled and not jigasi_datadog_enabled
+      vars:
+        telegraf_inputs:
+          procstat:
+            - systemd_unit: "jigasi.service"
+              cmdline_tag: false
+              pid_tag: false
+        telegraf_tags:
+          role: "{{ jigasi_shard_role }}"
+          environment: "{{ hcv_environment }}"
+          region: "{{ oracle_to_aws_region_map[oracle_region] }}"
+          oracle_region: "{{ oracle_region }}"
+          cloud: "oracle"
+          jigasi_release_number: "{{ jigasi_release_number }}"
+          jigasi_version: "{{ jigasi_version.stdout }}"
+
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "jigasi", autoscaler_install_flag: true, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: true}
+    - { role: "consul-jigasi", tags: "consul-jigasi", when: jigasi_shard_role == 'jigasi'}
+    - { role: "jigasi", tags: "jigasi", jigasi_install_flag: false, jigasi_configure_flag: true}
+    - { role: "jigasi-web", tags: "jigasi-web"}
+    - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent",
+        jigasi_haproxy_agent_install_flag: false, jigasi_haproxy_agent_configure_flag: true, when: jigasi_shard_role == 'jigasi'}
+    - { role: "jigasi-rtcstats-push", tags: "rtcstats-push",
+        jigasi_rtcstats_push_install_flag: false, jigasi_rtcstats_push_configure_flag: true, when: jigasi_rtcstats_enabled}

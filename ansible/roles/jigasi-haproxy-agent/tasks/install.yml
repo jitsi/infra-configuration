@@ -1,0 +1,91 @@
+---
+- name: Install list of packages
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: User creation
+  ansible.builtin.user:
+    name: "{{ jigasi_haproxy_agent_user.username }}"
+    groups: "{{ jigasi_haproxy_agent_user.groups | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ jigasi_haproxy_agent_user.real_name }}"
+    home: "{{ jigasi_haproxy_agent_user.homedir }}"
+    createhome: true
+    state: present
+
+- name: SSH Directory
+  ansible.builtin.file:
+    path: "{{ jigasi_haproxy_agent_user.homedir }}/.ssh"
+    state: directory
+    mode: 0700
+    owner: "{{ jigasi_haproxy_agent_username }}"
+
+- name: SSH private credentials
+  ansible.builtin.copy:
+    content: "{{ jigasi_haproxy_agent_ssh_private_key }}"
+    dest: "{{ jigasi_haproxy_agent_user.homedir }}/.ssh/id_rsa"
+    mode: 0600
+    owner: "{{ jigasi_haproxy_agent_username }}"
+    group: "{{ jigasi_haproxy_agent_groupname }}"
+
+- name: SSH public credentials
+  ansible.builtin.copy:
+    mode: 0644
+    content: "{{ jigasi_haproxy_agent_ssh_public_key }}"
+    dest: "{{ jigasi_haproxy_agent_user.homedir }}/.ssh/id_rsa.pub"
+    owner: "{{ jigasi_haproxy_agent_username }}"
+    group: "{{ jigasi_haproxy_agent_groupname }}"
+
+- name: Code Directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jigasi_haproxy_agent_base_path }}"
+    state: directory
+    owner: "{{ jigasi_haproxy_agent_username }}"
+    group: "{{ jigasi_haproxy_agent_groupname }}"
+
+- name: Check out codebase # noqa latest[git]
+  become: true
+  become_user: "{{ jigasi_haproxy_agent_username }}"
+  ansible.builtin.git:
+    repo: "{{ jigasi_haproxy_agent_git_repo }}"
+    dest: "{{ jigasi_haproxy_agent_base_path }}"
+    update: true
+    force: true
+    accept_hostkey: true
+
+- name: Remove SSH private credentials
+  ansible.builtin.file:
+    path: "{{ jigasi_haproxy_agent_user.homedir }}/.ssh/id_rsa"
+    state: absent
+
+- name: Remove SSH public credentials
+  ansible.builtin.file:
+    path: "{{ jigasi_haproxy_agent_user.homedir }}/.ssh/id_rsa.pub"
+    state: absent
+
+- name: Install npm Requirements
+  ansible.builtin.command: npm install
+  become: true
+  become_user: "{{ jigasi_haproxy_agent_username }}"
+  args:
+    chdir: "{{ jigasi_haproxy_agent_base_path }}"
+
+- name: Create application configuration directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jigasi_haproxy_agent_config_dir }}"
+    state: directory
+
+- name: Create application log directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jigasi_haproxy_agent_log_dir }}"
+    state: directory
+
+- name: Install rsyslog configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/25-jigasi-haproxy-agent.conf

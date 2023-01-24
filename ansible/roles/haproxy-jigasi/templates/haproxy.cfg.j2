@@ -1,0 +1,81 @@
+global
+  log 127.0.0.1  local0
+  log 127.0.0.1  local1 notice
+  chroot /var/lib/haproxy
+  stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+  stats timeout 30s
+  user haproxy
+  group haproxy
+  maxconn 4096
+  daemon
+
+  nbthread {{ ansible_processor_vcpus|int() }}
+  cpu-map 1/all 0-{{ ansible_processor_vcpus|int() - 1 }}
+
+  # Default SSL material locations
+  ca-base /etc/ssl/certs
+  crt-base /etc/ssl/private
+
+  # Default ciphers to use on SSL-enabled listening sockets.
+  # For more information, see ciphers(1SSL). This list is from:
+  # https://ssl-config.mozilla.org/#server=haproxy&version=2.1&config=intermediate&openssl=1.1.1d&guideline=5.4
+        tune.ssl.default-dh-param 2048
+  ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+  ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+  ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+  ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+  ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+  ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+defaults
+  log  global
+  mode  http
+  option httplog
+  option log-health-checks
+  option dontlognull
+  option forwardfor
+  option http-server-close
+  option redispatch
+
+  maxconn 2000
+  retries  3
+  timeout connect 10s
+  timeout client  3m
+  timeout server  3m
+  timeout client-fin 50s
+  timeout tunnel  1h
+  errorfile 400 /etc/haproxy/errors/400.http
+  errorfile 403 /etc/haproxy/errors/403.http
+  errorfile 408 /etc/haproxy/errors/408.http
+  errorfile 500 /etc/haproxy/errors/500.http
+  errorfile 502 /etc/haproxy/errors/502.http
+  errorfile 503 /etc/haproxy/errors/503.http
+  errorfile 504 /etc/haproxy/errors/504.http
+
+resolvers mydns
+    nameserver dns1 127.0.0.1:8600
+    accepted_payload_size 8192 # allow larger DNS payloads
+
+# setup haproxy stats ui and a health check uri for haproxy itself
+listen admin
+  bind *:8080
+  monitor-uri /haproxy_health
+  stats enable
+  stats auth admin:admin
+  stats uri /haproxy_stats
+
+
+frontend www-http
+   bind *:80
+   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
+   http-request deny if bad_guy_wordpress
+   default_backend jigasi-be
+
+backend jigasi-be
+
+    balance roundrobin
+  option httpchk GET /about/health
+  default-server inter 10s fastinter 2s fall 3 rise 5{% if haproxy_jigasi_agent_enabled %} weight 255 agent-check agent-inter 5s agent-port 7070{% endif %}
+  # list all the nodes via DNS
+  server-template jig {{ haproxy_jigasi_max_servers }} {{ hcv_environment }}.jigasi.service.consul:80 resolvers mydns init-addr none inter 10s fastinter 2s fall 3 rise 5{% if haproxy_jigasi_agent_enabled %} weight 255 agent-check agent-inter 5s agent-port 7070{% endif %}

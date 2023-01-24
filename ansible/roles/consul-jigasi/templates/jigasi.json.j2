@@ -1,0 +1,19 @@
+{
+  "service": {
+    "name": "jigasi",
+    "tags":["{{ hcv_environment }}"],
+    "meta": {
+        "environment":"{{ hcv_environment }}"
+    },
+    "port": 80,
+    "checks": [
+      {
+        "name": "Jigasi REST Health",
+        "http": "http://localhost:8788/about/health",
+        "method": "GET",
+        "interval": "10s",
+        "timeout": "1s"
+      }
+    ]
+  }
+}

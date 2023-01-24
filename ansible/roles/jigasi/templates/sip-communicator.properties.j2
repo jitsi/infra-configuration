@@ -1,0 +1,326 @@
+#Sample config with one XMPP and one SIP account configured
+# Replace {sip-pass-hash} with SIP user password hash
+# as well as other account properties
+
+{% if jigasi_bosh_host_override %}
+org.jitsi.jigasi.BOSH_HOST_OVERRIDE={{ jigasi_bosh_host_override }}
+{% endif %}
+
+net.java.sip.communicator.impl.protocol.SingleCallInProgressPolicy.enabled=false
+
+# Adjust opus encoder complexity
+net.java.sip.communicator.impl.neomedia.codec.audio.opus.encoder.COMPLEXITY=10
+
+# allow dtmf pass through to the sip side
+org.jitsi.service.neomedia.AudioMediaStream.DISABLE_DTMF_HANDLING=true
+
+{% if jigasi_hole_punch_pkt_count %}
+net.java.sip.communicator.impl.protocol.HOLE_PUNCH_PKT_COUNT={{ jigasi_hole_punch_pkt_count }}
+{% endif %}
+
+# Disables packet logging
+net.java.sip.communicator.packetlogging.PACKET_LOGGING_ENABLED=false
+
+# Increase incoming UDP buffer size
+org.jitsi.impl.neomedia.RTPConnectorInputStream.SO_RCVBUF={{ jigasi_udp_buffer_size }}
+
+org.jitsi.jigasi.CONFERENCES_THRESHOLD={{ jigasi_conferences_threshold }}
+
+# detects sip tls socket close with sip to re-register
+net.java.sip.communicator.impl.protocol.sip.FORCE_REGISTER_ON_TLS_CLOSE=true
+
+{% if jigasi_shard_role=='jigasi' %}
+
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647=acc1403273890647
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ACCOUNT_UID=SIP\:{{ jigasi_sip_username }}@{{ jigasi_sip_server }}
+net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTION.SIP\:{{ jigasi_sip_username }}@{{ jigasi_sip_server }}=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PASSWORD={{ jigasi_sip_password|b64encode }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROTOCOL_NAME=SIP
+{% if jigasi_enable_tcp %}
+{% if jigasi_enable_tls %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PREFERRED_TRANSPORT=TLS
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_ADDRESS={{ jigasi_sip_server }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_AUTO_CONFIG=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_PORT=5061
+{% else %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PREFERRED_TRANSPORT=TCP
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_ADDRESS={{ jigasi_sip_server }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_AUTO_CONFIG=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_PORT=5060
+{% endif %}
+{% endif %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.VOICEMAIL_ENABLED=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_ROOM_HEADER_NAME=X-Room-Name
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_ROOM_PASS_HEADER_NAME=X-Room-Pass
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_DOMAIN_BASE_HEADER_NAME=X-Domain-Base
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_DOMAIN_TENANT_HEADER_NAME=X-Domain-Tenant
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_AUTH_TOKEN_HEADER_NAME=X-Auth-Token
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_AUTH_USER_ID_HEADER_NAME=X-User-ID-Token
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.SERVER_ADDRESS={{ jigasi_sip_server }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.USER_ID={{ jigasi_sip_username }}@{{ jigasi_sip_server }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.KEEP_ALIVE_INTERVAL=25
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.KEEP_ALIVE_METHOD=OPTIONS
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.AMR-WB/16000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.G722/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.GSM/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.H263-1998/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.H264/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.PCMA/8000={{ jigasi_sip_pcma_priority | default(0) }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.PCMU/8000={{ jigasi_sip_pcmu_priority | default(0) }}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/12000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/16000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/24000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.VP8/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.iLBC/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.opus/48000=1000
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.red/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.speex/16000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.speex/32000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.speex/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.telephone-event/8000=900
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.ulpfec/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.OVERRIDE_ENCODINGS=true
+{% if jigasi_outbound_prefix %}
+
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.OUTBOUND_PREFIX={{ jigasi_outbound_prefix }}
+{% endif %}
+
+{% if jigasi_enable_tls %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.DEFAULT_ENCRYPTION=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.DEFAULT_SIPZRTP_ATTRIBUTE=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL.ZRTP=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL.SDES=1
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL.DTLS-SRTP=2
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL_STATUS.ZRTP=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL_STATUS.SDES=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.SDES_CIPHER_SUITES=AES_CM_128_HMAC_SHA1_80,AES_CM_128_HMAC_SHA1_32
+{% else %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.DEFAULT_ENCRYPTION=false
+{% endif %}
+
+{% if jigasi_enable_external_mixing %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.USE_TRANSLATOR_IN_CONFERENCE=true
+{% endif %}
+{% if jigasi_heartbeat_seconds %}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.HEARTBEAT_SECONDS={{ jigasi_heartbeat_seconds }}
+{% endif %}
+{% endif %}
+
+net.java.sip.communicator.impl.protocol.sip.SKIP_REINVITE_ON_FOCUS_CHANGE_PROP=true
+###############
+
+
+{% for server in jigasi_servers %}
+
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}=acc-{{ server['id'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ACCOUNT_UID=Jabber:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}
+net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTION.Jabber\:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USER_ID={{ server['jid'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_SERVER_OVERRIDDEN=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_ADDRESS={{ server['xmpp_host_private_ip_address'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ jigasi_xmpp_port }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_SECURE=true
+#base64 AES keyLength:256 or 128
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_xmpp_password|b64encode }}
+
+#net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=jigasi
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE_PRIORITY=30
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_METHOD=XEP-0199
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_INTERVAL=20
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.CALLING_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.JINGLE_NODES_ENABLED=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_CARBON_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.DEFAULT_ENCRYPTION=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_ICE=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_ACCOUNT_DISABLED=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_PREFERRED_PROTOCOL=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_DISCOVER_JINGLE_NODES=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PROTOCOL=Jabber
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_UPNP=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IM_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_STORED_INFO_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_FILE_TRANSFER_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USE_DEFAULT_STUN_SERVER=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL.DTLS-SRTP=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.OVERRIDE_ENCODINGS=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.G722/8000=705
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.GSM/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.H263-1998/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.H264/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.PCMA/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.PCMU/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/12000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/16000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/24000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.VP8/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.iLBC/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.opus/48000=750
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/16000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/32000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.BREWERY={{ jigasi_brewery_muc_room }}@{{ server['xmpp_muc'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.BOSH_URL_PATTERN={{ server['url'] | default(jigasi_bosh_url_pattern) }}
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.DOMAIN_BASE={{ server['xmpp_domain'] }}
+
+
+{% endfor %}
+
+#######
+
+{% if jigasi_muc_join_timeout %}
+org.jitsi.jigasi.MUC_JOIN_TIMEOUT={{ jigasi_muc_join_timeout }}
+{% endif %}
+
+net.java.sip.communicator.service.gui.ALWAYS_TRUST_MODE_ENABLED=true
+
+# we can receive dial/hangup only from the control muc
+org.jitsi.jigasi.ALLOWED_JID={{ jigasi_brewery_muc }}
+
+org.jitsi.jigasi.BREWERY_ENABLED=true
+
+{% if jigasi_enable_external_mixing %}
+net.java.sip.communicator.impl.neomedia.audioSystem.audiosilence.captureDevice_list=["AudioSilenceCaptureDevice:noTransferData"]
+{% endif %}
+
+# forces sending presence on sip call hangup
+net.java.sip.communicator.impl.protocol.jabber.FORCE_PRESENCE_ON_LEAVE=true
+
+# We can use the prefix org.jitsi.jigasi.xmpp.acc to override any of the
+# properties that will be used for creating xmpp account for communication.
+
+org.jitsi.jigasi.xmpp.acc.IS_SERVER_OVERRIDDEN=true
+org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS={{ jigasi_xmpp_domain }}
+
+org.jitsi.jigasi.xmpp.acc.BOSH_URL_PATTERN={{ jigasi_bosh_url_pattern }}
+{% if jigasi_enable_external_mixing %}
+org.jitsi.jigasi.xmpp.acc.USE_TRANSLATOR_IN_CONFERENCE=true
+{% endif %}
+org.jitsi.jigasi.xmpp.acc.VIDEO_CALLING_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.JINGLE_NODES_ENABLED=false
+org.jitsi.jigasi.xmpp.acc.AUTO_DISCOVER_STUN=false
+org.jitsi.jigasi.xmpp.acc.Encodings.H264/90000=0
+org.jitsi.jigasi.xmpp.acc.Encodings.VP8/90000=0
+org.jitsi.jigasi.xmpp.acc.Encodings.telephone-event/8000=0
+org.jitsi.jigasi.xmpp.acc.Encodings.opus/48000=1000
+org.jitsi.jigasi.xmpp.acc.OVERRIDE_ENCODINGS=true
+org.jitsi.jigasi.xmpp.acc.IM_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.SERVER_STORED_INFO_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.IS_FILE_TRANSFER_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.KEEP_ALIVE_METHOD=XEP-0199
+org.jitsi.jigasi.xmpp.acc.KEEP_ALIVE_INTERVAL=20
+
+{% if jigasi_shard_role=='jigasi-transcriber' %}
+org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}
+org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_transcriber_auth_password }}
+org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
+org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
+{% endif %}
+{% if jigasi_enable_bosh_auth %}
+org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_xmpp_jid_username }}@{{ jigasi_auth_domain }}
+org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_xmpp_password }}
+org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
+org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
+{% endif %}
+
+# 30 minutes
+org.jitsi.jigasi.JVB_INVITE_TIMEOUT=1800000
+
+# If you want jigasi to perform authenticated login instead of anonymous login
+# to the XMPP server, you can set the following properties.
+# org.jitsi.jigasi.xmpp.acc.USER_ID=SOME_USER@SOME_DOMAIN
+# org.jitsi.jigasi.xmpp.acc.PASS=SOME_PASS
+# org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
+
+# If you want to use the SIP user part of the incoming/outgoing call SIP URI
+# you can set the following property to true.
+# org.jitsi.jigasi.USE_SIP_USER_AS_XMPP_RESOURCE=true
+
+# Activate this property if you are using self-signed certificates or other
+# type of non-trusted certicates. In this mode your service trust in the
+# remote certificates always.
+# net.java.sip.communicator.service.gui.ALWAYS_TRUST_MODE_ENABLED=true
+
+# Enable this property to be able to shutdown gracefully jigasi using
+# a rest command
+org.jitsi.jigasi.ENABLE_REST_SHUTDOWN=true
+
+#########
+
+{% if jigasi_shard_role=='jigasi-transcriber' %}
+# enable transcription role, disable sip
+org.jitsi.jigasi.ENABLE_TRANSCRIPTION=true
+org.jitsi.jigasi.ENABLE_SIP=false
+
+{% if jigasi_enable_css_integration %}
+org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.eght.CloudStorageService
+{% endif %}
+
+{% if jigasi_transcriber_filter_silence %}
+org.jitsi.jigasi.transcription.FILTER_SILENCE = true
+{% endif %}
+
+{% else %}
+
+# disable transcription role, enabling sip
+org.jitsi.jigasi.ENABLE_TRANSCRIPTION=false
+org.jitsi.jigasi.ENABLE_SIP=true
+
+{% endif %}
+
+# delivering final transcript
+# org.jitsi.jigasi.transcription.DIRECTORY=/var/lib/jigasi/transcripts
+# org.jitsi.jigasi.transcription.BASE_URL=http://localhost/
+# org.jitsi.jigasi.transcription.jetty.port=-1
+# org.jitsi.jigasi.transcription.ADVERTISE_URL=false
+
+# save formats
+# org.jitsi.jigasi.transcription.SAVE_JSON=false
+# org.jitsi.jigasi.transcription.SAVE_TXT=true
+
+# send formats
+org.jitsi.jigasi.transcription.SEND_JSON=true
+# org.jitsi.jigasi.transcription.SEND_TXT=false
+
+{% if jigasi_shard_role=='jigasi-transcriber' and jigasi_enable_translations %}
+# translation
+org.jitsi.jigasi.transcription.ENABLE_TRANSLATION=true
+{% endif %}
+
+# record audio. Currently only wav format is supported
+# org.jitsi.jigasi.transcription.RECORD_AUDIO=false
+# org.jitsi.jigasi.transcription.RECORD_AUDIO_FORMAT=wav
+
+# execute one or more scripts when a transcript or recording is saved
+# org.jitsi.jigasi.transcription.EXECUTE_SCRIPTS=true
+# org.jitsi.jigasi.transcription.SCRIPTS_TO_EXECUTE_LIST_SEPARATOR=","
+# org.jitsi.jigasi.transcription.SCRIPTS_TO_EXECUTE_LIST=script/example_handle_transcript_directory.sh
+
+# properties for optionally sending statistics to a DataDog server
+org.jitsi.ddclient.prefix=jitsi.jigasi
+org.jitsi.ddclient.host=localhost
+org.jitsi.ddclient.port=8125
+
+# properties for SIP health check controls
+org.jitsi.jigasi.HEALTH_CHECK_SIP_URI=healthcheck
+org.jitsi.jigasi.HEALTH_CHECK_INTERVAL=300000
+
+# debug health check failures (thread dump in logs)
+org.jitsi.jigasi.HEALTH_CHECK_DEBUG_ENABLED=false
+
+{% if jigasi_participant_info_callback_url %}
+org.jitsi.sip.PARTICIPANT_INFO_CALLBACK_URL={{ jigasi_participant_info_callback_url }}?number={0}
+{% endif %}
+
+{% if jigasi_shard_role != 'jigasi-transcriber' and jigasi_enable_muting %}
+org.jitsi.jigasi.ENABLE_SIP_STARTMUTED=true
+{% endif %}
+
+org.jitsi.jigasi.LOCAL_REGION={{ jigasi_region }}

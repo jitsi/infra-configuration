@@ -1,0 +1,48 @@
+---
+- name: Main
+  hosts: default
+  gather_facts: true
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/repo.yml
+    - secrets/voximplant.yml
+    - secrets/jigasi.yml
+    - config/vars.yml
+  vars:
+    cloud_provider: oracle
+  pre_tasks:
+    # pause 60 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 60
+      ansible.builtin.pause:
+        seconds: 60
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+  roles:
+    - { role: "common", tags: "common"}
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "consul-install", tags: "consul-install"}
+    - { role: google-cloud, tags: "google-cloud", google_cloud_configure_flag: false, google_cloud_install_flag: true}
+    - { role: "jitsi-dumper", tags: "jitsi-dumper"}
+    - { role: "nginx", tags: "nginx", nginx_start_service: false}
+    - { role: jigasi, tags: "jigasi", jigasi_image_build_flag: true, jigasi_configure_flag: false, jigasi_install_flag: true}
+    - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent", jigasi_haproxy_agent_install_flag: true, jigasi_haproxy_agent_configure_flag: false}
+    - { role: "jigasi-rtcstats-push", tags: "rtcstats-push", jigasi_rtcstats_push_install_flag: true, jigasi_rtcstats_push_configure_flag: false }
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "jigasi", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: jigasi_telegraf_enabled
+      vars:
+        telegraf_tags:
+          role: "jigasi"
+          cloud: "oracle"
+    - { role: "clean-system", tags: "clean-system, build" }

@@ -1,0 +1,14 @@
+#!/bin/bash
+set -x
+
+export OCI_BIN="/usr/local/bin/oci"
+
+INSTANCE_METADATA=$(curl -s http://169.254.169.254/opc/v1/instance/)
+INSTANCE_ID=$(echo "$INSTANCE_METADATA" | jq .id -r)
+
+# stop consul gracefully
+service consul stop
+
+# now terminate our instance
+echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
+$OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force

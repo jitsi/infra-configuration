@@ -1,9 +1,9 @@
-user {{nginx_user}};
-worker_processes {{nginx_worker_processes}};
+user {{ nginx_user }};
+worker_processes {{ nginx_worker_processes }};
 pid /run/nginx.pid;
 
 events {
-    worker_connections  {{nginx_worker_connections}};
+    worker_connections  {{ nginx_worker_connections }};
     multi_accept        on;
     use                 epoll;
 }
@@ -98,5 +98,5 @@ http {
 #       proxy      on;
 #   }
 #}
-worker_rlimit_nofile {{nginx_worker_rlimit_nofile}};
+worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
 

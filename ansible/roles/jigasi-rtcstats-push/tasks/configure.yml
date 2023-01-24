@@ -1,0 +1,19 @@
+---
+- name: Install service configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: service.config.j2
+    dest: "{{ jigasi_rtcstats_push_config_path }}"
+
+- name: Configure systemd script for service
+  ansible.builtin.template:
+    mode: 0644
+    src: systemd.j2
+    dest: "/lib/systemd/system/{{ jigasi_rtcstats_push_service_name }}.service"
+
+- name: Start service and set it enabled
+  ansible.builtin.service:
+    name: "{{ jigasi_rtcstats_push_service_name }}"
+    state: started
+    enabled: true
+  when: jigasi_rtcstats_enabled

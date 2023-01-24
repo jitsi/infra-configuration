@@ -1,0 +1,73 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  gather_timeout: 180
+  become_user: root
+  become: true
+  force_handlers: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/consul.yml
+    - config/vars.yml
+    - secrets/oci-logging.yml
+    - secrets/repo.yml
+    - sites/{{hcv_environment}}/vars.yml
+  vars:
+    cloud_provider: oracle
+    jigasi_haproxy_component_id: "{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g3>\\g<g4>') }}"
+    jigasi_haproxy_hostname: "{{ hcv_environment }}-jigasi-haproxy-{{ jigasi_haproxy_component_id }}.infra.jitsi.net"
+    shard_role: jigasi-haproxy
+  pre_tasks:
+    - name: Set cloud provider to oracle
+      ansible.builtin.set_fact:
+        cloud_provider: oracle
+      tags: setup
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+    - name: Change instance hostname
+      ansible.builtin.hostname:
+        name: "{{ jigasi_haproxy_hostname }}"
+  post_tasks:
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
+  roles:
+    - { role: "iptables-jigasi-proxy", tags: "iptables" }
+    - { role: "common", tags: "common" }
+    - { role: "jitsi-dumper", tags: "jitsi-dumper" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "consul-haproxy-jigasi", tags: "consul-haproxy-jigasi" }
+    - { role: "haproxy-lua", tags: "haproxy-lua" }
+    - { role: "haproxy", tags: "haproxy", haproxy_manage_config: true }
+    - { role: "haproxy-jigasi", tags: "haproxy-jigasi" }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jigasi_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled and not datadog_enabled
+      vars:
+        telegraf_inputs:
+          haproxy:
+            fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr"]
+            servers: ["http://localhost:8080/haproxy_stats"]
+            username: "admin"
+            password: "admin"
+          nstat:
+            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
+        telegraf_tags:
+          role: "jigasi-haproxy"
+          environment: "{{ hcv_environment }}"
+          region: "{{ oracle_to_aws_region_map[region] }}"
+          oracle_region: "{{ region }}"
+          cloud: "oracle"
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}

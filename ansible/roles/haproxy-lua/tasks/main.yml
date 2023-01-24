@@ -1,0 +1,17 @@
+---
+- name: Install Lua and associated requirements
+  ansible.builtin.apt:
+    name: ["lua{{ haproxy_lua_lua_version }}", "liblua{{ haproxy_lua_lua_version }}-dev", 'unzip', 'libssl-dev', 'build-essential', 'libreadline-dev']
+    state: present
+
+- name: Set lua5.3 as default lua binary
+  ansible.builtin.command: update-alternatives --install /usr/bin/lua lua-interpreter /usr/bin/lua{{ haproxy_lua_lua_version }} 130
+     --slave /usr/share/man/man1/lua.1.gz lua-manual /usr/share/man/man1/lua{{ haproxy_lua_lua_version }}.1.gz
+  args:
+    creates: /usr/bin/lua
+
+- name: Create haproxy lua scripts directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/haproxy/lua
+    state: directory
+    mode: '0755'

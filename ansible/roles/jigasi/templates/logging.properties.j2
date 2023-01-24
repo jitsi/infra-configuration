@@ -1,0 +1,37 @@
+
+handlers= java.util.logging.ConsoleHandler
+
+java.util.logging.ConsoleHandler.level = ALL
+java.util.logging.ConsoleHandler.formatter = org.jitsi.utils.logging2.JitsiLogFormatter
+
+.level=INFO
+net.sf.level=SEVERE
+net.java.sip.communicator.plugin.reconnectplugin.level=ALL
+org.ice4j.level=SEVERE
+org.jitsi.impl.neomedia.level=SEVERE
+net.java.sip.communicator.impl.protocol.sip.level=INFO
+
+# Do not worry about missing strings
+net.java.sip.communicator.service.resources.AbstractResourcesService.level=SEVERE
+
+# Does not print roster warning on account removals
+org.jivesoftware.smack.roster.Roster.level=SEVERE
+
+# Logs UDP buffer size when at INFO level
+org.jitsi.impl.neomedia.RTPConnectorUDPInputStream.level=INFO
+
+# Transcriber
+{% if jigasi_transcriber_enable_debug %}
+org.jitsi.jigasi.JvbConference.level=FINE
+org.jitsi.jigasi.transcription.level=ALL
+org.jitsi.jigasi.transcription.AbstractTranscriptPublisher.level=FINE
+org.jitsi.jigasi.transcription.Transcriber.level=INFO
+org.jitsi.jigasi.transcription.GoogleCloudTranscriptionService.level=FINE
+org.jitsi.jigasi.transcription.Participant.level=INFO
+{% endif %}
+
+# Syslog(uncomment handler to use)
+com.agafua.syslog.SyslogHandler.transport = udp
+com.agafua.syslog.SyslogHandler.facility = local0
+com.agafua.syslog.SyslogHandler.port = 514
+com.agafua.syslog.SyslogHandler.hostname = localhost

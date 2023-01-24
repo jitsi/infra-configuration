@@ -1,0 +1,16 @@
+---
+- name: Google Cloud repo signing key
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Google Cloud repo
+  ansible.builtin.apt_repository:
+    repo: "deb http://packages.cloud.google.com/apt {{ google_cloud_apt_release_name }} main"
+    state: present
+    update_cache: true
+
+- name: Install google cloud SDK
+  ansible.builtin.apt:
+    name: google-cloud-sdk
+    state: present

@@ -1,0 +1,9 @@
+- name: Restart jigasi
+  ansible.builtin.service:
+    name: jigasi
+    state: restarted
+  when: not jigasi_configure_only_flag
+
+- name: Perform systemctl daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true

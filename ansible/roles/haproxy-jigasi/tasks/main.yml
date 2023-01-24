@@ -1,0 +1,43 @@
+---
+# load jigasi haproxy custom facts if not yet set up
+- name: Ensure custom facts directory exists
+  ansible.builtin.file:
+    mode: 0755
+    path: /etc/ansible/facts.d
+    recurse: true
+    state: directory
+
+- name: Remove custom facts for haproxy
+  ansible.builtin.file:
+    path: /etc/ansible/facts.d/configure_haproxy_jigasi.fact
+    state: absent
+
+- name: Check CPU count
+  ansible.builtin.shell: |
+    set -o pipefail
+    lscpu | grep "CPU(s):" | head -1 | awk '{print $2}'
+  args:
+    executable: /bin/bash
+  register: cpu_count
+
+- name: Set CPU count variable
+  ansible.builtin.set_fact:
+    ansible_processor_vcpus: "{{ cpu_count.stdout | int }}"
+
+# install basic haproxy configuration
+
+- name: Generate haproxy config file
+  ansible.builtin.template:
+    mode: 0644
+    src: haproxy.cfg.j2
+    dest: '{{ haproxy_conf_path }}/haproxy.cfg'
+  notify:
+    - Reload haproxy
+
+
+# install configuration cronjob
+- name: Configuration script cron
+  ansible.builtin.cron:
+    user: ubuntu
+    state: absent
+    name: "Jigasi HAProxy configuration script"

@@ -1,0 +1,9 @@
+---
+# broke for missing cloud-sdk-focal, so hardcoded to bionic for now
+# google_cloud_apt_release_name: "cloud-sdk-{{ ansible_distribution_release }}"
+google_cloud_apt_release_name: "cloud-sdk"
+google_cloud_conf_dir: /etc/google-cloud
+google_cloud_configure_flag: true
+google_cloud_install_flag: true
+google_cloud_service_key_json: "{{ google_cloud_service_key_json_default }}"
+google_cloud_service_key_json_default:

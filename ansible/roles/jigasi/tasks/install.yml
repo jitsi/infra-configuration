@@ -1,0 +1,228 @@
+---
+- name: Install jigasi package
+  ansible.builtin.apt:
+    name: "{{ jigasi_deb_pkg_name }}={{ jigasi_deb_pkg_version }}"
+    state: present
+
+# set Jigasi udp buffer parameters
+- name: Jigasi buffer size maximum
+  ansible.posix.sysctl:
+    name: net.core.rmem_max
+    value: "{{ jigasi_udp_buffer_size }}"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Jigasi buffer size count
+  ansible.posix.sysctl:
+    name: net.core.netdev_max_backlog
+    value: "{{ jigasi_udp_buffer_max_backlog }}"
+    sysctl_set: true
+    state: present
+    reload: true
+
+# set the PAM limits to allow more open files for Jigasi user
+- name: Jigasi file open limits
+  ansible.builtin.copy:
+    mode: 0644
+    dest: "/etc/security/limits.d/jigasi.conf"
+    content: "jigasi - nofile {{ jigasi_open_file_limit }}\nroot - nofile {{ jigasi_open_file_limit }}\njigasi soft core unlimited\nroot soft core unlimited\n"
+
+- name: PAM common session applies limits # noqa no-tabs
+  ansible.builtin.lineinfile:
+    dest: /etc/pam.d/common-session
+    line: "session required\tpam_limits.so"
+
+- name: PAM common noninteractive-session applies limits # noqa no-tabs
+  ansible.builtin.lineinfile:
+    dest: /etc/pam.d/common-session-noninteractive
+    line: "session required\tpam_limits.so"
+
+ # set the systemd limits for threads per user
+- name: Set systemd UserTasksMax setting
+  ansible.builtin.lineinfile:
+    dest: /etc/systemd/logind.conf
+    line: "UserTasksMax=80%"
+    regexp: "UserTasksMax="
+  when: ansible_service_mgr == "systemd"
+
+# set the systemd limits for default threads
+- name: Set systemd DefaultTasksMax setting
+  ansible.builtin.lineinfile:
+    dest: /etc/systemd/system.conf
+    line: "DefaultTasksMax=30405"
+    regexp: "DefaultTasksMax="
+  when: ansible_service_mgr == "systemd"
+
+# script that is triggered on boot
+- name: Upload jigasi post-install script for AWS
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/postinstall-jigasi.sh"
+    src: "postinstall-jigasi.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+# script that is triggered on boot
+- name: Upload jigasi post-install script upload for oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/postinstall-jigasi.sh"
+    src: "postinstall-jigasi-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+# script to run ansible updates, usually run by boot script
+- name: Upload jigasi local configure script upload for aws
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jigasi-local.sh"
+    src: "configure-jigasi-local.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+# script to run ansible updates, usually run by boot script
+- name: Upload jigasi local configure script upload for oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jigasi-local.sh"
+    src: "configure-jigasi-local-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+# script to reconfigure and gracefully restart jigasi, usually run when new shards are created
+- name: Upload jigasi reconfigure script upload
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconfigure-jigasi.sh"
+    src: "reconfigure-jigasi.sh"
+    mode: 0755
+    owner: root
+
+# pip preqs for stats
+- name: Install monitoring pip prereqs - decorator
+  ansible.builtin.pip:
+    name: decorator
+    state: present
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: Install freeze check pip pre reqs
+  ansible.builtin.pip:
+    name: datadog
+    state: present
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: Install monitoring pip prereqs - decorator
+  ansible.builtin.pip:
+    name: decorator version="4.4.2"
+    state: present
+    executable: /usr/bin/pip
+  when: ansible_distribution_release == 'bionic'
+
+- name: Install freeze check pip pre reqs
+  ansible.builtin.pip:
+    name: datadog state=present
+    executable: /usr/bin/pip
+  when: ansible_distribution_release == 'bionic'
+
+- name: Install configuration pip prereqs
+  ansible.builtin.pip:
+    name: pyjavaproperties
+    state: present
+
+# provide script for managing the auto-scale group lifecycle queue
+- name: Upload lifecyle script upload
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/monitor-terminating-instance.sh"
+    src: "monitor-terminating-instance.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Upload lifecyle script systemd
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/monitor-terminating-instance.service"
+    src: "monitor-terminating-instance.service"
+    mode: 0644
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+# add a health checker script to upload health stats to CloudWatch
+- name: Jigasi health check script upload for aws
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_health_script }}"
+    src: "jigasi-health-check.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Jigasi health check script upload for oracle
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_health_script }}"
+    src: "jigasi-health-check-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+# add a stats script to wrap DD colibri script
+- name: Jigasi stats script upload for aws
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_stats_script }}"
+    src: "jigasi-stats.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Jigasi stats script upload for Oracle
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_stats_script }}"
+    src: "jigasi-stats-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+- name: Copy terminate instance script oracle
+  ansible.builtin.template:
+    src: "terminate_instance_oracle.j2"
+    dest: "{{ jigasi_path_to_terminate_instance_script }}"
+    owner: root
+    group: root
+    mode: 0755
+  when: jigasi_cloud_provider == 'oracle'
+
+# add a stats script to upload colibri stats to DataDog
+- name: Jigasi stats python script upload
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_stats_python_script }}"
+    src: "jigasi-stats.py"
+    mode: 0755
+    owner: root
+
+- name: Register installed Jigasi version
+  ansible.builtin.shell: |
+    set -o pipefail
+    {{ jigasi_service_version_shell }}
+  args:
+    executable: /bin/bash
+  register: jigasi_version_shell
+
+# Stop the service if we are  building an AMI
+- name: Stop jigasi for image
+  ansible.builtin.service:
+    name: "jigasi"
+    state: stopped
+    enabled: false
+  when: jigasi_image_build_flag
+
+# Clear logs for jigasi if we are  building an AMI
+- name: Delete jigasi logs for image
+  ansible.builtin.file:
+    path: /var/log/jitsi/jigasi.log
+    state: absent
+  when: jigasi_image_build_flag
+
+# Clear PID for jigasi if we are  building an AMI
+- name: Delete jigasi pid for image
+  ansible.builtin.file:
+    path: /var/run/jigasi/jigasi.pid
+    state: absent
+  when: jigasi_image_build_flag

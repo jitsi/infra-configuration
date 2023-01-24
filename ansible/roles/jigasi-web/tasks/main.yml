@@ -1,0 +1,39 @@
+---
+
+- name: Create home directory for www-data user
+  ansible.builtin.file:
+    path: /var/www/html
+    state: directory
+    owner: "www-data"
+    group: "www-data"
+    recurse: true
+
+# clear out default site installed
+- name: Remove default nginx config
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart nginx
+
+- name: Deploy jigasi web page
+  ansible.builtin.template:
+    mode: 0644
+    src: jigasi_user.html.j2
+    dest: "/var/www/html/index.html"
+
+- name: Deploy jigasi website configuration
+  ansible.builtin.template:
+    src: nginx.site.j2
+    dest: /etc/nginx/sites-available/jigasi
+    mode: 0644
+  notify: Restart nginx
+
+- name: Enable jigasi nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/jigasi
+    dest: /etc/nginx/sites-enabled/jigasi
+    state: link
+  notify: Restart nginx
+
+- name: Ensure handlers are notified now to avoid firewall conflicts.
+  ansible.builtin.meta: flush_handlers

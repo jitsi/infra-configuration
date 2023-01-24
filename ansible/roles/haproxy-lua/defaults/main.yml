@@ -1,0 +1,6 @@
+---
+haproxy_lua_lua_version: 5.3
+haproxy_lua_rocks_checksum: eb20cd9814df05535d9aae98da532217c590fc07d48d90ca237e2a7cdcf284fe
+haproxy_lua_rocks_url: "https://luarocks.org/releases/luarocks-{{ haproxy_lua_rocks_version }}.tar.gz"
+haproxy_lua_rocks_version: 3.3.1
+haproxy_lua_src_dir: /tmp/luarocks

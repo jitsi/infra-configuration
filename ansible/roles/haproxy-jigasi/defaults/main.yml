@@ -1,0 +1,6 @@
+---
+haproxy_conf_path: /etc/haproxy
+haproxy_jigasi_agent_enabled: false
+haproxy_jigasi_max_servers: 500
+haproxy_jigasi_path_to_config_script: /usr/local/bin/configure-haproxy-jigasi.sh
+haproxy_jigasi_servers: []

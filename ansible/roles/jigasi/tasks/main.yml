@@ -1,0 +1,8 @@
+---
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
+  when: jigasi_install_flag
+
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
+  when: jigasi_configure_flag

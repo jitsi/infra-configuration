@@ -1,0 +1,337 @@
+---
+# script to run ansible updates, usually run by boot script
+- name: Upload jigasi local configure script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jigasi-local.sh"
+    src: "configure-jigasi-local.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+# script to run ansible updates, usually run by boot script
+- name: Upload jigasi local configure script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jigasi-local.sh"
+    src: "configure-jigasi-local-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+- name: Set tcp retries to 7 (25.4 sec)
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_retries2
+    value: "7"
+    sysctl_set: true
+    state: present
+    reload: true
+
+# write jigasi environments file
+- name: Jigasi Config directory
+  ansible.builtin.file:
+    path: /etc/jitsi/jigasi
+    owner: jigasi
+    group: jitsi
+    recurse: true
+    state: directory
+
+- name: Output jigasi number value
+  ansible.builtin.debug:
+    var: jigasi_number
+
+- name: Jigasi Transcription directory
+  ansible.builtin.file:
+    path: "{{ jigasi_transcription_path }}"
+    owner: jigasi
+    group: jitsi
+    recurse: true
+    state: directory
+
+- name: Jigasi Environments configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: "environments.json.j2"
+    dest: "/etc/jitsi/jigasi/environments.json"
+
+# load jigasi custom facts if not yet set up
+- name: Ensure custom facts directory exists
+  ansible.builtin.file:
+    mode: 0755
+    path: /etc/ansible/facts.d
+    recurse: true
+    state: directory
+
+- name: Install configuration pip prereqs
+  ansible.builtin.pip:
+    name: pyjavaproperties
+    state: present
+
+- name: Remove custom fact module for configure-jigasi
+  ansible.builtin.file:
+    path: "/etc/ansible/facts.d/configure_jigasi.fact"
+    state: absent
+
+- name: Install custom fact script for configure-jigasi
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jigasi.py"
+    src: "configure-jigasi.py"
+    mode: 0755
+    owner: root
+
+- name: Run custom facts to build cache
+  ansible.builtin.command: /usr/local/bin/configure-jigasi.py
+  register: facts_result
+  when:
+    - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
+
+- name: Set jigasi facts from results
+  ansible.builtin.set_fact:
+    configure_jigasi: "{{ facts_result.stdout | from_json }}"
+  when:
+    - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
+
+- name: Set XMPP hostname and domain from dynamic facts if available
+  ansible.builtin.set_fact:
+    jigasi_servers: "{{ configure_jigasi.hosts }}"
+  when:
+    - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
+    - configure_jigasi is defined
+    - configure_jigasi.hosts is defined
+
+- name: Set shards to remove
+  ansible.builtin.set_fact:
+    jigasi_servers_to_remove: "{{ configure_jigasi.remove_hosts }}"
+  when:
+    - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
+    - configure_jigasi is defined
+    - configure_jigasi.remove_hosts is defined
+
+- name: Install css integration package
+  ansible.builtin.apt:
+    name: "jigasi-css-integration"
+    state: present
+  when: jigasi_enable_css_integration
+  notify:
+    - restart jigasi
+
+# set Jigasi open file limits again
+- name: Jigasi file open limits
+  ansible.builtin.copy:
+    mode: 0644
+    dest: "/etc/security/limits.d/jigasi.conf"
+    content: "jigasi - nofile {{ jigasi_open_file_limit }}\nroot - nofile {{ jigasi_open_file_limit }}\njigasi soft core unlimited\nroot soft core unlimited\njigasi hard core unlimited\nroot hard core unlimited\n" # noqa yaml[line-length]
+
+# set Jigasi udp buffer parameters
+- name: Jigasi buffer size maximum
+  ansible.posix.sysctl:
+    name: net.core.rmem_max
+    value: "{{ jigasi_udp_buffer_size }}"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Jigasi buffer size count
+  ansible.posix.sysctl:
+    name: net.core.netdev_max_backlog
+    value: "{{ jigasi_udp_buffer_max_backlog }}"
+    sysctl_set: true
+    state: present
+    reload: true
+
+# Build jigasi files from templates
+- name: Install jigasi config file
+  ansible.builtin.template:
+    mode: 0644
+    src: config.j2
+    dest: /etc/jitsi/jigasi/config
+  notify: Restart jigasi
+
+- name: Configure jigasi logging
+  ansible.builtin.template:
+    src: logging.properties.j2
+    dest: /etc/jitsi/jigasi/logging.properties
+    group: jitsi
+    mode: 0644
+    owner: jigasi
+  notify: Restart jigasi
+
+- name: Install jigasi sip communicator properties file
+  ansible.builtin.template:
+    src: sip-communicator.properties.j2
+    dest: /etc/jitsi/jigasi/sip-communicator.properties
+    group: jitsi
+    mode: 0640
+  notify: Restart jigasi
+
+- name: Clear shard details dir
+  ansible.builtin.file:
+    path: /tmp/jigasi_shards
+    state: absent
+  when: jigasi_configure_only_flag
+
+- name: Create shard details dir
+  ansible.builtin.file:
+    mode: 0755
+    path: /tmp/jigasi_shards
+    state: directory
+  when: jigasi_configure_only_flag
+
+- name: Create shard details files
+  ansible.builtin.template:
+    mode: 0644
+    src: "call-control-muc.json.j2"
+    dest: "/tmp/jigasi_shards/{{ item['id'] }}.json"
+  with_items: "{{ jigasi_servers }}"
+  when: jigasi_configure_only_flag
+
+- name: Update jigasi with new shard details
+  ansible.builtin.uri:
+    url: "{{ jigasi_call_control_muc_url }}/add"
+    method: POST
+    body_format: json
+    status_code: [200, 400]
+    src: "/tmp/jigasi_shards/{{ item['id'] }}.json"
+    remote_src: true
+  with_items: "{{ jigasi_servers }}"
+  when: jigasi_configure_only_flag
+
+- name: Update jigasi removing old shards
+  ansible.builtin.uri:
+    url: "{{ jigasi_call_control_muc_url }}/remove"
+    method: POST
+    body_format: json
+    status_code: [200, 400]
+    body: |
+        {"id":"{{ item }}"}
+    remote_src: true
+  with_items: "{{ jigasi_servers_to_remove }}"
+  when: jigasi_configure_only_flag
+
+- name: Clear shard details dir again
+  ansible.builtin.file:
+    path: /tmp/jigasi_shards
+    state: absent
+  when: jigasi_configure_only_flag
+
+# provide script for managing the auto-scale group lifecycle queue
+- name: Upload lifecyle script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/monitor-terminating-instance.sh"
+    src: "monitor-terminating-instance.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Install lifecyle script systemd
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/monitor-terminating-instance.service"
+    src: "monitor-terminating-instance.service"
+    mode: 0644
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Enable monitor terminating instance systemd service
+  ansible.builtin.systemd:
+    name: monitor-terminating-instance
+    state: started
+    enabled: true
+    daemon_reload: true
+  when:
+    - not jigasi_configure_only_flag
+    - jigasi_cloud_provider == 'aws'
+
+# set systemd to allow accounting for Jigasi
+- name: Create systemd Jigasi service overrides directory
+  ansible.builtin.file:
+    mode: 0755
+    path: /etc/systemd/system/jigasi.service.d
+    state: directory
+  when: jigasi_enable_accounting
+
+- name: Install systemd Jigasi service overrides
+  ansible.builtin.copy:
+  args:
+    dest: /etc/systemd/system/jigasi.service.d/50-accounting.conf
+    mode: 0644
+    owner: root
+    content: |
+      [Service]
+      MemoryAccounting=yes
+      CPUAccounting=yes
+  register: jigasi_accounting
+  notify: Perform systemctl daemon-reload
+  when: jigasi_enable_accounting
+
+# add a health checker script to upload health stats to CloudWatch
+- name: Jigasi health check script upload for AWS
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_health_script }}"
+    src: "jigasi-health-check.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Jigasi health check script upload for oracle
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_health_script }}"
+    src: "jigasi-health-check-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+  # add a stats script to wrap DD colibri script
+- name: Jigasi stats script upload for AWS
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_stats_script }}"
+    src: "jigasi-stats.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'aws'
+
+- name: Jigasi stats script upload for Oracle
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_stats_script }}"
+    src: "jigasi-stats-oracle.sh"
+    mode: 0755
+    owner: root
+  when: jigasi_cloud_provider == 'oracle'
+
+  # add a stats script to upload colibri stats to DataDog
+- name: Jigasi stats python script upload
+  ansible.builtin.copy:
+    dest: "{{ jigasi_path_to_stats_python_script }}"
+    src: "jigasi-stats.py"
+    mode: 0755
+    owner: root
+
+# Enable and run service if we are not building an AMI
+- name: Enable Jigasi service
+  ansible.builtin.service:
+    name: jigasi
+    state: started
+    enabled: true
+  when: not jigasi_configure_only_flag
+
+# Run the the health checker regularly
+- name: Jigasi health check script cron
+  ansible.builtin.cron:
+    user: "{{ jigasi_health_check_cron_user }}"
+    state: present
+    name: "Jigasi health check script"
+    minute: "{{ jigasi_health_check_cron.minute }}"
+    hour: "{{ jigasi_health_check_cron.hour }}"
+    job: "{{ jigasi_health_check_cron.job }}"
+  when: jigasi_enable_health_check_cron
+
+# Run the the stats reporter regularly
+- name: Jigasi stats script cron
+  ansible.builtin.cron:
+    user: "{{ jigasi_stats_cron_user }}"
+    state: present
+    name: "Jigasi stats script"
+    minute: "{{ jigasi_stats_cron.minute }}"
+    hour: "{{ jigasi_stats_cron.hour }}"
+    job: "{{ jigasi_stats_cron.job }}"
+  when: jigasi_enable_stats_cron
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  ansible.builtin.meta: flush_handlers
