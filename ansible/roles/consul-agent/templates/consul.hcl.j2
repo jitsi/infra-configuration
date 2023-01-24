@@ -1,8 +1,8 @@
-datacenter = "{{consul_datacenter}}"
+datacenter = "{{ consul_datacenter }}"
 data_dir = "/opt/consul"
-bind_addr = "{{ansible_default_ipv4.address}}"
-advertise_addr = "{{ansible_default_ipv4.address}}"
+bind_addr = "{{ ansible_default_ipv4.address }}"
+advertise_addr = "{{ ansible_default_ipv4.address }}"
 {% if consul_encryption_key %}
-encrypt = "{{consul_encryption_key}}"
+encrypt = "{{ consul_encryption_key }}"
 {% endif %}
-retry_join ={{consul_retry_join_lan}}
+retry_join ={{ consul_retry_join_lan }}
