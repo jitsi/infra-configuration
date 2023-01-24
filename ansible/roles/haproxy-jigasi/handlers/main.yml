@@ -1,0 +1,19 @@
+---
+- name: Reload haproxy
+  ansible.builtin.service:
+    name: haproxy
+    state: reloaded
+
+- name: Reload haproxy systemd
+  ansible.builtin.systemd:
+    name: haproxy
+    state: reloaded
+    daemon_reload: true
+  when: ansible_service_mgr == "systemd"
+
+- name: Restart haproxy systemd
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
+    daemon_reload: true
+  when: ansible_service_mgr == "systemd"
