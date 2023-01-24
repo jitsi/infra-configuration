@@ -21,6 +21,10 @@
   register: nginx_apt_output
   notify: Stop nginx
 
+- name: Ensure handlers are notified now to stop nginx immediately # noqa no-handler
+  ansible.builtin.meta: flush_handlers
+  when: nginx_apt_output.changed
+
 - name: Mark hold on nginx package version # noqa no-changed-when
   ansible.builtin.command: apt-mark hold {{ nginx_package }} nginx-extras
 

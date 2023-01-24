@@ -30,6 +30,7 @@
     - { role: "consul-install", tags: "consul-install"}
     - { role: google-cloud, tags: "google-cloud", google_cloud_configure_flag: false, google_cloud_install_flag: true}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
+    - { role: "nginx", tags: "nginx", nginx_start_service: false}
     - { role: jigasi, tags: "jigasi", jigasi_image_build_flag: true, jigasi_configure_flag: false, jigasi_install_flag: true}
     - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent", jigasi_haproxy_agent_install_flag: true, jigasi_haproxy_agent_configure_flag: false}
     - { role: "jigasi-rtcstats-push", tags: "rtcstats-push", jigasi_rtcstats_push_install_flag: true, jigasi_rtcstats_push_configure_flag: false }
