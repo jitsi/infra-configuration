@@ -13,11 +13,13 @@ function checkout_repos() {
   cd $BOOTSTRAP_DIRECTORY/infra-configuration
   git checkout $GIT_BRANCH
   git submodule update --init --recursive
+  git show-ref heads/$GIT_BRANCH
 
   cd -
   cd $BOOTSTRAP_DIRECTORY/infra-customizations
   git checkout $GIT_BRANCH
   git submodule update --init --recursive
+  git show-ref heads/$GIT_BRANCH
   cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
   cd -
 }

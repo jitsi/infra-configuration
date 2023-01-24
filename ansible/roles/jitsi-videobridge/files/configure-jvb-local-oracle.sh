@@ -13,10 +13,12 @@ function checkout_repos() {
   cd $BOOTSTRAP_DIRECTORY/infra-configuration
   git checkout $GIT_BRANCH
   git submodule update --init --recursive
+  git show-ref heads/$GIT_BRANCH
   cd -
   cd $BOOTSTRAP_DIRECTORY/infra-customizations
   git checkout $GIT_BRANCH
   git submodule update --init --recursive
+  git show-ref heads/$GIT_BRANCH
   cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
   cd -
 }
@@ -64,7 +66,7 @@ fi
 
 PLAYBOOK="configure-jvb-local-oracle.yml"
 
-if [ ! -z "$INFRA_CONFIGURATION_REPO" ]; then
+if [ -n "$INFRA_CONFIGURATION_REPO" ]; then
     #if there's still no git branch set, assume main
     [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
 
