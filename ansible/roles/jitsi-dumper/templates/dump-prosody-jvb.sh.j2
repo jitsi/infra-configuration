@@ -6,8 +6,8 @@ TCPDUMP_PROSODY_JVB_PATH="/var/lib/tcpdump-prosody-jvb"
 # wait up to 2 minutes for traceback file
 TRACEBACK_WAIT_TIMEOUT=120
 
-S3_BUCKET="{{jitsi_dump_s3_bucket}}"
-SNS_TOPIC_ARN="{{jitsi_dump_sns_topic}}"
+S3_BUCKET="{{ jitsi_dump_s3_bucket }}"
+SNS_TOPIC_ARN="{{ jitsi_dump_sns_topic }}"
 
 # check every 10 seconds for traceback file
 TRACEBACK_SLEEP_INTERVAL=10
@@ -27,7 +27,7 @@ fi
 
 PROSODY_PID=$(systemctl show --property MainPID --value "prosody-jvb")
 if [ $? -eq 0 ]; then
-    if [ ! -z "$PROSODY_PID" ]; then
+    if [ -n "$PROSODY_PID" ]; then
         kill -USR1 $PROSODY_PID
         # now wait until traceback file is present
         SLEEP_TIMER=0
@@ -61,7 +61,7 @@ if [ -e "$TRACEBACK_PATH" ]; then
     cp $TRACEBACK_PATH $TMP_DIR/$TB_PATH
 fi
 
-if [ ! -z "$RINGBUFFER_PATH" ]; then
+if [ -n "$RINGBUFFER_PATH" ]; then
     RB_PATH="ringbuffer_${JHOST}_${JSTAMP}.txt"
     cp $RINGBUFFER_PATH $TMP_DIR/$RB_PATH
 fi

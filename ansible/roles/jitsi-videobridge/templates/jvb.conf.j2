@@ -9,7 +9,7 @@ videobridge {
   initial-drain-mode = {{ jvb_initial_drain_mode | to_json }}
 
   load-management {
-    average-participant-stress = {{jvb_average_participant_stress}}
+    average-participant-stress = {{ jvb_average_participant_stress }}
 
     load-measurements {
       packet-rate {
@@ -45,15 +45,15 @@ videobridge {
     }
     
     udp {
-      port = {{jvb_single_harvester_port}}
+      port = {{ jvb_single_harvester_port }}
     }
 
 {% if jvb_enable_ufrag_prefix %}
-    ufrag-prefix="{{jvb_ufrag_prefix}}"
+    ufrag-prefix="{{ jvb_ufrag_prefix }}"
 {% endif %}
 
 {% if jvb_nomination_strategy %}
-    nomination-strategy="{{jvb_nomination_strategy}}"
+    nomination-strategy="{{ jvb_nomination_strategy }}"
 {% endif %}
 
 {% if jvb_suppress_private_candidates %}
@@ -73,7 +73,7 @@ videobridge {
       configs {
 {% if not jvb_enable_multiple_shards %}
         shard {
-          PORT={{jvb_xmpp_port }}
+          PORT={{ jvb_xmpp_port }}
 {% if prosody_jvb_configure_flag %}
           DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
           MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
@@ -87,15 +87,15 @@ videobridge {
           HOSTNAME={{ jvb_host }}
           USERNAME={{ jvb_auth_user }}
           PASSWORD={{ jvb_auth_password }}
-          MUC_NICKNAME={{ansible_hostname}}
+          MUC_NICKNAME={{ ansible_hostname }}
           IQ_HANDLER_MODE={{ jvb_iq_handler_mode }}
         }
 {% else %}
 {% for s in jvb_shards %}
-        # SHARD {{s}}
-        {{s}} {
+        # SHARD {{ s }}
+        {{ s }} {
           HOSTNAME={{ jvb_shards[s]['xmpp_host_public_ip_address'] if jvb_use_public_ip and not jvb_shards[s]['prefer_private'] else jvb_shards[s]['xmpp_host_private_ip_address'] }}
-          PORT={{jvb_xmpp_port }}
+          PORT={{ jvb_xmpp_port }}
 {% if prosody_jvb_configure_flag %}
           DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
           MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
@@ -106,7 +106,7 @@ videobridge {
 {% endif %}
           USERNAME={{ jvb_auth_user }}
           PASSWORD={{ jvb_auth_password }}
-          MUC_NICKNAME={{ansible_hostname}}
+          MUC_NICKNAME={{ ansible_hostname }}
           IQ_HANDLER_MODE={{ jvb_iq_handler_mode }}
           # TODO: don't disable :(
           DISABLE_CERTIFICATE_VERIFICATION=true
@@ -130,10 +130,10 @@ videobridge {
 {% if jvb_enable_websockets %}
     enabled = true
     tls = true
-    domain = "{{jvb_ws_domain}}:{{jvb_websockets_advertise_port}}"
-    server-id = "{{jvb_server_id}}"
+    domain = "{{ jvb_ws_domain }}:{{ jvb_websockets_advertise_port }}"
+    server-id = "{{ jvb_server_id }}"
 {% if jvb_ws_relay_domain %}
-    relay-domain = "{{jvb_ws_relay_domain}}:{{jvb_websockets_advertise_port}}"
+    relay-domain = "{{ jvb_ws_relay_domain }}:{{ jvb_websockets_advertise_port }}"
 {% endif %}
 {% else %}
     enabled = false
@@ -143,11 +143,11 @@ videobridge {
   http-servers {
     public {
 {% if jvb_enable_websockets %}
-      port={{jvb_websockets_port}}
+      port={{ jvb_websockets_port }}
 {% if jvb_enable_websockets_ssl %}
       tls-port=443
-      key-store-path={{jvb_websockets_ssl_keystore_path}}
-      key-store-password={{jvb_websockets_ssl_keystore_password}}
+      key-store-path={{ jvb_websockets_ssl_keystore_path }}
+      key-store-password={{ jvb_websockets_ssl_keystore_password }}
 {% endif %}
 {% endif %}
     }
@@ -163,7 +163,7 @@ videobridge {
 {% if jvb_enable_octo %}
     enabled = true
     region = {{ jvb_region }}
-    relay-id = "{{ansible_hostname}}"
+    relay-id = "{{ ansible_hostname }}"
 {% else %}
     enabled = false
 {% endif %}
@@ -225,8 +225,8 @@ jmt {
   bwe {
     send-side {
       loss-experiment {
-        probability = {{jvb_loss_experiment_probability}}
-        bitrate-threshold = {{jvb_loss_bitrate_threshold_kbps}} kbps
+        probability = {{ jvb_loss_experiment_probability }}
+        bitrate-threshold = {{ jvb_loss_bitrate_threshold_kbps }} kbps
       }
     }
   }
@@ -240,7 +240,7 @@ jmt {
 
 ice4j {
   harvest {
-    udp.receive-buffer-size = {{jvb_udp_buffer_size}}
+    udp.receive-buffer-size = {{ jvb_udp_buffer_size }}
     mapping.aws.enabled = false
 {% if jvb_stun_mapping_enabled %}
     mapping.stun.addresses = [ "meet-jit-si-turnrelay.jitsi.net:443" ]

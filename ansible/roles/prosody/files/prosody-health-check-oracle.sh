@@ -79,7 +79,7 @@ function run_check() {
                     if [[ "$PROSODY_PID" == "0" ]]; then
                         PROSODY_PID=
                     fi
-                    if [ ! -z "$PROSODY_PID" ]; then
+                    if [ -n "$PROSODY_PID" ]; then
                         kill -USR1 $PROSODY_PID
                         # now wait until traceback file is present
                         SLEEP_TIMER=0

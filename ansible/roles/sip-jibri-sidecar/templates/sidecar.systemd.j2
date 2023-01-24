@@ -3,10 +3,10 @@ Description=Jitsi Sip Jibri Sidecar Service
 After=network.target
 
 [Service]
-User={{sip_jibri_username}}
-Group={{sip_jibri_groupname}}
-EnvironmentFile={{sip_jibri_env_path}}
-WorkingDirectory={{sip_jibri_base_path}}
+User={{ sip_jibri_username }}
+Group={{ sip_jibri_groupname }}
+EnvironmentFile={{ sip_jibri_env_path }}
+WorkingDirectory={{ sip_jibri_base_path }}
 ExecStart=/usr/bin/npm start
 Restart=on-failure
 KillSignal=SIGQUIT
@@ -14,7 +14,7 @@ Type=simple
 StandardOutput=syslog
 StandardError=syslog
 NotifyAccess=all
-SyslogIdentifier={{sip_jibri_sidecar_service_name}}
+SyslogIdentifier={{ sip_jibri_sidecar_service_name }}
 
 [Install]
 WantedBy=multi-user.target

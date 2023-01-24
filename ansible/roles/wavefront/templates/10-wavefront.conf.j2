@@ -4,7 +4,7 @@
   host = "{{ wavefront_proxy_address }}"
   port = {{ wavefront_proxy_port }}
 {% else %}
-  url = "http://{{ wavefront_proxy_address }}:{{wavefront_proxy_json_port}}"
+  url = "http://{{ wavefront_proxy_address }}:{{ wavefront_proxy_json_port }}"
 {% endif %}
   metric_separator = "."
   source_override = ["hostname", "snmp_host", "node_host"]

@@ -1,2 +1,3 @@
 ---
-shard_region: "{{ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default'}}"
+shard_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
+  else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"

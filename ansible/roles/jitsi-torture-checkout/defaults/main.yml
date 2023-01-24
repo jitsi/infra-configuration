@@ -2,7 +2,7 @@
 jitsi_torture_checkout_git_branch: 'master'
 jitsi_torture_checkout_git_repo: https://github.com/jitsi/jitsi-meet-torture.git
 jitsi_torture_checkout_path: /usr/share/jitsi-meet-torture
-jitsi_torture_cloud_provider: "{{cloud_provider|default('aws')}}"
-jitsi_torture_oracle_bucket_name: "jvb-images-{{jitsi_torture_oracle_environment}}"
-jitsi_torture_oracle_environment: "{{hcv_environment|default('all')}}"
-jitsi_torture_oracle_region: "{{oracle_region|default('')}}"
+jitsi_torture_cloud_provider: "{{ cloud_provider | default('aws') }}"
+jitsi_torture_oracle_bucket_name: "jvb-images-{{ jitsi_torture_oracle_environment }}"
+jitsi_torture_oracle_environment: "{{ hcv_environment | default('all') }}"
+jitsi_torture_oracle_region: "{{ oracle_region | default('') }}"

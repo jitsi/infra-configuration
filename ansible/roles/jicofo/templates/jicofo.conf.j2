@@ -2,16 +2,16 @@ jicofo {
 {% if jicofo_auth_url_enable %}
   authentication {
     enabled = true
-    type = "{{jicofo_auth_type}}"
-    login-url = "{{jicofo_auth_url}}"
+    type = "{{ jicofo_auth_type }}"
+    login-url = "{{ jicofo_auth_url }}"
   }
 {% endif %}
 
   bridge {
 {% if jicofo_separate_jvb_muc %}
-    brewery-jid = "jvbbrewery@{{prosody_jvb_muc_name}}"
+    brewery-jid = "jvbbrewery@{{ prosody_jvb_muc_name }}"
 {% else %}
-    brewery-jid = "{{jicofo_jvb_brewery_muc}}"
+    brewery-jid = "{{ jicofo_jvb_brewery_muc }}"
 {% endif %}
 
 {% if jicofo_visitors_enabled %}
@@ -100,20 +100,20 @@ jicofo {
 
   jibri {
 {% if jicofo_jibri_brewery_muc %}
-    brewery-jid = "{{jicofo_jibri_brewery_muc}}"
+    brewery-jid = "{{ jicofo_jibri_brewery_muc }}"
 {% endif %}
-    pending-timeout = {{jicofo_jibri_pending_timeout}} seconds
+    pending-timeout = {{ jicofo_jibri_pending_timeout }} seconds
   }
 
 {% if jicofo_sipjibri_brewery_muc %}
   jibri-sip {
-    brewery-jid = "{{jicofo_sipjibri_brewery_muc}}"
+    brewery-jid = "{{ jicofo_sipjibri_brewery_muc }}"
   }
 {% endif %}
 
 {% if jicofo_jigasi_brewery_muc %}
   jigasi {
-    brewery-jid = "{{jicofo_jigasi_brewery_muc}}"
+    brewery-jid = "{{ jicofo_jigasi_brewery_muc }}"
   }
 {% endif %}
 
@@ -152,9 +152,9 @@ jicofo {
       enabled = true
       hostname = "127.0.0.1"
       port = 6222
-      domain = "{{prosody_jvb_auth_domain_name}}"
-      username = "{{jicofo_auth_user}}"
-      password = "{{jicofo_auth_password}}"
+      domain = "{{ prosody_jvb_auth_domain_name }}"
+      username = "{{ jicofo_auth_user }}"
+      password = "{{ jicofo_auth_password }}"
     }
 {% endif %}
       # By trusting prosody_domain_name we effectively disable the feature and allow clients to impersonate Jibri. This is
@@ -164,11 +164,11 @@ jicofo {
 {% if jicofo_visitors_enabled %}
       visitors {
     {% for i in range(jicofo_visitors_count|int) %}
-            v{{i}} {
+            v{{ i }} {
                 enabled = true
-                conference-service = conference.v{{i}}.meet.jitsi
+                conference-service = conference.v{{ i }}.meet.jitsi
                 hostname = 127.0.0.1
-                port = {{52220+i}}
+                port = {{ 52220+i }}
                 domain = auth.meet.jitsi
                 password = {{ jicofo_auth_password }}
                 disable-certificate-verification = true

@@ -17,6 +17,6 @@ function testmeet {
     return $exitcode
 }
 
-cd {{jitsi_torture_path}}
+cd {{ jitsi_torture_path }}
 
-testmeet ./test-runner-long.sh {{jitsi_torture_domain}} {{jitsi_torture_sitename}} {{jitsi_torture_results_email}}
+testmeet ./test-runner-long.sh {{ jitsi_torture_domain }} {{ jitsi_torture_sitename }} {{ jitsi_torture_results_email }}

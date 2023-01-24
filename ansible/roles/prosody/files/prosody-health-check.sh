@@ -91,7 +91,7 @@ function run_check() {
 
                 PROSODY_PID=$(systemctl show --property MainPID --value prosody)
                 if [ $? -eq 0 ]; then
-                    if [ ! -z "$PROSODY_PID" ]; then
+                    if [ -n "$PROSODY_PID" ]; then
                         kill -USR1 $PROSODY_PID
                         # now wait until traceback file is present
                         SLEEP_TIMER=0

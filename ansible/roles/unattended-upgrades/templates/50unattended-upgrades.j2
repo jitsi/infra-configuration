@@ -1,7 +1,7 @@
 // Automatically upgrade packages from these (origin, archive) pairs
 Unattended-Upgrade::Allowed-Origins {
   {% for origin in unattended_upgrades_origins %}
-      "{{origin}}";
+      "{{ origin }}";
   {% endfor %}
 };
 
@@ -18,13 +18,13 @@ Unattended-Upgrade::Package-Blacklist {
 // If empty or unset then no email is sent, make sure that you
 // have a working mail setup on your system. The package 'mailx'
 // must be installed or anything that provides /usr/bin/mail.
-   Unattended-Upgrade::Mail "{{unattended_upgrades_email_address}}";
+   Unattended-Upgrade::Mail "{{ unattended_upgrades_email_address }}";
 {% endif %}
 
 // Do automatic removal of new unused dependencies after the upgrade
 // (equivalent to apt-get autoremove)
-Unattended-Upgrade::Remove-Unused-Dependencies "{{unattended_upgrades_auto_remove}}";
+Unattended-Upgrade::Remove-Unused-Dependencies "{{ unattended_upgrades_auto_remove }}";
 
 // Automatically reboot *WITHOUT CONFIRMATION* if a
 // the file /var/run/reboot-required is found after the upgrade
-Unattended-Upgrade::Automatic-Reboot "{{unattended_upgrades_auto_reboot}}";
+Unattended-Upgrade::Automatic-Reboot "{{ unattended_upgrades_auto_reboot }}";

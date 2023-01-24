@@ -10,7 +10,7 @@ server {
     listen 127.0.0.1:443 ssl;
     listen [::]:443 ssl;
 
-    server_name {{jvb_ssl_domain_name}};
+    server_name {{ jvb_ssl_domain_name }};
 
     ssl_certificate {{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.crt;
     ssl_certificate_key {{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.key;
@@ -31,21 +31,21 @@ server {
 
     # colibri (JVB) websockets for endpoints
     location ~ ^/colibri-ws(/?)(.*) {
-        proxy_pass http://127.0.0.1:{{jvb_ssl_websockets_port}}/colibri-ws/$2$is_args$args;
+        proxy_pass http://127.0.0.1:{{ jvb_ssl_websockets_port }}/colibri-ws/$2$is_args$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host {{jvb_ssl_domain_name}};
+        proxy_set_header Host {{ jvb_ssl_domain_name }};
         tcp_nodelay on;
     }
 
     # colibri (JVB) websockets for bridges
     location ~ ^/colibri-relay-ws(/?)(.*) {
-        proxy_pass http://127.0.0.1:{{jvb_ssl_websockets_port}}/colibri-relay-ws/$2$is_args$args;
+        proxy_pass http://127.0.0.1:{{ jvb_ssl_websockets_port }}/colibri-relay-ws/$2$is_args$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host {{jvb_ssl_domain_name}};
+        proxy_set_header Host {{ jvb_ssl_domain_name }};
         tcp_nodelay on;
     }
 }

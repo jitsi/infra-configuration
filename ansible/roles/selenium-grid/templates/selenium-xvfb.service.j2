@@ -3,8 +3,8 @@ Description=Selenium Xvfb
 After=network.target
 
 [Service]
-User={{selenium_grid_username}}
-Group={{selenium_grid_groupname}}
+User={{ selenium_grid_username }}
+Group={{ selenium_grid_groupname }}
 ExecStart=/usr/bin/Xvfb :99 -screen 0 1024x768x24
 Restart=on-failure
 RestartPreventExitStatus=255
