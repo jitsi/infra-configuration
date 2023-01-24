@@ -149,7 +149,7 @@
 
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "jigasi", autoscaler_install_flag: true, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: true}
-    - { role: "consul-jigasi", tags: "consul-jigasi", when: jigasi_shard_role=='jigasi'}
+    - { role: "consul-jigasi", tags: "consul-jigasi", when: jigasi_shard_role == 'jigasi'}
     - { role: "jigasi", tags: "jigasi", jigasi_install_flag: false, jigasi_configure_flag: true}
     - { role: "jigasi-web", tags: "jigasi-web"}
     - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent",
