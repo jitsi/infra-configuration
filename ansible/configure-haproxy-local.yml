@@ -24,7 +24,7 @@
     - secrets/oci-logging.yml
     - secrets/repo.yml
     - config/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
     - name: Gather AWS facts
       amazon.aws.ec2_metadata_facts:

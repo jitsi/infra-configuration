@@ -139,7 +139,7 @@
 #    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
     - { role: "iptables", tags: "iptables"}
     # enable java 11 if set for the environment
-    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{jvb_java_11}}", java_install_flag: false }
+    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jvb_java_11 }}", java_install_flag: false }
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "sshusers", tags: "ssh", ssh_users_config_flag: false, ssh_users_accounts_flag: false, ssh_users_system_flag: true }
@@ -158,17 +158,17 @@
           shard-role: "JVB"
           role: "JVB"
           environment: "{{ hcv_environment }}"
-          environment_type: "{{environment_type|default('prod', True)}}"
+          environment_type: "{{ environment_type|default('prod', True) }}"
           shard: "{{ shard_name }}"
-          region: "{{oracle_to_aws_region_map[jvb_custom_region]}}"
-          oracle_region: "{{jvb_custom_region}}"
+          region: "{{ oracle_to_aws_region_map[jvb_custom_region] }}"
+          oracle_region: "{{ jvb_custom_region }}"
           release_number: "{{ jitsi_release_number }}"
           jvb_release_number: "{{ jvb_release_number }}"
-          cloud: "{{cloud_provider}}"
-          jvb_version: "{{jvb_version.stdout}}"
+          cloud: "{{ cloud_provider }}"
+          jvb_version: "{{ jvb_version.stdout }}"
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "JVB", autoscaler_install_flag: false, autoscaler_configure_flag: true,
-        jitsi_autoscaler_sidecar: "{{autoscaler_sidecar_jvb_flag}}", jvb_ddns_cleanup_flag: true}
+        jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jvb_flag }}", jvb_ddns_cleanup_flag: true}
     - { role: "jvb-ssl", "tags": "jvb-ssl", when: jvb_nginx_ssl_enabled }
     - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns",
         jvb_ddns_install_flag: false, jvb_ddns_configure_flag: true, jvb_ddns_cleanup_flag: true, ipv6_enabled: false }

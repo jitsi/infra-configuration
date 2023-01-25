@@ -39,7 +39,7 @@
     - roles/jitsi-torture/defaults/main.yml
     - config/vars.yml
     - sites/lonely/vars.yml
-    - sites/{{hcv_environment}}/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
     - secrets/torture.yml
   tasks:
     - name: Create temporary build directory

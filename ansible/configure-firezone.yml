@@ -9,7 +9,7 @@
     - credentials/credentials-bitbucket.yml
     - credentials/credentials-oci-logging.yml
     - environments/all/group_vars/all.yml
-    - environments/{{hcv_environment}}/group_vars/all.yml
+    - environments/{{ hcv_environment }}/group_vars/all.yml
   vars:
     shard_role: vpn
     fluentd_jitsi_oci_logs_enabled: true

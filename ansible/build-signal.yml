@@ -73,7 +73,7 @@
       vars:
         telegraf_tags:
           role: "core"
-          cloud: "{{cloud_provider}}"
+          cloud: "{{ cloud_provider }}"
     - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true }
     - { role: "prosody-egress", tags: "prosody-egress", prosody_egress_install_flag: true, prosody_egress_configure_flag: false }
     - { role: "clean-system", tags: "clean-system, build" }
