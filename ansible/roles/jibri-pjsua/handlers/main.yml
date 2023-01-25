@@ -1,6 +1,6 @@
 ---
 - name: restart jibri cameras
-  service: name="{{item}}" state=restarted
+  service: name="{{ item }}" state=restarted
   with_items:
     - jibri-camera-0
     - jibri-camera-1

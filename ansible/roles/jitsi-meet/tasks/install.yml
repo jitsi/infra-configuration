@@ -12,10 +12,10 @@
   register: jitsi_meet_version_check
 
 - name: mark unhold on jitsi-meet package version
-  command: apt-mark unhold {{jitsi_meet_deb_pkg_name}}
+  command: apt-mark unhold {{ jitsi_meet_deb_pkg_name }}
 
 - name: Install jitsi-meet debian package
-  apt: name={{ jitsi_meet_deb_pkg_name }}={{jitsi_meet_deb_pkg_version}} state=present dpkg_options=force-downgrade
+  apt: name={{ jitsi_meet_deb_pkg_name }}={{ jitsi_meet_deb_pkg_version }} state=present dpkg_options=force-downgrade
 
 #detect currently running prosody (finds either prosody-trunk or prosody))
 - name: register installed prosody package
@@ -24,7 +24,7 @@
 
 - name: Set prosody installed version variables
   set_fact:
-    jitsi_meet_prosody_installed_package: "{{jitsi_meet_prosody_package_shell.stdout}}"
+    jitsi_meet_prosody_installed_package: "{{ jitsi_meet_prosody_package_shell.stdout }}"
 
 - name: temp dir for jitsi-meet-prosody download
   tempfile:
@@ -34,24 +34,24 @@
 
 
 - name: Download jitsi-meet-prosody .deb
-  shell: apt-get download {{ jitsi_meet_prosody_deb_pkg_name }}={{jitsi_meet_prosody_deb_pkg_version}}
+  shell: apt-get download {{ jitsi_meet_prosody_deb_pkg_name }}={{ jitsi_meet_prosody_deb_pkg_version }}
   args:
-    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
 - name: Unpack jitsi-meet-prosody .deb
   shell: dpkg -x {{ jitsi_meet_prosody_deb_pkg_name }}*.deb .
   args:
-    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
 - name: prosody 0.11 hook global patch
   shell: sed -i 's/module:hook(/module:hook_global(/g' ./usr/share/jitsi-meet/prosody-plugins/mod_auth_token.lua
   args:
-    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
 - name: Copy jitsi-meet-prosody plugins to appropriate location
   shell: cp -a ./usr/share/jitsi-meet/prosody-plugins /usr/share/jitsi-meet
   args:
-    chdir: "{{jitsi_meet_prosody_tempdir.path}}"
+    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
 - name: Check do we need to drop mod_smacks
   stat:
@@ -72,10 +72,10 @@
   when: need_to_drop_mod_external_services.stat.exists
 
 - name: Remove jitsi-meet-prosody tempdir
-  file: path="{{jitsi_meet_prosody_tempdir.path}}" state=absent
+  file: path="{{ jitsi_meet_prosody_tempdir.path }}" state=absent
 
 - name: mark hold on jitsi-meet package version
-  command: apt-mark hold {{jitsi_meet_deb_pkg_name}}
+  command: apt-mark hold {{ jitsi_meet_deb_pkg_name }}
 
 - file: path={{ jitsi_meet_site_path }} owner="www-data" group="www-data" recurse=yes state=directory
 
@@ -92,7 +92,7 @@
 - name: create home directory for www-data user
   file: path=/var/www state=directory owner="www-data" group="www-data" recurse=yes
 
-- file: path="/etc/nginx/sites-enabled/{{jitsi_meet_domain_name}}.conf" state=absent
+- file: path="/etc/nginx/sites-enabled/{{ jitsi_meet_domain_name }}.conf" state=absent
   notify: restart nginx
 
 - name: remove default nginx server

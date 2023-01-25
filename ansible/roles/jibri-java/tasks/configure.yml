@@ -9,7 +9,7 @@
     content: '{ "CommandLineFlagSecurityWarningsEnabled": false }'
 
 - name: Copy termination monitor script
-  template: src="monitor-terminating-instance.j2" dest="{{jibri_scripts_dir}}/monitor-terminating-instance.sh" mode=0755
+  template: src="monitor-terminating-instance.j2" dest="{{ jibri_scripts_dir }}/monitor-terminating-instance.sh" mode=0755
   notify:
     - Restart Monitor Terminating Instance
   when: jibri_cloud_provider == "aws"
@@ -21,10 +21,10 @@
   when: jibri_cloud_provider == "aws"
 
 - name: "folder for failed uploads"
-  file: path="{{jibri_failed_upload_path}}" state=directory mode=0777
+  file: path="{{ jibri_failed_upload_path }}" state=directory mode=0777
 
 - name: "folder for temporary recordings"
-  file: path="{{jibri_recordings_dir}}" state=directory mode=0777
+  file: path="{{ jibri_recordings_dir }}" state=directory mode=0777
 
 #write jibri environments file
 - name: Jibri Config directory
@@ -56,7 +56,7 @@
 
 - name: set jibri XMPP servers from dynamic fact if available
   set_fact:
-     jibri_config_hosts: "{{configure_jibri.hosts_by_environment_domain}}"
+     jibri_config_hosts: "{{ configure_jibri.hosts_by_environment_domain }}"
   when: 
     - not jibri_pjsua_flag
     - configure_jibri is defined
@@ -70,7 +70,7 @@
     - (jibri_config_hosts.keys()|length == 0)
 
 - name: copy jibri ASAP JWT signing key
-  copy: dest="{{jibri_asap_key_path}}" mode=0640 content="{{asap_key['key']}}" owner="jibri"
+  copy: dest="{{ jibri_asap_key_path }}" mode=0640 content="{{ asap_key['key'] }}" owner="jibri"
 
 - name: jibri legacy config file removal
   file: path=/etc/jitsi/jibri/config.json state=absent
@@ -97,50 +97,50 @@
 
 #script to handle stats to cloudwatch
 - name: Copy status cloudwatch script aws
-  copy: src="jibri-status.sh" dest="{{jibri_path_to_status_script}}" owner="{{jibri_username}}" mode=0755
+  copy: src="jibri-status.sh" dest="{{ jibri_path_to_status_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "aws"
 
 #script to handle stats to cloudwatch
 - name: Copy status cloudwatch script oracle
-  template: src="jibri-status-oracle.j2" dest="{{jibri_path_to_status_script}}"  owner="{{jibri_username}}" mode=0755
+  template: src="jibri-status-oracle.j2" dest="{{ jibri_path_to_status_script }}"  owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "oracle"
 
   #script to handle health check failures
 - name: Copy health check script aws
-  copy: src="jibri-health.sh" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  copy: src="jibri-health.sh" dest="{{ jibri_path_to_health_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "aws"
 
   #script to handle health check failures
 - name: Copy terminate instance script oracle
-  template: src="terminate_instance_oracle.j2" dest="{{jibri_path_to_terminate_instance_script}}" owner="{{jibri_username}}" mode=0755
+  template: src="terminate_instance_oracle.j2" dest="{{ jibri_path_to_terminate_instance_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "oracle"
 
 - name: Copy health check script oracle
-  template: src="jibri-health-oracle.j2" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  template: src="jibri-health-oracle.j2" dest="{{ jibri_path_to_health_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "oracle"
 
 #scripts to handle configuration and reconfiguration of jibri
 - name: Copy termination monitor script
-  copy: src="wait_graceful_shutdown.sh" dest="{{jibri_scripts_dir}}/wait_graceful_shutdown.sh" mode=0755
+  copy: src="wait_graceful_shutdown.sh" dest="{{ jibri_scripts_dir }}/wait_graceful_shutdown.sh" mode=0755
 
 #scripts to handle configuration and reconfiguration of jibri
 - name: Copy graceful termination script aws
-  copy: src="graceful_shutdown_terminate.sh" dest="{{jibri_scripts_dir}}/graceful_shutdown_terminate.sh" mode=0755
+  copy: src="graceful_shutdown_terminate.sh" dest="{{ jibri_scripts_dir }}/graceful_shutdown_terminate.sh" mode=0755
   when: jibri_cloud_provider == "aws"
 
 #scripts to handle configuration and reconfiguration of jibri
 - name: Copy graceful termination script oracle
-  template: src="graceful_shutdown_terminate_oracle.j2" dest="{{jibri_scripts_dir}}/graceful_shutdown_terminate.sh" mode=0755
+  template: src="graceful_shutdown_terminate_oracle.j2" dest="{{ jibri_scripts_dir }}/graceful_shutdown_terminate.sh" mode=0755
   when: jibri_cloud_provider == "oracle"
 
 #aws credentials for oracle to send stats to cloudwatch
 - name: Create directory for AWS credentials for CloudWatch
-  file: path="{{jibri_homedir}}/.aws" state=directory
+  file: path="{{ jibri_homedir }}/.aws" state=directory
   when: jibri_cloud_provider == "oracle"
 
 - name: AWS credentials
   template: src=aws_credentials.j2
-    dest="{{jibri_homedir}}/.aws/credentials"
+    dest="{{ jibri_homedir }}/.aws/credentials"
   when: jibri_cloud_provider == "oracle"
 
   # Run the metric reporting script regularly

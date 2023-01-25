@@ -1,26 +1,26 @@
 ---
 - name: Torture directory
-  file: name="{{jitsi_torture_checkout_path}}" state=directory
+  file: name="{{ jitsi_torture_checkout_path }}" state=directory
 
 - name: pull torture test
-  git: repo="{{jitsi_torture_checkout_git_repo}}" version="{{jitsi_torture_checkout_git_branch}}" dest="{{jitsi_torture_checkout_path}}"
+  git: repo="{{ jitsi_torture_checkout_git_repo }}" version="{{ jitsi_torture_checkout_git_branch }}" dest="{{ jitsi_torture_checkout_path }}"
 
 - name: boto pip for s3
   pip: name=boto state=present
 
 - name: torture file check
-  stat: path="{{jitsi_torture_checkout_path}}/resources/FourPeople_1280x720_60.y4m"
+  stat: path="{{ jitsi_torture_checkout_path }}/resources/FourPeople_1280x720_60.y4m"
   register: torture_file_check_60
 
 - name: torture file check
-  stat: path="{{jitsi_torture_checkout_path}}/resources/FourPeople_1280x720_30.y4m"
+  stat: path="{{ jitsi_torture_checkout_path }}/resources/FourPeople_1280x720_30.y4m"
   register: torture_file_check_30
 
 - name: pull the four people video 60fps from s3
   aws_s3:
     bucket: "jitsi-torture-checkout-u1541176306"
     object: "resources/FourPeople_1280x720_60.y4m"
-    dest: "{{jitsi_torture_checkout_path}}/resources/FourPeople_1280x720_60.y4m"
+    dest: "{{ jitsi_torture_checkout_path }}/resources/FourPeople_1280x720_60.y4m"
     mode: get
   when: 
     - torture_file_check_60.stat.exists == False
@@ -30,7 +30,7 @@
   aws_s3:
     bucket: "jitsi-torture-checkout-u1541176306"
     object: "resources/FourPeople_1280x720_30.y4m"
-    dest: "{{jitsi_torture_checkout_path}}/resources/FourPeople_1280x720_30.y4m"
+    dest: "{{ jitsi_torture_checkout_path }}/resources/FourPeople_1280x720_30.y4m"
     mode: get
   when: 
     - torture_file_check_30.stat.exists == False
@@ -38,13 +38,13 @@
 
 
 - name: pull the four people video 60fps from object storage
-  shell: oci os object get --region {{jitsi_torture_oracle_region}} --bucket-name {{jitsi_torture_oracle_bucket_name}} --name resources/FourPeople_1280x720_60.y4m --file {{jitsi_torture_checkout_path}}/resources/FourPeople_1280x720_60.y4m --auth instance_principal
+  shell: oci os object get --region {{ jitsi_torture_oracle_region }} --bucket-name {{ jitsi_torture_oracle_bucket_name }} --name resources/FourPeople_1280x720_60.y4m --file {{ jitsi_torture_checkout_path }}/resources/FourPeople_1280x720_60.y4m --auth instance_principal
   when: 
     - torture_file_check_60.stat.exists == False
     - jitsi_torture_cloud_provider == 'oracle'
 
 - name: pull the four people video 30fps from object storage
-  shell: oci os object get --region {{jitsi_torture_oracle_region}} --bucket-name {{jitsi_torture_oracle_bucket_name}} --name resources/FourPeople_1280x720_30.y4m --file {{jitsi_torture_checkout_path}}/resources/FourPeople_1280x720_30.y4m --auth instance_principal
+  shell: oci os object get --region {{ jitsi_torture_oracle_region }} --bucket-name {{ jitsi_torture_oracle_bucket_name }} --name resources/FourPeople_1280x720_30.y4m --file {{ jitsi_torture_checkout_path }}/resources/FourPeople_1280x720_30.y4m --auth instance_principal
   when: 
     - torture_file_check_30.stat.exists == False
     - jitsi_torture_cloud_provider == 'oracle'

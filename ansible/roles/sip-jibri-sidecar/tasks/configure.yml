@@ -1,6 +1,6 @@
 ---
 - name: register installed sidecar software version
-  shell: "{{sip_jibri_sidecar_instance_version_command}}"
+  shell: "{{ sip_jibri_sidecar_instance_version_command }}"
   register: sip_jibri_sidecar_instance_version_shell
   when: (sip_jibri_sidecar_instance_version_command | length) > 0
 
@@ -10,19 +10,19 @@
   when: sip_jibri_sidecar_instance_version_shell is defined
 
 - name: copy sip_jibri signing key file
-  copy: dest="{{sip_jibri_key_path}}" mode=0640 content="{{asap_key['key']}}" owner="{{sip_jibri_username}}"
+  copy: dest="{{ sip_jibri_key_path }}" mode=0640 content="{{ asap_key['key'] }}" owner="{{ sip_jibri_username }}"
 
 - name: sidecar environment configuration
-  template: src=sidecar.env.j2 dest={{sip_jibri_env_path}}
+  template: src=sidecar.env.j2 dest={{ sip_jibri_env_path }}
 
 - name: xmpp user map file
-  copy: content="{{sip_jibri_xmpp_login_map|to_json}}" dest="{{sip_jibri_xmpp_logins_path}}"
+  copy: content="{{ sip_jibri_xmpp_login_map|to_json }}" dest="{{ sip_jibri_xmpp_logins_path }}"
 
 - name: Configure systemd script for sidecar service
-  template: src=sidecar.systemd.j2 dest=/lib/systemd/system/{{sip_jibri_sidecar_service_name}}.service
+  template: src=sidecar.systemd.j2 dest=/lib/systemd/system/{{ sip_jibri_sidecar_service_name }}.service
 
 - name: Start server service and set it enabled
-  service: name={{sip_jibri_sidecar_service_name}} state=started enabled=yes
+  service: name={{ sip_jibri_sidecar_service_name }} state=started enabled=yes
 
 # Run the the health checker regularly
 - name: sidecar health check script cron

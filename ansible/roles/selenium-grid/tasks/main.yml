@@ -28,9 +28,9 @@
 
 - name: set selenium grid name and hub host from dynamic facts if available
   set_fact:
-     selenium_grid_name: "{{ansible_local.configure_selenium_grid.grid}}"
-     selenium_grid_hub_host: "{{ansible_local.configure_selenium_grid.grid_hub_private_ip_address}}"
-     selenium_grid_role: "{{ansible_local.configure_selenium_grid.grid_role}}"
+     selenium_grid_name: "{{ ansible_local.configure_selenium_grid.grid }}"
+     selenium_grid_hub_host: "{{ ansible_local.configure_selenium_grid.grid_hub_private_ip_address }}"
+     selenium_grid_role: "{{ ansible_local.configure_selenium_grid.grid_role }}"
   when:
     - selenium_grid_cloud_provider == 'aws'
     - ansible_local.configure_selenium_grid.grid_hub_private_ip_address is defined
@@ -66,9 +66,9 @@
 
 - name: set selenium grid name and hub host from dynamic facts if available
   set_fact:
-     selenium_grid_name: "{{selenium_grid_facts.grid}}"
-     selenium_grid_hub_host: "{{selenium_grid_facts.grid_hub_private_ip_address}}"
-     selenium_grid_role: "{{selenium_grid_facts.grid_role}}"
+     selenium_grid_name: "{{ selenium_grid_facts.grid }}"
+     selenium_grid_hub_host: "{{ selenium_grid_facts.grid_hub_private_ip_address }}"
+     selenium_grid_role: "{{ selenium_grid_facts.grid_role }}"
   when:
     - selenium_grid_cloud_provider == 'oracle'
     - selenium_grid_facts.grid_hub_private_ip_address is defined
@@ -79,26 +79,26 @@
   copy: dest="/usr/local/bin/configure-selenium-grid.sh" src="configure-selenium-grid.sh" mode=0755
 
 - name: Directory for selenium grid jar
-  file: path="{{selenium_grid_path}}" state=directory
+  file: path="{{ selenium_grid_path }}" state=directory
 - name: Directory for selenium grid extras jar
-  file: path="{{selenium_grid_extras_path}}" state=directory
+  file: path="{{ selenium_grid_extras_path }}" state=directory
 - name: Directory for selenium grid extras configs folder
-  file: path="{{selenium_grid_extras_path}}/configs" state=directory
+  file: path="{{ selenium_grid_extras_path }}/configs" state=directory
 
 
 - name: Selenium Grid User creation
-  user: name="{{item.username}}"
-    groups="{{item.groups | join(',')}}"
+  user: name="{{ item.username }}"
+    groups="{{ item.groups | join(',') }}"
     shell=/bin/bash
-    comment="{{item.real_name}}"
-    home="/home/{{item.username}}"
+    comment="{{ item.real_name }}"
+    home="/home/{{ item.username }}"
     createhome=yes
-    state="{{item.state}}"
-  with_items: "{{selenium_grid_users}}"
+    state="{{ item.state }}"
+  with_items: "{{ selenium_grid_users }}"
 
 
 - name: Selenium Grid SSH Directory
-  file: path="{{ selenium_grid_homedir }}/.ssh" state=directory mode=0700 owner={{selenium_grid_username}}
+  file: path="{{ selenium_grid_homedir }}/.ssh" state=directory mode=0700 owner={{ selenium_grid_username }}
 
 - name: Selenium Grid SSH private credentials
   copy: content="{{ selenium_grid_ssh_private_key }}"
@@ -111,8 +111,8 @@
 - name: Selenium Grid SSH public credentials
   copy: content="{{ selenium_grid_ssh_public_key }}"
         dest={{ selenium_grid_homedir }}/.ssh/id_rsa.pub
-        owner={{selenium_grid_username}}
-        group={{selenium_grid_groupname}}
+        owner={{ selenium_grid_username }}
+        group={{ selenium_grid_groupname }}
   when: selenium_grid_extras_install_flag
 
 - name: Download selenium grid jar file
@@ -120,10 +120,10 @@
   when: selenium_grid_install_flag
 - name: Get selenium grid extras
   become: yes
-  become_user: "{{selenium_grid_username}}"
-  git: repo="{{selenium_grid_extras_repo}}"
-       dest="{{selenium_grid_extras_src_path}}"
-       version="{{selenium_grid_extras_version}}"
+  become_user: "{{ selenium_grid_username }}"
+  git: repo="{{ selenium_grid_extras_repo }}"
+       dest="{{ selenium_grid_extras_src_path }}"
+       version="{{ selenium_grid_extras_version }}"
        accept_hostkey=yes
   when: selenium_grid_extras_install_flag
 
@@ -132,11 +132,11 @@
   when: selenium_grid_extras_install_flag
 
 - name: Copy selenium grid jar file into place
-  copy: src="{{selenium_grid_extras_src_path}}/latest/SeleniumGridExtras-{{selenium_grid_extras_version}}-jar-with-dependencies.jar" dest="{{selenium_grid_extras_file}}" remote_src=True
+  copy: src="{{ selenium_grid_extras_src_path }}/latest/SeleniumGridExtras-{{ selenium_grid_extras_version }}-jar-with-dependencies.jar" dest="{{ selenium_grid_extras_file }}" remote_src=True
   when: selenium_grid_extras_install_flag
 
 - name: Configuration file for selenium grid node
-  template: src="selenium-grid-node.json.j2" dest="{{selenium_grid_node_config_file}}"
+  template: src="selenium-grid-node.json.j2" dest="{{ selenium_grid_node_config_file }}"
   when: selenium_grid_configure_flag and selenium_grid_role == 'node'
 
   # TODO it's not great to make the node a router by default, ideally this
@@ -150,54 +150,54 @@
   when: selenium_grid_configure_flag and selenium_grid_role == 'node'
 
 - name: Configuration file for selenium grid extras node
-  template: src="selenium_grid_extras_config-node.json.j2" dest="{{selenium_grid_extras_node_config_file}}"
+  template: src="selenium_grid_extras_config-node.json.j2" dest="{{ selenium_grid_extras_node_config_file }}"
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
 - name: Configuration file for selenium grid extras node
-  template: src="node_5555.json.j2" dest="{{selenium_grid_extras_node_config_file2}}"
+  template: src="node_5555.json.j2" dest="{{ selenium_grid_extras_node_config_file2 }}"
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
 
 - name: Configuration file for selenium grid hub
-  template: src="selenium-grid-hub.json.j2" dest="{{selenium_grid_hub_config_file}}"
+  template: src="selenium-grid-hub.json.j2" dest="{{ selenium_grid_hub_config_file }}"
   when: selenium_grid_configure_flag and selenium_grid_role == 'hub'
 
 - name: Configuration file for selenium grid extras hub
-  template: src="selenium_grid_extras_config-hub.json.j2" dest="{{selenium_grid_extras_hub_config_file}}"
+  template: src="selenium_grid_extras_config-hub.json.j2" dest="{{ selenium_grid_extras_hub_config_file }}"
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
 - name: Configuration file for selenium grid extras hub
-  template: src="hub_4444.json.j2" dest="{{selenium_grid_extras_hub_config_file2}}"
+  template: src="hub_4444.json.j2" dest="{{ selenium_grid_extras_hub_config_file2 }}"
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
 
-- file: path={{ selenium_grid_extras_path }} owner={{ selenium_grid_username }} group={{selenium_grid_groupname}} recurse=yes state=directory
+- file: path={{ selenium_grid_extras_path }} owner={{ selenium_grid_username }} group={{ selenium_grid_groupname }} recurse=yes state=directory
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
-- file: path={{ selenium_grid_extras_path }} owner={{ selenium_grid_username }} group={{selenium_grid_groupname}} recurse=yes state=directory
+- file: path={{ selenium_grid_extras_path }} owner={{ selenium_grid_username }} group={{ selenium_grid_groupname }} recurse=yes state=directory
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
 
 - name: Systemd file for selenium grid service
-  template: src="selenium-grid-node.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_node_service_name}}.service"
+  template: src="selenium-grid-node.service.j2" dest="{{ selenium_grid_service_path }}/{{ selenium_grid_node_service_name }}.service"
   notify:
     - reload systemctl daemon
   when: selenium_grid_configure_flag
 
 - name: Systemd file for selenium grid service
-  template: src="selenium-grid-hub.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_hub_service_name}}.service"
+  template: src="selenium-grid-hub.service.j2" dest="{{ selenium_grid_service_path }}/{{ selenium_grid_hub_service_name }}.service"
   notify:
     - reload systemctl daemon
   when: selenium_grid_configure_flag
 
 - name: Systemd file for selenium grid service
-  template: src="selenium-xvfb.service.j2" dest="{{selenium_grid_service_path}}/selenium-xvfb.service"
+  template: src="selenium-xvfb.service.j2" dest="{{ selenium_grid_service_path }}/selenium-xvfb.service"
   notify:
     - reload systemctl daemon
   when: selenium_grid_configure_flag
 
 - name: Systemd file for selenium grid extras node service
-  template: src="selenium-grid-extras-node.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_extras_node_service_name}}.service"
+  template: src="selenium-grid-extras-node.service.j2" dest="{{ selenium_grid_service_path }}/{{ selenium_grid_extras_node_service_name }}.service"
   notify:
     - reload systemctl daemon
   when: selenium_grid_extras_configure_flag
 
 - name: Systemd file for selenium grid extras hub service
-  template: src="selenium-grid-extras-hub.service.j2" dest="{{selenium_grid_service_path}}/{{selenium_grid_extras_hub_service_name}}.service"
+  template: src="selenium-grid-extras-hub.service.j2" dest="{{ selenium_grid_service_path }}/{{ selenium_grid_extras_hub_service_name }}.service"
   notify:
     - reload systemctl daemon
   when: selenium_grid_extras_configure_flag
@@ -222,27 +222,27 @@
 
 
 - name: Start up selenium grid hub service
-  service: name="{{selenium_grid_hub_service_name}}" state=started enabled=true
+  service: name="{{ selenium_grid_hub_service_name }}" state=started enabled=true
   when: selenium_grid_configure_flag and selenium_grid_role == 'hub' and not selenium_grid_extras_configure_flag
 
 - name: Start up selenium grid node service
-  service: name="{{selenium_grid_node_service_name}}" state=started enabled=true
+  service: name="{{ selenium_grid_node_service_name }}" state=started enabled=true
   when: selenium_grid_configure_flag and selenium_grid_role == 'node' and not selenium_grid_extras_configure_flag
 
 - name: Start up selenium grid extras hub service
-  service: name="{{selenium_grid_extras_hub_service_name}}" state=started enabled=true
+  service: name="{{ selenium_grid_extras_hub_service_name }}" state=started enabled=true
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'hub'
 
 - name: Start up selenium grid node service
-  service: name="{{selenium_grid_extras_node_service_name}}" state=started enabled=true
+  service: name="{{ selenium_grid_extras_node_service_name }}" state=started enabled=true
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'
 
 - name: Script that handles auto-updating selenium,drivers and browsers
-  template: src="update-node.sh" dest="{{selenium_grid_extras_path}}"
+  template: src="update-node.sh" dest="{{ selenium_grid_extras_path }}"
   when: selenium_grid_role == 'node'
 
 - name: Ensure executable flag on update-node.sh
-  command: chmod +x {{selenium_grid_extras_path}}/update-node.sh
+  command: chmod +x {{ selenium_grid_extras_path }}/update-node.sh
   when: selenium_grid_role == 'node'
 
 # Run the updater regularly
@@ -257,5 +257,5 @@
 
 # Run the updater on boot(on configure), as we had updated to the latest chrome, so let's update and to the latest drivers
 - name: Run update-node.sh to update the drivers.
-  shell: "{{selenium_grid_extras_path}}/update-node.sh"
+  shell: "{{ selenium_grid_extras_path }}/update-node.sh"
   when: selenium_grid_extras_configure_flag and selenium_grid_role == 'node'

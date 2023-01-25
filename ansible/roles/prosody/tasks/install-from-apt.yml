@@ -2,14 +2,14 @@
 - apt_key: url=https://prosody.im/files/prosody-debian-packages.key state=present
 
 - apt_repository: >
-    repo="deb http://packages.prosody.im/debian {{ansible_distribution_release}} main"
+    repo="deb http://packages.prosody.im/debian {{ ansible_distribution_release }} main"
     state=present
     update_cache=yes
 
 - apt: update_cache=yes
 
 - name: remove mark hold on prosody package version
-  command: apt-mark unhold {{prosody_package_name}}
+  command: apt-mark unhold {{ prosody_package_name }}
 
 - name: "Install prosody package from apt"
   apt: name={{ prosody_package_name }}={{ prosody_version }}
@@ -18,7 +18,7 @@
   - reload prosody
 
 - name: mark hold on prosody package version
-  command: apt-mark hold {{prosody_package_name}}
+  command: apt-mark hold {{ prosody_package_name }}
 
 - name: remove patches
   shell: find /usr/lib/prosody -name "*.orig" | xargs -r rm && find /usr/lib/prosody -name ".*.lua" | xargs -r rm

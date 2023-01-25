@@ -3,16 +3,16 @@
   apt: name=git state=present
 
 - name: User creation
-  user: name="{{sip_jibri_user.username}}"
-    groups="{{sip_jibri_user.groups | join(',')}}"
+  user: name="{{ sip_jibri_user.username }}"
+    groups="{{ sip_jibri_user.groups | join(',') }}"
     shell=/bin/bash
-    comment="{{sip_jibri_user.real_name}}"
-    home="{{sip_jibri_user.homedir}}"
+    comment="{{ sip_jibri_user.real_name }}"
+    home="{{ sip_jibri_user.homedir }}"
     createhome=yes
-    state="{{sip_jibri_user.state}}"
+    state="{{ sip_jibri_user.state }}"
 
 - name: SSH Directory
-  file: path={{ sip_jibri_user.homedir }}/.ssh state=directory mode=0700 owner={{sip_jibri_username}}
+  file: path={{ sip_jibri_user.homedir }}/.ssh state=directory mode=0700 owner={{ sip_jibri_username }}
 
 - name: SSH private credentials
   copy: content="{{ sip_jibri_sidecar_ssh_private_key }}"
@@ -24,16 +24,16 @@
 - name: SSH public credentials
   copy: content="{{ sip_jibri_sidecar_ssh_public_key }}"
         dest={{ sip_jibri_user.homedir }}/.ssh/id_rsa.pub
-        owner={{sip_jibri_username}}
-        group={{sip_jibri_groupname}}
+        owner={{ sip_jibri_username }}
+        group={{ sip_jibri_groupname }}
 
 - name: Code Directory
-  file: path={{ sip_jibri_base_path }} state=directory owner={{ sip_jibri_username }} group={{sip_jibri_groupname}}
+  file: path={{ sip_jibri_base_path }} state=directory owner={{ sip_jibri_username }} group={{ sip_jibri_groupname }}
 
 - name: Check out codebase
   become: yes
-  become_user: "{{sip_jibri_username}}"
-  git: repo={{sip_jibri_git_repo}} dest={{sip_jibri_base_path}} update=yes force=yes accept_hostkey=yes
+  become_user: "{{ sip_jibri_username }}"
+  git: repo={{ sip_jibri_git_repo }} dest={{ sip_jibri_base_path }} update=yes force=yes accept_hostkey=yes
 
 - name: Remove SSH private credentials
   file: path="{{ sip_jibri_user.homedir }}/.ssh/id_rsa" state=absent
@@ -44,25 +44,25 @@
 - name: npm Requirements
   shell: npm install
   become: yes
-  become_user: "{{sip_jibri_username}}"
+  become_user: "{{ sip_jibri_username }}"
   args:
-    chdir: "{{sip_jibri_base_path}}"
+    chdir: "{{ sip_jibri_base_path }}"
 
 - name: build from typescript
   shell: npm run build
   become: yes
-  become_user: "{{sip_jibri_username}}"
+  become_user: "{{ sip_jibri_username }}"
   args:
-    chdir: "{{sip_jibri_base_path}}"
+    chdir: "{{ sip_jibri_base_path }}"
 
 - name: application configuration directory
-  file: path={{sip_jibri_config_dir}} state=directory
+  file: path={{ sip_jibri_config_dir }} state=directory
 
 - name: application log directory
-  file: path={{sip_jibri_log_dir}} state=directory owner={{ sip_jibri_username }}
+  file: path={{ sip_jibri_log_dir }} state=directory owner={{ sip_jibri_username }}
 
 - name: rsyslog configuration
   template: src=rsyslog.config.j2 dest=/etc/rsyslog.d/25-sip_jibri-sidecar.conf
 
 - name: sidecar health check script
-  template: src="sidecar-health.sh.j2" dest="{{sip_jibri_health_script}}" mode=0755
+  template: src="sidecar-health.sh.j2" dest="{{ sip_jibri_health_script }}" mode=0755

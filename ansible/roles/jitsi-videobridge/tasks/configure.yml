@@ -1,6 +1,6 @@
 ---
 - name: force install jitsi-videobridge package
-  apt: name="{{jitsi_videobridge_deb_pkg_name}}={{jitsi_videobridge_force_deb_pkg_version}}" state=present force=yes
+  apt: name="{{ jitsi_videobridge_deb_pkg_name }}={{ jitsi_videobridge_force_deb_pkg_version }}" state=present force=yes
   when: jitsi_videobridge_force_deb_pkg_version
 
 #detect currently running JVB (finds either jitsi-videbridge or jitsi-videobridge2)
@@ -10,7 +10,7 @@
 
 - name: Set jvb installed videbridge variables
   set_fact:
-    jvb_installed_package: "{{jitsi_videobridge_package_shell.stdout}}"
+    jvb_installed_package: "{{ jitsi_videobridge_package_shell.stdout }}"
 
 - name: Set jvb_enable_multiple_shards=false for oracle
   set_fact:
@@ -70,7 +70,7 @@
 
 - name: set XMPP hostname from dynamic fact if available
   set_fact:
-     jvb_host: "{{jvb_facts.xmpp_host_private_ip_address}}"
+     jvb_host: "{{ jvb_facts.xmpp_host_private_ip_address }}"
   when: jvb_facts.xmpp_host_private_ip_address is defined
 
 - name: set drain mode if pool state is set to drain
@@ -82,12 +82,12 @@
 
 - name: set XMPP hostname for oracle
   set_fact:
-    jvb_host: "{{xmpp_host_public_ip_address}}"
+    jvb_host: "{{ xmpp_host_public_ip_address }}"
   when: jvb_cloud_provider == "oracle" and not jvb_enable_consul
 
 - name: set shard details
   set_fact:
-     jvb_shards: "{{jvb_facts.shards}}"
+     jvb_shards: "{{ jvb_facts.shards }}"
   when: jvb_facts.shards is defined
 
 - fail: msg="Failed to properly parse JVB shard information"
@@ -99,14 +99,14 @@
 
 # set JVB open file limits again
 - name: JVB file open limits
-  copy: dest="/etc/security/limits.d/jvb.conf" content="jvb - nofile {{jvb_open_file_limit}}\nroot - nofile {{jvb_open_file_limit}}\njvb soft core unlimited\nroot soft core unlimited\njvb hard core unlimited\nroot hard core unlimited\n"
+  copy: dest="/etc/security/limits.d/jvb.conf" content="jvb - nofile {{ jvb_open_file_limit }}\nroot - nofile {{ jvb_open_file_limit }}\njvb soft core unlimited\nroot soft core unlimited\njvb hard core unlimited\nroot hard core unlimited\n"
 
 # set JVB udp buffer parameters
 - name: JVB buffer size maximum
-  shell: sysctl -w net.core.rmem_max={{jvb_udp_buffer_size}}
+  shell: sysctl -w net.core.rmem_max={{ jvb_udp_buffer_size }}
 
 - name: JVB buffer size count
-  shell: sysctl -w net.core.netdev_max_backlog={{jvb_udp_buffer_max_backlog}}
+  shell: sysctl -w net.core.netdev_max_backlog={{ jvb_udp_buffer_max_backlog }}
 
 - name: Increase default IP TTL
   shell: sysctl -w net.ipv4.ip_default_ttl=128
@@ -160,13 +160,13 @@
   copy: dest={{ path_to_stats_python_script }} src="jvb-stats.py" mode=755 owner=root
 
 - name: Copy terminate instance script oracle
-  template: src="terminate_instance_oracle.j2" dest="{{jvb_path_to_terminate_instance_script}}" owner="{{jvb_username}}" group=jitsi mode=0755
+  template: src="terminate_instance_oracle.j2" dest="{{ jvb_path_to_terminate_instance_script }}" owner="{{ jvb_username }}" group=jitsi mode=0755
   when: jvb_cloud_provider == "oracle"
 
 - lineinfile: 
     path: /etc/cron.allow
-    regexp: "^{{jvb_stats_cron_user}}"
-    line: "{{jvb_stats_cron_user}}"
+    regexp: "^{{ jvb_stats_cron_user }}"
+    line: "{{ jvb_stats_cron_user }}"
     create: yes 
   when: jvb_enable_stats_cron
 
@@ -192,21 +192,21 @@
 
 # write datachannel SSL key to JVB
 - name: create datachannel SSL key file
-  copy: dest=/etc/jitsi/videobridge/datachannel.key content="{{jvb_data_channel_ssl_key_name}}" mode=600 owner="{{jvb_username}}" group=jitsi
+  copy: dest=/etc/jitsi/videobridge/datachannel.key content="{{ jvb_data_channel_ssl_key_name }}" mode=600 owner="{{ jvb_username }}" group=jitsi
   when: jvb_enable_websockets_ssl
 
 # write datachannel SSL certs to JVB
 - name: create datachannel SSL certificate file
-  copy: dest=/etc/jitsi/videobridge/datachannel.crt content="{{jvb_data_channel_ssl_certificate}}" mode=600 owner="{{jvb_username}}" group=jitsi
+  copy: dest=/etc/jitsi/videobridge/datachannel.crt content="{{ jvb_data_channel_ssl_certificate }}" mode=600 owner="{{ jvb_username }}" group=jitsi
   when: jvb_enable_websockets_ssl
 
 #Create pkcs12 wrapper for SSL certificates
 - name: create pkcs12 SSL wrapper
-  shell: openssl pkcs12 -inkey /etc/jitsi/videobridge/datachannel.key -in /etc/jitsi/videobridge/datachannel.crt -export -out {{jvb_websockets_ssl_keystore_pkcs12_path}} -passout pass:{{jvb_websockets_ssl_keystore_password}}
+  shell: openssl pkcs12 -inkey /etc/jitsi/videobridge/datachannel.key -in /etc/jitsi/videobridge/datachannel.crt -export -out {{ jvb_websockets_ssl_keystore_pkcs12_path }} -passout pass:{{ jvb_websockets_ssl_keystore_password }}
   when: jvb_enable_websockets_ssl
 
 - name: import pkcs12 store into jetty keystore
-  shell: keytool -destkeystore {{jvb_websockets_ssl_keystore_path}} -importkeystore -srcstoretype PKCS12 -srckeystore {{jvb_websockets_ssl_keystore_pkcs12_path}} -deststorepass {{jvb_websockets_ssl_keystore_password}} -srcstorepass {{jvb_websockets_ssl_keystore_password}}
+  shell: keytool -destkeystore {{ jvb_websockets_ssl_keystore_path }} -importkeystore -srcstoretype PKCS12 -srckeystore {{ jvb_websockets_ssl_keystore_pkcs12_path }} -deststorepass {{ jvb_websockets_ssl_keystore_password }} -srcstorepass {{ jvb_websockets_ssl_keystore_password }}
   when: jvb_enable_websockets_ssl
 
 #provide script for managing the auto-scale group lifecycle queue
@@ -226,7 +226,7 @@
 
 #Enable and run service if we are not building an AMI
 - name: enable JVB systemd service
-  systemd: name={{jvb_systemd_service_name}} state=started enabled=yes daemon_reload=yes
+  systemd: name={{ jvb_systemd_service_name }} state=started enabled=yes daemon_reload=yes
   when: jvb_image_build_flag == false and ansible_service_mgr == "systemd" 
 
 - name: Create directory for AWS credentials

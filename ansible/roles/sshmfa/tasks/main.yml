@@ -55,18 +55,18 @@
 
 - name: Deploy .google_authenticator file for jitsi users
   no_log: True
-  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{item.username}}" group="{{item.username}}"
+  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{ item.username }}" group="{{ item.username }}"
   when: 
     - item.state != "absent"
     - item.mfa_key is defined
   with_items:
-    - "{{mfa_users}}"
+    - "{{ mfa_users }}"
 
 - name: Deploy .google_authenticator file for security users
   no_log: True
-  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{item.username}}" group="{{item.username}}"
+  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{ item.username }}" group="{{ item.username }}"
   when: 
     - item.state != "absent"
     - item.mfa_key is defined
   with_items:
-    - "{{mfa_security_users}}"
+    - "{{ mfa_security_users }}"

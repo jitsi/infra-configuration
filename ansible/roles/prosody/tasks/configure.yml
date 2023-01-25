@@ -47,16 +47,16 @@
     reload: yes
 
 - name: Prosody file open limits
-  copy: dest="/etc/security/limits.d/prosody.conf" content="prosody - nofile {{prosody_open_file_limit}}\nroot - nofile {{prosody_open_file_limit}}"
+  copy: dest="/etc/security/limits.d/prosody.conf" content="prosody - nofile {{ prosody_open_file_limit }}\nroot - nofile {{ prosody_open_file_limit }}"
 
 #set the systemd limits for default threads
 - name: systemd DefaultLimitNOFILE setting
-  lineinfile: dest=/etc/systemd/system.conf line="DefaultLimitNOFILE={{prosody_open_file_limit}}" regexp="DefaultLimitNOFILE="
+  lineinfile: dest=/etc/systemd/system.conf line="DefaultLimitNOFILE={{ prosody_open_file_limit }}" regexp="DefaultLimitNOFILE="
   when: ansible_service_mgr == "systemd"
 
 #set the systemd limits for default threads
 - name: systemd user DefaultLimitNOFILE setting
-  lineinfile: dest=/etc/systemd/user.conf line="DefaultLimitNOFILE={{prosody_open_file_limit}}" regexp="DefaultLimitNOFILE="
+  lineinfile: dest=/etc/systemd/user.conf line="DefaultLimitNOFILE={{ prosody_open_file_limit }}" regexp="DefaultLimitNOFILE="
   when: ansible_service_mgr == "systemd"
 
 #set systemd to allow accounting for prosody
@@ -104,12 +104,12 @@
 
 - name: Set prosody installed version variables
   set_fact:
-    prosody_installed_package: "{{prosody_package_shell.stdout}}"
+    prosody_installed_package: "{{ prosody_package_shell.stdout }}"
 
 #generate new certificates for auth domain
 - name: generate auth domain certificate
   command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj \
-                "/O={{ prosody_domain_name }}/OU={{ansible_hostname}}/CN={{ prosody_auth_domain_name }}/emailAddress=webmaster@{{ansible_hostname}}.{{ prosody_domain_name }}" \
+                "/O={{ prosody_domain_name }}/OU={{ ansible_hostname }}/CN={{ prosody_auth_domain_name }}/emailAddress=webmaster@{{ ansible_hostname }}.{{ prosody_domain_name }}" \
                 -keyout /var/lib/prosody/{{ prosody_auth_domain_name }}.key \
                 -out /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
   args:
@@ -127,7 +127,7 @@
 
 - name: generate prosody-jvb auth domain certificate
   command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj \
-    "/O={{ prosody_domain_name }}/OU={{ansible_hostname}}/CN={{ prosody_jvb_auth_domain_name }}/emailAddress=webmaster@{{ansible_hostname}}.{{ prosody_domain_name }}" \
+    "/O={{ prosody_domain_name }}/OU={{ ansible_hostname }}/CN={{ prosody_jvb_auth_domain_name }}/emailAddress=webmaster@{{ ansible_hostname }}.{{ prosody_domain_name }}" \
     -keyout /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key \
     -out /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
   args:
@@ -155,10 +155,10 @@
   command: update-ca-certificates
   when: jvb_authdomain_calink.changed
 
-- copy: src="{{prosody_ssh_key_crt_local_path}}" dest="/etc/prosody/certs/{{ prosody_domain_name }}.crt" mode=0644 force=false
-- copy: src="{{prosody_ssh_key_key_local_path}}" dest="/etc/prosody/certs/{{ prosody_domain_name }}.key" mode=0644 force=false
+- copy: src="{{ prosody_ssh_key_crt_local_path }}" dest="/etc/prosody/certs/{{ prosody_domain_name }}.crt" mode=0644 force=false
+- copy: src="{{ prosody_ssh_key_key_local_path }}" dest="/etc/prosody/certs/{{ prosody_domain_name }}.key" mode=0644 force=false
 
-- copy: dest="{{prosody_asap_key_path}}" mode=0644 content="{{asap_key['key']}}"
+- copy: dest="{{ prosody_asap_key_path }}" mode=0644 content="{{ asap_key['key'] }}"
 
 - name: check whether module muc_meeting_id exists
   stat:
@@ -172,7 +172,7 @@
 
 - name: set mod_external_services fact
   set_fact:
-    mod_external_services_exists: "{{stat_mod_external_services.stat.exists}}"
+    mod_external_services_exists: "{{ stat_mod_external_services.stat.exists }}"
 
 - name: build prosody.cfg.lua from template
   template: src=prosody.cfg.lua.j2 dest=/etc/prosody/prosody.cfg.lua mode=0644
@@ -182,9 +182,9 @@
   when: prosody_jvb_configure_flag
 
 - name: register focus prosody user
-  shell: prosodyctl register focus auth.{{ prosody_domain_name }} "{{prosody_focus_user_secret}}"
+  shell: prosodyctl register focus auth.{{ prosody_domain_name }} "{{ prosody_focus_user_secret }}"
   args:
-    creates: /var/lib/prosody/auth.{{prosody_domain_name |replace(".","%2")}}/accounts/focus.dat
+    creates: /var/lib/prosody/auth.{{ prosody_domain_name |replace(".","%2") }}/accounts/focus.dat
 
 - name: check whether module mod_roster_command exists
   stat:
@@ -198,9 +198,9 @@
     - stat_mod_roster_command.stat.exists
 
 - name: register focus prosody-jvb user
-  shell: prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register focus {{prosody_jvb_auth_domain_name}} "{{prosody_focus_user_secret}}"
+  shell: prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register focus {{ prosody_jvb_auth_domain_name }} "{{ prosody_focus_user_secret }}"
   args:
-    creates: /var/lib/prosody-jvb/auth.{{prosody_domain_name |replace(".","%2")}}/accounts/focus.dat
+    creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name |replace(".","%2") }}/accounts/focus.dat
   when: prosody_jvb_configure_flag
 
 - name: install muc presence filter pfw rule
@@ -239,7 +239,7 @@
 - name: systemd daemon-reload for prosody accounting for visitors
   command: systemctl daemon-reload
 - name: Add jicofo user for visitors
-  shell: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua register focus auth.meet.jitsi "{{prosody_focus_user_secret}}"
+  shell: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua register focus auth.meet.jitsi "{{ prosody_focus_user_secret }}"
   args:
     creates: /var/lib/prosody-v{{ item }}/auth%2meet%2jitsi/accounts/focus.dat
   loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
@@ -313,12 +313,12 @@
     dest="/usr/lib/prosody/modules/"
     mode=0644
 
-- name: Manage hosts name for the prosody domain {{prosody_domain_name}}
+- name: Manage hosts name for the prosody domain {{ prosody_domain_name }}
   lineinfile: >
     dest=/etc/hosts
     regexp='^{{ item.address }} {{ item.hostname }}$'
     line='{{ item.address }} {{ item.hostname }}'
-    state={{item.state | default("present")}} backup=yes
+    state={{ item.state | default("present") }} backup=yes
     insertafter=EOF
   with_items: prosody_local_domain
   when: prosody_local_domain is defined
@@ -364,7 +364,7 @@
   when: prosody_jvb_configure_flag
 
 - name: add moderator authentication
-  command: prosodyctl register {{moderator_auth_user}} {{prosody_domain_name}} "{{moderator_auth_password}}" creates="{{moderator_auth_domain_path}}"
+  command: prosodyctl register {{ moderator_auth_user }} {{ prosody_domain_name }} "{{ moderator_auth_password }}" creates="{{ moderator_auth_domain_path }}"
   when: prosody_create_users
 
   # Run the health checker regularly

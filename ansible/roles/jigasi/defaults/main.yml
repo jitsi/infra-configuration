@@ -103,7 +103,7 @@ jigasi_service_version_shell_new: "dpkg -s jigasi | grep Version | awk '{print $
 jigasi_service_version_shell_old: "dpkg -s jigasi | grep Version | awk '{print $2}' | cut -d'-' -f2"
 # controls whether jigasi is meant for dial in/out or transcription
 jigasi_shard_role: jigasi
-jigasi_sip_password: "j1g@s1"
+jigasi_sip_password: "replaceme"
 # disable pcma and pcmu for voximplant, enable for voxbone
 jigasi_sip_pcma_priority: 0
 jigasi_sip_pcmu_priority: 0
@@ -115,7 +115,7 @@ jigasi_stats_cron:
   minute: "*"
 jigasi_stats_cron_user: ubuntu
 jigasi_transcriber_auth_domain: "recorder.{{ jigasi_xmpp_domain }}"
-jigasi_transcriber_auth_password: "meettranscriber"
+jigasi_transcriber_auth_password: "replaceme"
 jigasi_transcriber_auth_user: "transcriber"
 jigasi_transcriber_enable_debug: false
 jigasi_transcriber_filter_silence: false
@@ -125,6 +125,6 @@ jigasi_udp_buffer_max_backlog: 2000
 jigasi_udp_buffer_size: 2097152
 jigasi_xmpp_domain: "{{ environment_domain_name }}"
 jigasi_xmpp_jid_username: jigasi
-jigasi_xmpp_password: "jeegahsee"
+jigasi_xmpp_password: "replaceme"
 jigasi_xmpp_port: 5222
 jigasi_xmpp_server: 127.0.0.1
