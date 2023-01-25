@@ -1,0 +1,14 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl-certificates.yml
+
+  roles:
+    - { role: "iptables-jenkins", tags: "iptables"}
+    - { role: "jenkins", tags: "jenkins"}
+    - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
