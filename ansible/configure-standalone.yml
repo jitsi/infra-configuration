@@ -29,7 +29,7 @@
   become: true
   become_user: root
   vars:
-    jvb_region: "{{cloud_region}}"
+    jvb_region: "{{ cloud_region }}"
     java_use_11: true
     # add proxypass in nginx config for JVB colibri stats
     jitsi_meet_enable_colibri_websockets: true
@@ -47,6 +47,7 @@
     - secrets/jvb.yml
     - secrets/wavefront.yml
     - secrets/consul.yml
+    - secrets/prosody.yml
     - secrets/prosody-egress-aws.yml
     - secrets/oci-logging.yml
     - secrets/repo.yml
@@ -245,7 +246,7 @@
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true, jitsi_meet_redirect_to_ssl: true}
     - { role: jitsi-videobridge, tags: "jitsi-videobridge",
         jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true,
-        jvb_enable_multiple_shards: false, jvb_hostname: "{{prosody_domain_name}}", jvb_reconfigure_on_changes_flag: true }
+        jvb_enable_multiple_shards: false, jvb_hostname: "{{ prosody_domain_name }}", jvb_reconfigure_on_changes_flag: true }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true}
 

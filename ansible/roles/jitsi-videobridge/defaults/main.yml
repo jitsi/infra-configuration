@@ -4,26 +4,26 @@ jitsi_videobridge_deb_pkg_version: "*"
 jitsi_videobridge_force_deb_pkg_version: false
 # Whether to make the jvb version known to clients
 jvb_announce_version: true
-jvb_auth_domain: "auth.{{prosody_domain_name}}"
-jvb_auth_password: "{{jvb_xmpp_password | default('jzayveebee')}}"
+jvb_auth_domain: "auth.{{ prosody_domain_name }}"
+jvb_auth_password: "{{ jvb_xmpp_password | default('replaceme') }}"
 jvb_auth_user: "jvb"
-jvb_average_participant_stress: "{{jvb_average_participant_stress_by_shape[jvb_shape] if jvb_shape in jvb_average_participant_stress_by_shape else jvb_average_participant_stress_by_shape['default']}}"
+jvb_average_participant_stress: "{{ jvb_average_participant_stress_by_shape[jvb_shape] if jvb_shape in jvb_average_participant_stress_by_shape else jvb_average_participant_stress_by_shape['default'] }}"
 jvb_average_participant_stress_by_shape:
   "VM.Standard.E3.Flex": 0.005
   "VM.Standard.E4.Flex": 0.005
   "default": 0.01
-jvb_brewery_muc: "JvbBrewery@{{jvb_internal_muc_prefix}}.{{prosody_domain_name}}"
+jvb_brewery_muc: "JvbBrewery@{{ jvb_internal_muc_prefix }}.{{ prosody_domain_name }}"
 jvb_cloud_provider: "{{ cloud_provider | default('aws') }}"
 #use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
-jvb_component_id: "{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
+jvb_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
 jvb_configure_flag: true
 jvb_configure_from_template_flag: true
-jvb_consul_datacenter: "{{cloud_name|default('dc1')}}"
+jvb_consul_datacenter: "{{ cloud_name|default('dc1') }}"
 jvb_consul_datacenters: []
 jvb_consul_extra_urls: []
-jvb_consul_local_datacenters: ["{{jvb_consul_datacenter}}"]
-jvb_consul_server: "{{hcv_environment}}-{{oracle_region}}-consul.jitsi.net"
-jvb_consul_server_type: "{{jvb_consul_server_types[jitsi_meet_environment_type]|default('prod')}}"
+jvb_consul_local_datacenters: ["{{ jvb_consul_datacenter }}"]
+jvb_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
+jvb_consul_server_type: "{{ jvb_consul_server_types[jitsi_meet_environment_type]|default('prod') }}"
 jvb_consul_server_types:
   dev: dev
   prod: prod
@@ -66,16 +66,16 @@ jvb_health_check_cron:
   minute: "*"
 jvb_health_check_cron_user: ubuntu
 jvb_host: localhost
-jvb_hostname: "{{prosody_domain_name}}"
+jvb_hostname: "{{ prosody_domain_name }}"
 jvb_image_build_flag: false
 jvb_initial_drain_mode: false
 jvb_install_flag: true
-jvb_installed_package: "{{jitsi_videobridge_deb_pkg_name}}"
-jvb_internal_muc_prefix: "{{internal_muc_prefix | default('internal.auth')}}"
+jvb_installed_package: "{{ jitsi_videobridge_deb_pkg_name }}"
+jvb_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
 # "sync" or "async". Async mode is currently unsafe for the bridge!
 jvb_iq_handler_mode: "sync"
 jvb_last_n_limits: false
-jvb_load_threshold: "{{jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default']}}"
+jvb_load_threshold: "{{ jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default'] }}"
 jvb_load_threshold_by_shape:
   "VM.Standard.E3.Flex": 81250
   "VM.Standard.E4.Flex": 81250
@@ -86,7 +86,7 @@ jvb_log_series_file_size_limit: 20000000
 jvb_loss_bitrate_threshold_kbps: 1000
 # percentage of streams to enable the loss experiment for.
 jvb_loss_experiment_probability: 0
-jvb_memory: "{{jvb_memory_by_shape[jvb_shape] if jvb_shape in jvb_memory_by_shape else jvb_memory_by_shape['default']}}"
+jvb_memory: "{{ jvb_memory_by_shape[jvb_shape] if jvb_shape in jvb_memory_by_shape else jvb_memory_by_shape['default'] }}"
 jvb_memory_by_shape:
   "VM.Standard.E3.Flex": "6g"
   "VM.Standard.E4.Flex": "6g"
@@ -102,18 +102,18 @@ jvb_path_to_terminate_instance_script: /usr/local/bin/terminate_instance.sh
 jvb_pool_mode: shard
 jvb_preserve_frame_pointer: false
 # prosody-jvb
-jvb_prosody_jvb_auth_domain_name: "auth.jvb.{{prosody_domain_name}}"
-jvb_prosody_jvb_muc_name: "muc.jvb.{{prosody_domain_name}}"
+jvb_prosody_jvb_auth_domain_name: "auth.jvb.{{ prosody_domain_name }}"
+jvb_prosody_jvb_muc_name: "muc.jvb.{{ prosody_domain_name }}"
 # The number of recent speakers to signal to endpoints.
 jvb_recent_speakers_count: 30
 jvb_reconfigure_on_changes_flag: false
 jvb_recovery_multiplier: 0.8
-jvb_recovery_threshold: "{{(jvb_load_threshold|int * jvb_recovery_multiplier)|int}}"
+jvb_recovery_threshold: "{{ (jvb_load_threshold|int * jvb_recovery_multiplier)|int }}"
 jvb_red_policy: "NOOP"
 jvb_red_distance: "TWO"
 jvb_red_vad_only: true
-jvb_region: "{{oracle_to_aws_region_map[jvb_custom_region] | default('default') if jvb_cloud_provider=='oracle' else ansible_ec2_placement_region | default('default') }}"
-jvb_regions: "{{default_regions.split('\n')}}"
+jvb_region: "{{ oracle_to_aws_region_map[jvb_custom_region] | default('default') if jvb_cloud_provider=='oracle' else ansible_ec2_placement_region | default('default') }}"
+jvb_regions: "{{ default_regions.split('\n') }}"
 jvb_release_number: "0"
 jvb_release_number_shard: "{{ release_number | default('0') }}"
 jvb_rest_access_allow_rules: ["192.168.0.0/16"]
@@ -178,12 +178,12 @@ jvb_rest_ssl_certificate_key: |
 jvb_rest_ssl_certificate_key_filename: "jvb_rest.service.consul.key"
 jvb_rest_ssl_dest_dir: /etc/nginx/ssl
 jvb_route_loudest_only: true
-jvb_server_prefix: "{{ansible_hostname.split('.')[0]}}"
-jvb_server_id: "jvb-{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
+jvb_server_prefix: "{{ ansible_hostname.split('.')[0] }}"
+jvb_server_id: "jvb-{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 jvb_service_name: "jitsi-videobridge2"
-jvb_service_version_shell: "dpkg -s {{jitsi_videobridge_deb_pkg_name}} | grep Version | awk '{print $2}' | sed 's/..$//'"
+jvb_service_version_shell: "dpkg -s {{ jitsi_videobridge_deb_pkg_name }} | grep Version | awk '{print $2}' | sed 's/..$//'"
 jvb_set_memory: true
-jvb_shape: "{{ansible_ec2_instance_type if ansible_ec2_instance_type is defined else 'default'}}"
+jvb_shape: "{{ ansible_ec2_instance_type if ansible_ec2_instance_type is defined else 'default' }}"
 jvb_shards: []
 jvb_single_harvester_port: 10000
 jvb_skip_authentication_for_silence: false
@@ -199,10 +199,10 @@ jvb_systemd_service_name: "jitsi-videobridge2"
 jvb_udp_buffer_max_backlog: 100000
 #temporarily increase buffer size until performance work is completed
 jvb_udp_buffer_size: 104857600
-#jvb_public_ip: "{{ansible_ec2_public_ipv4 | default(ansible_default_ipv4.address)}}"
+#jvb_public_ip: "{{ ansible_ec2_public_ipv4 | default(ansible_default_ipv4.address) }}"
 #jvb_ip: "{{ ipify_public_ip | default(jvb_public_ip) }}"
-#jvb_ip_integer: "{{jvb_ip | ipaddr('address') | ipaddr('int') }}"
-jvb_ufrag_prefix: "{{jvb_component_id}}"
+#jvb_ip_integer: "{{ jvb_ip | ipaddr('address') | ipaddr('int') }}"
+jvb_ufrag_prefix: "{{ jvb_component_id }}"
 jvb_upgrade_flag: false
 jvb_use_public_ip: false
 jvb_username: jvb
@@ -211,11 +211,11 @@ jvb_websockets_port: "{{ 9090 if jvb_nginx_ssl_enabled else 443 }}"
 jvb_websockets_ssl_keystore_password: jitsimeet
 jvb_websockets_ssl_keystore_path: /etc/jitsi/videobridge/ssl.store
 jvb_websockets_ssl_keystore_pkcs12_path: /etc/jitsi/videobridge/ssl.pkcs12
-jvb_ws_domain: "{{ environment_domain_name if jvb_colibri_proxy_enabled else jvb_server_prefix+'.'+jvb_ws_domain_suffix}}"
+jvb_ws_domain: "{{ environment_domain_name if jvb_colibri_proxy_enabled else jvb_server_prefix+'.'+jvb_ws_domain_suffix }}"
 jvb_ws_domain_suffix: "jitsi.net"
-jvb_ws_relay_domain: "{{jvb_server_prefix+'.'+jvb_ws_domain_suffix if jvb_colibri_proxy_enabled else false}}"
-jvb_xmpp_port: "{{6222 if prosody_jvb_configure_flag else 5222}}"
-jvb_yourkit_agent_path: "{{jvb_yourkit_base_path}}/bin/linux-x86-64/libyjpagent.so"
+jvb_ws_relay_domain: "{{ jvb_server_prefix+'.'+jvb_ws_domain_suffix if jvb_colibri_proxy_enabled else false }}"
+jvb_xmpp_port: "{{ 6222 if prosody_jvb_configure_flag else 5222 }}"
+jvb_yourkit_agent_path: "{{ jvb_yourkit_base_path }}/bin/linux-x86-64/libyjpagent.so"
 jvb_yourkit_base_path: "/opt/YourKit-JavaProfiler-2020.9"
 jvb_yourkit_url: "https://download.yourkit.com/yjp/2022.9/YourKit-JavaProfiler-2022.9-b170.zip"
 path_to_health_script: "/usr/local/bin/jvb-health-check.sh"
