@@ -8,11 +8,11 @@ AWS_BIN="/usr/local/bin/aws"
 
 CURRENT_EC2_REGION=$($CURL_BIN -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq .region -r)
 
-EC2_REGION="{{jitsi_dump_sns_region}}"
+EC2_REGION="{{ jitsi_dump_sns_region }}"
 export AWS_DEFAULT_REGION=$EC2_REGION
 
-S3_BUCKET="{{jitsi_dump_s3_bucket}}"
-SNS_TOPIC_ARN="{{jitsi_dump_sns_topic}}"
+S3_BUCKET="{{ jitsi_dump_s3_bucket }}"
+SNS_TOPIC_ARN="{{ jitsi_dump_sns_topic }}"
 JAVA_USER="jicofo"
 
 JPID=`ps aux | grep java | grep -v grep | grep $JAVA_USER | awk '{ print $2; }'`

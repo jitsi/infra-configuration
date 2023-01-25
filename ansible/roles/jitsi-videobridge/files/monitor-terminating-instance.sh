@@ -82,7 +82,7 @@ do
     # will have 10 secs to delete it
     # we will distinguish whether message is for us by instance-id in message
     MESSAGES=$(aws sqs receive-message --queue-url ${NOTIFICATION_HTTP})
-    [ ! -z "$MESSAGES" ] && $DEBUG && echo "messages: ${MESSAGES}"
+    [ -n "$MESSAGES" ] && $DEBUG && echo "messages: ${MESSAGES}"
     i=0
     msg=`echo ${MESSAGES} | jq -r ".Messages[$i]"`
     while [ -n "$msg" ] && [ ! "$msg" = "null" ] ;do

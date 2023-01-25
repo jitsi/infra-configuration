@@ -1,10 +1,10 @@
 ---
 - name: upgrade to the latest kernel image
-  apt: name="{{jibri_kernel_package}}" state=latest
+  apt: name="{{ jibri_kernel_package }}" state=latest
   register: kernelup
 
 - name: ensure latest headers are available
-  apt: name="{{jibri_kernel_headers_package}}" state=latest
+  apt: name="{{ jibri_kernel_headers_package }}" state=latest
 
 - name: purge aws kernel if found
   apt: name="linux*aws" state=absent purge=true
@@ -30,8 +30,8 @@
   when: rebooting is changed
 
 - name: register latest kernel version for modules
-  shell: dpkg -l {{jibri_kernel_package}} | tail -1 | awk '{split($3,a,"."); print a[1]"."a[2]"."a[3]"-"a[4]}'
+  shell: dpkg -l {{ jibri_kernel_package }} | tail -1 | awk '{split($3,a,"."); print a[1]"."a[2]"."a[3]"-"a[4]}'
   register: apt_kernel_version
 
 - name: install latest kernel modules
-  apt: name="linux-modules-extra-{{apt_kernel_version.stdout}}-{{jibri_kernel_package_type}}" state=latest
+  apt: name="linux-modules-extra-{{ apt_kernel_version.stdout }}-{{ jibri_kernel_package_type }}" state=latest

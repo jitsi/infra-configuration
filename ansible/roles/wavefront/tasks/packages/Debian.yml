@@ -72,7 +72,7 @@
 
 - name: Add Wavefront Telegraf apt repository.
   apt_repository:
-    repo: "deb {{ wavefront_telegraf_pkg_url }}/ubuntu/ {{ ansible_distribution_release }} {{wavefront_telegraf_repo_branch}}"
+    repo: "deb {{ wavefront_telegraf_pkg_url }}/ubuntu/ {{ ansible_distribution_release }} {{ wavefront_telegraf_repo_branch }}"
     state: present
     update_cache: yes
   when: 

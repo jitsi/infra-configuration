@@ -3,7 +3,7 @@ component_interface = "0.0.0.0";
 daemonize = true;
 admins = {
 {% for admin in prosody_admins %}
-"{{admin}}"{% if not loop.last %},{% endif %}
+"{{ admin }}"{% if not loop.last %},{% endif %}
 {% endfor %}
 
 }
@@ -17,7 +17,7 @@ pidfile = "/var/run/prosody/prosody.pid";
 
 {% if prosody_network_backend %}
 -- Enable use of native prosody 0.11 support for epoll over select
-network_backend = "{{prosody_network_backend}}";
+network_backend = "{{ prosody_network_backend }}";
 -- Set the TCP backlog to 511 since the kernel rounds it up to the next power of 2: 512.
 -- This only applies to the epoll backend but it's harmless to set on the select one.
 network_settings = {
@@ -103,77 +103,77 @@ modules_enabled = {
 };
 
 {% if prosody_enable_log_slow_events %}
-log_slow_events_threshold = {{prosody_slow_events_threshold}};
+log_slow_events_threshold = {{ prosody_slow_events_threshold }};
 {% endif %}
 
 {% if prosody_enable_mod_turncredentials %}
 {% if prosody_mod_turncredentials_secret %}
-turncredentials_secret = "{{prosody_mod_turncredentials_secret}}";
-external_service_secret = "{{prosody_mod_turncredentials_secret}}";
+turncredentials_secret = "{{ prosody_mod_turncredentials_secret }}";
+external_service_secret = "{{ prosody_mod_turncredentials_secret }}";
 {% endif %}
 
 turncredentials = {
   {% for turnhost in prosody_mod_turncredentials_hosts %}
-  { type = "stun", host = "{{turnhost}}", port = "{{prosody_mod_turncredentials_port}}" },
-  { type = "turn", host = "{{turnhost}}", port = "{{prosody_mod_turncredentials_port}}", transport = "udp" },
+  { type = "stun", host = "{{ turnhost }}", port = "{{ prosody_mod_turncredentials_port }}" },
+  { type = "turn", host = "{{ turnhost }}", port = "{{ prosody_mod_turncredentials_port }}", transport = "udp" },
 {% if prosody_mod_turncredentials_enable_tcp %}
-  { type = "turns", host = "{{turnhost}}", port = "{{prosody_mod_turncredentials_port}}", transport = "tcp" },
+  { type = "turns", host = "{{ turnhost }}", port = "{{ prosody_mod_turncredentials_port }}", transport = "tcp" },
 {% endif %}
 {% endfor %}
 };
 external_services = {
 {% for turnhost in prosody_mod_turncredentials_hosts %}
-  { type = "stun", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "udp" },
-  { type = "turn", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "udp", secret = true, ttl = 86400, algorithm = "turn" },
+  { type = "stun", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "udp" },
+  { type = "turn", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "udp", secret = true, ttl = 86400, algorithm = "turn" },
     {% if prosody_mod_turncredentials_enable_tcp %}
-  { type = "turns", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "tcp", secret = true, ttl = 86400, algorithm = "turn" },
+  { type = "turns", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "tcp", secret = true, ttl = 86400, algorithm = "turn" },
     {% endif %}
 {% endfor %}
 };
 
 {% endif %}
 {% if prosody_enable_muc_domain_mapper %}
-muc_mapper_domain_base = "{{prosody_domain_name}}";
+muc_mapper_domain_base = "{{ prosody_domain_name }}";
 enable_domain_verification = true;
-asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},"{{iss}}"{% endfor %} }
-asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{aud}}"{% endfor %} }
+asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},"{{ iss }}"{% endfor %} }
+asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{ aud }}"{% endfor %} }
 {% endif %}
 
 {% if prosody_enable_muc_events or prosody_enable_call_flow %}
-asap_key_path = "{{prosody_asap_key_path}}"
-asap_key_id = "{{asap_key['id']}}";
-asap_issuer = "{{prosody_asap_issuer}}";
-asap_audience = "{{prosody_asap_audience}}";
+asap_key_path = "{{ prosody_asap_key_path }}"
+asap_key_id = "{{ asap_key['id'] }}";
+asap_issuer = "{{ prosody_asap_issuer }}";
+asap_audience = "{{ prosody_asap_audience }}";
 {% endif %}
 {% if prosody_enable_call_flow %}
-invite_api = "{{prosody_invite_api}}"
-cancel_api = "{{prosody_cancel_api}}"
-missed_api = "{{prosody_missed_api}}"
+invite_api = "{{ prosody_invite_api }}"
+cancel_api = "{{ prosody_cancel_api }}"
+missed_api = "{{ prosody_missed_api }}"
 {% endif %}
 
 {% if prosody_meet_chat_history_url %}
-muc_chat_history_url = "{{prosody_meet_chat_history_url}}";
+muc_chat_history_url = "{{ prosody_meet_chat_history_url }}";
 {% endif %}
 
 {% if prosody_jaas_actuator_url %}
-muc_prosody_jaas_actuator_url = "{{prosody_jaas_actuator_url}}";
+muc_prosody_jaas_actuator_url = "{{ prosody_jaas_actuator_url }}";
 {% endif %}
 
 {% if prosody_meet_speaker_stats_url %}
-muc_speaker_stats_url = "{{prosody_meet_speaker_stats_url}}";
+muc_speaker_stats_url = "{{ prosody_meet_speaker_stats_url }}";
 {% endif %}
 
 {% if prosody_meet_transcriptions_url %}
-muc_transcriptions_url = "{{prosody_meet_transcriptions_url}}";
+muc_transcriptions_url = "{{ prosody_meet_transcriptions_url }}";
 {% endif %}
 
 {% if prosody_meet_webhooks_enabled %}
-muc_prosody_egress_url = "{{prosody_egress_url}}";
-muc_prosody_egress_fallback_url = "{{prosody_egress_fallback_url}}";
+muc_prosody_egress_url = "{{ prosody_egress_url }}";
+muc_prosody_egress_fallback_url = "{{ prosody_egress_fallback_url }}";
 {% endif %}
 
 {% if prosody_meet_ban_auth_enabled %}
-muc_prosody_jitsi_access_manager_url = "{{jitsi_access_manager_url}}";
+muc_prosody_jitsi_access_manager_url = "{{ jitsi_access_manager_url }}";
 {% endif %}
 
 {% if prosody_conference_info_url %}
@@ -181,7 +181,7 @@ muc_conference_info_url = "{{ prosody_conference_info_url }}";
 -- eventually enable token auth for password API
 
 {% if prosody_password_public_key_repo_url %}
-prosody_password_public_key_repo_url = "{{prosody_password_public_key_repo_url}}";
+prosody_password_public_key_repo_url = "{{ prosody_password_public_key_repo_url }}";
 {% endif %}
 {% endif %}
 
@@ -195,11 +195,11 @@ smacks_max_old_sessions = 1;
 {% endif %}
 
 {% if prosody_stats_provider %}
-statistics = "{{prosody_stats_provider}}";
+statistics = "{{ prosody_stats_provider }}";
 {% if prosody_stats_provider == "statsd" %}
 statistics_config = {
-  statsd_server = "{{prosody_stats_server}}";
-  statsd_port = {{prosody_stats_port}};
+  statsd_server = "{{ prosody_stats_server }}";
+  statsd_port = {{ prosody_stats_port }};
 };
 {% endif %}
 {% endif %}
@@ -209,10 +209,10 @@ c2s_stanza_size_limit = {{ prosody_c2s_stanza_size_limit }};
 {% endif %}
 
 {% if prosody_mod_limits_rate %}
-unlimited_jids = { "focus@{{prosody_auth_domain_name}}" }
+unlimited_jids = { "focus@{{ prosody_auth_domain_name }}" }
 limits = {
     c2s = {
-        rate = "{{prosody_mod_limits_rate}}";
+        rate = "{{ prosody_mod_limits_rate }}";
     };
 }
 {% endif %}
@@ -279,7 +279,7 @@ storage = "internal" -- Default is "internal" (Debian: "sql" requires one of the
 --  Logs errors to syslog also
 log = {
 	-- Log files (change 'info' to 'debug' for debug logs):
-	{{prosody_log_level}} = "/var/log/prosody/prosody.log";
+	{{ prosody_log_level }} = "/var/log/prosody/prosody.log";
 	error = "/var/log/prosody/prosody.err";
 	-- Syslog:
 	{% if prosody_log_syslog_enabled %}
@@ -295,7 +295,7 @@ log = {
     {
         level = "debug",
         to = "ringbuffer",
-        size = {{prosody_mod_log_ringbuffer_size}},
+        size = {{ prosody_mod_log_ringbuffer_size }},
         filename_template = "traceback.txt",
         event = "debug_traceback/triggered";
     };
@@ -313,17 +313,17 @@ trusted_proxies = {
   {% endfor %}
 }
 
-bosh_max_inactivity = {{prosody_bosh_max_inactivity}};
+bosh_max_inactivity = {{ prosody_bosh_max_inactivity }};
 
 {% if prosody_visitors_enabled %}
 s2s_connect_overrides = {
 {% for i in range(prosody_visitors_count|int) %}
-        ["conference.v{{i}}.meet.jitsi"] = { "127.0.0.1", {{52690+i}} };
+        ["conference.v{{ i }}.meet.jitsi"] = { "127.0.0.1", {{ 52690+i }} };
 {% endfor %}
 };
 s2s_whitelist = {
 {% for i in range(prosody_visitors_count|int) %}
-        "conference.v{{i}}.meet.jitsi";
+        "conference.v{{ i }}.meet.jitsi";
 {% endfor %}
 };
 {% endif %}
@@ -336,14 +336,14 @@ VirtualHost "{{ prosody_domain_name }}"
         -- enabled = false -- Remove this line to enable this host
 {% if prosody_enable_tokens %}
         authentication = "token"
-        app_id = "{{prosody_token_app_id}}";             -- application identifier
-        app_secret = "{{prosody_token_app_secret}}";     -- application secret known only to your token
+        app_id = "{{ prosody_token_app_id }}";             -- application identifier
+        app_secret = "{{ prosody_token_app_secret }}";     -- application secret known only to your token
         allow_empty_token = {% if prosody_token_allow_empty -%}true{% else -%}false{% endif %}     -- tokens are verified only if they are supplied by the client
 {% if prosody_public_key_repo_url %}
-        asap_key_server = "{{prosody_public_key_repo_url}}"
+        asap_key_server = "{{ prosody_public_key_repo_url }}"
 {% endif %}
 {% if prosody_vpaas_public_key_repo_url %}
-        vpaas_asap_key_server = "{{prosody_vpaas_public_key_repo_url}}"
+        vpaas_asap_key_server = "{{ prosody_vpaas_public_key_repo_url }}"
 {% endif %}
 
 {% else %}
@@ -405,9 +405,9 @@ VirtualHost "{{ prosody_domain_name }}"
           "xxl_conference";
 {% endif %}
         }
-        shard_name = "{{shard_name}}"
-        region_name = "{{prosody_region}}"
-        release_number = "{{jitsi_release_number}}"
+        shard_name = "{{ shard_name }}"
+        region_name = "{{ prosody_region }}"
+        release_number = "{{ jitsi_release_number }}"
 {% if prosody_enable_filter_iq_rayo and prosody_max_number_outgoing_calls %}
         max_number_outgoing_calls = {{ prosody_max_number_outgoing_calls }}
 {% endif %}
@@ -424,7 +424,7 @@ VirtualHost "{{ prosody_domain_name }}"
         lobby_muc = "lobby.{{ prosody_domain_name }}"
         muc_lobby_whitelist = {
           {% for whitelist_jid in prosody_muc_max_occupants_ignore_list %}
-          "{{whitelist_jid}}"{% if not loop.last %},{% endif %}
+          "{{ whitelist_jid }}"{% if not loop.last %},{% endif %}
           {% endfor %}
 
         }
@@ -472,7 +472,7 @@ VirtualHost "recorder.{{ prosody_domain_name }}"
 {% endif %}
 
 Component "conference.{{ prosody_domain_name }}" "muc"
-    storage = "{{prosody_muc_storage_method}}"
+    storage = "{{ prosody_muc_storage_method }}"
     muc_room_cache_size = 10000
     restrict_room_creation = true
     muc_room_allow_persistent = false
@@ -547,7 +547,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 	rate_limit_whitelist = {
       "127.0.0.1";
 {% for i in prosody_rate_limit_whitelist %}
-      "{{i}}";
+      "{{ i }}";
 {% endfor %}
     };
 	-- The size of the cache that saves state for IP addresses
@@ -560,7 +560,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_muc_password_whitelist %}
     muc_password_whitelist = {
       {% for whitelist_jid in prosody_muc_password_whitelist_jids %}
-      "{{whitelist_jid}}",
+      "{{ whitelist_jid }}",
       {% endfor %}
       "recorder@recorder.whatever.jitsi.net"
     }
@@ -569,7 +569,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
     muc_max_occupants = {{ prosody_muc_max_occupants }}
     muc_access_whitelist = {
           {% for ignorelist_jid in prosody_muc_max_occupants_ignore_list %}
-          "{{ignorelist_jid}}",
+          "{{ ignorelist_jid }}",
           {% endfor %}
           "recorder@recorder.whatever.jitsi.net"
         }
@@ -577,7 +577,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_muc_moderated_subdomains %}
     allowners_moderated_subdomains = {
     {% for subdomain in prosody_muc_moderated_subdomains %}
-        "{{subdomain}}"{% if not loop.last %},{% endif %}
+        "{{ subdomain }}"{% if not loop.last %},{% endif %}
     {% endfor %}
 
     }
@@ -585,7 +585,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_muc_moderated_rooms %}
     allowners_moderated_rooms = {
     {% for room in prosody_muc_moderated_rooms %}
-        "{{room}}"{% if not loop.last %},{% endif %}
+        "{{ room }}"{% if not loop.last %},{% endif %}
     {% endfor %}
 
     }
@@ -605,7 +605,7 @@ Component "internal.auth.{{ prosody_domain_name }}" "muc"
       "muc_events";
 {% endif %}
     }
-    storage = "{{prosody_muc_storage_method}}"
+    storage = "{{ prosody_muc_storage_method }}"
     muc_room_cache_size = 1000
     muc_filter_whitelist="{{ prosody_auth_domain_name }}"
     muc_room_locking = false
@@ -614,7 +614,7 @@ Component "internal.auth.{{ prosody_domain_name }}" "muc"
 
 {% if prosody_enable_client_proxy %}
 Component "focus.{{ prosody_domain_name }}" "client_proxy"
-    target_address = "focus@{{prosody_auth_domain_name}}"
+    target_address = "focus@{{ prosody_auth_domain_name }}"
 {% endif %}
 
 {% if prosody_meet_av_moderation_enabled %}

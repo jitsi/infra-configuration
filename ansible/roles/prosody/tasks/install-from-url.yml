@@ -1,6 +1,6 @@
 ---
 # - name: Check if prosody package is installed
-#   command: dpkg -l {{prosody_package_name}} | grep -q "ii  {{prosody_package_name}}"
+#   command: dpkg -l {{ prosody_package_name }} | grep -q "ii  {{ prosody_package_name }}"
 #   register: prosody_check_deb
 #   failed_when: prosody_check_deb.rc > 1
 #   changed_when: prosody_check_deb.rc == 1
@@ -14,4 +14,4 @@
   # when: prosody_check_deb.rc == 1
 
 - name: mark hold on prosody package version
-  command: apt-mark hold {{prosody_package_name}}
+  command: apt-mark hold {{ prosody_package_name }}

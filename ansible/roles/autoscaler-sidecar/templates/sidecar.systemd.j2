@@ -3,10 +3,10 @@ Description=Jitsi Autoscaler Sidecar Service
 After=network.target
 
 [Service]
-User={{autoscaler_username}}
-Group={{autoscaler_groupname}}
-EnvironmentFile={{autoscaler_env_path}}
-WorkingDirectory={{autoscaler_base_path}}
+User={{ autoscaler_username }}
+Group={{ autoscaler_groupname }}
+EnvironmentFile={{ autoscaler_env_path }}
+WorkingDirectory={{ autoscaler_base_path }}
 ExecStart=/usr/bin/npm start
 Restart=on-failure
 KillSignal=SIGQUIT
@@ -14,7 +14,7 @@ Type=simple
 StandardOutput=syslog
 StandardError=syslog
 NotifyAccess=all
-SyslogIdentifier={{autoscaler_sidecar_service_name}}
+SyslogIdentifier={{ autoscaler_sidecar_service_name }}
 
 [Install]
 WantedBy=multi-user.target

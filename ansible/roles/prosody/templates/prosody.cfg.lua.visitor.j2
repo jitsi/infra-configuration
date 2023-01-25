@@ -44,15 +44,15 @@ s2s_whitelist = {};
 
 {% if prosody_enable_mod_turncredentials %}
 {% if prosody_mod_turncredentials_secret %}
-external_service_secret = "{{prosody_mod_turncredentials_secret}}";
+external_service_secret = "{{ prosody_mod_turncredentials_secret }}";
 {% endif %}
 
 external_services = {
 {% for turnhost in prosody_mod_turncredentials_hosts %}
-  { type = "stun", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "udp" },
-  { type = "turn", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "udp", secret = true, ttl = 86400, algorithm = "turn" },
+  { type = "stun", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "udp" },
+  { type = "turn", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "udp", secret = true, ttl = 86400, algorithm = "turn" },
     {% if prosody_mod_turncredentials_enable_tcp %}
-  { type = "turns", host = "{{turnhost}}", port = {{prosody_mod_turncredentials_port}}, transport = "tcp", secret = true, ttl = 86400, algorithm = "turn" },
+  { type = "turns", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "tcp", secret = true, ttl = 86400, algorithm = "turn" },
     {% endif %}
 {% endfor %}
 };
@@ -68,11 +68,11 @@ smacks_max_hibernated_sessions = 1;
 smacks_max_old_sessions = 1;
 
 {% if prosody_stats_provider %}
-statistics = "{{prosody_stats_provider}}";
+statistics = "{{ prosody_stats_provider }}";
 {% if prosody_stats_provider == "statsd" %}
 statistics_config = {
-  statsd_server = "{{prosody_stats_server}}";
-  statsd_port = {{prosody_stats_port}};
+  statsd_server = "{{ prosody_stats_server }}";
+  statsd_port = {{ prosody_stats_port }};
 };
 {% endif %}
 {% endif %}
@@ -82,10 +82,10 @@ c2s_stanza_size_limit = {{ prosody_c2s_stanza_size_limit }};
 {% endif %}
 
 {% if prosody_mod_limits_rate %}
-unlimited_jids = { "focus@{{prosody_auth_domain_name}}" }
+unlimited_jids = { "focus@{{ prosody_auth_domain_name }}" }
 limits = {
     c2s = {
-        rate = "{{prosody_mod_limits_rate}}";
+        rate = "{{ prosody_mod_limits_rate }}";
     };
 }
 {% endif %}
@@ -101,13 +101,13 @@ authentication = 'internal_hashed'
 storage = 'internal'
 log = {
     -- Log files (change 'info' to 'debug' for debug logs):
-    {{prosody_log_level}} = '/var/log/prosody-v{{ item }}/prosody.log';
+    {{ prosody_log_level }} = '/var/log/prosody-v{{ item }}/prosody.log';
     error = '/var/log/prosody-v{{ item }}/prosody.err';
 }
 
 consider_websocket_secure = true;
 consider_bosh_secure = true;
-bosh_max_inactivity = {{prosody_bosh_max_inactivity}};
+bosh_max_inactivity = {{ prosody_bosh_max_inactivity }};
 
 trusted_proxies = {
   {% for proxy in prosody_trusted_proxies %}
@@ -143,9 +143,9 @@ VirtualHost 'v{{ item }}.meet.jitsi'
     {% endif %}
     }
     main_muc = 'conference.v{{ item }}.meet.jitsi';
-    shard_name = "{{shard_name}}"
-    region_name = "{{prosody_region}}"
-    release_number = "{{jitsi_release_number}}"
+    shard_name = "{{ shard_name }}"
+    region_name = "{{ prosody_region }}"
+    release_number = "{{ jitsi_release_number }}"
 
 
 VirtualHost 'auth.meet.jitsi'
@@ -194,7 +194,7 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 	-- List of regular expressions for IP addresses that are not limited by this module.
 	rate_limit_whitelist = {
 {% for i in prosody_rate_limit_whitelist %}
-      "{{i}}";
+      "{{ i }}";
 {% endfor %}
     };
 	-- The size of the cache that saves state for IP addresses

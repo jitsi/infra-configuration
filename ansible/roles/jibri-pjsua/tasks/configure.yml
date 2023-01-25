@@ -49,15 +49,15 @@
 
 - name: install camera systemd services
   become: true
-  template: src="jibri-camera.systemd.j2" dest="/etc/systemd/system/jibri-camera-{{item.number}}.service"
+  template: src="jibri-camera.systemd.j2" dest="/etc/systemd/system/jibri-camera-{{ item.number }}.service"
   notify: restart jibri cameras
   with_items:
-    - "{{jibri_pjsua_cameras}}"
+    - "{{ jibri_pjsua_cameras }}"
 
 - name: enable camera systemd services
-  service: name=jibri-camera-{{item.number}} state=started enabled=true
+  service: name=jibri-camera-{{ item.number }} state=started enabled=true
   with_items:
-    - "{{jibri_pjsua_cameras}}"
+    - "{{ jibri_pjsua_cameras }}"
 
 #install the pjsua config file
 - name: install pjsua configuration file

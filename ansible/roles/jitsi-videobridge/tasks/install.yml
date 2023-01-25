@@ -26,22 +26,22 @@
 
 # begin install of intended jvb package
 - name: mark unhold on jitsi-videobridge package version
-  command: apt-mark unhold {{jitsi_videobridge_deb_pkg_name}}
+  command: apt-mark unhold {{ jitsi_videobridge_deb_pkg_name }}
 
 - name: install jitsi-videobridge package
-  apt: name="{{jitsi_videobridge_deb_pkg_name}}={{jitsi_videobridge_deb_pkg_version}}" state=present
+  apt: name="{{ jitsi_videobridge_deb_pkg_name }}={{ jitsi_videobridge_deb_pkg_version }}" state=present
   notify:
     - restart jitsi-videobridge
   when: ansible_service_mgr != "systemd"
 
 - name: install jitsi-videobridge package
-  apt: name="{{jitsi_videobridge_deb_pkg_name}}={{jitsi_videobridge_deb_pkg_version}}" state=present
+  apt: name="{{ jitsi_videobridge_deb_pkg_name }}={{ jitsi_videobridge_deb_pkg_version }}" state=present
   notify:
     - restart jitsi-videobridge systemd
   when: ansible_service_mgr == "systemd"
 
 - name: mark hold on JVB package version
-  command: apt-mark hold {{jitsi_videobridge_deb_pkg_name}}
+  command: apt-mark hold {{ jitsi_videobridge_deb_pkg_name }}
 
 #set the UDP receive buffer and max packet count higher
 - name: JVB udp buffer limits
@@ -49,7 +49,7 @@
 
 #set the PAM limits to allow more open files for JVB user
 - name: JVB file open limits
-  copy: dest="/etc/security/limits.d/jvb.conf" content="jvb - nofile {{jvb_open_file_limit}}\nroot - nofile {{jvb_open_file_limit}}\njvb soft core unlimited\nroot soft core unlimited\n"
+  copy: dest="/etc/security/limits.d/jvb.conf" content="jvb - nofile {{ jvb_open_file_limit }}\nroot - nofile {{ jvb_open_file_limit }}\njvb soft core unlimited\nroot soft core unlimited\n"
 - name: PAM common session applies limits
   lineinfile: dest=/etc/pam.d/common-session line="session required\tpam_limits.so"
 - name: PAM common noninteractive-session applies limits
@@ -73,7 +73,7 @@
   copy: dest="/etc/systemd/system/monitor-terminating-instance.service" src="monitor-terminating-instance.service" mode=644 owner=root
 
 - name: Copy terminate instance script oracle
-  template: src="terminate_instance_oracle.j2" dest="{{jvb_path_to_terminate_instance_script}}" owner="{{jvb_username}}" group=jitsi mode=0755
+  template: src="terminate_instance_oracle.j2" dest="{{ jvb_path_to_terminate_instance_script }}" owner="{{ jvb_username }}" group=jitsi mode=0755
   when: jvb_cloud_provider == "oracle"
 
 # add a health checker script to upload health stats to CloudWatch
@@ -124,7 +124,7 @@
 
 # Stop the service if we are  building an AMI
 - name: stop JVB for image
-  service: name="{{jvb_systemd_service_name}}" state=stopped enabled=no
+  service: name="{{ jvb_systemd_service_name }}" state=stopped enabled=no
   when: jvb_image_build_flag
 
 # Clear logs for JVB if we are  building an AMI
@@ -144,11 +144,11 @@
   file: path=/etc/authbind/byport owner=root mode=0755 state=directory
 
 - name: JVB authbind item
-  copy: dest=/etc/authbind/byport/443 content="" mode=0755 owner="{{jvb_username}}"
+  copy: dest=/etc/authbind/byport/443 content="" mode=0755 owner="{{ jvb_username }}"
 
 - name: YourKit Installer
   unarchive:
-    src: "{{jvb_yourkit_url}}"
+    src: "{{ jvb_yourkit_url }}"
     dest: /opt
     remote_src: True
   when: jvb_download_yourkit

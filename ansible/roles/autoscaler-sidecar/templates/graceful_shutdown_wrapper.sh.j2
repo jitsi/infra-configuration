@@ -1,6 +1,6 @@
 #!/bin/bash
 #DELAY AT MOST 6 hours = 21600 seconds
-TERMINATION_DELAY_TIMEOUT={{autoscaler_shutdown_delay_timeout}}
+TERMINATION_DELAY_TIMEOUT={{ autoscaler_shutdown_delay_timeout }}
 GRACEFUL_LOG=/tmp/health_log_graceful_shutdown_wrapper.log
 
 function killWithChildren() {
@@ -20,7 +20,7 @@ echo "Graceful shutdown begun $(date)" > $GRACEFUL_LOG
     echo "Graceful shutdown timer $TERMINATION_DELAY_TIMEOUT reached" >> $GRACEFUL_LOG
     echo "Emitting force stop command $(date)" >> $GRACEFUL_LOG
     {% if autoscaler_force_shutdown_command %}
-    sudo {{autoscaler_force_shutdown_command}} >> $GRACEFUL_LOG &
+    sudo {{ autoscaler_force_shutdown_command }} >> $GRACEFUL_LOG &
     sleep 10
     {% endif %}
     echo "exiting and killing parent $MAIN_PID $(date)" >> $GRACEFUL_LOG
@@ -29,7 +29,7 @@ echo "Graceful shutdown begun $(date)" > $GRACEFUL_LOG
 ) >> $GRACEFUL_LOG &
 WAIT_ID=$!
 
-sudo {{autoscaler_graceful_shutdown_script}} >> $GRACEFUL_LOG
+sudo {{ autoscaler_graceful_shutdown_script }} >> $GRACEFUL_LOG
 RET=$?
 echo "Graceful shutdown ended normally $(date)" >> $GRACEFUL_LOG
 killWithChildren $WAIT_ID

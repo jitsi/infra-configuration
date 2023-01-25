@@ -1,10 +1,10 @@
-description "TestRTC service at port {{testrtc_port}}"
+description "TestRTC service at port {{ testrtc_port }}"
 
 stop on runlevel [06]
 
 respawn
 script
-  chdir {{testrtc_base_path}}
+  chdir {{ testrtc_base_path }}
   echo $$ > /var/run/testrtc.pid
-  exec dev_appserver.py --port {{testrtc_port}} --enable_host_checking false out/app.yaml
+  exec dev_appserver.py --port {{ testrtc_port }} --enable_host_checking false out/app.yaml
 end script

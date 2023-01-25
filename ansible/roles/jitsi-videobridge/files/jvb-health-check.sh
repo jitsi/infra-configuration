@@ -149,7 +149,7 @@ else
       sudo /usr/local/bin/dump-jvb.sh
 
       #only terminate instance is auto scale group is defined
-      if [ ! -z "$AUTO_SCALE_GROUP" ]; then
+      if [ -n "$AUTO_SCALE_GROUP" ]; then
         #Detach our instance from the autoscaling group so a new JVB can replace us
         $AWS_BIN autoscaling detach-instances --instance-ids "$EC2_INSTANCE_ID" --auto-scaling-group-name "$AUTO_SCALE_GROUP" --no-should-decrement-desired-capacity
 

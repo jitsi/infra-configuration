@@ -23,6 +23,6 @@ function testmeet {
     return $exitcode
 }
 
-cd {{jitsi_torture_path}}
+cd {{ jitsi_torture_path }}
 
-testmeet ./test-runner.sh {{jitsi_torture_domain}} {{jitsi_torture_sitename}} jvb0.meet,jvb1.meet {{jitsi_torture_results_email}}
+testmeet ./test-runner.sh {{ jitsi_torture_domain }} {{ jitsi_torture_sitename }} jvb0.meet,jvb1.meet {{ jitsi_torture_results_email }}

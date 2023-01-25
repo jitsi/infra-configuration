@@ -3,8 +3,8 @@ Description=Jibri Terminating Instance Monitor
 After=network.target
 
 [Service]
-WorkingDirectory={{jibri_scripts_dir}}
-ExecStart={{jibri_scripts_dir}}/monitor-terminating-instance.sh
+WorkingDirectory={{ jibri_scripts_dir }}
+ExecStart={{ jibri_scripts_dir }}/monitor-terminating-instance.sh
 Restart=on-failure
 Type=simple
 

@@ -1,18 +1,18 @@
 jibri {
     single-use-mode = true
-    id = "{{jibri_nick}}"
+    id = "{{ jibri_nick }}"
     recording {
-        recordings-directory = "{{jibri_recordings_dir}}"
-        finalize-script = "{{jibri_finalize_recording_script}}"
+        recordings-directory = "{{ jibri_recordings_dir }}"
+        finalize-script = "{{ jibri_finalize_recording_script }}"
     }
     webhook {
       subscribers = [{% if jibri_sidecar_webhook %}"{{ jibri_sidecar_webhook }}"{% endif %}{% if sip_jibri_sidecar_webhook %}{% if jibri_sidecar_webhook %},{% endif %}"{{ sip_jibri_sidecar_webhook }}"{% endif %}]
     }
     jwt-info {
-        signing-key-path = "{{jibri_asap_key_path}}"
-        kid = "{{jibri_asap_key_id}}"
-        issuer = "{{jibri_asap_issuer}}"
-        audience = "{{jibri_asap_audience}}"
+        signing-key-path = "{{ jibri_asap_key_path }}"
+        kid = "{{ jibri_asap_key_id }}"
+        issuer = "{{ jibri_asap_issuer }}"
+        audience = "{{ jibri_asap_audience }}"
         ttl = 1 hour
     }
     api {
@@ -20,27 +20,27 @@ jibri {
             environments = [
 {% for env_key in jibri_config_hosts %}
                 {
-                    name = "{{jibri_config_hosts[env_key]['environment']}}"
-                    xmpp-server-hosts = {{(jibri_config_hosts[env_key]['host_addresses_public'] if jibri_xmpp_public_ip and not jibri_config_hosts[env_key]['prefer_private'] else jibri_config_hosts[env_key]['host_addresses'])|to_json}},
-                    xmpp-domain = "{{jibri_config_hosts[env_key]['xmpp_domain']}}"
+                    name = "{{ jibri_config_hosts[env_key]['environment'] }}"
+                    xmpp-server-hosts = {{ (jibri_config_hosts[env_key]['host_addresses_public'] if jibri_xmpp_public_ip and not jibri_config_hosts[env_key]['prefer_private'] else jibri_config_hosts[env_key]['host_addresses'])|to_json }},
+                    xmpp-domain = "{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
                     control-login {
-                        domain = "{{jibri_jid_prefix}}{{jibri_config_hosts[env_key]['xmpp_domain']}}"
-                        username = "{{jibri_xmpp_username}}"
-                        password = "{{jibri_xmpp_password}}"
-                        port = {{jibri_config_hosts[env_key]['host_port'] if jibri_config_hosts[env_key]['host_port'] is defined else jibri_xmpp_port}}
+                        domain = "{{ jibri_jid_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+                        username = "{{ jibri_xmpp_username }}"
+                        password = "{{ jibri_xmpp_password }}"
+                        port = {{ jibri_config_hosts[env_key]['host_port'] if jibri_config_hosts[env_key]['host_port'] is defined else jibri_xmpp_port }}
                     }
                     control-muc {
-                        domain = "{{jibri_brewery_prefix}}{{jibri_config_hosts[env_key]['xmpp_domain']}}"
-                        room-name = "{{jibri_xmpp_room_name}}"
-                        nickname = "{{jibri_nick}}"
+                        domain = "{{ jibri_brewery_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+                        room-name = "{{ jibri_xmpp_room_name }}"
+                        nickname = "{{ jibri_nick }}"
                     }
                     call-login {
-                        domain = "{{jibri_selenium_prefix}}{{jibri_config_hosts[env_key]['xmpp_domain']}}"
-                        username = "{{jibri_selenium_auth_user}}"
-                        password = "{{jibri_selenium_auth_password}}"
+                        domain = "{{ jibri_selenium_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+                        username = "{{ jibri_selenium_auth_user }}"
+                        password = "{{ jibri_selenium_auth_password }}"
                     }
-                    strip-from-room-domain = "{{jibri_conference_prefix}}"
-                    usage-timeout = "{{jibri_config_hosts[env_key]['usage_timeout']}} minutes"
+                    strip-from-room-domain = "{{ jibri_conference_prefix }}"
+                    usage-timeout = "{{ jibri_config_hosts[env_key]['usage_timeout'] }} minutes"
                     trust-all-xmpp-certs = true
 {% if jibri_randomize_control_muc_nickname %}
                     randomize-control-muc-nickname = true
@@ -51,7 +51,7 @@ jibri {
         }
     }
 {% if jibri_call_status_checks_overridden %}    call-status-checks {
-        {% if jibri_all_muted_timeout_override %}all-muted-timeout = "{{jibri_all_muted_timeout_override}}"{% endif %}
+        {% if jibri_all_muted_timeout_override %}all-muted-timeout = "{{ jibri_all_muted_timeout_override }}"{% endif %}
 
     }{% endif %}
 

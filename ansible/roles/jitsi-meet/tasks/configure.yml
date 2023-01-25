@@ -1,6 +1,6 @@
 ---
 - name: register installed Meet version
-  shell: dpkg -s {{jitsi_meet_deb_pkg_name}} | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+  shell: dpkg -s {{ jitsi_meet_deb_pkg_name }} | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
   register: jitsi_meet_version_shell
 
 - name: set jitsi_meet_web_version
@@ -8,11 +8,11 @@
     jitsi_meet_web_version: "{{ jitsi_meet_version_shell.stdout | int }}"
 
 - name: install branding override when required
-  shell: DEBIAN_FRONTEND=noninteractive apt-get -y --allow-downgrades install "{{jitsi_meet_branding_override}}=1.0.{{jitsi_meet_version_shell.stdout}}*"
+  shell: DEBIAN_FRONTEND=noninteractive apt-get -y --allow-downgrades install "{{ jitsi_meet_branding_override }}=1.0.{{ jitsi_meet_version_shell.stdout }}*"
   when: jitsi_meet_branding_override != "jitsi-meet"
 
 - name: register installed branding version
-  shell: dpkg -s {{jitsi_meet_branding_override}} | grep Version | awk '{print $2}' | cut -d'.' -f3,4 | cut -d'-' -f1
+  shell: dpkg -s {{ jitsi_meet_branding_override }} | grep Version | awk '{print $2}' | cut -d'.' -f3,4 | cut -d'-' -f1
   register: jitsi_meet_branding_version_shell
   when: jitsi_meet_branding_override != "jitsi-meet"
 
@@ -25,7 +25,7 @@
   when: jitsi_meet_load_test_enabled
 
 - name: pull jitsi meet load test
-  git: repo="{{jitsi_meet_load_test_repo}}" dest="/opt/jitsi-meet-load-test"
+  git: repo="{{ jitsi_meet_load_test_repo }}" dest="/opt/jitsi-meet-load-test"
   when: jitsi_meet_load_test_enabled
 
 - name: npm Requirements for jitsi meet load test
@@ -52,19 +52,19 @@
   copy: src="/opt/jitsi-meet-load-test/libs" dest="{{ jitsi_meet_nginx_root }}/load-test" remote_src=yes
   when: jitsi_meet_load_test_enabled
 
-- template: src=nginx.site.j2 dest=/etc/nginx/sites-available/{{jitsi_meet_domain_name}} mode=0644
+- template: src=nginx.site.j2 dest=/etc/nginx/sites-available/{{ jitsi_meet_domain_name }} mode=0644
   notify: restart nginx
 
 - file: path=/etc/nginx/sites-enabled/default state=absent
 
-- file: src=/etc/nginx/sites-available/{{jitsi_meet_domain_name}} dest=/etc/nginx/sites-enabled/{{jitsi_meet_domain_name}} state=link
+- file: src=/etc/nginx/sites-available/{{ jitsi_meet_domain_name }} dest=/etc/nginx/sites-enabled/{{ jitsi_meet_domain_name }} state=link
   notify: restart nginx
 
 - name: Directory for meet configuration
-  file: path="{{jitsi_meet_config_path}}" state=directory
+  file: path="{{ jitsi_meet_config_path }}" state=directory
 
 - name: Deploy config file
-  template: src=config.js.j2 dest={{jitsi_meet_config_path}}/{{jitsi_meet_domain_name}}-config.js mode=0644 owner="www-data"
+  template: src=config.js.j2 dest={{ jitsi_meet_config_path }}/{{ jitsi_meet_domain_name }}-config.js mode=0644 owner="www-data"
 
 - name: install SSL certificate
   copy: content="{{ jitsi_meet_ssl_certificate }}"
@@ -100,54 +100,54 @@
   template: src="local.html.j2" dest="{{ jitsi_meet_nginx_root }}/local.html"
 
 - name: symlink for index_conference.html to index.html
-  file: path="{{jitsi_meet_nginx_root}}/index_conference.html" src="{{jitsi_meet_nginx_root}}/index.html" state=link
+  file: path="{{ jitsi_meet_nginx_root }}/index_conference.html" src="{{ jitsi_meet_nginx_root }}/index.html" state=link
 
 - name: override jitsi meet title and metadata
-  copy: content="{{jitsi_meet_title_metadata}}"
+  copy: content="{{ jitsi_meet_title_metadata }}"
         dest="{{ jitsi_meet_nginx_root }}/title.html"
   when: jitsi_meet_title_metadata_override
 
 - name: add apple-app-site-association file to meet
-  copy: content="{{jitsi_meet_apple_site_associations}}" dest="{{jitsi_meet_nginx_root}}/apple-app-site-association"
+  copy: content="{{ jitsi_meet_apple_site_associations }}" dest="{{ jitsi_meet_nginx_root }}/apple-app-site-association"
 
 - name: .well_known directory
-  file: path="{{jitsi_meet_nginx_root}}/.well-known" state=directory
+  file: path="{{ jitsi_meet_nginx_root }}/.well-known" state=directory
 
 - name: add apple-app-site-association file to meet well known directory
-  copy: content="{{jitsi_meet_apple_site_associations}}" dest="{{jitsi_meet_nginx_root}}/.well-known/apple-app-site-association"
+  copy: content="{{ jitsi_meet_apple_site_associations }}" dest="{{ jitsi_meet_nginx_root }}/.well-known/apple-app-site-association"
 
 - name: add assetlinks file to meet well known directory
-  copy: content="{{jitsi_meet_assetlinks}}" dest="{{jitsi_meet_nginx_root}}/.well-known/assetlinks.json"
+  copy: content="{{ jitsi_meet_assetlinks }}" dest="{{ jitsi_meet_nginx_root }}/.well-known/assetlinks.json"
 
 - name: add robots.txt
-  copy: src="robots.txt" dest="{{jitsi_meet_nginx_root}}/robots.txt"
+  copy: src="robots.txt" dest="{{ jitsi_meet_nginx_root }}/robots.txt"
 
 - name: add _unlock file
-  copy: content="OK" dest="{{jitsi_meet_nginx_root}}/_unlock"
+  copy: content="OK" dest="{{ jitsi_meet_nginx_root }}/_unlock"
 
 - name: copy sanitize script into place
-  copy: src="sanitize.js" dest="{{jitsi_meet_nginx_root}}/libs/sanitize.js"
+  copy: src="sanitize.js" dest="{{ jitsi_meet_nginx_root }}/libs/sanitize.js"
   when: jitsi_meet_enable_sanitize_hack
 
 - name: set base HTML contents (no sanitize hack)
   set_fact:
-    jitsi_meet_base_html_content: "<base href=\"{{jitsi_meet_cdn_base_url}}/{{jitsi_meet_cdn_prefix}}{{jitsi_meet_branding_version}}/\" />"
+    jitsi_meet_base_html_content: "<base href=\"{{ jitsi_meet_cdn_base_url }}/{{ jitsi_meet_cdn_prefix }}{{ jitsi_meet_branding_version }}/\" />"
   when: not jitsi_meet_enable_sanitize_hack
 
 - name: set base HTML contents (with sanitize hack)
   set_fact:
-    jitsi_meet_base_html_content: "<base href=\"{{jitsi_meet_cdn_base_url}}/{{jitsi_meet_cdn_prefix}}{{jitsi_meet_branding_version}}/\" />\n<script><!--#include virtual=\"libs/sanitize.js\" --></script>"
+    jitsi_meet_base_html_content: "<base href=\"{{ jitsi_meet_cdn_base_url }}/{{ jitsi_meet_cdn_prefix }}{{ jitsi_meet_branding_version }}/\" />\n<script><!--#include virtual=\"libs/sanitize.js\" --></script>"
   when: jitsi_meet_enable_sanitize_hack
 
 - name: add CDN base href for meet index.html
-  copy: content="{{jitsi_meet_base_html_content}}" dest="{{jitsi_meet_nginx_root}}/base.html" mode=0644 owner="www-data"
+  copy: content="{{ jitsi_meet_base_html_content }}" dest="{{ jitsi_meet_nginx_root }}/base.html" mode=0644 owner="www-data"
   when: jitsi_meet_cdn_enabled
 
 - name: remove CDN base href for meet index.html
-  copy: content="" dest="{{jitsi_meet_nginx_root}}/base.html" mode=0644 owner="www-data"
+  copy: content="" dest="{{ jitsi_meet_nginx_root }}/base.html" mode=0644 owner="www-data"
   when: jitsi_meet_cdn_enabled == false
 
 #no longer need the nginx part, so make sure it's not present
 - name: remove CDN configuration for meet nginx configuration
-  file: path="{{jitsi_meet_config_path}}/cdn.conf" state=absent
+  file: path="{{ jitsi_meet_config_path }}/cdn.conf" state=absent
   notify: restart nginx

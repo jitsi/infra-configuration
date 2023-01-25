@@ -1,6 +1,6 @@
 ---
-jicofo_hostname: "{{prosody_domain_name}}"
-jicofo_auth_domain: "auth.{{prosody_domain_name}}"
+jicofo_hostname: "{{ prosody_domain_name }}"
+jicofo_auth_domain: "auth.{{ prosody_domain_name }}"
 jicofo_auth_user: focus
-jicofo_auth_password: "{{prosody_focus_user_secret}}"
+jicofo_auth_password: "{{ prosody_focus_user_secret }}"
 jicofo_make_jvb_checks: true

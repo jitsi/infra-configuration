@@ -6,7 +6,7 @@
 
 - name: Install list of packages
   apt:
-    name: ["git","luarocks","libexpat{{'1' if ansible_distribution_release == 'focal' else ''}}-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn{{'11' if ansible_distribution_release == 'focal' else '12'}}", "lua-basexx", "lua-luaossl", "lua-cjson"]
+    name: ["git","luarocks","libexpat{{ '1' if ansible_distribution_release == 'focal' else '' }}-dev","libpcre3-dev","libssl-dev","build-essential","openssl","lua-bitop","libevent-dev","lua-expat","lua-filesystem","ssl-cert","libidn{{ '11' if ansible_distribution_release == 'focal' else '12' }}", "lua-basexx", "lua-luaossl", "lua-cjson"]
     state: latest
 
 - name: Install libssl1.0 if ubuntu == 18
@@ -16,11 +16,11 @@
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
 
 - shell: "luarocks list | grep -w -q luasocket || luarocks install luasocket"
-- shell: "luarocks list | grep -w -q luasec || luarocks install luasec OPENSSL_LIBDIR=/usr/lib/{{ansible_architecture}}-linux-gnu/"
-- shell: "luarocks list | grep -w -q luaossl || luarocks install luaossl OPENSSL_LIBDIR=/usr/lib/{{ansible_architecture}}-linux-gnu/ CRYPTO_LIBDIR=/usr/lib/{{ansible_architecture}}-linux-gnu/"
+- shell: "luarocks list | grep -w -q luasec || luarocks install luasec OPENSSL_LIBDIR=/usr/lib/{{ ansible_architecture }}-linux-gnu/"
+- shell: "luarocks list | grep -w -q luaossl || luarocks install luaossl OPENSSL_LIBDIR=/usr/lib/{{ ansible_architecture }}-linux-gnu/ CRYPTO_LIBDIR=/usr/lib/{{ ansible_architecture }}-linux-gnu/"
 - shell: "luarocks list | grep -w -q basexx || luarocks install basexx"
 - shell: "luarocks list | grep -w -q cjson || luarocks install lua-cjson 2.1.0-1"
-- shell: "luarocks list | grep -w -q {{item}} || luarocks install {{item}}"
+- shell: "luarocks list | grep -w -q {{ item }} || luarocks install {{ item }}"
   with_items:
   - luajwtjitsi 2.0-0
   - net-url
@@ -73,7 +73,7 @@
   when: prosody_install_from_apt == false
 
 - name: register installed prosody version
-  shell: "{{prosody_version_shell}}"
+  shell: "{{ prosody_version_shell }}"
   register: prosody_version_shell
 
 - name: set prosody subversion fact
@@ -102,7 +102,7 @@
     creates: /usr/lib/prosody/modules/muc/muc.lib.lua.orig
   when:
     - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 1) or (prosody_minor_version | int) == 11
-#  when: "\"{{prosody_version}}\" == \"1nightly718-1\""
+#  when: "\"{{ prosody_version }}\" == \"1nightly718-1\""
 
 #now patch prosody if necessary
 - name: copy muc_lib_visitor_broadcast patch
@@ -217,10 +217,10 @@
   hg: repo=https://hg.prosody.im/prosody-modules/ dest=/opt/prosody-modules/
 
 - name: copy extra prosody modules from mercurial repo
-  command: cp -r {{item}} /usr/lib/prosody/modules
+  command: cp -r {{ item }} /usr/lib/prosody/modules
   args:
     chdir: /opt/prosody-modules/
-    creates: /usr/lib/prosody/modules/{{item}}
+    creates: /usr/lib/prosody/modules/{{ item }}
   with_items:
     - mod_firewall
     - mod_log_slow_events
@@ -299,7 +299,7 @@
   when: (prosody_minor_version | int) == 12
 
 - name: Prosody file open limits
-  copy: dest="/etc/security/limits.d/prosody.conf" content="prosody - nofile {{prosody_open_file_limit}}\nroot - nofile {{prosody_open_file_limit}}"
+  copy: dest="/etc/security/limits.d/prosody.conf" content="prosody - nofile {{ prosody_open_file_limit }}\nroot - nofile {{ prosody_open_file_limit }}"
 
 - name: PAM common session applies limits
   lineinfile: dest=/etc/pam.d/common-session line="session required\tpam_limits.so"
@@ -310,10 +310,10 @@
 
 #set the systemd limits for default threads
 - name: systemd DefaultLimitNOFILE setting
-  lineinfile: dest=/etc/systemd/system.conf line="DefaultLimitNOFILE={{prosody_open_file_limit}}" regexp="DefaultLimitNOFILE="
+  lineinfile: dest=/etc/systemd/system.conf line="DefaultLimitNOFILE={{ prosody_open_file_limit }}" regexp="DefaultLimitNOFILE="
   when: ansible_service_mgr == "systemd"
 
 #set the systemd limits for default threads
 - name: systemd user DefaultLimitNOFILE setting
-  lineinfile: dest=/etc/systemd/user.conf line="DefaultLimitNOFILE={{prosody_open_file_limit}}" regexp="DefaultLimitNOFILE="
+  lineinfile: dest=/etc/systemd/user.conf line="DefaultLimitNOFILE={{ prosody_open_file_limit }}" regexp="DefaultLimitNOFILE="
   when: ansible_service_mgr == "systemd"

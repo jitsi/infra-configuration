@@ -3,9 +3,9 @@ Description=Selenium Grid
 After=network.target
 
 [Service]
-User={{selenium_grid_username}}
-Group={{selenium_grid_groupname}}
-ExecStart={{selenium_grid_java_path}} -jar {{selenium_grid_file}} -role hub -hubConfig {{selenium_grid_hub_config_file}}
+User={{ selenium_grid_username }}
+Group={{ selenium_grid_groupname }}
+ExecStart={{ selenium_grid_java_path }} -jar {{ selenium_grid_file }} -role hub -hubConfig {{ selenium_grid_hub_config_file }}
 Restart=on-failure
 RestartPreventExitStatus=255
 Type=simple

@@ -1,40 +1,40 @@
 ---
-inbound_sip_jibri_xmpp_password: "{{inbound_sip_jibri_auth_password}}"
-inbound_sip_jibri_xmpp_user: "{{inbound_sip_jibri_auth_user}}"
-outbound_sip_jibri_xmpp_password: "{{outbound_sip_jibri_auth_password}}"
-outbound_sip_jibri_xmpp_user: "{{outbound_sip_jibri_auth_user}}"
+inbound_sip_jibri_xmpp_password: "{{ inbound_sip_jibri_auth_password }}"
+inbound_sip_jibri_xmpp_user: "{{ inbound_sip_jibri_auth_user }}"
+outbound_sip_jibri_xmpp_password: "{{ outbound_sip_jibri_auth_password }}"
+outbound_sip_jibri_xmpp_user: "{{ outbound_sip_jibri_auth_user }}"
 sip_jibri_base_path: /opt/jitsi/sip-jibri-sidecar
 #use regexp to extract the last two octet of the IP address and use it as the component ID for the jibri
-sip_jibri_component_id: "{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
+sip_jibri_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 sip_jibri_config_dir: /etc/jitsi/sip-jibri-sidecar
 sip_jibri_configure_flag: true
-sip_jibri_env_path: "{{sip_jibri_config_dir}}/sidecar.env"
-sip_jibri_environment: "{{hcv_environment}}"
+sip_jibri_env_path: "{{ sip_jibri_config_dir }}/sidecar.env"
+sip_jibri_environment: "{{ hcv_environment }}"
 sip_jibri_express_port: 6001
 sip_jibri_git_repo: git@github.com:8x8Cloud/sip-jibri-sidecar.git
 sip_jibri_graceful_shutdown_script: '/opt/jitsi/jibri/wait_graceful_shutdown.sh'
 sip_jibri_group: "default"
 sip_jibri_groupname: sipjibri
 sip_jibri_health_script: "/usr/local/bin/sip-jibri-sidecar-health.sh"
-sip_jibri_health_url: "http://localhost:{{sip_jibri_express_port}}/health"
+sip_jibri_health_url: "http://localhost:{{ sip_jibri_express_port }}/health"
 sip_jibri_install_flag: true
-sip_jibri_instance_id: "{{ansible_ec2_instance_id if ansible_ec2_instance_id is defined else oracle_instance_id if oracle_instance_id is defined else 'default'}}"
+sip_jibri_instance_id: "{{ ansible_ec2_instance_id if ansible_ec2_instance_id is defined else oracle_instance_id if oracle_instance_id is defined else 'default' }}"
 sip_jibri_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
-sip_jibri_key_path: "{{sip_jibri_config_dir}}/asap.key"
+sip_jibri_key_path: "{{ sip_jibri_config_dir }}/asap.key"
 sip_jibri_log_dir: /var/log/jitsi/sip-jibri-sidecar
-sip_jibri_nick: "sip-jibri-{{sip_jibri_component_id}}"
-sip_jibri_region: "{{ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_region if oracle_region is defined else 'default'}}"
-sip_jibri_sidecar_instance_name: "{{ansible_hostname}}"
+sip_jibri_nick: "sip-jibri-{{ sip_jibri_component_id }}"
+sip_jibri_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_region if oracle_region is defined else 'default' }}"
+sip_jibri_sidecar_instance_name: "{{ ansible_hostname }}"
 sip_jibri_sidecar_instance_version: ''
 sip_jibri_sidecar_instance_version_command: "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
-sip_jibri_sidecar_private_ip: "{{ansible_default_ipv4.address}}"
-sip_jibri_sidecar_public_ip: "{{ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false}}"
+sip_jibri_sidecar_private_ip: "{{ ansible_default_ipv4.address }}"
+sip_jibri_sidecar_public_ip: "{{ ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false }}"
 sip_jibri_sidecar_service_name: sip-jibri-sidecar
 # define empty key, use jibri credentials fle for real values
 sip_jibri_sidecar_ssh_private_key:
 sip_jibri_sidecar_ssh_public_key:
-sip_jibri_sip_password: "{{sip_jibri_voximplant_user['password'] | default('password')}}"
-sip_jibri_sip_username: "{{sip_jibri_voximplant_user['name'] | default('sipjibri')}}@{{sip_jibri_voximplant_application_name}};transport=tcp"
+sip_jibri_sip_password: "{{ sip_jibri_voximplant_user['password'] | default('password') }}"
+sip_jibri_sip_username: "{{ sip_jibri_voximplant_user['name'] | default('sipjibri') }}@{{ sip_jibri_voximplant_application_name }};transport=tcp"
 sip_jibri_start_service_url: 'http://localhost:2222/jibri/api/v1.0/startService'
 sip_jibri_stats_retrieve_url: 'http://localhost:2222/jibri/api/v1.0/health'
 sip_jibri_stop_service_url: 'http://localhost:2222/jibri/api/v1.0/stopService'
@@ -42,28 +42,28 @@ sip_jibri_stop_service_url: 'http://localhost:2222/jibri/api/v1.0/stopService'
 sip_jibri_terminate_script: '/usr/local/bin/terminate_instance.sh'
 sip_jibri_user:
   groups: ["adm"]
-  homedir: "/home/{{sip_jibri_username}}"
+  homedir: "/home/{{ sip_jibri_username }}"
   real_name: jitsi jigmi user
   state: present
-  username: "{{sip_jibri_username}}"
+  username: "{{ sip_jibri_username }}"
 sip_jibri_username: sipjibri
 sip_jibri_volatile_events: false
 sip_jibri_voximplant_application_name: jibrigw.eight-sip-us.n2.voximplant.com
-sip_jibri_voximplant_env_users: "{{sip_jibri_voximplant_users[hcv_environment]|default({})}}"
-sip_jibri_voximplant_region_key: "{{ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_to_aws_region_map[oracle_region] if oracle_region is defined else 'default'}}"
-sip_jibri_voximplant_region_users: "{{sip_jibri_voximplant_env_users[sip_jibri_voximplant_region_key]|default({})}}"
-sip_jibri_voximplant_user: "{{sip_jibri_voximplant_region_users[sip_jibri_voximplant_user_id|int]|default({})}}"
-sip_jibri_voximplant_user_id: "{{ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
-sip_jibri_ws_server_url: "{{sip_jibri_ws_server_url | default('wss://api-vo-pilot.jitsi.net')}}"
+sip_jibri_voximplant_env_users: "{{ sip_jibri_voximplant_users[hcv_environment]|default({}) }}"
+sip_jibri_voximplant_region_key: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_to_aws_region_map[oracle_region] if oracle_region is defined else 'default' }}"
+sip_jibri_voximplant_region_users: "{{ sip_jibri_voximplant_env_users[sip_jibri_voximplant_region_key]|default({}) }}"
+sip_jibri_voximplant_user: "{{ sip_jibri_voximplant_region_users[sip_jibri_voximplant_user_id|int]|default({}) }}"
+sip_jibri_voximplant_user_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
+sip_jibri_ws_server_url: "{{ sip_jibri_ws_server_url | default('wss://api-vo-pilot.jitsi.net') }}"
 sip_jibri_xmpp_login_map:
   inbound:
     prod-8x8:
       domain: auth.8x8.vc
-      password: "{{inbound_sip_jibri_xmpp_password}}"
-      username: "{{inbound_sip_jibri_xmpp_user}}"
+      password: "{{ inbound_sip_jibri_xmpp_password }}"
+      username: "{{ inbound_sip_jibri_xmpp_user }}"
   outbound:
     prod-8x8:
       domain: auth.8x8.vc
-      password: "{{outbound_sip_jibri_xmpp_password}}"
-      username: "{{outbound_sip_jibri_xmpp_user}}"
+      password: "{{ outbound_sip_jibri_xmpp_password }}"
+      username: "{{ outbound_sip_jibri_xmpp_user }}"
 sip_jibri_xmpp_logins_path: /etc/jitsi/sip-jibri-sidecar/xmpp-logins.json

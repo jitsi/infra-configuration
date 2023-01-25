@@ -4,8 +4,8 @@ Requires=jibri-xorg2.service
 After=jibri-xorg2.service
 
 [Service]
-User={{jibri_username}}
-Group={{jibri_groupname}}
+User={{ jibri_username }}
+Group={{ jibri_groupname }}
 Environment=DISPLAY=:1
 ExecStart=/usr/bin/icewm-session
 Restart=on-failure

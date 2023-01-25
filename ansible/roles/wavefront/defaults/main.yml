@@ -37,23 +37,23 @@ wavefront_proxy_json_port: "{{ telegraf_port }}"
 wavefront_proxy_pkg: 'wavefront-proxy'
 wavefront_proxy_pkg_url: 'https://packagecloud.io/wavefront/proxy'
 wavefront_proxy_port: "{{ telegraf_port }}"
-wavefront_proxy_version: "{{'12.0-2' if ansible_distribution_release=='jammy' else '10.14-1'}}"
+wavefront_proxy_version: "{{ '12.0-2' if ansible_distribution_release=='jammy' else '10.14-1' }}"
 wavefront_repo_base_url: "https://packagecloud.io/install/repositories/wavefront/{{ item.tool }}"
 wavefront_repo_gpgkey: "https://packagecloud.io/wavefront/proxy/gpgkey"
 wavefront_repo_install_url: "{{ wavefront_repo_base_url }}/config_file.repo?os={{ item.release }}&dist={{ item.version }}&source=script"
 wavefront_tcp_mode: false
-wavefront_architecture: "{{'arm64' if ansible_architecture == 'aarch64' else 'amd64'}}"
-wavefront_telegraf_deb_file: "telegraf_1.22.4-1_{{wavefront_architecture}}.deb"
-wavefront_telegraf_deb_path: "/tmp/{{wavefront_telegraf_deb_file}}"
-wavefront_telegraf_deb_url: "https://{{jitsi_repo_username}}:{{jitsi_repo_password}}@{{jitsi_repo_host}}/debian/misc/{{wavefront_telegraf_deb_file}}"
+wavefront_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+wavefront_telegraf_deb_file: "telegraf_1.22.4-1_{{ wavefront_architecture }}.deb"
+wavefront_telegraf_deb_path: "/tmp/{{ wavefront_telegraf_deb_file }}"
+wavefront_telegraf_deb_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/{{ wavefront_telegraf_deb_file }}"
 wavefront_telegraf_from_apt: false
-wavefront_telegraf_pkg_url: "{{ wavefront_telegraf_pkg_url_influx if wavefront_telegraf_use_influx else wavefront_telegraf_pkg_url_pcloud}}"
+wavefront_telegraf_pkg_url: "{{ wavefront_telegraf_pkg_url_influx if wavefront_telegraf_use_influx else wavefront_telegraf_pkg_url_pcloud }}"
 wavefront_telegraf_pkg_url_influx: 'https://repos.influxdata.com'
 wavefront_telegraf_pkg_url_pcloud: 'https://packagecloud.io/wavefront/telegraf'
 wavefront_telegraf_remove_repo: true
-wavefront_telegraf_repo_branch: "{{'stable' if wavefront_telegraf_use_influx else 'main'}}"
-wavefront_telegraf_repo_gpgkey: "{{ wavefront_telegraf_repo_gpgkey_influx if wavefront_telegraf_use_influx else wavefront_telegraf_repo_gpgkey_pcloud}}"
-wavefront_telegraf_repo_gpgkey_2: "{{ wavefront_telegraf_repo_gpgkey_influx_2 if wavefront_telegraf_use_influx else false}}"
+wavefront_telegraf_repo_branch: "{{ 'stable' if wavefront_telegraf_use_influx else 'main' }}"
+wavefront_telegraf_repo_gpgkey: "{{ wavefront_telegraf_repo_gpgkey_influx if wavefront_telegraf_use_influx else wavefront_telegraf_repo_gpgkey_pcloud }}"
+wavefront_telegraf_repo_gpgkey_2: "{{ wavefront_telegraf_repo_gpgkey_influx_2 if wavefront_telegraf_use_influx else false }}"
 # needs to be updated when apt keys change
 wavefront_telegraf_repo_gpgkey_id: A4B94A8C145F4C456133EFEFAB162277E8EE6FD0
 wavefront_telegraf_repo_gpgkey_id_2: 684A14CF2582E0C5

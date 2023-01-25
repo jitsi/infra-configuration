@@ -10,7 +10,7 @@
 
 # begin install of intended jvb package
 - name: install jibri package
-  apt: name="{{jibri_deb_pkg_name}}={{jibri_deb_pkg_version}}" state=present
+  apt: name="{{ jibri_deb_pkg_name }}={{ jibri_deb_pkg_version }}" state=present
 
 #script to handle initial bootup of jibri
 - name: jibri boot postinstall scripts aws
@@ -40,31 +40,31 @@
 
 #script to handle stats to cloudwatch
 - name: Copy status cloudwatch script aws
-  copy: src="jibri-status.sh" dest="{{jibri_path_to_status_script}}" owner="{{jibri_username}}" mode=0755
+  copy: src="jibri-status.sh" dest="{{ jibri_path_to_status_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "aws"
 
   #script to handle health check failures
 - name: Copy health check script aws
-  copy: src="jibri-health.sh" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  copy: src="jibri-health.sh" dest="{{ jibri_path_to_health_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "aws"
 
   #script to handle health check failures
 - name: Copy terminate instance script oracle
-  template: src="terminate_instance_oracle.j2" dest="{{jibri_path_to_terminate_instance_script}}" owner="{{jibri_username}}" mode=0755
+  template: src="terminate_instance_oracle.j2" dest="{{ jibri_path_to_terminate_instance_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "oracle"
 
 - name: Copy health check script oracle
-  template: src="jibri-health-oracle.j2" dest="{{jibri_path_to_health_script}}" owner="{{jibri_username}}" mode=0755
+  template: src="jibri-health-oracle.j2" dest="{{ jibri_path_to_health_script }}" owner="{{ jibri_username }}" mode=0755
   when: jibri_cloud_provider == "oracle"
 
 #script to handle terminating instance graceful shutdown
 - name: Copy termination monitor script
-  template: src="monitor-terminating-instance.j2" dest="{{jibri_scripts_dir}}/monitor-terminating-instance.sh" mode=0755
+  template: src="monitor-terminating-instance.j2" dest="{{ jibri_scripts_dir }}/monitor-terminating-instance.sh" mode=0755
   when: jibri_cloud_provider == "aws"
 
 #scripts to handle configuration and reconfiguration of jibri
 - name: Copy termination monitor script
-  copy: src="wait_graceful_shutdown.sh" dest="{{jibri_scripts_dir}}/wait_graceful_shutdown.sh" mode=0755
+  copy: src="wait_graceful_shutdown.sh" dest="{{ jibri_scripts_dir }}/wait_graceful_shutdown.sh" mode=0755
 
 #systemd service for monitoring termating instance events
 - name: Install JIBRI termination monitoring systemd config
@@ -72,6 +72,6 @@
   when: jibri_cloud_provider == "aws"
 
 - name: register installed jibri version
-  shell: "{{jibri_service_version_shell}}"
+  shell: "{{ jibri_service_version_shell }}"
   register: jibri_version_shell
   when: jibri_cloud_provider == "aws"

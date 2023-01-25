@@ -1,6 +1,6 @@
 {
-  "shards":{{jvb_shards|to_json}},
-  "drain_mode":{{jvb_initial_drain_mode|to_json}},
+  "shards":{{ jvb_shards|to_json }},
+  "drain_mode":{{ jvb_initial_drain_mode|to_json }},
   "port": {{ jvb_xmpp_port }},
 {% if prosody_jvb_configure_flag %}
   "domain":"{{ jvb_prosody_jvb_auth_domain_name }}",
@@ -9,8 +9,8 @@
   "domain":"{{ jvb_auth_domain }}",
   "muc_jids":"{{ jvb_brewery_muc }}",
 {% endif %}
-  "username":"{{jvb_auth_user}}",
+  "username":"{{ jvb_auth_user }}",
   "password":"{{ jvb_auth_password }}",
-  "muc_nickname":"{{ansible_hostname}}",
+  "muc_nickname":"{{ ansible_hostname }}",
   "iq_handler_mode":"{{ jvb_iq_handler_mode }}"
 }

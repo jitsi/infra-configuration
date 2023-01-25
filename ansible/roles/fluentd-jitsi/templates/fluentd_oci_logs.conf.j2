@@ -38,9 +38,9 @@
         <store>
                 @id match_0_cwlogs
                 @type cloudwatch_logs
-                region {{fluentd_jitsi_region}}
-                log_group_name {{fluentd_jitsi_log_group_name}}
-                log_stream_name {{fluentd_jitsi_log_stream_name}}
+                region {{ fluentd_jitsi_region }}
+                log_group_name {{ fluentd_jitsi_log_group_name }}
+                log_stream_name {{ fluentd_jitsi_log_stream_name }}
                 auto_create_stream true
                 #use_log_stream_name_prefix true
                 #message_keys key1,key2,key3,...

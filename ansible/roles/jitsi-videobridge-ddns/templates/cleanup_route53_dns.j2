@@ -5,5 +5,5 @@ set -e
 
 # clean up the Route53 DNS
 cd /usr/share/jitsi-ddns-lambda
-node index.js update_by_info --action remove --instance_name {{jvb_ddns_hostname}} --zone_id {{jvb_ddns_zone}} --ipv4_addr "{{jvb_ddns_ipv4_addr}}" {% if ipv6_addr %} --ipv6_addr "{{ipv6_addr}}"{% endif %} || true
+node index.js update_by_info --action remove --instance_name {{ jvb_ddns_hostname }} --zone_id {{ jvb_ddns_zone }} --ipv4_addr "{{ jvb_ddns_ipv4_addr }}" {% if ipv6_addr %} --ipv6_addr "{{ ipv6_addr }}"{% endif %} || true
 cd -

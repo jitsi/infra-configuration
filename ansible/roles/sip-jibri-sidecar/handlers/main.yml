@@ -4,4 +4,4 @@
     state: restarted
     daemon_reload: yes
     enabled: yes
-    name: "{{sip_jibri_sidecar_service_name}}"
+    name: "{{ sip_jibri_sidecar_service_name }}"

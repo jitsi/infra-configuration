@@ -3,10 +3,10 @@ Description=Selenium Grid
 After=network.target
 
 [Service]
-User={{selenium_grid_username}}
-Group={{selenium_grid_groupname}}
-ExecStart={{selenium_grid_java_path}} -jar {{selenium_grid_extras_file}}
+User={{ selenium_grid_username }}
+Group={{ selenium_grid_groupname }}
+ExecStart={{ selenium_grid_java_path }} -jar {{ selenium_grid_extras_file }}
 Restart=on-failure
 RestartPreventExitStatus=255
 Type=simple
-WorkingDirectory={{selenium_grid_extras_path}}
+WorkingDirectory={{ selenium_grid_extras_path }}

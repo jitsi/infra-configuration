@@ -1,6 +1,6 @@
 #!/bin/bash
 GRACEFUL_SHUTDOWN="/opt/jitsi/jibri/wait_graceful_shutdown.sh"
-TERMINATE_INSTANCE="{{jibri_path_to_terminate_instance_script}}"
+TERMINATE_INSTANCE="{{ jibri_path_to_terminate_instance_script }}"
 
 # run the graceful shutdown and wait for it to finish
 sudo "$GRACEFUL_SHUTDOWN"

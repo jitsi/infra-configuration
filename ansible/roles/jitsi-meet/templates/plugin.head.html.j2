@@ -1,8 +1,8 @@
-{{jitsi_meet_override_plugin_contents}}
+{{ jitsi_meet_override_plugin_contents }}
 
 <script>
 (function() {
-  var filter_list={{jitsi_meet_toolbar_buttons_filter|to_json}};
+  var filter_list={{ jitsi_meet_toolbar_buttons_filter|to_json }};
   if (filter_list && filter_list.length >0) {
     interfaceConfig.TOOLBAR_BUTTONS = interfaceConfig.TOOLBAR_BUTTONS.filter(function (e) {
       return filter_list.indexOf(e) == -1;

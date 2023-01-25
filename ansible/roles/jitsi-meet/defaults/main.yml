@@ -14,14 +14,14 @@ jitsi_meet_anonymize_logs: false
 jitsi_meet_anonymousdomain: false
 jitsi_meet_api_billing_counter: false
 jitsi_meet_api_branding_data_url: false
-jitsi_meet_api_conference_event_url: "{{jitsi_meet_api_url}}/conferenceEvent"
-jitsi_meet_api_conference_invite_callflows_url: "{{jitsi_meet_api_url}}/conferenceinvitecallflows"
-jitsi_meet_api_conference_invite_url: "{{jitsi_meet_api_url}}/conferenceInvite"
-jitsi_meet_api_conference_mapper_url: "{{jitsi_meet_api_url}}/conferenceMapper"
-jitsi_meet_api_dialin_numbers_url: "{{jitsi_meet_api_url}}/phoneNumberList"
-jitsi_meet_api_dialout_auth_url: "{{jitsi_meet_api_url}}/authorizephone"
-jitsi_meet_api_dialout_codes_url: "{{jitsi_meet_api_url}}/countrycodes"
-jitsi_meet_api_directory_search_url: "{{jitsi_meet_api_url}}/directorySearch"
+jitsi_meet_api_conference_event_url: "{{ jitsi_meet_api_url }}/conferenceEvent"
+jitsi_meet_api_conference_invite_callflows_url: "{{ jitsi_meet_api_url }}/conferenceinvitecallflows"
+jitsi_meet_api_conference_invite_url: "{{ jitsi_meet_api_url }}/conferenceInvite"
+jitsi_meet_api_conference_mapper_url: "{{ jitsi_meet_api_url }}/conferenceMapper"
+jitsi_meet_api_dialin_numbers_url: "{{ jitsi_meet_api_url }}/phoneNumberList"
+jitsi_meet_api_dialout_auth_url: "{{ jitsi_meet_api_url }}/authorizephone"
+jitsi_meet_api_dialout_codes_url: "{{ jitsi_meet_api_url }}/countrycodes"
+jitsi_meet_api_directory_search_url: "{{ jitsi_meet_api_url }}/directorySearch"
 jitsi_meet_api_guest_dial_out_status_url: false
 jitsi_meet_api_guest_dial_out_url: false
 jitsi_meet_api_jaas_token_url: false
@@ -57,13 +57,13 @@ jitsi_meet_assetlinks: |
           "sha256_cert_fingerprints": ["F6:C8:93:15:16:9D:E0:08:0A:B7:EA:36:15:26:24:25:60:93:77:F7:61:79:89:E9:52:05:F4:09:B3:0E:59:44"]
       }
   }]
-jitsi_meet_bosh_host: "{{prosody_domain_name}}"
+jitsi_meet_bosh_host: "{{ prosody_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "//"
-jitsi_meet_bosh_url: "{{jitsi_meet_bosh_protocol}}{{jitsi_meet_bosh_host}}/{{jitsi_meet_bosh_path}}"
+jitsi_meet_bosh_url: "{{ jitsi_meet_bosh_protocol }}{{ jitsi_meet_bosh_host }}/{{ jitsi_meet_bosh_path }}"
 jitsi_meet_branding_override: "jitsi-meet"
-jitsi_meet_callstats_app_id: "{{callstats_app_id}}"
-jitsi_meet_callstats_app_secret: "{{callstats_app_secret}}"
+jitsi_meet_callstats_app_id: "{{ callstats_app_id }}"
+jitsi_meet_callstats_app_secret: "{{ callstats_app_secret }}"
 jitsi_meet_callstats_customscript_url: false
 jitsi_meet_callstats_disable_logs: false
 jitsi_meet_callstats_threshold: false
@@ -92,9 +92,9 @@ jitsi_meet_colibri_proxy_fourth_octet_regexp: "{{ jvb_colibri_proxy_fourth_octet
 jitsi_meet_conference_info_overwrite: false
 jitsi_meet_conference_info_visible: "[ 'recording', 'local-recording', 'raised-hands-count' ]"
 jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee', 'transcribing', 'video-quality', 'insecure-room' ]"
-jitsi_meet_conference_request_host: "{{prosody_domain_name}}"
+jitsi_meet_conference_request_host: "{{ prosody_domain_name }}"
 jitsi_meet_conference_request_path: "conference-request/v1"
-jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090)}}"
+jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090) }}"
 jitsi_meet_config_path: "/etc/jitsi/meet"
 jitsi_meet_configure_flag: true
 jitsi_meet_content_security_policy_on_root: false
@@ -173,7 +173,7 @@ jitsi_meet_google_analytics_script_urls: "{{ ['https://<!--# echo var=\"http_hos
 jitsi_meet_google_analytics_tracking_id: ""
 jitsi_meet_google_api_app_client_id: false
 jitsi_meet_haproxy_bind_port: 9092
-#jitsi_meet_hepop_analytics_url: "{{jitsi_meet_hepop_analytics_urls_by_environment_type[jitsi_meet_environment_type] if jitsi_meet_environment_type in jitsi_meet_hepop_analytics_urls_by_environment_type else ''}}"
+#jitsi_meet_hepop_analytics_url: "{{ jitsi_meet_hepop_analytics_urls_by_environment_type[jitsi_meet_environment_type] if jitsi_meet_environment_type in jitsi_meet_hepop_analytics_urls_by_environment_type else '' }}"
 jitsi_meet_hepop_analytics_url: ""
 jitsi_meet_hepop_analytics_urls_by_environment_type:
   dev: https://hepop-dev.jitsi.net/
@@ -194,7 +194,7 @@ jitsi_meet_mouse_move_callback_interval: 1000
 jitsi_meet_nginx_only_flag: false
 jitsi_meet_nginx_redirect_missing_flag: false
 jitsi_meet_nginx_redirect_url: https://hipchat.com/
-jitsi_meet_nginx_root: "/usr/share/{{jitsi_meet_branding_override}}"
+jitsi_meet_nginx_root: "/usr/share/{{ jitsi_meet_branding_override }}"
 # Our networks and cloudflare (cloudflare ranges come from https://www.cloudflare.com/en-gb/ips/)
 jitsi_meet_nginx_trusted_proxies: ["127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32", "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"]
 jitsi_meet_nginx_ws_timeout: false
@@ -210,7 +210,7 @@ jitsi_meet_performance_stats: false
 jitsi_meet_polls_disabled: false
 jitsi_meet_prefer_vp9_codec_jvb: true
 jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
-jitsi_meet_prosody_deb_pkg_version: "{{jitsi_meet_deb_pkg_version}}"
+jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"
 jitsi_meet_redirect_to_ssl: true
 jitsi_meet_require_displayname: false
 jitsi_meet_resolution: false
@@ -221,9 +221,9 @@ jitsi_meet_rtcstats_poll_interval: 10000
 jitsi_meet_rtcstats_use_legacy: false
 jitsi_meet_screenshot_capture_enabled: false
 jitsi_meet_screenshot_capture_mode: 'recording'
-jitsi_meet_signal_api_server_name: "signal-api-{{jitsi_meet_domain_name}}"
-jitsi_meet_signal_api_ssl_certificate: "{{jitsi_meet_ssl_certificate}}"
-jitsi_meet_signal_api_ssl_key_name: "{{jitsi_meet_ssl_key_name}}"
+jitsi_meet_signal_api_server_name: "signal-api-{{ jitsi_meet_domain_name }}"
+jitsi_meet_signal_api_ssl_certificate: "{{ jitsi_meet_ssl_certificate }}"
+jitsi_meet_signal_api_ssl_key_name: "{{ jitsi_meet_ssl_key_name }}"
 jitsi_meet_signal_kick_endpoint: false
 jitsi_meet_signal_sidecar_enabled: true
 jitsi_meet_site_path: /usr/share/jitsi-meet
@@ -307,10 +307,10 @@ jitsi_meet_visitors_count: 0
 jitsi_meet_web_version: false
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
-jitsi_meet_ws_host: "{{prosody_domain_name}}"
+jitsi_meet_ws_host: "{{ prosody_domain_name }}"
 jitsi_meet_ws_path: "xmpp-websocket"
 jitsi_meet_ws_protocol: "wss://"
-jitsi_meet_ws_url: "{{jitsi_meet_ws_protocol}}{{jitsi_meet_ws_host}}/{{jitsi_meet_ws_path}}"
+jitsi_meet_ws_url: "{{ jitsi_meet_ws_protocol }}{{ jitsi_meet_ws_host }}/{{ jitsi_meet_ws_path }}"
 jitsi_meet_xmpp_domain_name: "{{ prosody_domain_name }}"
 jitsi_release_number: ''
 shard_name: "{{ hcv_environment }}"

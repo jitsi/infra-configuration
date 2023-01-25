@@ -4,11 +4,11 @@ After=selenium-xvfb.service
 Requires=selenium-xvfb.service
 
 [Service]
-User={{selenium_grid_username}}
-Group={{selenium_grid_groupname}}
+User={{ selenium_grid_username }}
+Group={{ selenium_grid_groupname }}
 Environment=DISPLAY=:99
-ExecStart={{selenium_grid_java_path}} -jar {{selenium_grid_extras_file}}
+ExecStart={{ selenium_grid_java_path }} -jar {{ selenium_grid_extras_file }}
 Restart=on-failure
 RestartPreventExitStatus=255
 Type=simple
-WorkingDirectory={{selenium_grid_extras_path}}
+WorkingDirectory={{ selenium_grid_extras_path }}

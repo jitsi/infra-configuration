@@ -4,11 +4,11 @@
   when: selenium_grid_configure_flag
 
 - name: restart selenium grid hub
-  service: name={{selenium_grid_hub_service_name}} state=restarted
+  service: name={{ selenium_grid_hub_service_name }} state=restarted
   when: selenium_grid_role=='hub' and selenium_grid_configure_flag and not selenium_grid_extras_configure_flag
 
 - name: restart selenium grid node
-  service: name={{selenium_grid_node_service_name}} state=restarted
+  service: name={{ selenium_grid_node_service_name }} state=restarted
   when: selenium_grid_role=='node' and selenium_grid_configure_flag and not selenium_grid_extras_configure_flag
 
 - name: restart datadog agent
@@ -20,9 +20,9 @@
   when: selenium_grid_role=='node' and selenium_grid_configure_flag
 
 - name: restart selenium grid extras node
-  service: name={{selenium_grid_extras_node_service_name}} state=restarted
+  service: name={{ selenium_grid_extras_node_service_name }} state=restarted
   when: selenium_grid_role=='node' and selenium_grid_extras_configure_flag
 
 - name: restart selenium grid extras hub
-  service: name={{selenium_grid_extras_hub_service_name}} state=restarted
+  service: name={{ selenium_grid_extras_hub_service_name }} state=restarted
   when: selenium_grid_role=='hub' and selenium_grid_extras_configure_flag

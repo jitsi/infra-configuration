@@ -1,58 +1,61 @@
 ---
-- name: install docker compose
-  apt:
+- name: Install docker compose
+  ansible.builtin.apt:
     name: docker-compose-plugin
     state: present
 
-- name: create /opt/firezone
-  file:
+- name: Create /opt/firezone
+  ansible.builtin.file:
+    mode: 0755
     path: /opt/firezone
     state: directory
 
-- name: download firezone docker compose file
-  shell:
-    cmd: curl -fsSL https://raw.githubusercontent.com/firezone/firezone/master/docker-compose.prod.yml -o docker-compose.yml
-    chdir: /opt/firezone
+- name: Download firezone docker compose file
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/firezone/firezone/master/docker-compose.prod.yml
+    dest: /opt/firezone/docker-compose.yml
+    mode: 0644
 
-- name: generate firezone environment
-  shell: docker run --rm firezone/firezone bin/gen-env > /opt/firezone/.env
+- name: Generate firezone environment
+  ansible.builtin.shell: docker run --rm firezone/firezone bin/gen-env > /opt/firezone/.env
 
-- name: change config URL
-  lineinfile:
+- name: Change config URL
+  ansible.builtin.lineinfile:
     dest: /opt/firezone/.env
     state: present
     regexp: "^EXTERNAL_URL="
-    line: "EXTERNAL_URL=https://{{dns_name}}"
+    line: "EXTERNAL_URL=https://{{ dns_name }}"
 
-- name: change config email
-  lineinfile:
+- name: Change config email
+  ansible.builtin.lineinfile:
     dest: /opt/firezone/.env
     state: present
     regexp: "^ADMIN_EMAIL="
     line: "ADMIN_EMAIL=meetings-ops@8x8.com"
 
-- name: change config TLS options
-  blockinfile:
+- name: Change config TLS options
+  ansible.builtin.blockinfile:
     path: /opt/firezone/.env
     block: |
       TLS_OPTS="tls {
           on_demand
       }"
 
-- name: bring up firezone in docker
-  shell:
+- name: Bring up firezone in docker
+  ansible.builtin.command:
     cmd: docker compose up -d
     chdir: /opt/firezone
 
-- name: wait for docker to come up
-  wait_for:
+- name: Wait for docker to come up
+  ansible.builtin.wait_for:
     timeout: 60
 
-- name: install default admin user
-  shell:
+- name: Install default admin user
+  ansible.builtin.command:
     cmd: docker compose exec firezone bin/create-or-reset-admin
     chdir: /opt/firezone
 
-- name: make sure docker comes up on restart
-  shell:
-    cmd: systemctl enable docker
+- name: Make sure docker comes up on restart
+  ansible.builtin.systemd:
+    enabled: true
+    name: docker

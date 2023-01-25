@@ -4,13 +4,13 @@ After=selenium-xvfb.service
 Requires=selenium-xvfb.service
 
 [Service]
-User={{selenium_grid_username}}
-Group={{selenium_grid_groupname}}
+User={{ selenium_grid_username }}
+Group={{ selenium_grid_groupname }}
 Environment=DISPLAY=:99
 Environment=DBUS_SESSION_BUS_ADDRESS=/dev/null
-ExecStart={{selenium_grid_java_path}} -jar {{selenium_grid_file}} -role node -nodeConfig {{selenium_grid_node_config_file}}
+ExecStart={{ selenium_grid_java_path }} -jar {{ selenium_grid_file }} -role node -nodeConfig {{ selenium_grid_node_config_file }}
 Restart=on-failure
 RestartPreventExitStatus=255
 Type=simple
-WorkingDirectory={{jitsi_torture_checkout_path}}
+WorkingDirectory={{ jitsi_torture_checkout_path }}
 

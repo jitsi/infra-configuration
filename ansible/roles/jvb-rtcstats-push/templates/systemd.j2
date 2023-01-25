@@ -3,10 +3,10 @@ Description=JVB RTC Stats Pusher
 After=network.target
 
 [Service]
-User={{jvb_rtcstats_push_username}}
-Group={{jvb_rtcstats_push_groupname}}
-EnvironmentFile={{jvb_rtcstats_push_config_path}}
-WorkingDirectory={{jvb_rtcstats_push_base_path}}
+User={{ jvb_rtcstats_push_username }}
+Group={{ jvb_rtcstats_push_groupname }}
+EnvironmentFile={{ jvb_rtcstats_push_config_path }}
+WorkingDirectory={{ jvb_rtcstats_push_base_path }}
 ExecStart=/usr/bin/node app.js
 Restart=on-failure
 KillSignal=SIGQUIT
@@ -14,7 +14,7 @@ Type=simple
 StandardOutput=syslog
 StandardError=syslog
 NotifyAccess=all
-SyslogIdentifier={{jvb_rtcstats_push_service_name}}
+SyslogIdentifier={{ jvb_rtcstats_push_service_name }}
 
 [Install]
 WantedBy=multi-user.target

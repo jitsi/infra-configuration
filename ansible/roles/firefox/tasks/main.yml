@@ -1,36 +1,52 @@
 ---
 - name: Install pulseaudio
-  apt: name=pulseaudio state=present
+  ansible.builtin.apt:
+    name: pulseaudio
+    state: present
 
 - name: Removing mozilla directory
-  file: path={{firefox_dir}} state=absent
+  ansible.builtin.file:
+    path: "{{ firefox_dir }}"
+    state: absent
 
-- name: create mozilla directory
-  file: path={{firefox_dir}} state=directory
+- name: Create mozilla directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ firefox_dir }}"
+    state: directory
 
 - name: Download and Unarchive firefox stable
-  unarchive: src={{ firefox_latest_stable_url }} dest={{ firefox_dir }} remote_src=yes
+  ansible.builtin.unarchive:
+    src: "{{ firefox_latest_stable_url }}"
+    dest: "{{ firefox_dir }}"
+    remote_src: true
 
 - name: Rename folder to firefox-stable
-  command: mv {{ firefox_dir }}/firefox {{ firefox_latest_stable_dir }}
+  ansible.builtin.command: mv {{ firefox_dir }}/firefox {{ firefox_latest_stable_dir }}
 
 - name: Create default/stable firefox link
-  file:
+  ansible.builtin.file:
     src: "{{ firefox_latest_stable_dir }}/firefox"
     dest: "{{ firefox_latest_stable_path }}"
     state: link
 
 - name: Download and Unarchive firefox beta
-  unarchive: src={{ firefox_latest_beta_url }} dest={{ firefox_dir }} remote_src=yes
+  ansible.builtin.unarchive:
+    src: "{{ firefox_latest_beta_url }}"
+    dest: "{{ firefox_dir }}"
+    remote_src: true
 
 - name: Rename folder to firefox-beta
-  command: mv {{ firefox_dir }}/firefox {{ firefox_latest_beta_dir }}
+  ansible.builtin.command: mv {{ firefox_dir }}/firefox {{ firefox_latest_beta_dir }}
 
 - name: Create beta firefox link
-  file:
+  ansible.builtin.file:
     src: "{{ firefox_latest_beta_dir }}/firefox"
     dest: "{{ firefox_latest_beta_path }}"
     state: link
 
 - name: Download information for latest version
-  get_url: url="{{ firefox_latest_versions_info_url }}" dest="{{ firefox_dir }}"
+  ansible.builtin.get_url:
+    mode: 0644
+    url: "{{ firefox_latest_versions_info_url }}"
+    dest: "{{ firefox_dir }}"
