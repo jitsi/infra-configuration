@@ -14,7 +14,7 @@
     visitors_enabled: "false"
     visitors_count: "0"
     procstat_visitor_units_str: "{% for i in range(visitors_count|int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
-    procstat_units: "{{ ['prosody','prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled=='true' else [] }}"
+    procstat_units: "{{ ['prosody','prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled=='true' else ['prosody','prosody-jvb', 'prosody-egress'] }}"
     telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
       {% if not loop.last %},{% endif %}{% endfor %}]"
     telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str|from_yaml }}"
