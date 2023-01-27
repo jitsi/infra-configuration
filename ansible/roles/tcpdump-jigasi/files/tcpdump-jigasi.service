@@ -1,0 +1,20 @@
+[Unit]
+Description=tcpdump for jigasi
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/var/lib/tcpdump-jigasi
+ExecStart=/usr/bin/tcpdump -ni ens3 -G 1800 -w /var/lib/tcpdump-jigasi/trace-%%Y-%%m-%%d_%%H.%%M.%%S.pcap port 5061
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier=tcpdump-jigasi
+
+[Install]
+WantedBy=multi-user.target
+
