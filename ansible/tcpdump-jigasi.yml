@@ -1,0 +1,7 @@
+- name: Main
+  hosts: all
+  gather_facts: false
+  become_user: root
+  become: true
+  roles:
+    - { role: "tcpdump-jigasi", "tags": "tcpdump-jigasi"}
