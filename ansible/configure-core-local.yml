@@ -197,7 +197,6 @@
         jicofo_visitors_enabled: "{{ visitors_enabled=='true' }}", jicofo_visitors_count: "{{ visitors_count }}" }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true,
         jitsi_meet_visitors_enabled: "{{ visitors_enabled=='true' }}", jitsi_meet_visitors_count: "{{ visitors_count }}" }
-    - { role: "jiconop", tags: "jiconop", jiconop_install_flag: false, jiconop_configure_flag: true }
     - { role: "jibri-auth", tags: "jibri-auth"}
     - { role: "jigasi-auth", tags: "jigasi-auth"}
     - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}

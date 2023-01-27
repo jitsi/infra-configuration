@@ -254,7 +254,6 @@
     - { role: flush-handlers, tags: "configure" }
 
   # additional components here
-    - { role: "jiconop", tags: "jiconop"}
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
     - { role: jitsi-dumper, tags: "jitsi-dumper"}
     - { role: jibri-auth, tags: "jibri-auth"}

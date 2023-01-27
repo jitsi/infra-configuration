@@ -260,24 +260,6 @@ server {
     rewrite ^.*/static/close2.html$ {{ jitsi_meet_close_page_redirect_url }} redirect;
 {% endif %}
 
-{% if jitsi_meet_jiconop_enabled %}
-    location = /connection_optimization/connection_optimization.html {
-        alias /usr/share/jiconop/connection_optimization.html;
-    }
-    location = /http-pre-bind {
-        proxy_pass      http://127.0.0.1:9615/http-bind;
-        # do not cache anything from prebind
-        add_header "Cache-Control" "no-cache, no-store";
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
-        add_header 'X-Jitsi-Shard' '{{ shard_name }}';
-        add_header 'X-Jitsi-Region' '{{ shard_region }}';
-        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
-        add_header 'Access-Control-Allow-Origin' '*';
-        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region";
-    }
-{% endif %}
-
     location = /nginx_status {
       stub_status on;
       access_log   off;
@@ -577,15 +559,6 @@ server {
     }
 
 {% if jitsi_meet_enable_multi_domain %}
-{% if jitsi_meet_jiconop_enabled %}
-    location ~ ^/([^/?&:'"]+)/http-pre-bind {
-        set $subdomain "$1.";
-        set $subdir "$1/";
-
-        rewrite ^/(.*)$ /http-pre-bind;
-    }
-{% endif %}
-
     location ~ ^/([^/?&:'"]+)/config.js$
     {
        set $subdomain "$1.";
