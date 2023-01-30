@@ -36,8 +36,8 @@ coturn_realm: "coturn.jitsi.net"
 coturn_scripts_path: "/usr/local/bin"
 coturn_service_name: "coturn"
 coturn_src_name: coturn
-coturn_src_libprom_url: "https://repo:R3p0muHn7@internal-repo.jitsi.net/debian/misc/libprom-dev-0.1.3-Linux.deb"
-coturn_src_libpromhttp_url: "https://repo:R3p0muHn7@internal-repo.jitsi.net/debian/misc/libpromhttp-dev-0.1.3-Linux.deb"
+coturn_src_libprom_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/libprom-dev-0.1.3-Linux.deb"
+coturn_src_libpromhttp_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/libpromhttp-dev-0.1.3-Linux.deb"
 coturn_src_url: "https://github.com/coturn/coturn/archive/refs/tags/{{ coturn_src_version }}.tar.gz"
 coturn_src_version: 4.5.2
 coturn_ssl_cert_name: "star_jitsi_net-2023-08-19"
