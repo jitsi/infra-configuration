@@ -6,7 +6,7 @@
   gather_facts: false
   vars_files:
     - roles/hcv-haproxy-configure/defaults/main.yml
-    - environments/{{hcv_environment}}/group_vars/all.yml
+    - sites/{{hcv_environment}}/vars.yml
   tasks:
     - name: haproxy live release value
       debug: var=haproxy_release_live
