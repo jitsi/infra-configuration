@@ -1,0 +1,31 @@
+---
+- name: Main
+  hosts: default
+  gather_facts: true
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/repo.yml
+    - config/vars.yml
+  vars:
+    cloud_provider: oracle
+  pre_tasks:
+    # pause 60 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 60
+      ansible.builtin.pause:
+        seconds: 60
+      tags: provision
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags: provision
+
+  roles:
+    - { role: "common", tags: "common" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_coturn_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "coturn", tags: "coturn", coturn_configure_flag: false}
+    - { role: "clean-system", tags: "clean-system, build" }
