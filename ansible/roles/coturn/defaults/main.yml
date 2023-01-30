@@ -12,7 +12,7 @@ coturn_dpkg_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{
 coturn_health_sns_topic: "arn:aws:sns:us-west-1:103425057857:CoturnHealth-Check-List"
 coturn_install_flag: true
 coturn_install_apt_flag: true
-coturn_install_src_flag: true
+coturn_install_src_flag: false
 coturn_ipv6_ddns: false
 coturn_libevent_dpkg_url: "https://launchpad.net/ubuntu/+source/libevent/2.1.8-stable-4/+build/13177954/+files/"
 coturn_libevent_package_names:
@@ -31,7 +31,7 @@ coturn_pid_file_path_bionic: "/var/run/turnserver.pid"
 coturn_pid_file_path_focal: "/run/turnserver/turnserver.pid"
 coturn_pid_file_path: "{{ coturn_pid_file_path_bionic if ansible_distribution_release == 'bionic' else coturn_pid_file_path_focal }}"
 coturn_port: 443
-coturn_prometheus_flag: "{{ coturn_install_src_flag | bool }}"
+coturn_prometheus_flag: true
 coturn_realm: "coturn.jitsi.net"
 coturn_scripts_path: "/usr/local/bin"
 coturn_service_name: "coturn"
