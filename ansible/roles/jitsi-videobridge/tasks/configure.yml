@@ -230,12 +230,12 @@
   when: jvb_image_build_flag == false and ansible_service_mgr == "systemd" 
 
 - name: Create directory for AWS credentials
-  file: path="/home/{{ jvb_health_check_cron_user }}/.aws" state=directory
+  file: path="/home/{{ jvb_health_check_cron_user }}/.aws" state=directory owner="{{ jvb_health_check_cron_user }}"
   when: jvb_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
 
 - name: AWS credentials
   template: src=aws_credentials.j2
-    dest="/home/{{ jvb_health_check_cron_user }}/.aws/credentials" mode=0640 owner={{ jvb_health_check_cron_user }}
+    dest="/home/{{ jvb_health_check_cron_user }}/.aws/credentials" mode=0640 owner="{{ jvb_health_check_cron_user }}"
   when: jvb_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
 
 - lineinfile: 

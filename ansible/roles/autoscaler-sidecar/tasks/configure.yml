@@ -73,6 +73,7 @@
 
 - name: Create directory for AWS credentials
   ansible.builtin.file:
+    owner: "{{ autoscaler_username }}"
     mode: 0750
     path: "{{ autoscaler_user.homedir }}/.aws"
     state: directory
