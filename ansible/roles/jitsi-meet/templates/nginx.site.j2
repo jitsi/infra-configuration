@@ -37,7 +37,7 @@ map $request $request_anon {
 }
 log_format anon '$remote_addr_anon - $remote_user [$time_local] "$request_anon" '
     '$status $body_bytes_sent "$http_referer" '
-    '"$http_user_agent" "$http_x_forwarded_for"';
+    '"$http_user_agent" "$http_x_forwarded_for" $request_time';
 {% endif %}
 types {
     application/wasm   wasm;
