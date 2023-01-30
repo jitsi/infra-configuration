@@ -1,0 +1,80 @@
+---
+
+- name: Gather AWS facts
+  amazon.aws.ec2_metadata_facts:
+  register: ec2_info
+  tags: "ec2_facts"
+
+- name: Set fact about instance mac address
+  ansible.builtin.set_fact:
+    mac: "{{ ec2_info.ansible_facts.ansible_ec2_mac | regex_replace(':', '_') }}"
+
+- name: Get ipv6
+  ansible.builtin.set_fact:
+    ipv6: "{{ ec2_info.ansible_facts['ansible_ec2_network_interfaces_macs_' + mac + '_ipv6s'] | default(false) }}"
+
+- name: Obtain EC2 tags for this instance
+  amazon.aws.ec2_tag:
+    region: "{{ ansible_ec2_placement_region }}"
+    resource: "{{ ansible_ec2_instance_id }}"
+    state: list
+  register: ec2_tags
+  when: ipv6
+
+- name: Set stack name
+  ansible.builtin.set_fact:
+    cf_stack_name: "{{ ec2_tags.tags['aws:cloudformation:stack-name'] | default(false) }}"
+  when: ipv6
+
+- name: Get cloudformation facts
+  amazon.aws.cloudformation_info:
+    stack_name: "{{ cf_stack_name }}"
+    region: "{{ ansible_ec2_placement_region }}"
+  register: cf_facts
+  when:
+    - ipv6
+    - cf_stack_name
+
+- name: Create coturn ipv6 health_check
+  community.aws.route53_health_check:
+    state: present
+    fqdn: "{{ cf_facts.ansible_facts.cloudformation[cf_stack_name].stack_parameters.TURNDnsName }}"
+    ip_address: "{{ ipv6 }}"
+    type: HTTP
+    port: 443
+    region: "{{ ansible_ec2_placement_region }}"
+    resource_path: /
+    request_interval: 30
+    failure_threshold: 3
+  register: coturn_ipv6_health_check
+  when:
+    - ipv6
+    - cf_stack_name
+
+- name: Update route53 record
+  community.aws.route53:
+    command: create
+    zone: "{{ cf_facts.ansible_facts.cloudformation[cf_stack_name].stack_parameters.DnsZoneDomainName }}"
+    record: "{{ cf_facts.ansible_facts.cloudformation[cf_stack_name].stack_parameters.TURNDnsName }}"
+    identifier: "coturn {{ ansible_ec2_placement_region }} ansible ddns ipv6"
+    ttl: 30
+    weight: 10
+    overwrite: true
+    type: AAAA
+    value: "{{ ipv6 }}"
+    health_check: "{{ coturn_ipv6_health_check.health_check.id }}"
+  when:
+    - ipv6
+    - cf_stack_name
+
+- name: Add ipv6 into instance tag
+  amazon.aws.ec2_tag:
+    region: "{{ ansible_ec2_placement_region }}"
+    resource: "{{ ansible_ec2_instance_id }}"
+    state: present
+    tags:
+      ipv6_address: "{{ ipv6 }}"
+      ipv6_healthcheck_id: "{{ coturn_ipv6_health_check.health_check.id }}"
+  when:
+    - ipv6
+    - cf_stack_name

@@ -1,0 +1,87 @@
+---
+
+# set COTURN udp buffer parameters
+- name: Coturn buffer size maximum
+  ansible.posix.sysctl:
+    name: net.core.rmem_max
+    value: "{{ coturn_udp_buffer_size }}"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Coturn buffer size count
+  ansible.posix.sysctl:
+    name: net.core.netdev_max_backlog
+    value: "{{ coturn_udp_buffer_max_backlog }}"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Enable coturn on boot
+  ansible.builtin.lineinfile:
+    dest: /etc/default/coturn
+    regexp: '^#?TURNSERVER_ENABLED='
+    line: 'TURNSERVER_ENABLED=1'
+
+- name: Create directory for coturn logs
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ coturn_logs_path }}"
+    state: directory
+    owner: turnserver
+
+- name: Modify coturn init file to take AWS public/local ip address into account
+  ansible.builtin.lineinfile:
+    dest: /etc/init.d/coturn
+    regexp: '^DAEMON_ARGS='
+    line: "DAEMON_ARGS='--external-ip {{ ansible_ec2_public_ipv4 }}/{{ ansible_ec2_local_ipv4 }}
+      -c /etc/turnserver.conf -o -v -l {{ coturn_logs_path }}/turn.log --simple-log'"
+  notify: Restart coturn
+  when: ansible_distribution_release == 'bionic'
+
+- name: Modify coturn systemd file to allow binding to 443
+  ansible.builtin.shell: |
+    grep -q 'AmbientCapabilities=CAP_NET_BIND_SERVICE' /lib/systemd/system/coturn.service || \
+    sed -i '/\[Service\]/a AmbientCapabilities=CAP_NET_BIND_SERVICE' /lib/systemd/system/coturn.service
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: Modify coturn systemd file to take AWS public/local ip address into account
+  ansible.builtin.lineinfile:
+    dest: /lib/systemd/system/coturn.service
+    regexp: '^ExecStart='
+    line: "ExecStart=/usr/bin/turnserver --daemon -c /etc/turnserver.conf --pidfile {{ coturn_pid_file_path }}
+       --external-ip {{ ansible_ec2_public_ipv4 }}/{{ ansible_ec2_local_ipv4 }} -o {{ '-v' if coturn_verbose_flag else '' }}
+       -l {{ coturn_logs_path }}/turn.log --simple-log"
+  notify: restart coturn systemd
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
+- name: Modify coturn max open files limits
+  ansible.builtin.lineinfile:
+    dest: "/etc/default/{{ coturn_service_name }}"
+    regexp: "^ulimit "
+    line: "ulimit -n 35000"
+  notify: restart coturn
+
+- name: Write coturn config file
+  ansible.builtin.template:
+    mode: 0644
+    src: turnserver.conf.j2
+    dest: /etc/turnserver.conf
+  notify: restart coturn
+
+- name: Copy ssl cert to the ssl folder
+  ansible.builtin.copy:
+    mode: 0644
+    content: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+    dest: "{{ coturn_ssl_crt_dest_path }}"
+
+- name: Copy ssl key to the ssl folder
+  ansible.builtin.copy:
+    mode: 0644
+    content: "{{ jitsi_net_ssl_key_name }}"
+    dest: "{{ coturn_ssl_key_dest_path }}"
+
+- name: Ensure coturn is running
+  ansible.builtin.service:
+    name: coturn
+    state: started

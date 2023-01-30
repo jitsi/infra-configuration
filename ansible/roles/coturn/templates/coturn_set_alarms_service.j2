@@ -1,0 +1,24 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Required-Start: $network 
+# Required-Stop: $remote_fs $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Description: Check instance termination state
+# 
+### END INIT INFO
+
+case "$1" in
+ start)
+   {{coturn_scripts_path}}/coturn-set-alarms.sh ok
+   {{coturn_scripts_path}}/coturn-set-alarms.sh ok CoturnOpenedFilesLimitFailed
+   ;;
+ stop)
+   {{coturn_scripts_path}}/coturn-set-alarms.sh alarm
+   sleep 10
+   ;;
+ *)
+   echo "Usage: coturn-set-alarms {start|stop}" >&2
+   exit 3
+   ;;
+esac

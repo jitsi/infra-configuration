@@ -1,0 +1,119 @@
+#!/bin/bash
+
+#set -e
+#set -x
+
+
+export TMP_DIR="/mnt/dump-coturn"
+
+if [ ! -d "$TMP_DIR" ]; then
+    mkdir $TMP_DIR
+fi
+
+function dump_logs_by_pid(){
+
+    JPID=`ps aux | grep turnserver | grep -v grep | awk '{ print $2; }'`
+    JSTAMP=`date +%Y-%m-%d-%H%M`
+    JHOST=`hostname -s`
+
+    echo "HOST: $JHOST, PID: $JPID, STAMP: $JSTAMP, TMP_DIR: $TMP_DIR" >> /tmp/coturn_dump.log
+
+    echo "---------HOST: $JHOST netstat -paunt OUTPUT $JSTAMP---------" >> $TMP_DIR/coturn_netstat_dump.log
+    netstat -paunt|grep turn|grep -v grep >> $TMP_DIR/coturn_netstat_dump.log
+
+    echo "---------HOST: $JHOST LSOF -p $JPID OUTPUT $JSTAMP---------" >> $TMP_DIR/coturn_lsof_dump.log
+    lsof -p $JPID >> $TMP_DIR/coturn_lsof_dump.log
+
+    echo "---------HOST: $JHOST DISK SPACE $JSTAMP---------" >> $TMP_DIR/df_dump.log
+    df -h >> $TMP_DIR/df_dump.log
+
+    echo "---------HOST: $JHOST PS OUTPUT $JSTAMP---------" >> $TMP_DIR/ps_dump.log
+    ps auxwww >> $TMP_DIR/ps_dump.log
+
+    echo "---------HOST: $JHOST PSTREE OUTPUT $JSTAMP---------" >> $TMP_DIR/ps_tree.log
+    pstree -pal >> $TMP_DIR/ps_tree.log
+
+    echo "---------HOST: $JHOST TOP OUTPUT $JSTAMP---------" >> $TMP_DIR/top_dump.log
+    top -n 1 -b >> $TMP_DIR/top_dump.log
+
+    echo "---------HOST: $JHOST LSOF OUTPUT $JSTAMP---------" >> $TMP_DIR/lsof_dump.log
+    lsof >> $TMP_DIR/lsof_dump.log
+
+    echo "---------HOST: $JHOST SS -tuaxnp OUTPUT $JSTAMP---------" >> $TMP_DIR/ss_dump.log
+    ss -tuaxnp >> $TMP_DIR/ss_dump.log
+
+}
+
+function copy_system_logs() {
+
+    cp -a /var/log/cloud-init* $TMP_DIR
+
+    cp -a /var/log/bootstrap.log $TMP_DIR
+
+    cp -a /var/log/postinstall-ansible.log $TMP_DIR
+
+    mkdir $TMP_DIR/coturn
+
+    cp -a /var/log/coturn/* $TMP_DIR/coturn
+
+    cp -a /var/log/monit* $TMP_DIR
+
+    mkdir $TMP_DIR/local
+
+    cp -a /var/log/local/* $TMP_DIR/local
+
+    cp -a /var/log/syslog $TMP_DIR
+
+}
+
+function send_to_s3(){
+    #first load our local instance information from Oracle (or cache) (ENVIRONMENT, DOMAIN, SHARD)
+    . /usr/local/bin/oracle_cache.sh
+
+    BUCKET="dump-logs-${ENVIRONMENT}"
+
+    JSTAMP=`date +%Y-%m-%d-%H%M`
+    JHOST=`hostname -s`
+
+    if [ -z $ARCH_PATH ]; then
+        export ARCH_PATH="/mnt/$JHOST-$JSTAMP-coturn-dump.tar.gz"
+    fi
+
+    tar zcf $ARCH_PATH -C $TMP_DIR . && echo "$ARCH_PATH" >> /tmp/coturn_dump.log
+
+    [ -d $TMP_DIR ] && rm -r $TMP_DIR
+
+    # Assuming AWS CLI is already configured by Ansible
+    # and the machine has write access to this bucket
+
+    echo "Uploading to Object Storage." >> /tmp/coturn_dump.log
+    OBJECT_NAME=$JHOST-$JSTAMP-$JPID-dump.tar.gz
+
+    $OCI_BIN os object put -bn $BUCKET --name $JHOST-$JSTAMP-$JPID-dump.tar.gz --file $ARCH_PATH --metadata '{"environment":"'"$ENVIRONMENT"'","release-number":"'"$RELEASE_NUMBER"'"}'
+
+    echo $OBJECT_NAME >>/tmp/coturn_dump.log
+}
+
+case $1 in
+        dump_logs_by_pid)
+           logger "Dump coturn logs by PID"
+           dump_logs_by_pid
+        ;;
+        copy_system_logs)
+            logger "Copy system logs"
+            copy_system_logs
+        ;;
+        send_to_s3)
+           logger "Send logs dump to S3 "
+           send_to_s3
+        ;;
+        copy_and_send)
+            logger "Copy system logs and send dump to the S3"
+            copy_system_logs
+            send_to_s3
+        ;;
+        *)
+            logger "Skip logs dumping"
+            exit 0
+        ;;
+esac

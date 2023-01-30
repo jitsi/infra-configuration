@@ -1,0 +1,11 @@
+#!/bin/bash
+
+open_files_limit=$(cat /etc/default/coturn|grep ulimit|cut -d' ' -f3)
+currently_opened_files_count=$(lsof -p $(cat /var/run/turnserver.pid)|wc -l)
+
+if [[ $currently_opened_files_count -ge $open_files_limit ]]; then
+    # we do not set alarms for oracle, just return error
+    exit 1
+else
+    exit 0
+fi

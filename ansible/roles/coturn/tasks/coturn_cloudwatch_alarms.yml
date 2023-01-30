@@ -1,0 +1,77 @@
+---
+
+- name: CloudWatch | copy script into host
+  ansible.builtin.template:
+    src: "coturn-set-alarms.sh.j2"
+    dest: "{{ coturn_scripts_path }}/coturn-set-alarms.sh"
+    mode: "0744"
+    owner: root
+    group: root
+
+- name: CloudWatch | add systemd unit
+  ansible.builtin.template:
+    mode: 0644
+    src: "coturn_set_alarms_systemd.j2"
+    dest: "{{ coturn_systemd_lib_path }}/coturn_set_alarms.service"
+  when: ansible_service_mgr == 'systemd'
+
+- name: CloudWatch | add initd script
+  ansible.builtin.template:
+    src: "coturn_set_alarms_service.j2"
+    dest: "/etc/init.d/coturn-set-alarms"
+    mode: "0744"
+    owner: root
+    group: root
+  when: ansible_service_mgr != 'systemd'
+
+- name: CloudWatch | add set-alarms script into monit
+  ansible.builtin.lineinfile:
+    dest: "{{ coturn_scripts_path }}/coturn-mark-unhealthy.sh"
+    regexp: "^#{{ coturn_scripts_path }}/coturn-set-alarms.sh"
+    line: "{{ coturn_scripts_path }}/coturn-set-alarms.sh alarm"
+    insertafter: '^#Metric '
+
+- name: CloudWatch | restart monit systemd
+  ansible.builtin.systemd:
+    name: monit
+    state: restarted
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'
+
+- name: CloudWatch | restart monit service
+  ansible.builtin.service:
+    name: monit
+    state: restarted
+  when: ansible_service_mgr != 'systemd'
+
+- name: CloudWatch | reload monit
+  ansible.builtin.command: "{{ monit_bin_path }} reload"
+
+- name: CloudWatch | start coturn service from monit
+  ansible.builtin.command: "{{ monit_bin_path }} start {{ coturn_service_name }}"
+
+- name: CloudWatch | enable systemd service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: coturn_set_alarms.service
+    state: restarted
+    enabled: true
+  when: ansible_service_mgr == 'systemd'
+
+- name: CloudWatch | enable service
+  ansible.builtin.service:
+    name: coturn-set-alarms
+    state: restarted
+    enabled: true
+  when: ansible_service_mgr != 'systemd'
+
+- name: CloudWatch | create symlinc for rc0.d and rc6.d
+  ansible.builtin.file:
+    src: "{{ coturn_scripts_path }}/coturn-set-alarms.sh"
+    dest: "/etc/{{ item }}/K01coturn-set-alarms"
+    owner: root
+    group: root
+    state: link
+  with_items:
+    - 'rc0.d'
+    - 'rc6.d'

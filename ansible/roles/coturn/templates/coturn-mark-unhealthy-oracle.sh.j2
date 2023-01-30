@@ -1,0 +1,10 @@
+#!/bin/bash
+INSTANCE_METADATA=`curl -s http://169.254.169.254/opc/v1/instance/`
+INSTANCE_ID=$(echo $INSTANCE_METADATA | jq .id -r)
+OCI_BIN="/usr/local/bin/oci"
+
+#Metric
+{% if coturn_copy_dumps_to_s3 %}
+{{coturn_scripts_path}}/dump-coturn.sh copy_and_send
+$OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --force --auth instance_principal
+{% endif %}

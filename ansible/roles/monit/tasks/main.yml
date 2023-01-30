@@ -1,0 +1,61 @@
+---
+- name: Install monit from apt
+  ansible.builtin.apt:
+    name: monit
+    state: present
+
+- name: Add monitrc port 2812 line
+  ansible.builtin.lineinfile:
+    dest: /etc/monit/monitrc
+    state: present
+    line: 'set httpd port 2812 and'
+
+- name: Remove monitrc localhost.* address line
+  ansible.builtin.lineinfile:
+    dest: /etc/monit/monitrc
+    state: absent
+    line: '     use address localhost.*'
+
+- name: Remove monitrc localhost address line
+  ansible.builtin.lineinfile:
+    dest: /etc/monit/monitrc
+    state: absent
+    line: '     use address localhost'
+
+- name: Add monitrc allow localhost line
+  ansible.builtin.lineinfile:
+    dest: /etc/monit/monitrc
+    state: present
+    line: '     allow localhost'
+
+- name: Comment out monitrc set daemon 120
+  ansible.builtin.lineinfile:
+    dest: /etc/monit/monitrc
+    state: present
+    regexp: "^\\s*set daemon 120"
+    line: '#  set daemon 120'
+
+- name: Add monitrc set daemon 15
+  ansible.builtin.lineinfile:
+    dest: /etc/monit/monitrc
+    state: present
+    line: 'set daemon 15'
+
+- name: Set monitrc permissions
+  ansible.builtin.file:
+    path: /etc/monit/monitrc
+    mode: 0600
+
+- name: Copy modebug and morun
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/opt/{{ item }}"
+    mode: 0755
+  with_items:
+    - modebug
+    - morun
+- name: Restart monit service
+  ansible.builtin.service:
+    name: monit
+    state: restarted
+    enabled: true

@@ -1,0 +1,100 @@
+---
+- name: Monit | ensure that all folders exist
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ coturn_monit_available_conf_path }}"
+    - "{{ coturn_monit_enabled_conf_path }}"
+
+- name: Monit | add monit config
+  ansible.builtin.template:
+    src: monit_coturn.j2
+    dest: "{{ coturn_monit_available_conf_path }}/turnserver"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Monit | enable coturn config
+  ansible.builtin.file:
+    src: "{{ coturn_monit_available_conf_path }}/turnserver"
+    dest: "{{ coturn_monit_enabled_conf_path }}/turnserver"
+    owner: root
+    group: root
+    state: link
+  when: ansible_service_mgr == 'systemd'
+
+- name: Monit | enable coturn config old ubuntu
+  ansible.builtin.file:
+    src: "{{ coturn_monit_available_conf_path }}/turnserver"
+    dest: "/etc/monit/conf.d/turnserver"
+    owner: root
+    group: root
+    state: link
+  when: ansible_service_mgr != 'systemd'
+
+- name: Monit | copy monit sns alert script
+  ansible.builtin.template:
+    src: coturn-mark-unhealthy.sh.j2
+    dest: "{{ coturn_scripts_path }}/coturn-mark-unhealthy.sh"
+    owner: root
+    group: root
+    mode: '0550'
+  when: coturn_cloud_provider == "aws"
+
+- name: Monit | copy monit mark unhealthy script oracle
+  ansible.builtin.template:
+    src: coturn-mark-unhealthy-oracle.sh.j2
+    dest: "{{ coturn_scripts_path }}/coturn-mark-unhealthy.sh"
+    owner: root
+    group: root
+    mode: '0550'
+  when: coturn_cloud_provider == "oracle"
+
+- name: Copy coturn dump script
+  ansible.builtin.template:
+    src: dump-coturn.sh.j2
+    dest: "{{ coturn_scripts_path }}/dump-coturn.sh"
+    mode: 0755
+  when: coturn_cloud_provider == "aws"
+
+- name: Copy coturn dump script oracle
+  ansible.builtin.template:
+    src: dump-coturn-oracle.sh.j2
+    dest: "{{ coturn_scripts_path }}/dump-coturn.sh"
+    mode: 0755
+  when: coturn_cloud_provider == "oracle"
+
+- name: Copy coturn file limits script
+  ansible.builtin.template:
+    src: check-files-limits.sh.j2
+    dest: "{{ coturn_scripts_path }}/check-files-limits.sh"
+    mode: 0755
+  when: coturn_cloud_provider == "aws"
+
+- name: Copy coturn file limits script oracle
+  ansible.builtin.template:
+    src: check-files-limits-oracle.sh.j2
+    dest: "{{ coturn_scripts_path }}/check-files-limits.sh"
+    mode: 0755
+  when: coturn_cloud_provider == "oracle"
+
+- name: Monit | restart monit systemd
+  ansible.builtin.systemd:
+    name: monit
+    state: restarted
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'
+
+- name: Monit | restart monit service
+  ansible.builtin.service:
+    name: monit
+    state: restarted
+  when: ansible_service_mgr != 'systemd'
+
+- name: Monit | reload monit
+  ansible.builtin.command: "{{ monit_bin_path }} reload"
+
+- name: Monit | start coturn service from monit
+  ansible.builtin.command: "{{ monit_bin_path }} restart {{ coturn_service_name }}"

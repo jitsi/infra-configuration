@@ -1,0 +1,14 @@
+[Unit]
+Description=Check instance termination state
+Before=shutdown.target reboot.target halt.target
+Requires=network-online.target network.target
+
+[Service]
+ExecStart={{coturn_scripts_path}}/coturn-set-alarms.sh ok 
+ExecStart={{coturn_scripts_path}}/coturn-set-alarms.sh ok CoturnOpenedFilesLimitFailed
+ExecStop={{coturn_scripts_path}}/coturn-set-alarms.sh alarm
+Type=oneshot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=reboot.target shutdown.target halt.target
