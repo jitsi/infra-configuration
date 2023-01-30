@@ -1,0 +1,104 @@
+---
+- name: Main
+  hosts: "{{ variable_host | default('all')}}"
+  gather_facts: true
+  become_user: root
+  become: true
+  vars:
+    shard_role: coturn
+    cloud_provider: oracle
+  vars_files:
+    - secrets/coturn.yml
+    - secrets/ssl-certificates.yml
+    - secrets/oci-logging.yml
+    - roles/jitsi-repo/defaults/main.yml
+    - secrets/repo.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  pre_tasks:
+    - name: Remove old jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
+        state: absent
+      tags: setup
+    - name: Remove old jitsi trusted repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url_old }} unstable/"
+        state: absent
+      tags: setup
+    - name: Setup new repo template file
+      ansible.builtin.template:
+        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
+        owner: root
+        mode: 0600
+      tags: setup
+    - name: Setup new trusted jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_repo_url }} unstable/"
+        state: present
+        update_cache: false
+      tags: setup
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags: setup
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ ansible_fqdn }}"
+    - name: Get instance's VNIC
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/vnics/
+      register: vnic_result
+      tags: setup
+    - name: Set vnic fact
+      ansible.builtin.set_fact:
+        jvb_vnic: "{{ vnic_result.json[0].vnicId }}"
+      tags: setup
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set shape fact
+      ansible.builtin.set_fact:
+        jvb_shape: "{{ instance_result.json.shape }}"
+      tags: setup
+    - name: Get instance's Public IP from VNIC
+      ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
+      register: vnic_details_result
+      changed_when: vnic_details_result.rc != 0 # <- Uses the return code to define when the task has changed.
+      tags: setup
+    - name: Set IP facts
+      ansible.builtin.set_fact:
+        ansible_ec2_public_ipv4: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+        ansible_ec2_local_ipv4: "{{ (vnic_details_result.stdout | from_json).data['private-ip'] }}"
+      tags: setup
+
+  roles:
+# TODO IPv6 is not yet supported by oracle
+    - { role: "iptables-coturn", tags: "iptables-coturn"}
+#    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
+    - { role: "common", tags: "common"}
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_coturn_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: coturn_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      vars:
+        telegraf_inputs:
+          prometheus:
+            urls: ["http://localhost:9641/metrics"]
+            namepass: ["turn_total_*", "process_*"]
+        telegraf_tags:
+          role: "coturn"
+          environment: "{{ hcv_environment }}"
+          region: "{{ oracle_to_aws_region_map[oracle_region] }}"
+          oracle_region: "{{ oracle_region }}"
+          cloud: "oracle"
+# CloudWatch alarms are no longer used, we don't enable them for Oracle
+    - { role: "coturn", tags: "coturn", coturn_cloudwatch_flag: false, coturn_install_flag: false, coturn_ipv6_ddns: true, ipv6_enabled: false}
