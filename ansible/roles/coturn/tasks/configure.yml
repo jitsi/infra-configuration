@@ -43,17 +43,7 @@
   ansible.builtin.shell: |
     grep -q 'AmbientCapabilities=CAP_NET_BIND_SERVICE' /lib/systemd/system/coturn.service || \
     sed -i '/\[Service\]/a AmbientCapabilities=CAP_NET_BIND_SERVICE' /lib/systemd/system/coturn.service
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
-
-- name: Modify coturn systemd file to take AWS public/local ip address into account
-  ansible.builtin.lineinfile:
-    dest: /lib/systemd/system/coturn.service
-    regexp: '^ExecStart='
-    line: "ExecStart=/usr/bin/turnserver --daemon -c /etc/turnserver.conf --pidfile {{ coturn_pid_file_path }}
-       --external-ip {{ ansible_ec2_public_ipv4 }}/{{ ansible_ec2_local_ipv4 }} -o {{ '-v' if coturn_verbose_flag else '' }}
-       -l {{ coturn_logs_path }}/turn.log --simple-log"
-  notify: restart coturn systemd
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: ansible_distribution_release != 'bionic'
 
 - name: Modify coturn max open files limits
   ansible.builtin.lineinfile:

@@ -41,3 +41,10 @@ prometheus
 {% endif %}
 cert={{coturn_ssl_crt_dest_path}}
 pkey={{coturn_ssl_key_dest_path}}
+log-file={{ coturn_logs_path }}/turn.log
+simple-log
+pidfile=/var/tmp/turnserver.pid
+external-ip={{ ansible_ec2_public_ipv4 }}/{{ ansible_ec2_local_ipv4 }}
+{% if coturn_prometheus_flag %}
+verbose
+{% endif %}
