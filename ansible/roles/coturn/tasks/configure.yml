@@ -40,9 +40,11 @@
   when: ansible_distribution_release == 'bionic'
 
 - name: Modify coturn systemd file to allow binding to 443
-  ansible.builtin.shell: |
-    grep -q 'AmbientCapabilities=CAP_NET_BIND_SERVICE' /lib/systemd/system/coturn.service || \
-    sed -i '/\[Service\]/a AmbientCapabilities=CAP_NET_BIND_SERVICE' /lib/systemd/system/coturn.service
+  ansible.builtin.lineinfile:
+    line: 'AmbientCapabilities=CAP_NET_BIND_SERVICE'
+    insertafter: '\[Service\]'
+    dest: /lib/systemd/system/coturn.service
+    regexp: '^AmbientCapabilities='
   when: ansible_distribution_release != 'bionic'
 
 - name: Modify coturn max open files limits
