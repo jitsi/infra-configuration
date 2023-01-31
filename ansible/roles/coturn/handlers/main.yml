@@ -1,0 +1,11 @@
+---
+- name: Restart coturn
+  ansible.builtin.service:
+    name: coturn
+    state: restarted
+
+- name: Restart coturn systemd
+  ansible.builtin.systemd:
+    name: coturn
+    state: restarted
+    daemon_reload: true

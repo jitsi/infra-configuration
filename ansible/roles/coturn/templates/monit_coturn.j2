@@ -1,0 +1,27 @@
+check process coturn matching 'turnserver'
+   group root
+   group root
+   {% if ansible_distribution == 'Ubuntu' and ansible_lsb.major_release|int >= 15 %}
+   start program = "/bin/bash -c 'killall turnserver; /bin/systemctl start {{coturn_service_name}}'" with timeout 30 seconds
+   stop program  = "/bin/bash -c '{{coturn_scripts_path}}/dump-coturn.sh dump_logs_by_pid; /bin/systemctl stop {{coturn_service_name}}'"
+   {% elif  ansible_distribution == 'Ubuntu' and ansible_lsb.major_release|int < 15 %}
+   start program = "/bin/bash -c 'killall turnserver; /etc/init.d/{{coturn_service_name}} start'" with timeout 30 seconds
+   stop program  = "/bin/bash -c '{{coturn_scripts_path}}/dump-coturn.sh dump_logs_by_pid; /etc/init.d/{{coturn_service_name}} stop'"
+   {% endif%}
+   if failed host {{ansible_ec2_public_ipv4}} port 443 with retry 3 then restart
+   {% if ipv6 is defined %}
+   if failed host "{{ipv6}}" port 443 with retry 3 then restart
+   {% endif %}
+   if 5 restarts within 5 cycles then exec "{{coturn_scripts_path}}/coturn-mark-unhealthy.sh"
+
+check program coturn-files-limit with path "{{coturn_scripts_path}}/check-files-limits.sh"
+   group root
+   group root
+   {% if ansible_distribution == 'Ubuntu' and ansible_lsb.major_release|int >= 15 %}
+   start program = "/bin/bash -c 'killall turnserver; /bin/systemctl start {{coturn_service_name}}'" with timeout 30 seconds
+   stop program  = "/bin/bash -c '{{coturn_scripts_path}}/dump-coturn.sh dump_logs_by_pid; /bin/systemctl stop {{coturn_service_name}}'"
+   {% elif  ansible_distribution == 'Ubuntu' and ansible_lsb.major_release|int < 15 %}
+   start program = "/bin/bash -c 'killall turnserver; /etc/init.d/{{coturn_service_name}} start'" with timeout 30 seconds
+   stop program  = "/bin/bash -c '{{coturn_scripts_path}}/dump-coturn.sh dump_logs_by_pid; /etc/init.d/{{coturn_service_name}} stop'"
+   {% endif%}
+   if status != 0 then restart

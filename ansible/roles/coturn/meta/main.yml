@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Aaron van Meerten
-  description: configure jigasi
+  description: configure coturn
   license: Apache License Version 2.0
   min_ansible_version: '6.6.0'
   platforms:
@@ -10,5 +10,5 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - { role: jitsi-repo, when: jigasi_install_flag }
-  - { role: openjdk-java, when: jigasi_install_flag }
+  - {role: jitsi-repo}
+  - {role: monit}

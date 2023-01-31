@@ -1,0 +1,55 @@
+---
+
+- name: Include apt install tasks
+  ansible.builtin.include_tasks: install-apt.yml
+  when: coturn_install_apt_flag
+
+- name: Include src install tasks
+  ansible.builtin.include_tasks: install-src.yml
+  when: coturn_install_src_flag
+
+- name: Mark hold on coturn package version
+  ansible.builtin.command: apt-mark hold coturn
+
+# script that is triggered on boot
+- name: Upload coturn post-install script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/postinstall-coturn.sh"
+    src: "postinstall-coturn.sh"
+    mode: 0755
+    owner: root
+  when: coturn_cloud_provider == "aws"
+
+- name: Upload coturn post-install script oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/postinstall-coturn-oracle.sh"
+    src: "postinstall-coturn-oracle.sh"
+    mode: 0755
+    owner: root
+  when: coturn_cloud_provider == "oracle"
+
+# script to configure the secondary VNIC
+- name: Upload coturn configure secondary vnic oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/secondary_vnic_all_configure_oracle.sh"
+    src: "secondary_vnic_all_configure_oracle.sh"
+    mode: 0755
+    owner: root
+  when: coturn_cloud_provider == "oracle"
+
+# script to run ansible updates, usually run by boot script
+- name: Upload coturn local configure script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-coturn-local.sh"
+    src: "configure-coturn-local.sh"
+    mode: 0755
+    owner: root
+  when: coturn_cloud_provider == "aws"
+
+- name: Upload coturn local configure script oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-coturn-local-oracle.sh"
+    src: "configure-coturn-local-oracle.sh"
+    mode: 0755
+    owner: root
+  when: coturn_cloud_provider == "oracle"

@@ -1,0 +1,4 @@
+---
+- name: "Install coturn package and dependencies from apt"
+  ansible.builtin.apt:
+    name: coturn

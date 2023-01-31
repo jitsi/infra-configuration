@@ -1,0 +1,20 @@
+---
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
+  when: coturn_install_flag
+
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
+  when: coturn_configure_flag
+
+- name: Include monit tasks
+  ansible.builtin.include_tasks: monit.yml
+  when: coturn_configure_flag and coturn_monit_flag
+
+- name: Include cloudwatch alarm tasks
+  ansible.builtin.include_tasks: coturn_cloudwatch_alarms.yml
+  when: coturn_configure_flag and coturn_cloudwatch_flag
+
+- name: Include ipv6 tasks
+  ansible.builtin.include_tasks: coturn_ipv6_ddns.yml
+  when: coturn_ipv6_ddns and ipv6_enabled

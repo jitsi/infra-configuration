@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+aws="/usr/local/bin/aws"
+instance_id=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+region=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document|grep region|awk -F\" '/region/ {print $4}')
+timestamp="$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+
+function coturn_metric(){
+
+
+    if [ -z $2 ]; then 
+        metric_name="CoturnHealthFailed"
+    else
+        metric_name=$2
+    fi
+    
+	namespace="Coturn"
+	dimensions_metric="InstanceId=$instance_id"
+
+	$aws cloudwatch put-metric-data --region "$region" --metric-name "$metric_name" \
+	--namespace "$namespace" \
+	--dimensions "$dimensions_metric" \
+    --unit "Count" \
+	--timestamp "$timestamp" --value $1
+}
+
+case $1 in
+        ok)
+           logger "Put cloudwatch metric 0"
+           coturn_metric 0 $2 
+        ;;
+        alarm)
+           logger "Put cloudwatch metric 1"
+            coturn_metric 1 $2
+        ;;
+        *)
+            logger "Put cloudwatch metric 1"
+            coturn_metric 1 $2
+        ;;
+esac
+
+ 

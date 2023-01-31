@@ -1,0 +1,50 @@
+---
+
+- name: Install apt build pre-requisites
+  ansible.builtin.apt:
+    name: ['autoconf', 'coreutils', 'g++', 'git', 'libtool', 'make', 'pkg-config', 'libssl-dev', 'sqlite3', 'libsqlite3-dev', 'libevent-dev']
+    state: present
+
+- name: Install prometheus libprom dependencies
+  ansible.builtin.apt:
+    deb: "{{ coturn_src_libprom_url }}"
+    state: present
+
+- name: Install prometheus libpromhttp dependencies
+  ansible.builtin.apt:
+    deb: "{{ coturn_src_libpromhttp_url }}"
+    state: present
+
+- name: Create dir for source
+  ansible.builtin.file:
+    path: /tmp/build
+    state: directory
+    mode: 0755
+    owner: root
+
+- name: Download source from git/tar
+  ansible.builtin.get_url:
+    mode: 0644
+    url: "{{ coturn_src_url }}"
+    dest: /tmp/coturn.tar.gz
+
+- name: Untar downloaded file
+  ansible.builtin.unarchive:
+    copy: false
+    src: /tmp/coturn.tar.gz
+    dest: /tmp/build
+
+- name: Run configure
+  ansible.builtin.command: ./configure --prefix=/usr
+  args:
+    chdir: "/tmp/build/{{ coturn_src_name }}-{{ coturn_src_version }}"
+
+- name: Run make
+  ansible.builtin.command: make
+  args:
+    chdir: "/tmp/build/{{ coturn_src_name }}-{{ coturn_src_version }}"
+
+- name: Run make install
+  ansible.builtin.command: make install
+  args:
+    chdir: "/tmp/build/{{ coturn_src_name }}-{{ coturn_src_version }}"

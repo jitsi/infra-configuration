@@ -1,0 +1,7 @@
+#!/bin/sh
+    {
+     echo "MONIT-WRAPPER $@"
+     $@
+     R=$?
+     echo "MONIT-WRAPPER exit code $R"
+    } 2>&1 >> /var/log/monit-debug.log
