@@ -123,13 +123,13 @@ ansible-playbook -v $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE
 -e "jvb_websockets_port=$JVB_WEBSOCKETS_PORT" \
 -e "{\"jvb_enable_websockets_ssl\":$JVB_WEBSOCKETS_SSL}" \
 -e "{$PROSODY_APT_FLAG}" \
-$([ -n $PROSODY_VERSION ] && echo "-e prosody_version=$PROSODY_VERSION") \
-$([ -n $PROSODY_PACKAGE_VERSION ] && echo "-e prosody_package_version=$PROSODY_PACKAGE_VERSION") \
-$([ -n $PROSODY_URL_VERSION ] && echo "-e prosody_url_version=$PROSODY_URL_VERSION") \
-$([ -n $PROSODY_PACKAGE_NAME ] && echo "-e prosody_package_name=$PROSODY_PACKAGE_NAME") \
-$([ -n $PROSODY_ENABLE_TOKENS ] && echo "-e prosody_enable_tokens=$PROSODY_ENABLE_TOKENS") \
-$([ -n $JITSI_MEET_PROSODY_VERSION ] && echo "-e jitsi_meet_prosody_deb_pkg_version=$JITSI_MEET_PROSODY_VERSION") \
-$([ -n $ORACLE_REGION ] && echo "-e oracle_region=$ORACLE_REGION") \
+$([ -n "$PROSODY_VERSION" ] && echo "-e prosody_version=$PROSODY_VERSION") \
+$([ -n "$PROSODY_PACKAGE_VERSION" ] && echo "-e prosody_package_version=$PROSODY_PACKAGE_VERSION") \
+$([ -n "$PROSODY_URL_VERSION" ] && echo "-e prosody_url_version=$PROSODY_URL_VERSION") \
+$([ -n "$PROSODY_PACKAGE_NAME" ] && echo "-e prosody_package_name=$PROSODY_PACKAGE_NAME") \
+$([ -n "$PROSODY_ENABLE_TOKENS" ] && echo "-e prosody_enable_tokens=$PROSODY_ENABLE_TOKENS") \
+$([ -n "$JITSI_MEET_PROSODY_VERSION" ] && echo "-e jitsi_meet_prosody_deb_pkg_version=$JITSI_MEET_PROSODY_VERSION") \
+$([ -n "$ORACLE_REGION" ] && echo "-e oracle_region=$ORACLE_REGION") \
 -e "test_id=$UNIQUE_ID" \
 -e "ansible_ssh_user=$ANSIBLE_SSH_USER" \
 --vault-password-file .vault-password.txt \

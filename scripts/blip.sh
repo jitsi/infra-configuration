@@ -22,7 +22,7 @@ fi
 disrupt_xmpp() (
   IP=$1
   XMPP_CLIENT_PORT=`$BLIP_SSH $IP sudo grep PORT /etc/jitsi/videobridge/jvb.conf | cut -d= -f2`
-  if [ -z $XMPP_CLIENT_PORT ]; then
+  if [ -z "$XMPP_CLIENT_PORT" ]; then
     echo "WARN disruption failed (unable to discover the XMPP port)" >&2
   else
     $BLIP_SSH $IP sudo iptables -A INPUT -p tcp --sport $XMPP_CLIENT_PORT -j DROP

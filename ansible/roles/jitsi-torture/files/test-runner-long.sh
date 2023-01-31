@@ -6,12 +6,12 @@ BROWSER="google-chrome"
 
 export DBUS_SESSION_BUS_ADDRESS=/dev/null
 
-[ -z $TEST_DURATION ] && TEST_DURATION=350
-[ -z $TEST_DOMAIN ] && TEST_DOMAIN="lonely.jitsi.net"
+[ -z "$TEST_DURATION" ] && TEST_DURATION=350
+[ -z "$TEST_DOMAIN" ] && TEST_DOMAIN="lonely.jitsi.net"
 
-[ -z $HOST ] && HOST=$TEST_DOMAIN
+[ -z "$HOST" ] && HOST=$TEST_DOMAIN
 
-[ -z $DURATION ] && DURATION=$TEST_DURATION
+[ -z "$DURATION" ] && DURATION=$TEST_DURATION
 
 export TMPDIR=$(mktemp -d)
 LOG_FILE="${TMPDIR}/log1-long.log"
