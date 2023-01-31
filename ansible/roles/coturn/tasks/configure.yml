@@ -50,14 +50,14 @@
     dest: "/etc/default/{{ coturn_service_name }}"
     regexp: "^ulimit "
     line: "ulimit -n 35000"
-  notify: restart coturn
+  notify: Restart coturn
 
 - name: Write coturn config file
   ansible.builtin.template:
     mode: 0644
     src: turnserver.conf.j2
     dest: /etc/turnserver.conf
-  notify: restart coturn
+  notify: Restart coturn
 
 - name: Copy ssl cert to the ssl folder
   ansible.builtin.copy:
