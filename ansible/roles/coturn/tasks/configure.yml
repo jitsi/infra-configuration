@@ -45,6 +45,7 @@
     insertafter: '\[Service\]'
     dest: /lib/systemd/system/coturn.service
     regexp: '^AmbientCapabilities='
+  notify: Restart coturn systemd
   when: ansible_distribution_release != 'bionic'
 
 - name: Modify coturn max open files limits
