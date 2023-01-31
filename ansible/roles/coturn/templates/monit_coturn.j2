@@ -1,4 +1,4 @@
-check process coturn with pidfile {{coturn_pid_file_path}}
+check process coturn matching 'turnserver'
    group root
    group root
    {% if ansible_distribution == 'Ubuntu' and ansible_lsb.major_release|int >= 15 %}
