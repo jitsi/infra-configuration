@@ -29,7 +29,9 @@ coturn_package_name:
   - "coturn_4.5.0.3-1build1.1_{{ coturn_architecture }}.deb"
 coturn_pid_file_path_bionic: "/var/run/turnserver.pid"
 coturn_pid_file_path_focal: "/run/turnserver/turnserver.pid"
-coturn_pid_file_path: "{{ coturn_pid_file_path_bionic if ansible_distribution_release == 'bionic' else coturn_pid_file_path_focal }}"
+coturn_pid_file_path_jammy: "/var/tmp/turnserver.pid"
+coturn_pid_file_path: "{{ coturn_pid_file_path_bionic if ansible_distribution_release == 'bionic' else
+  (coturn_pid_file_path_focal if ansible_distribution_release == 'focal' else coturn_pid_file_path_jammy) }}"
 coturn_port: 443
 coturn_prometheus_flag: true
 coturn_realm: "coturn.jitsi.net"
