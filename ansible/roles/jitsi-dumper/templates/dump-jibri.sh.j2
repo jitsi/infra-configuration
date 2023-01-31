@@ -20,7 +20,7 @@ JSTAMP=`date +%Y-%m-%d-%H%M`
 JHOST=`hostname -s`
 TMP_DIR=`mktemp -d /mnt/dump-XXXXX`
 
-if [ -z $ARCH_PATH ]; then
+if [ -z "$ARCH_PATH" ]; then
     ARCH_PATH="/mnt/$JHOST-$JSTAMP-$JPID-dump.tar.gz"
 fi
 
@@ -73,7 +73,7 @@ tar zcf $ARCH_PATH -C $TMP_DIR . && echo "Created $ARCH_PATH" >> /tmp/jibri_dump
 # Assuming AWS CLI is already configured by Ansible
 # and EC2 instance role implies write access to this bucket
 
-if [ -z $SKIP_S3_UPLOAD ]; then
+if [ -z "$SKIP_S3_UPLOAD" ]; then
 
     echo "Uploading to S3." >> /tmp/jibri_dump.log
     DUMP_PATH="s3://${S3_BUCKET}/jibri/`basename $ARCH_PATH`"

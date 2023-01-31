@@ -21,7 +21,7 @@ JSTAMP=`date +%Y-%m-%d-%H%M`
 JHOST=`hostname -s`
 
 TMP_DIR=`mktemp -d /mnt/dump-XXXXX`
-if [ -z $ARCH_PATH ]; then
+if [ -z "$ARCH_PATH" ]; then
     ARCH_PATH="/mnt/$JHOST-$JSTAMP-prosody-jvb-dump.tar.gz"
 fi
 

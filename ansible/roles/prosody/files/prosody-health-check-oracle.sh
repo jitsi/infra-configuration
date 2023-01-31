@@ -34,7 +34,7 @@ BUCKET_NS="fr4eeztjonbe"
 TRACEBACK_SLEEP_INTERVAL=10
 
 CURL_BIN="/usr/bin/curl"
-if [[ -z $OCI_BIN ]]; then
+if [[ -z "$OCI_BIN" ]]; then
     OCI_BIN="/usr/local/bin/oci"
 fi
 
