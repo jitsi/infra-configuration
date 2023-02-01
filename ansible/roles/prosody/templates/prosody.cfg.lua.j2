@@ -550,6 +550,14 @@ Component "conference.{{ prosody_domain_name }}" "muc"
       "{{ i }}";
 {% endfor %}
     };
+
+    rate_limit_whitelist_jids = {
+{% for whitelist_jid in prosody_muc_max_occupants_ignore_list %}
+        "{{ whitelist_jid }}"{% if not loop.last %},
+{% endif %}
+{% endfor %}
+    }
+
 	-- The size of the cache that saves state for IP addresses
 	rate_limit_cache_size = {{ prosody_rate_limit_cache_size }};
 {% endif %}
