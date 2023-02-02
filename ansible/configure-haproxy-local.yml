@@ -119,6 +119,8 @@
       when: telegraf_enabled and not datadog_enabled
       vars:
         telegraf_inputs:
+          nginx:
+            urls: ["http://localhost:888/nginx_status/"]
           haproxy:
             # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
             # fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr", "wredis"]
