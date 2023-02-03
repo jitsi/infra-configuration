@@ -8,7 +8,7 @@
     - secrets/ssh-users.yml
     - secrets/ssl_certificates.yml
     - roles/jitsi-repo/defaults/main.yml
-    - environments/all/group_vars/all.yml
+    - secrets/repo.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
 
