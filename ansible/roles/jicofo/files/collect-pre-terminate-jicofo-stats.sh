@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR=$(mktemp -d)
+
+cd $DIR
+
+curl -s 0:8888/debug/xmpp-caps | jq . > xmpp-caps.json
+curl -s 0:8888/stats | jq . > stats.json
+curl -s 0:8888/metrics | jq . > metrics.json
+
+tar czf jicofo-stats.tar.gz *
+
+echo "$DIR/jicofo-stats.tar.gz"
