@@ -1,0 +1,37 @@
+---
+- hosts: all
+  gather_facts: true
+  become_user: root
+  become: yes
+  strategy: free
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl_certificates.yml
+    - roles/jitsi-repo/defaults/main.yml
+    - environments/all/group_vars/all.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  pre_tasks:
+    - apt_repository: >
+        repo='deb [trusted=yes] {{jitsi_auth_url}} unstable/'
+        state=absent
+        update_cache=no
+      tags: setup
+    - apt_repository: >
+        repo='deb [trusted=yes] {{jitsi_auth_url_old}} unstable/'
+        state=absent
+        update_cache=no
+      tags: setup
+    - file: path=/etc/apt/auth.conf.d state=directory
+    - template: dest="/etc/apt/auth.conf.d/jitsi-repo.conf" src="roles/jitsi-repo/templates/jitsi-repo.conf.j2" owner=root mode=0600
+      tags: setup
+    - apt_repository: >
+        repo='deb [trusted=yes] {{jitsi_repo_url}} unstable/'
+        state=present
+        update_cache=no
+      tags: setup
+    - apt: update_cache=yes cache_valid_time=86400
+      tags: setup
+  roles:
+     - { role: "sshusers", tags: "ssh" }
