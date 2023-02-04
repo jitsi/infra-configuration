@@ -215,6 +215,7 @@ jitsi_meet_redirect_to_ssl: true
 jitsi_meet_require_displayname: false
 jitsi_meet_resolution: false
 jitsi_meet_rtcstats_enabled: false
+jitsi_meet_rtcstats_log_sdp: false
 jitsi_meet_rtcstats_store_logs: false
 jitsi_meet_rtcstats_endpoint: wss://rtcstats-server.jitsi.net/
 jitsi_meet_rtcstats_poll_interval: 10000
