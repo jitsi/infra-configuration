@@ -19,7 +19,7 @@
     path: /etc/httpd/conf/httpd.conf
     regexp: '^ignoreip'
     insertafter: '^\[sshd\]'
-    line: 'ignoreip = {{ fail2ban_sshd_ipignore }}'
+    line: 'ignoreip = {{ fail2ban_sshd_ignoreip }}'
   notify: Restart fail2ban
 
 - name: Start fail2ban at boot
