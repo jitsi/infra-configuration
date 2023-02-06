@@ -1,0 +1,11 @@
+---
+- name: Download thousandeyes
+  ansible.builtin.get_url:
+    dest: "{{ thousandeyes_install_path }}"
+    url: "{{ thousandeyes_install_url }}"
+    mode: 0755
+
+- name: Install thousandeyes
+  ansible.builtin.command: "{{ thousandeyes_install_path }} -I /tmp/te_install_log {{ thousandeyes_install_token }}"
+  args:
+    creates: /etc/te-agent.cfg

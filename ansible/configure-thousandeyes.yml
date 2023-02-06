@@ -1,0 +1,12 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  vars_files:
+    - secrets/thousandeyes.yml
+    - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+  roles:
+    - { role: "thousandeyes", tags: "thousandeyes"}

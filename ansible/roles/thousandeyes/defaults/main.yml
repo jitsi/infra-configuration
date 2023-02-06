@@ -1,0 +1,4 @@
+---
+thousandeyes_install_path: /tmp/install_thousandeyes.sh
+thousandeyes_install_token: 'replaceme'
+thousandeyes_install_url: https://downloads.thousandeyes.com/agent/install_thousandeyes.sh
