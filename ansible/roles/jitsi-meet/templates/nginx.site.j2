@@ -32,7 +32,7 @@ map $remote_addr $remote_addr_anon {
     default                     0.0.0.0;
 }
 map $request $request_anon {
-    "~(?P<method>.+) (?P<url>\/.+\?).+ (?P<protocol>.+)"     "$method $url $protocol";
+    "~(?P<method>.+) (?P<url>\/.+\?)(?P<room>room=[^\&]+\&?)?.* (?P<protocol>.+)"     "$method $url$room $protocol";
     default                    $request;
 }
 log_format anon '$remote_addr_anon - $remote_user [$time_local] "$request_anon" '
