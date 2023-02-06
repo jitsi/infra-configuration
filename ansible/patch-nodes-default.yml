@@ -34,11 +34,6 @@
     - apt: update_cache=yes cache_valid_time=86400
       tags: setup
 
-    - ansible.builtin.debug:
-        msg: "roles are {{ patch_ansible_roles }}"
-
     - ansible.builtin.include_role:
-        name: "{{ role_name }}"
+        name: "{{ item }}"
       loop: "{{ patch_ansible_roles.split(' ') }}"
-      loop_control:
-        loop_var: role_name
