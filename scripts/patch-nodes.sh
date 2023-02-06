@@ -30,10 +30,12 @@ if [ -z "$ANSIBLE_INVENTORY" ]; then
   $LOCAL_PATH/node.py --environment $ENVIRONMENT --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory > $ANSIBLE_INVENTORY
 fi
 
+set -x
+
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 ANSIBLE_PLAYBOOK_FILE=${ANSIBLE_PLAYBOOK_FILE-"patch-nodes-default.yml"}
 ANSIBLE_PLAYBOOK="$LOCAL_PATH/../../infra-configuration/ansible/$ANSIBLE_PLAYBOOK_FILE"
-ANSIBLE_ROLES=${ANSIBLE_ROLES-"sshusers"}
+ANSIBLE_ROLES="${ANSIBLE_ROLES-"sshusers"}"
 
 BATCH_SIZE=${BATCH_SIZE-"10"}
 
