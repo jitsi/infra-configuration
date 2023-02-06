@@ -7,7 +7,7 @@
   notify: Restart fail2ban
 
 - name: Set fail2ban modes to aggressive
-  ansible.builtin.lineinfile:
+  ansible.builtin.replace:
     path: /etc/fail2ban/jail.conf
     regexp: '^mode =\s+(normal)'
     replace: 'aggressive'
