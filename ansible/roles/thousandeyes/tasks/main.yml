@@ -4,8 +4,52 @@
     dest: "{{ thousandeyes_install_path }}"
     url: "{{ thousandeyes_install_url }}"
     mode: 0755
+  when: not thousandeyes_docker_flag
 
 - name: Install thousandeyes
   ansible.builtin.command: "{{ thousandeyes_install_path }} -I /tmp/te_install_log {{ thousandeyes_install_token }}"
   args:
     creates: /etc/te-agent.cfg
+  when: not thousandeyes_docker_flag
+
+- name: Install thousandeyes docker directory
+  ansible.builtin.file:
+    path: "{{ thousandeyes_docker_path }}"
+    mode: 0755
+    state: directory
+  when: thousandeyes_docker_flag
+
+- name: Install thousandeyes config directory
+  ansible.builtin.file:
+    path: "{{ thousandeyes_docker_config_dir }}"
+    mode: 0755
+    state: directory
+  when: thousandeyes_docker_flag
+
+- name: Install thousandeyes config file
+  ansible.builtin.template:
+    mode: 0644
+    src: service.env.j2
+    dest: "{{ thousandeyes_docker_config }}"
+  when: thousandeyes_docker_flag
+
+- name: Install thousandeyes docker-compose file
+  ansible.builtin.copy:
+    mode: 0644
+    src: docker-compose.yml
+    dest: "{{ thousandeyes_docker_path }}/docker-compose.yml"
+  when: thousandeyes_docker_flag
+
+- name: Install thousandeyes service definition
+  ansible.builtin.copy:
+    mode: 0644
+    src: thousandeyes-docker.service
+    dest: "/lib/systemd/system/thousandeyes-docker.service"
+  when: thousandeyes_docker_flag
+
+- name: Enable thousandeyes service
+  ansible.builtin.systemd:
+    name: thousandeyes-docker
+    state: started
+    enabled: true
+  when: thousandeyes_docker_flag

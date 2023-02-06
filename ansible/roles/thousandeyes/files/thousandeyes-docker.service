@@ -1,0 +1,18 @@
+[Unit]
+Description=thousandeyes service with docker compose
+Requires=docker.service
+After=docker.service
+StartLimitIntervalSec=60
+
+[Service]
+TimeoutStartSec=0
+Restart=on-failure
+StartLimitBurst=3
+WorkingDirectory=/opt/thousandeyes
+EnvironmentFile=/etc/thousandeyes/service.env
+ExecStart=/usr/local/bin/docker-compose up
+ExecStop=/usr/local/bin/docker-compose down
+SyslogIdentifier=thousandeyes
+
+[Install]
+WantedBy=multi-user.target
