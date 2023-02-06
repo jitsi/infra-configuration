@@ -1,6 +1,6 @@
 ---
 - name: Main
-- hosts: all
+  hosts: all
   gather_facts: true
   become: true
   become_user: root
