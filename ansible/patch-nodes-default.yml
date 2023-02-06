@@ -35,7 +35,7 @@
       tags: setup
 
     - ansible.builtin.debug:
-      msg: "roles are {{ patch_ansible_roles }}"
+        msg: "roles are {{ patch_ansible_roles }}"
 
     - ansible.builtin.include_role:
         name: "{{ role_name }}"
