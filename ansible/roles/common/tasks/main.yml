@@ -110,6 +110,11 @@
     name: [git, python3-netaddr, software-properties-common]
     state: present
 
+- name: Install pyopenssl module from pip
+  ansible.builtin.pip:
+    name: pyopenssl
+  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+
 - name: Install bcrypt module from pip for bionic
   ansible.builtin.pip:
     name: bcrypt
