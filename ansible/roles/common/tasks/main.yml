@@ -110,12 +110,6 @@
     name: [git, python3-netaddr, software-properties-common]
     state: present
 
-- name: Install compatiible cryptography module from pip for focal
-  ansible.builtin.pip:
-    name: cryptography
-    version: "36.0.0"
-  when: ansible_distribution_release == 'focal'
-
 - name: Install bcrypt module from pip for bionic
   ansible.builtin.pip:
     name: bcrypt
