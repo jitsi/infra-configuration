@@ -39,7 +39,6 @@
     src: te-seccomp.json
     dest: /var/docker/configs/te-seccomp.json
   when: thousandeyes_docker_flag
-  
 
 - name: Install thousandeyes docker-compose file
   ansible.builtin.copy:
