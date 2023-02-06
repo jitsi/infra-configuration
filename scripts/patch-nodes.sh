@@ -25,12 +25,15 @@ fi
 LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 [ -e $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh ] && . $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh
 
-if [ -z "$ANSIBLE_INVENTORY" ]; then 
-  ANSIBLE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}.inventory"
-  $LOCAL_PATH/node.py --environment $ENVIRONMENT --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory > $ANSIBLE_INVENTORY
+RELEASE_PARAM=""
+if [ -z "$RELEASE_NUMBER" ]; then 
+    RELEASE_PARAM="--release ${RELEASE_NUMBER}"
 fi
 
-set -x
+if [ -z "$ANSIBLE_INVENTORY" ]; then 
+  ANSIBLE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}.inventory"
+  $LOCAL_PATH/node.py --environment $ENVIRONMENT --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY
+fi
 
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 ANSIBLE_PLAYBOOK_FILE=${ANSIBLE_PLAYBOOK_FILE-"patch-nodes-default.yml"}
