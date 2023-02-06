@@ -36,6 +36,8 @@ if [ -z "$ANSIBLE_INVENTORY" ]; then
   $LOCAL_PATH/node.py --environment $ENVIRONMENT --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY
 fi
 
+set -x
+
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
 ANSIBLE_PLAYBOOK_FILE=${ANSIBLE_PLAYBOOK_FILE-"patch-nodes-default.yml"}
@@ -49,8 +51,6 @@ if [ -n "$ANSIBLE_EXTRA_VARS" ]; then
 fi
 
 BATCH_SIZE=${BATCH_SIZE-"10"}
-
-set -x
 
 [ -d ./.batch ] && rm -rf .batch
 mkdir .batch
