@@ -2,8 +2,8 @@
 - name: Main
 - hosts: all
   gather_facts: true
+  become: true
   become_user: root
-  become: yes
   strategy: free
   vars_files:
     - secrets/ssh-users.yml
