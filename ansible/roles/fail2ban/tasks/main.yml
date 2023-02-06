@@ -6,13 +6,20 @@
     state: present
   notify: Restart fail2ban
 
-- name: Configure fail2ban sshd jail
-  ansible.builtin.blockinfile:
+- name: Set fail2ban mode to aggressive for ssh
+  ansible.builtin.lineinfile:
     path: /etc/fail2ban/jail.conf
-    block: |
-      [sshd]
-      mode = aggressive
-      ignoreip = {{ fail2ban_sshd_ipgignore }}
+    regexp: '^mode'
+    insertafter: '^\[sshd\]'
+    line: 'mode = aggressive'
+  notify: Restart fail2ban
+
+- name: fail2ban ignores configured list of IPs
+  ansible.builtin.lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ignoreip'
+    insertafter: '^\[sshd\]'
+    line: 'ignoreip = {{ fail2ban_sshd_ipignore }}'
   notify: Restart fail2ban
 
 - name: Start fail2ban at boot
