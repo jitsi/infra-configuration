@@ -6,7 +6,7 @@
   strategy: free
   vars_files:
     - secrets/ssh-users.yml
-    - secrets/ssl_certificates.yml
+    - secrets/ssl-certificates.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
     - config/vars.yml
