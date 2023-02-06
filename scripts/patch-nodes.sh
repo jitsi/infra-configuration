@@ -26,7 +26,7 @@ LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 [ -e $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh ] && . $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh
 
 RELEASE_PARAM=""
-if [ -z "$RELEASE_NUMBER" ]; then 
+if [ -n "$RELEASE_NUMBER" ]; then 
     RELEASE_PARAM="--release ${RELEASE_NUMBER}"
 fi
 
