@@ -35,10 +35,10 @@
       tags: setup
 
     - ansible.builtin.debug:
-      msg: roles are {{ patch_ansible_roles }}
+      msg: "roles are {{ patch_ansible_roles }}"
 
     - ansible.builtin.include_role:
-      name: "{{ role_name }}"
+        name: "{{ role_name }}"
       loop: "{{ patch_ansible_roles.split(' ') }}"
       loop_control:
         loop_var: role_name
