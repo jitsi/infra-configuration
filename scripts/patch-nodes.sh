@@ -61,7 +61,7 @@ for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-*; do
     LIVE_COUNT=$(cat ./batch.inventory | wc -l | awk '{print $1}')
     if [[ $LIVE_COUNT -gt 1 ]]; then
 
-        ansible-playbook $ANSIBLE_PLAYBOOK \
+        ansible-playbook $ANSIBLE_PLAYBOOK -vvv \
             -i ./batch.inventory \
             -e "ansible_ssh_user=$ANSIBLE_SSH_USER hcv_environment=$ENVIRONMENT shard_role=$ROLE patch_ansible_roles=\"$ANSIBLE_ROLES\"" \
             --vault-password-file .vault-password.txt \
