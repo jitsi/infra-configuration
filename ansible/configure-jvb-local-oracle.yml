@@ -152,6 +152,8 @@
       when: telegraf_enabled and not datadog_enabled
       vars:
         telegraf_inputs:
+          nginx:
+            urls: ["http://localhost:888/nginx_status/"]
           nstat:
             fieldpass: ["UdpInErrors", "Udp6InErrors"]
         telegraf_tags:
