@@ -14,4 +14,5 @@ curl -s 0:8888/stats | jq . > stats.json
 curl -s 0:8888/metrics | jq . > metrics.json
 
 tar czf jicofo-stats.tar.gz *
-mv jicofo-stats.tar.gz "$COLLECTION_FILENAME"
+cd -
+mv "${DIR}/jicofo-stats.tar.gz" "$COLLECTION_FILENAME"

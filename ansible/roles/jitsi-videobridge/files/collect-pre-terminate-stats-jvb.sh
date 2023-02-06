@@ -18,4 +18,5 @@ curl -s 0:8080/colibri/stats | jq . > colibri-stats.json
 curl -s 0:8080/metrics | jq . > metrics.json
 
 tar czf jvb-stats.tar.gz *
-mv jvb-stats.tar.gz "$COLLECTION_FILENAME"
+cd -
+mv "${DIR}/jvb-stats.tar.gz" "$COLLECTION_FILENAME"
