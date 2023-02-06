@@ -27,6 +27,7 @@ LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 
 RELEASE_PARAM=""
 if [ -n "$RELEASE_NUMBER" ]; then 
+    echo "## patch-nodes.sh: filtering on release $RELEASE_NUMBER"
     RELEASE_PARAM="--release ${RELEASE_NUMBER}"
 fi
 
