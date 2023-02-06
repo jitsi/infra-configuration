@@ -35,4 +35,4 @@
       tags: setup
     - ansible.builtin.include_role:
       name: '{{ item }}'
-      loop: {{ patch_ansible_roles.split(' ') }}
+      loop: "{{ patch_ansible_roles.split(' ') }}"
