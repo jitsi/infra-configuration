@@ -18,10 +18,10 @@
     state: present
   when: common_install_pip_flag or ansible_distribution_release == 'bionic'
 
-- name: Install some convenient tools for oracle only
+- name: Install some convenient tools for oracle only # noqa package-latest
   ansible.builtin.apt:
     name: ['python3-pip', 'python3-setuptools']
-    state: present
+    state: latest
   when: common_install_pip3_flag
 
 - name: Install setuptools module from pip for bionic
