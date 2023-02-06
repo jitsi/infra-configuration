@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -x
+
+[ -z "$COLLECTION_FILENAME" ] && COLLECTION_FILENAME="$(mktemp -d)/jvb-stats.tar.gz"
+echo "Will collect stats in $COLLECTION_FILENAME"
+
 DIR=$(mktemp -d)
 
 cd $DIR
@@ -13,5 +18,4 @@ curl -s 0:8080/colibri/stats | jq . > colibri-stats.json
 curl -s 0:8080/metrics | jq . > metrics.json
 
 tar czf jvb-stats.tar.gz *
-
-echo "$DIR/jvb-stats.tar.gz"
+mv jvb-stats.tar.gz "$COLLECTION_FILENAME"
