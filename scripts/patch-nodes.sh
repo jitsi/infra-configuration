@@ -33,6 +33,7 @@ fi
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 ANSIBLE_PLAYBOOK_FILE=${ANSIBLE_PLAYBOOK_FILE-"patch-nodes-default.yml"}
 ANSIBLE_PLAYBOOK="$LOCAL_PATH/../../infra-configuration/ansible/$ANSIBLE_PLAYBOOK_FILE"
+ANSIBLE_ROLE=${ANSIBLE_ROLE-"sshusers"}
 
 BATCH_SIZE=${BATCH_SIZE-"10"}
 
@@ -60,7 +61,7 @@ for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-*; do
 
         ansible-playbook $ANSIBLE_PLAYBOOK \
             -i ./batch.inventory \
-            -e "ansible_ssh_user=$ANSIBLE_SSH_USER hcv_environment=$ENVIRONMENT shard_role=$ROLE" \
+            -e "ansible_ssh_user=$ANSIBLE_SSH_USER hcv_environment=$ENVIRONMENT shard_role=$ROLE" patch_ansible_role=fail2ban \
             --vault-password-file .vault-password.txt \
             --tags "$DEPLOY_TAGS"
 

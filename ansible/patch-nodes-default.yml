@@ -34,4 +34,4 @@
     - apt: update_cache=yes cache_valid_time=86400
       tags: setup
   roles:
-     - { role: "sshusers", tags: "ssh" }
+     - { role: "{{ patch_ansible_role }}" }
