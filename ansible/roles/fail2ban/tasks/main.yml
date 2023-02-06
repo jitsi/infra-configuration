@@ -16,7 +16,7 @@
 
 - name: fail2ban ignores configured list of IPs
   ansible.builtin.lineinfile:
-    path: /etc/httpd/conf/httpd.conf
+    path: /etc/fail2ban/jail.conf
     regexp: '^ignoreip'
     insertafter: '^\[sshd\]'
     line: 'ignoreip = {{ fail2ban_sshd_ignoreip }}'
