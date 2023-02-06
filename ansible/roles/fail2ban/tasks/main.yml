@@ -13,7 +13,7 @@
     line: 'mode = aggressive'
   notify: Restart fail2ban
 
-- name: fail2ban ignores configured list of IPs
+- name: Configure fail2ban to ignore a configured list of IPs
   ansible.builtin.lineinfile:
     path: /etc/fail2ban/jail.conf
     regexp: 'ignoreip = '
