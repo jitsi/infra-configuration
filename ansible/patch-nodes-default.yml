@@ -1,4 +1,5 @@
 ---
+- name: Main
 - hosts: all
   gather_facts: true
   become_user: root
@@ -13,27 +14,8 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
-    - apt_repository: >
-        repo='deb [trusted=yes] {{jitsi_auth_url}} unstable/'
-        state=absent
-        update_cache=no
-      tags: setup
-    - apt_repository: >
-        repo='deb [trusted=yes] {{jitsi_auth_url_old}} unstable/'
-        state=absent
-        update_cache=no
-      tags: setup
-    - file: path=/etc/apt/auth.conf.d state=directory
-    - template: dest="/etc/apt/auth.conf.d/jitsi-repo.conf" src="roles/jitsi-repo/templates/jitsi-repo.conf.j2" owner=root mode=0600
-      tags: setup
-    - apt_repository: >
-        repo='deb [trusted=yes] {{jitsi_repo_url}} unstable/'
-        state=present
-        update_cache=no
-      tags: setup
     - apt: update_cache=yes cache_valid_time=86400
       tags: setup
-
     - ansible.builtin.include_role:
         name: "{{ role_name }}"
       loop: "{{ patch_ansible_roles.split(' ') }}"
