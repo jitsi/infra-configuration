@@ -113,6 +113,7 @@
 - name: Install pyopenssl module from pip
   ansible.builtin.pip:
     name: pyopenssl
+    version: "21.0.0"
   when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
 - name: Install bcrypt module from pip for bionic
