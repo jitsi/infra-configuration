@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+    thousandeyes:
+        hostname: ${NAME}
+        cap_add:
+          - "SYS_ADMIN"
+          - "NET_ADMIN"
+        container_name: ${NAME}
+        restart: unless-stopped
+        image: thousandeyes/enterprise-agent
+        entrypoint: /sbin/my_init
+        mem_limit: 2g
+        memswap_limit: 2g
+        security_opt:
+          - "apparmor=docker_sandbox"
+          - "seccomp=/var/docker/configs/te-seccomp.json"
+        tty: true
+        volumes:
+            - /opt/thousandeyes/${NAME}/te-agent:/var/lib/te-agent:Z
+            - /opt/thousandeyes/${NAME}/te-browserbot:/var/lib/te-browserbot:Z
+            - /opt/thousandeyes/${NAME}/log:/var/log/agent:Z
+        environment:
+            - NAME
+            - TEAGENT_INET=4
+            - TEAGENT_ACCOUNT_TOKEN
