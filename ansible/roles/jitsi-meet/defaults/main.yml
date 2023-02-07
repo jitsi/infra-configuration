@@ -20,6 +20,7 @@ jitsi_meet_api_conference_invite_url: "{{ jitsi_meet_api_url }}/conferenceInvite
 jitsi_meet_api_conference_mapper_url: "{{ jitsi_meet_api_url }}/conferenceMapper"
 jitsi_meet_api_dialin_numbers_url: "{{ jitsi_meet_api_url }}/phoneNumberList"
 jitsi_meet_api_dialout_auth_url: "{{ jitsi_meet_api_url }}/authorizephone"
+jitsi_meet_api_dialout_region_url: "{{ jitsi_meet_api_url }}/outbounddestination"
 jitsi_meet_api_dialout_codes_url: "{{ jitsi_meet_api_url }}/countrycodes"
 jitsi_meet_api_directory_search_url: "{{ jitsi_meet_api_url }}/directorySearch"
 jitsi_meet_api_guest_dial_out_status_url: false
