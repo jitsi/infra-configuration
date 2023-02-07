@@ -116,6 +116,12 @@
     version: "3.1.7"
   when: ansible_distribution_release == 'bionic'
 
+- name: Install pyopenssl module from pip for focal
+  ansible.builtin.pip:
+    name: pyopenssl
+    version: "23.0.0"
+  when: ansible_distribution_release == 'focal'
+
 - name: Install bcrypt module from pip for focal
   ansible.builtin.pip:
     name: bcrypt
