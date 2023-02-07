@@ -36,6 +36,18 @@
     version: "51.3.3"
   when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
 
+- name: Install pyopenssl==38.0.4 module from pip for focal
+  ansible.builtin.pip:
+    name: pyopenssl
+    version: "22.1.0"
+  when: (ansible_distribution_major_version | int) == 20
+
+- name: Install cryptography==38.0.4 module from pip for focal
+  ansible.builtin.pip:
+    name: cryptography
+    version: "38.0.4"
+  when: (ansible_distribution_major_version | int) == 20
+
 - name: Install bcrypt module from pip for bionic and below
   ansible.builtin.pip:
     name: bcrypt
