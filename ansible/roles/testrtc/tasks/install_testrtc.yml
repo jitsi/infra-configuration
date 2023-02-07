@@ -50,7 +50,7 @@
 - name: TestRTC | Postinstall libs dir
   ansible.builtin.file:
     mode: 0755
-    path: "{{ testrtc_web_root_path }}/lib"
+    path: "{{ testrtc_web_root_path }}/libs"
     state: directory
 
 - name: TestRTC | Postinstall move main.js
