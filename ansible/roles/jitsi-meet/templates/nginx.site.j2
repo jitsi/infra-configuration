@@ -39,9 +39,16 @@ map $http_referer $http_referer_anon {
     "~(?P<url>\/.+\?)(?P<room>room=[^\&]+\&?)?.*"     "$url$room";
     default                    $http_referer;
 }
-log_format anon '$remote_addr_anon - $remote_user [$time_local] "$request_anon" '
+map $http_x_real_ip $http_x_real_ip_anon {
+    ~(?P<ip>\d+\.\d+)\.         $ip.X.X;
+    ~(?P<ip>[^:]+:[^:]+):       $ip::X;
+    127.0.0.1                   $remote_addr;
+    ::1                         $remote_addr;
+    default                     0.0.0.0;
+}
+log_format anon '$remote_addr - $remote_user [$time_local] "$request_anon" '
     '$status $body_bytes_sent "$http_referer_anon" '
-    '"$http_user_agent" "$http_x_forwarded_for" $request_time';
+    '"$http_user_agent" "$http_x_real_ip_anon" $request_time';
 {% endif %}
 types {
     application/wasm   wasm;
