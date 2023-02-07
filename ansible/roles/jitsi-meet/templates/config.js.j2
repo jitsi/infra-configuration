@@ -44,13 +44,6 @@ var config = {
 {% if jitsi_meet_enable_insecure_room_name_warning %}
     enableInsecureRoomNameWarning: true,
 {% endif %}
-{% if jitsi_meet_jiconop_enabled %}
-{% if jitsi_meet_enable_multi_domain %}
-    externalConnectUrl: '//<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/<!--# echo var="subdir" default="" -->http-pre-bind',
-{% else %}
-    externalConnectUrl: '//{{ jitsi_meet_bosh_host }}/http-pre-bind',
-{% endif %}
-{% endif %}
     analytics: {
     {% if jitsi_meet_amplitude_api_key %}
         amplitudeAPPKey: "{{ jitsi_meet_amplitude_api_key }}",

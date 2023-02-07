@@ -1,8 +1,0 @@
----
-- name: Include install tasks
-  ansible.builtin.include_tasks: install.yml
-  when: jiconop_install_flag
-
-- name: Include configure tasks
-  ansible.builtin.include_tasks: configure.yml
-  when: jiconop_configure_flag

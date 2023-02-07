@@ -182,7 +182,6 @@ jitsi_meet_hepop_analytics_urls_by_environment_type:
   stage: https://hepop-pilot.jitsi.net/
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
-jitsi_meet_jiconop_enabled: true
 jitsi_meet_jvb_disabled_codec: "H264"
 jitsi_meet_last_n_limits: false
 jitsi_meet_load_test_enabled: false

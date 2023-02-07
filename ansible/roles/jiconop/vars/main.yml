@@ -1,2 +1,0 @@
----
-jiconop_xmpp_domain: "{{ prosody_domain_name }}"

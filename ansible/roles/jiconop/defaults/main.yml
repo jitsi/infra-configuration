@@ -1,8 +1,0 @@
----
-jiconop_bosh_url: "http://localhost/http-bind"
-jiconop_configure_flag: true
-jiconop_deb_pkg_name: "jiconop"
-jiconop_deb_pkg_version: "*"
-jiconop_enabled: true
-jiconop_install_flag: true
-jiconop_port: 9615
