@@ -10,10 +10,16 @@
   vars:
     cloud_provider: oracle
   pre_tasks:
-    # pause 10 seconds before updating, to ensure that everything is ready to roll
-    - name: Pause for 300
+    - name: Remove oracle cloud agent if installed # noqa no-changed-when
+      ansible.builtin.shell: |
+        set -o pipefail
+        snap list | grep -q oracle-cloud-agent && snap remove oracle-cloud-agent || true
+      args:
+        executable: /bin/bash
+    # pause 60 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 60
       ansible.builtin.pause:
-        seconds: 300
+        seconds: 60
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
