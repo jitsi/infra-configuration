@@ -35,8 +35,12 @@ map $request $request_anon {
     "~(?P<method>.+) (?P<url>\/.+\?)(?P<room>room=[^\&]+\&?)?.* (?P<protocol>.+)"     "$method $url$room $protocol";
     default                    $request;
 }
+map $http_referer $http_referer_anon {
+    "~(?P<url>\/.+\?)(?P<room>room=[^\&]+\&?)?.*"     "$url$room";
+    default                    $http_referer;
+}
 log_format anon '$remote_addr_anon - $remote_user [$time_local] "$request_anon" '
-    '$status $body_bytes_sent "$http_referer" '
+    '$status $body_bytes_sent "$http_referer_anon" '
     '"$http_user_agent" "$http_x_forwarded_for" $request_time';
 {% endif %}
 types {
