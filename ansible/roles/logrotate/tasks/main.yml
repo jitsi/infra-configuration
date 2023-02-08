@@ -10,7 +10,10 @@
     path: "/etc/logrotate.d/{{ item.name }}"
     state: absent
   loop:
-    - "{{ [logrotate_rules | flatten, logrotate_rules_jvb | flatten, logrotate_rules_core | flatten, logrotate_rules_haproxy| flatten] }}"
+    - "{{ logrotate_rules | flatten }}"
+    - "{{ logrotate_rules_jvb | flatten }}"
+    - "{{ logrotate_rules_core | flatten }}"
+    - "{{ logrotate_rules_haproxy| flatten }}"
   when: logrotate_rules is defined
 
 - name: Setup logrotate.d scripts
