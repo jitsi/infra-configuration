@@ -7,13 +7,10 @@
 # Remove older logrotate configuration files
 - name: Install logrotation custom rule files
   ansible.builtin.file:
-    path: "/etc/logrotate.d/{{ item.name }}"
+    path: "/etc/logrotate.d/{{ item }}"
     state: absent
   loop:
-    - "{{ logrotate_rules | flatten }}"
-    - "{{ logrotate_rules_jvb | flatten }}"
-    - "{{ logrotate_rules_core | flatten }}"
-    - "{{ logrotate_rules_haproxy| flatten }}"
+    - "{{ (logrotate_rules + logrotate_rules_jvb + logrotate_rules_core + logrotate_rules_haproxy) | select('name') | list }}"
   when: logrotate_rules is defined
 
 - name: Setup logrotate.d scripts
