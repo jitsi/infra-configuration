@@ -1,3 +1,8 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
 server {
     proxy_connect_timeout       90s;
     proxy_send_timeout          90s;
@@ -34,7 +39,7 @@ server {
         proxy_pass http://127.0.0.1:{{ jvb_ssl_websockets_port }}/colibri-ws/$2$is_args$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host {{ jvb_ssl_domain_name }};
         tcp_nodelay on;
     }
@@ -44,7 +49,7 @@ server {
         proxy_pass http://127.0.0.1:{{ jvb_ssl_websockets_port }}/colibri-relay-ws/$2$is_args$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host {{ jvb_ssl_domain_name }};
         tcp_nodelay on;
     }
