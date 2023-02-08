@@ -9,8 +9,7 @@
   ansible.builtin.file:
     path: "/etc/logrotate.d/{{ item }}"
     state: absent
-  loop:
-    - "{{ (logrotate_rules + logrotate_rules_jvb + logrotate_rules_core + logrotate_rules_haproxy) | select('name') | list }}"
+  loop: "{{ (logrotate_rules + logrotate_rules_jvb + logrotate_rules_core + logrotate_rules_haproxy) | select('name') | list }}"
   when: logrotate_rules is defined
 
 - name: Setup logrotate.d scripts
