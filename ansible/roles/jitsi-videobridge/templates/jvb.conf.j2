@@ -131,6 +131,12 @@ videobridge {
     enabled = true
     tls = true
     domain = "{{ jvb_ws_domain }}:{{ jvb_websockets_advertise_port }}"
+    // Set both 'domain' and 'domains' for backward compat with jvb versions that don't support "domains".
+    {% if jvb_ws_additional_domain_enabled %}
+    domains = [
+        "{{ jvb_ws_additional_domain }}:{{ jvb_websockets_advertise_port }}"
+    ]
+    {% endif %}
     server-id = "{{ jvb_server_id }}"
 {% if jvb_ws_relay_domain %}
     relay-domain = "{{ jvb_ws_relay_domain }}:{{ jvb_websockets_advertise_port }}"
