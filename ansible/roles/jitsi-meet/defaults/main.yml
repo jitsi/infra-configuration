@@ -2,7 +2,7 @@
 ansible_ec2_placement_region:
 callstats_app_id: 1
 callstats_app_secret: s3cr3t
-#give a default shard name in case none is provided
+# give a default shard name in case none is provided
 hcv_environment: all
 jaas_feedback_metadata_url: false
 # URL for branding to redirect users to standalone offering
@@ -92,7 +92,8 @@ jitsi_meet_colibri_proxy_fourth_octet_regexp: "{{ jvb_colibri_proxy_fourth_octet
 
 jitsi_meet_conference_info_overwrite: false
 jitsi_meet_conference_info_visible: "[ 'recording', 'local-recording', 'raised-hands-count' ]"
-jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee', 'transcribing', 'video-quality', 'insecure-room' ]"
+jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee',
+  'transcribing', 'video-quality', 'insecure-room' ]"
 jitsi_meet_conference_request_host: "{{ prosody_domain_name }}"
 jitsi_meet_conference_request_path: "conference-request/v1"
 jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090) }}"
@@ -138,7 +139,7 @@ jitsi_meet_enable_lock_room_for_all: false
 jitsi_meet_enable_lock_room_ten_digits: false
 jitsi_meet_enable_multi_domain: false
 jitsi_meet_enable_p2p: false
-#A/B test ratio: controls whether to suspend video in p2p when connectivity issue are detected
+# A/B test ratio: controls whether to suspend video in p2p when connectivity issue are detected
 jitsi_meet_enable_p2p_suspend_video_test: false
 jitsi_meet_enable_p2p_turn: false
 jitsi_meet_enable_prejoin_page: false
@@ -169,12 +170,13 @@ jitsi_meet_feedback_percentage: 100
 jitsi_meet_force_jvb121_ratio: -1
 jitsi_meet_google_analytics_flag: false
 jitsi_meet_google_analytics_hep_flag: false
-jitsi_meet_google_analytics_hep_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"'+jitsi_meet_domain_name+'\" -->/libs/analytics-hep.js'] }}"
-jitsi_meet_google_analytics_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"'+jitsi_meet_domain_name+'\" -->/libs/analytics-ga.min.js'] }}"
+jitsi_meet_google_analytics_hep_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
+  /libs/analytics-hep.js'] }}"
+jitsi_meet_google_analytics_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
+  /libs/analytics-ga.min.js'] }}"
 jitsi_meet_google_analytics_tracking_id: ""
 jitsi_meet_google_api_app_client_id: false
 jitsi_meet_haproxy_bind_port: 9092
-#jitsi_meet_hepop_analytics_url: "{{ jitsi_meet_hepop_analytics_urls_by_environment_type[jitsi_meet_environment_type] if jitsi_meet_environment_type in jitsi_meet_hepop_analytics_urls_by_environment_type else '' }}"
 jitsi_meet_hepop_analytics_url: ""
 jitsi_meet_hepop_analytics_urls_by_environment_type:
   dev: https://hepop-dev.jitsi.net/
@@ -196,7 +198,12 @@ jitsi_meet_nginx_redirect_missing_flag: false
 jitsi_meet_nginx_redirect_url: https://hipchat.com/
 jitsi_meet_nginx_root: "/usr/share/{{ jitsi_meet_branding_override }}"
 # Our networks and cloudflare (cloudflare ranges come from https://www.cloudflare.com/en-gb/ips/)
-jitsi_meet_nginx_trusted_proxies: ["127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32", "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"]
+jitsi_meet_nginx_trusted_proxies: [
+  "127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14",
+  "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20", "190.93.240.0/20",
+  "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32", "2803:f800::/32", "2a06:98c0::/29",
+  "2c0f:f248::/32"
+]
 jitsi_meet_nginx_ws_timeout: false
 jitsi_meet_no_audio_detection_enabled: true
 jitsi_meet_no_auto_local_audio: false
@@ -286,17 +293,11 @@ jitsi_meet_ssl_key_name: |
 jitsi_meet_start_audio_muted_count: 25
 jitsi_meet_start_video_muted_count: 25
 jitsi_meet_stun_hosts:
-  #ap-ne-1: all-ap-ne-1-turn.jitsi.net:443
   ap-se-1: all-ap-se-1-turn.jitsi.net:443
   ap-se-2: all-ap-se-2-turn.jitsi.net:443
-  #ap-south-1: all-ap-south-1-turn.jitsi.net:443
-  #ca-central-1: all-ca-central-1-turn.jitsi.net:443
   eu-central-1: all-eu-central-1-turn.jitsi.net:443
   eu-west-1: all-eu-west-1-turn.jitsi.net:443
-  #eu-west-2: all-eu-west-2-turn.jitsi.net:443
   us-east-1: all-us-east-1-turn.jitsi.net:443
-  #us-east-2: all-us-east-2-turn.jitsi.net:443
-  #us-west-1: all-us-west-1-turn.jitsi.net:443
   us-west-2: all-us-west-2-turn.jitsi.net:443
 jitsi_meet_talk_while_muted_enabled: true
 jitsi_meet_title_metadata_override: false
@@ -326,8 +327,8 @@ jitsi_meet_app_scheme: "org.jitsi.meet"
 jitsi_meet__deeplink_hide_logo: false
 jitsi_meet_deeplink_show_image: false
 jitsi_meet_dynamic_linking:
-    apn: "org.jitsi.meet"
-    appCode: "w2atb"
-    ibi: "com.atlassian.JitsiMeet.ios"
-    isi: "1165103905"
+  apn: "org.jitsi.meet"
+  appCode: "w2atb"
+  ibi: "com.atlassian.JitsiMeet.ios"
+  isi: "1165103905"
 # end deeplinking config

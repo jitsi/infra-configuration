@@ -1,29 +1,46 @@
 ---
 - name: Assures ssl cert dir exists
-  file: path="{{ jvb_ssl_dest_dir }}" state=directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jvb_ssl_dest_dir }}"
+    state: directory
 
-- name: Nginx | Generate dhparam
-  command: "openssl dhparam -out {{ jvb_ssl_dest_dir }}/dhparam.pem 2048"
-  ignore_errors: True
+- name: Nginx | Generate dhparam # noqa ignore-errors
+  ansible.builtin.command: "openssl dhparam -out {{ jvb_ssl_dest_dir }}/dhparam.pem 2048"
+  ignore_errors: true
   args:
     creates: "{{ jvb_ssl_dest_dir }}/dhparam.pem"
-  notify: restart nginx
+  notify: Restart nginx
 
-- name: install SSL certificate
-  copy: content="{{ jvb_ssl_certificate }}"
-        dest={{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.crt
-  notify: restart nginx
+- name: Install SSL certificate
+  ansible.builtin.copy:
+    mode: 0644
+    content: "{{ jvb_ssl_certificate }}"
+    dest: "{{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.crt"
+  notify: Restart nginx
 
-- name: install SSL private key
-  copy: content="{{ jvb_ssl_key_name }}"
-        dest={{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.key
-        mode=0600
-  notify: restart nginx
+- name: Install SSL private key
+  ansible.builtin.copy:
+    content: "{{ jvb_ssl_key_name }}"
+    dest: "{{ jvb_ssl_dest_dir }}/{{ jvb_ssl_domain_name }}.key"
+    mode: 0600
+  notify: Restart nginx
 
-- template: src=nginx.site.j2 dest=/etc/nginx/sites-available/{{ jvb_ssl_domain_name }} mode=0644
-  notify: restart nginx
+- name: Install JVB nginx site configuration
+  ansible.builtin.template:
+    src: nginx.site.j2
+    dest: /etc/nginx/sites-available/{{ jvb_ssl_domain_name }}
+    mode: 0644
+  notify: Restart nginx
 
-- file: path=/etc/nginx/sites-enabled/default state=absent
+- name: Remove default nginx site configuration
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
 
-- file: src=/etc/nginx/sites-available/{{ jvb_ssl_domain_name }} dest=/etc/nginx/sites-enabled/{{ jvb_ssl_domain_name }} state=link
-  notify: restart nginx
+- name: Enable JVB nginx site configuration
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/{{ jvb_ssl_domain_name }}
+    dest: /etc/nginx/sites-enabled/{{ jvb_ssl_domain_name }}
+    state: link
+  notify: Restart nginx
