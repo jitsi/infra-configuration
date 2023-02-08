@@ -1,4 +1,15 @@
 ---
+galaxy_info:
+  role_name: jitsi_videobridge
+  author: Aaron van Meerten
+  description: configure jitsi videobridge
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
-- { role: jitsi-repo, when: jvb_install_flag }
-- { role: openjdk-java, when: jvb_install_flag }
+  - { role: jitsi-repo, when: jvb_install_flag }
+  - { role: openjdk-java, when: jvb_install_flag }
