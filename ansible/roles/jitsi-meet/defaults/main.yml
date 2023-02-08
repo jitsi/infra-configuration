@@ -60,7 +60,7 @@ jitsi_meet_assetlinks: |
   }]
 jitsi_meet_bosh_host: "{{ prosody_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
-jitsi_meet_bosh_protocol: "//"
+jitsi_meet_bosh_protocol: "https://"
 jitsi_meet_bosh_url: "{{ jitsi_meet_bosh_protocol }}{{ jitsi_meet_bosh_host }}/{{ jitsi_meet_bosh_path }}"
 jitsi_meet_branding_override: "jitsi-meet"
 jitsi_meet_callstats_app_id: "{{ callstats_app_id }}"
