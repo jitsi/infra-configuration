@@ -103,26 +103,13 @@
   ansible.builtin.pip:
     name: decorator
     state: present
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20
 
-- name: Install freeze check pip pre reqs
+- name: Install stats script pip pre reqs
   ansible.builtin.pip:
     name: datadog
     state: present
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
-
-- name: Install monitoring pip prereqs - decorator
-  ansible.builtin.pip:
-    name: decorator version="4.4.2"
-    state: present
-    executable: /usr/bin/pip
-  when: ansible_distribution_release == 'bionic'
-
-- name: Install freeze check pip pre reqs
-  ansible.builtin.pip:
-    name: datadog state=present
-    executable: /usr/bin/pip
-  when: ansible_distribution_release == 'bionic'
+  when: (ansible_distribution_major_version | int) >= 20
 
 - name: Install configuration pip prereqs
   ansible.builtin.pip:

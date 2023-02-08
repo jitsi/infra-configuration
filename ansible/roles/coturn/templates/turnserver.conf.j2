@@ -2,9 +2,6 @@ use-auth-secret
 keep-address-family
 no-multicast-peers
 no-cli
-{% if ansible_distribution_release == 'bionic' -%}
-no-loopback-peers
-{% endif -%}
 no-tcp-relay
 no-tlsv1
 no-tlsv1_1

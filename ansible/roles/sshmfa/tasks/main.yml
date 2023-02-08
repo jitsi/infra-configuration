@@ -1,48 +1,48 @@
-- name: install apt pre-requisites
-  apt:
+- name: Install apt pre-requisites
+  ansible.builtin.apt:
     name: libpam-google-authenticator
-    install_recommends: True
-    state: latest
+    install_recommends: true
+    state: present
 
-- name: comment out common-auth in /etc/pam.d/sshd
-  lineinfile:
+- name: Comment out common-auth in /etc/pam.d/sshd
+  ansible.builtin.lineinfile:
     dest: /etc/pam.d/sshd
     regexp: '^@include common-auth'
     line: '#@include common-auth'
   notify: restart sshd
 
-- name: add auth required blocks to /etc/pam.d/sshd
-  blockinfile:
+- name: Add auth required blocks to /etc/pam.d/sshd
+  ansible.builtin.blockinfile:
     path: /etc/pam.d/sshd
     insertafter: EOF
     block: |
       auth required pam_google_authenticator.so
   notify: restart sshd
 
-- name: set ChallengeResponseAuthentication in /etc/ssh/sshd_config
-  lineinfile:
+- name: Set ChallengeResponseAuthentication in /etc/ssh/sshd_config
+  ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^#?ChallengeResponseAuthentication '
     line: 'ChallengeResponseAuthentication yes'
   notify: restart sshd
 
-- name: set AuthenticationMethods in /etc/ssh/sshd_config
-  lineinfile:
+- name: Set AuthenticationMethods in /etc/ssh/sshd_config
+  ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^#?AuthenticationMethods '
     line: 'AuthenticationMethods publickey,keyboard-interactive:pam'
   notify: restart sshd
 
-- name: set KbdInteractiveAuthentication in /etc/ssh/sshd_config
-  lineinfile:
+- name: Set KbdInteractiveAuthentication in /etc/ssh/sshd_config
+  ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^#?KbdInteractiveAuthentication '
     line: 'KbdInteractiveAuthentication yes'
-  when: ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 22
   notify: restart sshd
 
-- name: give automation users key-only access for ansible
-  blockinfile:
+- name: Give automation users key-only access for ansible
+  ansible.builtin.blockinfile:
     path: /etc/ssh/sshd_config
     insertafter: EOF
     block: |
@@ -54,18 +54,28 @@
           AuthenticationMethods publickey
 
 - name: Deploy .google_authenticator file for jitsi users
-  no_log: True
-  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{ item.username }}" group="{{ item.username }}"
-  when: 
+  no_log: true
+  ansible.builtin.template:
+    src: "google_authenticator.j2"
+    dest: "/home/{{ item.username }}/.google_authenticator"
+    mode: "0400"
+    owner: "{{ item.username }}"
+    group: "{{ item.username }}"
+  when:
     - item.state != "absent"
     - item.mfa_key is defined
   with_items:
     - "{{ mfa_users }}"
 
 - name: Deploy .google_authenticator file for security users
-  no_log: True
-  template: src="google_authenticator.j2" dest="/home/{{ item.username }}/.google_authenticator" mode="0400" owner="{{ item.username }}" group="{{ item.username }}"
-  when: 
+  no_log: true
+  ansible.builtin.template:
+    src: "google_authenticator.j2"
+    dest: "/home/{{ item.username }}/.google_authenticator"
+    mode: "0400"
+    owner: "{{ item.username }}"
+    group: "{{ item.username }}"
+  when:
     - item.state != "absent"
     - item.mfa_key is defined
   with_items:

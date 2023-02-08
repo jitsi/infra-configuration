@@ -1,47 +1,35 @@
 ---
-- apt: name=logrotate state=present
+- name: Apt install logrotate package
+  ansible.builtin.apt:
+    name: logrotate
+    state: present
 
 # Remove older logrotate configuration files
-- name: logrotation custom rule files
-  file: path=/etc/logrotate.d/{{ item.name }} state=absent
-  with_flattened:
-    - "{{ logrotate_rules }}"
-    - "{{ logrotate_rules_jvb }}"
-    - "{{ logrotate_rules_core }}"
-    - "{{ logrotate_rules_haproxy }}"
+- name: Install logrotation custom rule files
+  ansible.builtin.file:
+    path: "/etc/logrotate.d/{{ item.name }}"
+    state: absent
+  loop:
+    - "{{ [logrotate_rules, logrotate_rules_jvb, logrotate_rules_core, logrotate_rules_haproxy] | flatten }}"
   when: logrotate_rules is defined
 
-- name: logrotate | Setup logrotate.d scripts
-  template:
+- name: Setup logrotate.d scripts
+  ansible.builtin.template:
+    mode: 0644
     src: logrotate.d.j2
     dest: /etc/logrotate.d/01-ansible-managed
   when: logrotate_rules is defined
 
-- name: move logrotate script to /usr/local/bin from cron.daily
-  command: mv /etc/cron.daily/logrotate /usr/local/bin/logrotate-cron creates=/usr/local/bin/logrotate-cron removes=/etc/cron.daily/logrotate
-  when: ansible_distribution_release == 'bionic'
-
-- name: move logrotate script to /usr/local/bin from cron.hourly
-  command: mv /etc/cron.hourly/logrotate /usr/local/bin/logrotate-cron creates=/usr/local/bin/logrotate-cron removes=/etc/cron.hourly/logrotate
-  when: ansible_distribution_release == 'bionic'
-
-- name: execute logrotate-cron every 5 mins
-  cron:
-    name: "execute logrotate-cron"
-    job: "/usr/local/bin/logrotate-cron"
-    minute: "*/5"
-  when: ansible_distribution_release == 'bionic'
-
-- name: update systemd timer schedule for logrotate
-  lineinfile:
+- name: Update systemd timer schedule for logrotate
+  ansible.builtin.lineinfile:
     path: /lib/systemd/system/logrotate.timer
     regexp: '^OnCalendar='
     line: OnCalendar=*:0/5
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20
 
-- name: update systemd timer granularity for logrotate
-  lineinfile:
+- name: Update systemd timer granularity for logrotate
+  ansible.builtin.lineinfile:
     path: /lib/systemd/system/logrotate.timer
     regexp: '^AccuracySec='
     line: AccuracySec=1m
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20

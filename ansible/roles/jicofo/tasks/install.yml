@@ -62,28 +62,13 @@
   ansible.builtin.pip:
     name: decorator
     state: present
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20
 
-- name: Freeze check pip pre reqs
+- name: Freeze stats script pre reqs
   ansible.builtin.pip:
     name: datadog
     state: present
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
-
-- name: Install monitoring pip prereqs - decorator
-  ansible.builtin.pip:
-    name: decorator
-    version: "4.4.2"
-    state: present
-    executable: /usr/bin/pip
-  when: ansible_distribution_release == 'bionic'
-
-- name: Freeze check pip pre reqs
-  ansible.builtin.pip:
-    name: datadog
-    state: present
-    executable: /usr/bin/pip
-  when: ansible_distribution_release == 'bionic'
+  when: (ansible_distribution_major_version | int) >= 20
 
 # add a stats script to wrap the dd->colibri script
 - name: Jicofo stats script upload

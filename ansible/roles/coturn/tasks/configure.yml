@@ -30,15 +30,6 @@
     state: directory
     owner: turnserver
 
-- name: Modify coturn init file to take AWS public/local ip address into account
-  ansible.builtin.lineinfile:
-    dest: /etc/init.d/coturn
-    regexp: '^DAEMON_ARGS='
-    line: "DAEMON_ARGS='--external-ip {{ ansible_ec2_public_ipv4 }}/{{ ansible_ec2_local_ipv4 }}
-      -c /etc/turnserver.conf -o -v -l {{ coturn_logs_path }}/turn.log --simple-log'"
-  notify: Restart coturn
-  when: ansible_distribution_release == 'bionic'
-
 - name: Modify coturn systemd file to allow binding to 443
   ansible.builtin.lineinfile:
     line: 'AmbientCapabilities=CAP_NET_BIND_SERVICE'
@@ -46,7 +37,7 @@
     dest: /lib/systemd/system/coturn.service
     regexp: '^AmbientCapabilities='
   notify: Restart coturn systemd
-  when: ansible_distribution_release != 'bionic'
+  when: (ansible_distribution_major_version | int) >= 18
 
 - name: Modify coturn max open files limits
   ansible.builtin.lineinfile:
