@@ -8,7 +8,7 @@
 
 - name: Create application log directory
   ansible.builtin.file:
-    mode: 0755
+    mode: 0775
     path: "{{ signal_sidecar_log_dir }}"
     state: directory
 
