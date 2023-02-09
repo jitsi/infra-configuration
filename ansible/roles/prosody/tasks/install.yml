@@ -176,7 +176,7 @@
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules
     src: "mod_smacks_session_close.patch"
-    strip: 1
+    strip: 2
   # when:
   #   - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
 
