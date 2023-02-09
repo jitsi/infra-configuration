@@ -23,6 +23,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     dpkg -l | awk '/^\Si  prosody/ {print $2}'
+  args:
+    executable: /bin/bash
   register: jitsi_meet_prosody_package_shell
 
 - name: Set prosody installed version variables
