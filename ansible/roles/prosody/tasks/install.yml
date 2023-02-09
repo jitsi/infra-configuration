@@ -200,6 +200,7 @@
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules
     src: "mod_http_support_cidr.patch"
+    strip: 2
   when: (prosody_minor_version | int) == 11
 
 - name: Apply mod_websocket session IP patch
