@@ -17,6 +17,7 @@
     allow-downgrades: true
   environment:
     DEBIAN_FRONTEND: noninteractive
+  when: jitsi_meet_branding_override != "jitsi-meet"
 
 - name: Register installed branding version
   ansible.builtin.shell: |
