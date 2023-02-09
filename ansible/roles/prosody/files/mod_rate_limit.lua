@@ -154,7 +154,7 @@ end
 local function filter_hook(session)
     local ip = session.ip;
 	module:log("debug", "New session from %s", ip);
-    if is_whitelisted(ip) or is_whitelisted_jid(session.username..'@'..session.host) then
+    if is_whitelisted(ip) or (session.username and is_whitelisted_jid(session.username..'@'..session.host)) then
         return;
     end
 
