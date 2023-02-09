@@ -9,14 +9,6 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
-- name: Check installed Meet version
-  ansible.builtin.shell: |
-    set -o pipefail
-    dpkg -s jitsi-meet | grep Version | awk '{print $2}'
-  args:
-    executable: /bin/bash
-  register: jitsi_meet_version_check
-
 - name: Mark unhold on jitsi-meet package version
   ansible.builtin.command: apt-mark unhold {{ jitsi_meet_deb_pkg_name }}
 
