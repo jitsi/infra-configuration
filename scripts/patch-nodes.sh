@@ -44,7 +44,7 @@ rm -rf ./batch-${ROLE}-${ORACLE_REGION}*.inventory
 
 for ENV in $ENVIRONMENT_LIST; do
   ANSIBLE_INVENTORY_${ENV}="./batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
-  $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM >> $ANSIBLE_INVENTORY_${ENV}
+  $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY_${ENV}
 done
 
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
@@ -64,7 +64,7 @@ BATCH_SIZE=${BATCH_SIZE-"10"}
 [ -d ./.batch ] && rm -rf .batch
 mkdir .batch
 for ENV in $ENVIRONMENT_LIST; do
-    split -l $BATCH_SIZE $ANSIBLE_INVENTORY_${ENV} ".batch/${ROLE}-${ORACLE_REGION}-{$ENV}-"
+    split -l $BATCH_SIZE $ANSIBLE_INVENTORY_$ENV ".batch/${ROLE}-${ORACLE_REGION}-{$ENV}-"
 done
 
 FAILED_COUNT=0
@@ -72,7 +72,7 @@ ANSIBLE_FAILURES=0
 #[ -e $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh ] && . $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh
 
 for ENV in $ENVIRONMENT_LIST; do
-    for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-*; do
+    for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-${ENV}*; do
         echo "[tag_shard_role_$ROLE]" > ./batch.inventory
         if [[ "$SKIP_SSH_CONFIRMATION" == "true" ]]; then
             cat $BATCH_INVENTORY >> ./batch.inventory
