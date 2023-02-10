@@ -43,7 +43,7 @@ fi
 rm -rf ./batch-${ROLE}-${ORACLE_REGION}*.inventory
 
 for ENV in $ENVIRONMENT_LIST; do
-  ANSIBLE_INVENTORY_${ENV}="./batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
+  ANSIBLE_INVENTORY_${ENV}="batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
   $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY_${ENV}
 done
 
