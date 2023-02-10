@@ -38,7 +38,6 @@ if [ -n "$ANSIBLE_EXTRA_VARS" ]; then
 fi
 
 if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
-    ALL_ENVIRONMENTS="true"
     ENVIRONMENT_LIST=$(ls $LOCAL_PATH/../sites/)
     echo "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in ALL environments: $ENVIRONMENT_LIST"
 else
@@ -55,15 +54,10 @@ rm -rf ./batch-${ROLE}-${ORACLE_REGION}*.inventory
 
 BASE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}.inventory"
 
-if [[ "$ALL_ENVIRONMENTS" == "true" ]]; then
-    echo "## building $ROLE inventory for all environments in region $ORACLE_REGION"
-    $LOCAL_PATH/node.py --environment all --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM >> $BASE_INVENTORY
-else
-    for ENV in $ENVIRONMENT_LIST; do
-        echo "## building $ROLE inventory for $ENV in region $ORACLE_REGION"
-        $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM >> $BASE_INVENTORY
-    done
-fi
+for ENV in $ENVIRONMENT_LIST; do
+    echo "## building $ROLE inventory for $ENV in region $ORACLE_REGION"
+    $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM >> $BASE_INVENTORY
+done
 
 LIVE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-live.inventory"
 
