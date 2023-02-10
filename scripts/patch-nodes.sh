@@ -65,7 +65,7 @@ BATCH_SIZE=${BATCH_SIZE-"10"}
 mkdir .batch
 for ENV in $ENVIRONMENT_LIST; do
     ANSIBLE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
-    split -l $BATCH_SIZE $ANSIBLE_INVENTORY ".batch/${ROLE}-${ORACLE_REGION}-{$ENV}-"
+    split -l $BATCH_SIZE $ANSIBLE_INVENTORY ".batch/${ROLE}-${ORACLE_REGION}-${ENV}-"
 done
 
 FAILED_COUNT=0
