@@ -1,14 +1,28 @@
 #!/bin/bash
 
+# Patches nodes in the Jitsi environment with one or more ansible roles which
+# can be entered as a space-delimited list into the ANSIBLE_ROLES environment
+# variable. The ANSIBLE_PLAYBOOK_FILE playbook is applied to machines which can
+# be found with node.py with the ROLE tag.
+#
+# A typical use case is to update ssh users across instances, so ANSIBLE_ROLES
+# defaults to sshusers and ROLE defaults to ssh.
+#
+# ENVIRONMENT_LIST can be set to a space delimited list of environments or the
+# special ALL case will apply the playbook to all directories in /sites
+#
+# For example, to patch all jumpboxes with the sshusers role:
+# > ROLE="ssh" ANSIBLE_ROLES="sshusers" ENVIRONMENT_LIST="ALL" ./scripts/patch-nodes.sh
+
 echo "## starting patch-nodes.sh"
 
 if [  -z "$1" ]
 then
   ANSIBLE_SSH_USER=$(whoami)
-  echo "Ansible SSH user is not defined. We use current user: $ANSIBLE_SSH_USER"
+  echo "## ansible SSH user is not defined. We use current user: $ANSIBLE_SSH_USER"
 else
   ANSIBLE_SSH_USER=$1
-  echo "Run ansible as $ANSIBLE_SSH_USER"
+  echo "## run ansible as $ANSIBLE_SSH_USER"
 fi
 
 if [ -z "$ENVIRONMENT_LIST" ]; then
@@ -22,30 +36,10 @@ fi
 
 LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 
-if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
-    ENVIRONMENT_LIST=$(ls $LOCAL_PATH/../sites/)
-    echo "## applying patch to ALL environments: $ENVIRONMENT_LIST"
-else
-    echo "## applying patch to these environments: $ENVIRONMENT_LIST"
-fi
+DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
 [ -z "$ROLE" ] && ROLE="ssh"
 [ -z "$ORACLE_REGION" ] && ORACLE_REGION="all"
-
-RELEASE_PARAM=""
-if [ -n "$RELEASE_NUMBER" ]; then 
-    echo "## patch-nodes.sh: filtering on release $RELEASE_NUMBER"
-    RELEASE_PARAM="--release ${RELEASE_NUMBER}"
-fi
-
-rm -rf ./batch-${ROLE}-${ORACLE_REGION}*.inventory
-
-for ENV in $ENVIRONMENT_LIST; do
-  ANSIBLE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
-  $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY
-done
-
-DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
 ANSIBLE_PLAYBOOK_FILE=${ANSIBLE_PLAYBOOK_FILE-"patch-nodes-default.yml"}
 ANSIBLE_PLAYBOOK="$LOCAL_PATH/../ansible/$ANSIBLE_PLAYBOOK_FILE"
@@ -57,58 +51,76 @@ if [ -n "$ANSIBLE_EXTRA_VARS" ]; then
   ANSIBLE_EXTRA_VARS="-e '$ANSIBLE_EXTRA_VARS'"
 fi
 
+if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
+    ENVIRONMENT_LIST=$(ls $LOCAL_PATH/../sites/)
+    echo "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in ALL environments: $ENVIRONMENT_LIST"
+else
+    echo "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in these environments: $ENVIRONMENT_LIST"
+fi
+
+RELEASE_PARAM=""
+if [ -n "$RELEASE_NUMBER" ]; then 
+    echo "## patch-nodes.sh: filtering on release $RELEASE_NUMBER"
+    RELEASE_PARAM="--release ${RELEASE_NUMBER}"
+fi
+
+rm -rf ./batch-${ROLE}-${ORACLE_REGION}*.inventory
+
+BASE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}.inventory"
+
+for ENV in $ENVIRONMENT_LIST; do
+    echo "## building $ROLE inventory for $ENV in region $ORACLE_REGION"
+    $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM >> $BASE_INVENTORY
+done
+
+LIVE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-live.inventory"
+
+SSH_FAILED_COUNT=0
+if [[ "$SKIP_SSH_CONFIRMATION" == "true" ]]; then
+    echo "## skipping ssh confirmation"
+    cp $BASE_INVENTORY $LIVE_INVENTORY
+else
+    while IFS='' read -r LINE || [ -n "$LINE" ]; do
+        IP=$(echo $LINE | awk '{ print $1 }')
+        echo "## confirming ssh liveness of $IP"
+        timeout 10 ssh -n -o StrictHostKeyChecking=no -F $LOCAL_PATH/../config/ssh.config $ANSIBLE_SSH_USER@$IP "uptime > /dev/null" && echo $LINE >> $LIVE_INVENTORY || SSH_FAILED_COUNT=$(($SSH_FAILED_COUNT+1))
+    done < "${BASE_INVENTORY}"
+fi
+
+echo "## slicing live inventory into batches"
 BATCH_SIZE=${BATCH_SIZE-"10"}
 
 [ -d ./.batch ] && rm -rf .batch
 mkdir .batch
-for ENV in $ENVIRONMENT_LIST; do
-    ANSIBLE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
-    split -l $BATCH_SIZE $ANSIBLE_INVENTORY ".batch/${ROLE}-${ORACLE_REGION}-${ENV}-"
-done
+split -l $BATCH_SIZE $LIVE_INVENTORY ".batch/${ROLE}-${ORACLE_REGION}-"
 
-FAILED_COUNT=0
 ANSIBLE_FAILURES=0
 
-set -x
+echo "## starting $ANSIBLE_PLAYBOOK batch runs"
+for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-*; do
+    echo "[tag_shard_role_$ROLE]" > ./batch.inventory
+    cat $BATCH_INVENTORY >> ./batch.inventory
 
-for ENV in $ENVIRONMENT_LIST; do
-    for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-${ENV}*; do
-        echo "[tag_shard_role_$ROLE]" > ./batch.inventory
-        if [[ "$SKIP_SSH_CONFIRMATION" == "true" ]]; then
-            cat $BATCH_INVENTORY >> ./batch.inventory
-        else
-            for ip in $(cat $BATCH_INVENTORY | tail -n+1 | awk '{print $1}'); do
-                timeout 10 ssh -o StrictHostKeyChecking=no -F $LOCAL_PATH/../config/ssh.config $ANSIBLE_SSH_USER@$ip "uptime > /dev/null" && echo $ip >> ./batch.inventory || FAILED_COUNT=$(($FAILED_COUNT+1))
-            done
-        fi
+    ansible-playbook $ANSIBLE_PLAYBOOK \
+        -i ./batch.inventory \
+        -e "ansible_ssh_user=$ANSIBLE_SSH_USER shard_role=$ROLE patch_ansible_roles=\"$ANSIBLE_ROLES\"" \
+        $ANSIBLE_EXTRA_VARS --vault-password-file .vault-password.txt \
+        --tags "$DEPLOY_TAGS"
 
-        LIVE_COUNT=$(cat ./batch.inventory | wc -l | awk '{print $1}')
-        if [[ $LIVE_COUNT -gt 1 ]]; then
-
-            ansible-playbook $ANSIBLE_PLAYBOOK \
-                -i ./batch.inventory \
-                -e "ansible_ssh_user=$ANSIBLE_SSH_USER hcv_environment=$ENV shard_role=$ROLE patch_ansible_roles=\"$ANSIBLE_ROLES\"" \
-                $ANSIBLE_EXTRA_VARS --vault-password-file .vault-password.txt \
-                --tags "$DEPLOY_TAGS"
-
-            if [[ $? -gt 0 ]]; then
-                echo "ERROR: Ansible batch failed for ${ENV}"
-                ANSIBLE_FAILURES=$(($ANSIBLE_FAILURES+1))
-            fi
-        else
-            echo "No live instances found in batch for ${ENV}, skipping"
-        fi
-    done
+    if [[ $? -gt 0 ]]; then
+        echo "ERROR: Ansible batch failed for $BATCH_INVENTORY"
+        ANSIBLE_FAILURES=$(($ANSIBLE_FAILURES+1))
+    fi
 done
 
 FINAL_RET=0
 if [[ $ANSIBLE_FAILURES -gt 0 ]]; then
-    echo "$ANSIBLE_FAILURES ansible errors with at least 1 node"
+    echo "## ERROR: $ANSIBLE_FAILURES ansible errors with at least 1 node"
     FINAL_RET=1
 fi
 
-if [[ $FAILED_COUNT -gt 0 ]]; then
-    echo "$FAILED_COUNT nodes were skipped due to ssh failure"
+if [[ $SSH_FAILED_COUNT -gt 0 ]]; then
+    echo "## WARNING: $SSH_FAILED_COUNT nodes were skipped due to ssh failure"
     FINAL_RET=2
 fi
 
