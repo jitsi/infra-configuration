@@ -1,4 +1,15 @@
 ---
+galaxy_info:
+  role_name: jibri_java
+  author: Aaron van Meerten
+  description: configure jibri
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
   - { role: jitsi-repo, when: jibri_install_flag }
   - { role: chromedriver, when: jibri_install_flag }
