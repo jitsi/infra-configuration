@@ -13,8 +13,6 @@ fi
 
 set -x
 
-LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
-
 if [ -z "$ENVIRONMENT_LIST" ]; then
     if [ -z "$ENVIRONMENT" ]; then
         ENVIRONMENT_LIST=$ENVIRONMENT
@@ -24,8 +22,10 @@ if [ -z "$ENVIRONMENT_LIST" ]; then
     fi
 fi
 
+LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
+
 if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
-    ENVIRONMENT_LIST=$(ls ../sites)
+    ENVIRONMENT_LIST=$(ls $LOCAL_PATH/../sites/)
     echo "## applying patch to ALL environments: $ENVIRONMENT_LIST"
 else
     echo "## applying patch to these environments: $ENVIRONMENT_LIST"
@@ -70,7 +70,6 @@ done
 
 FAILED_COUNT=0
 ANSIBLE_FAILURES=0
-#[ -e $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh ] && . $LOCAL_PATH/../sites/$ENVIRONMENT/stack-env.sh
 
 for ENV in $ENVIRONMENT_LIST; do
     for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-${ENV}*; do
