@@ -1,4 +1,12 @@
 ---
+- name: Create home directory for www-data user
+  ansible.builtin.file:
+    path: /var/www
+    state: directory
+    owner: "www-data"
+    group: "www-data"
+    recurse: true
+
 - name: TestRTC | Create testrtc folder
   ansible.builtin.file:
     state: directory
