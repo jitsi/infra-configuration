@@ -1,14 +1,14 @@
 ---
-- name: restart wavefront-proxy
-  service:
+- name: Restart wavefront-proxy
+  ansible.builtin.service:
     name: wavefront-proxy
     state: restarted
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true
 
-- name: restart telegraf
-  service:
+- name: Restart telegraf
+  ansible.builtin.service:
     name: telegraf
     state: restarted
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true

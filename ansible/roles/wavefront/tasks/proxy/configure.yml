@@ -33,7 +33,7 @@
     owner: root
     group: root
   when: wavefront_install_proxy
-  notify: restart wavefront-proxy
+  notify: Restart wavefront-proxy
   tags:
     - install
     - redhat
@@ -45,7 +45,7 @@
   ansible.builtin.file:
     path: "{{ wavefront_config }}.default"
     state: absent
-  notify: restart wavefront-proxy
+  notify: Restart wavefront-proxy
   tags:
     - install
     - redhat
