@@ -9,7 +9,7 @@
     dest: /etc/pam.d/sshd
     regexp: '^@include common-auth'
     line: '#@include common-auth'
-  notify: restart sshd
+  notify: Restart sshd
 
 - name: Add auth required blocks to /etc/pam.d/sshd
   ansible.builtin.blockinfile:
@@ -17,21 +17,21 @@
     insertafter: EOF
     block: |
       auth required pam_google_authenticator.so
-  notify: restart sshd
+  notify: Restart sshd
 
 - name: Set ChallengeResponseAuthentication in /etc/ssh/sshd_config
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^#?ChallengeResponseAuthentication '
     line: 'ChallengeResponseAuthentication yes'
-  notify: restart sshd
+  notify: Restart sshd
 
 - name: Set AuthenticationMethods in /etc/ssh/sshd_config
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: '^#?AuthenticationMethods '
     line: 'AuthenticationMethods publickey,keyboard-interactive:pam'
-  notify: restart sshd
+  notify: Restart sshd
 
 - name: Set KbdInteractiveAuthentication in /etc/ssh/sshd_config
   ansible.builtin.lineinfile:
@@ -39,7 +39,7 @@
     regexp: '^#?KbdInteractiveAuthentication '
     line: 'KbdInteractiveAuthentication yes'
   when: (ansible_distribution_major_version | int) >= 22
-  notify: restart sshd
+  notify: Restart sshd
 
 - name: Give automation users key-only access for ansible
   ansible.builtin.blockinfile:
