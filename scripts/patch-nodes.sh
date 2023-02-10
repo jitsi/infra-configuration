@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Patches nodes in the Jitsi environment with one or more ansible roles which
+# can be entered as a space-delimited list into the ANSIBLE_ROLES environment
+# variable. The ANSIBLE_PLAYBOOK_FILE playbook is applied to machines which can
+# be found with node.py with the ROLE tag.
+#
+# A typical use case is to update ssh users across instances, so ANSIBLE_ROLES
+# defaults to sshusers and ROLE defaults to ssh.
+#
+# ENVIRONMENT_LIST can be set to a space delimited list of environments or the
+# special ALL case will apply the playbook to all directories in /sites
+#
+# For example, to patch all jumpboxes with the sshusers role:
+# > ROLE="ssh" ANSIBLE_ROLES="sshusers" ENVIRONMENT_LIST="ALL" ./scripts/patch-nodes.sh
+
 echo "## starting patch-nodes.sh"
 
 if [  -z "$1" ]
