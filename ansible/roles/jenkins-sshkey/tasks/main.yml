@@ -3,3 +3,4 @@
     user: "ubuntu"
     key: "{{ item }}"
   with_items: "{{ jenkins_deploy_keys }}"
+  no_log: true
