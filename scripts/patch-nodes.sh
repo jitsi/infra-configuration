@@ -16,13 +16,19 @@ set -x
 LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 
 if [ -z "$ENVIRONMENT_LIST" ]; then
-  echo "## ERROR in patch-nodes.sh: ENVIRONMENT_LIST must be set"
-  exit 2
+    if [ -z "$ENVIRONMENT" ]; then
+        ENVIRONMENT_LIST=$ENVIRONMENT
+    else
+        echo "## ERROR in patch-nodes.sh: ENVIRONMENT or ENVIRONMENT_LIST must be set"
+        exit 2
+    fi
 fi
 
 if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
     ENVIRONMENT_LIST=$(ls ../sites)
-    echo "## applying patch to all environments: $ENVIRONMENT_LIST"
+    echo "## applying patch to ALL environments: $ENVIRONMENT_LIST"
+else
+    echo "## applying patch to these environments: $ENVIRONMENT_LIST"
 fi
 
 [ -z "$ROLE" ] && ROLE="ssh"
