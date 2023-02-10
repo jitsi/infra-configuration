@@ -1,19 +1,9 @@
 #!/usr/bin/python
 from __future__ import print_function
 
-try:
-    # For Python 3.0 and later
-    from urllib.request import urlopen, build_opener, HTTPCookieProcessor
-except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, build_opener, HTTPCookieProcessor
-try:
-    # For Python 3.0 and later
-    from urllib.parse import urlencode
-except ImportError:
-    # Fall back to Python 2's urllib
-    from urllib import urlencode
-import shutil
+from urllib.request import urlopen, build_opener, HTTPCookieProcessor
+from urllib.parse import urlencode
+
 import json
 import os
 import boto3
@@ -64,9 +54,6 @@ SHARD_ID_OFFSET = 10
 local_data_path = "/etc/environment.json"
 aws_metadata_url = 'http://169.254.169.254/latest/dynamic/instance-identity/document'
 aws_public_ipv4_url = 'http://169.254.169.254/latest/meta-data/public-ipv4'
-
-# # CLEAR AWSMON CACHE
-# shutil.rmtree("/var/tmp/aws-mon/", ignore_errors=True)
 
 urls_by_datacenter = {}
 releases = set([])
