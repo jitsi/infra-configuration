@@ -111,7 +111,8 @@
 
 - name: Create home directory for www-data user
   ansible.builtin.file:
-    path: /var/www state=directory
+    path: /var/www
+    state: directory
     owner: "www-data"
     group: "www-data"
     recurse: true
