@@ -11,8 +11,6 @@ else
   echo "Run ansible as $ANSIBLE_SSH_USER"
 fi
 
-set -x
-
 if [ -z "$ENVIRONMENT_LIST" ]; then
     if [ -z "$ENVIRONMENT" ]; then
         ENVIRONMENT_LIST=$ENVIRONMENT
@@ -70,6 +68,8 @@ done
 
 FAILED_COUNT=0
 ANSIBLE_FAILURES=0
+
+set -x
 
 for ENV in $ENVIRONMENT_LIST; do
     for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-${ENV}*; do
