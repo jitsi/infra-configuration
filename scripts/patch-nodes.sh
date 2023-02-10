@@ -43,8 +43,8 @@ fi
 rm -rf ./batch-${ROLE}-${ORACLE_REGION}*.inventory
 
 for ENV in $ENVIRONMENT_LIST; do
-  ANSIBLE_INVENTORY_${ENV}="batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
-  $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY_${ENV}
+  ANSIBLE_INVENTORY="batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
+  $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM > $ANSIBLE_INVENTORY
 done
 
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
@@ -64,7 +64,8 @@ BATCH_SIZE=${BATCH_SIZE-"10"}
 [ -d ./.batch ] && rm -rf .batch
 mkdir .batch
 for ENV in $ENVIRONMENT_LIST; do
-    split -l $BATCH_SIZE $ANSIBLE_INVENTORY_$ENV ".batch/${ROLE}-${ORACLE_REGION}-{$ENV}-"
+    ANSIBLE_INVENTORY="batch-${ROLE}-${ORACLE_REGION}-${ENV}.inventory"
+    split -l $BATCH_SIZE $ANSIBLE_INVENTORY ".batch/${ROLE}-${ORACLE_REGION}-{$ENV}-"
 done
 
 FAILED_COUNT=0
