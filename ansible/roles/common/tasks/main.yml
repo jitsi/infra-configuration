@@ -16,7 +16,7 @@
   ansible.builtin.apt:
     name: ['python-pip', 'python-setuptools']
     state: present
-  when: common_install_pip_flag or ansible_distribution_release == 'bionic'
+  when: common_install_pip_flag
 
 - name: Install some convenient tools for oracle only
   ansible.builtin.apt:
@@ -24,17 +24,11 @@
     state: present
   when: common_install_pip3_flag
 
-- name: Install setuptools module from pip for bionic
-  ansible.builtin.pip:
-    name: setuptools
-    version: "44.1.1"
-  when: ansible_distribution_release == 'bionic'
-
 - name: Install setuptools module from pip for focal
   ansible.builtin.pip:
     name: setuptools
     version: "51.3.3"
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20
 
 - name: Install pyopenssl==38.0.4 module from pip for focal
   ansible.builtin.pip:
@@ -97,7 +91,7 @@
     repo: "ppa:ansible/ansible"
     state: present
     update_cache: true
-  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_release == 'focal') or (ansible_distribution_release == 'jammy'))
+  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_major_version | int) >= 20)
 
 - name: Install download.sh helper script
   ansible.builtin.copy:
@@ -130,7 +124,7 @@
     state: present
   when:
     - common_install_pip3_flag
-    - ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+    - (ansible_distribution_major_version | int) >= 20
 
 # install ansible packages
 # ansible-pull is used during final machine configuration
@@ -139,21 +133,14 @@
     name: [git, python3-netaddr, software-properties-common]
     state: present
 
-- name: Install ansible client install via pip
-  ansible.builtin.pip:
-    name: ansible
-    state: present
-    version: 2.7.18
-  when: ansible_distribution_release == 'bionic' or ansible_distribution_release == 'xenial'
-
 - name: Install ansible client install via apt
   ansible.builtin.apt:
     name: ansible
     state: present
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20
 
 - name: Perform ansible client install cleanup via pip
   ansible.builtin.pip:
     name: ansible
     state: absent
-  when: ansible_distribution_release == 'focal' or ansible_distribution_release == 'jammy'
+  when: (ansible_distribution_major_version | int) >= 20

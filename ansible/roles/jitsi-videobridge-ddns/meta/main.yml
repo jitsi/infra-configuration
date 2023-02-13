@@ -1,3 +1,14 @@
 ---
+galaxy_info:
+  role_name: jitsi_videobridge_ddns
+  author: Aaron van Meerten
+  description: configure DNS entries for videobridge in Route53
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
   - { role: nodejs, when: jvb_ddns_install_flag }

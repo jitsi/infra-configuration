@@ -1,9 +1,12 @@
 ---
-- include_tasks: install.yml
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
   when: jitsi_meet_install_flag
 
-- include_tasks: configure.yml
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
   when: jitsi_meet_configure_flag
 
-- include_tasks: nginx.yml
+- name: Include nginx-only tasks
+  ansible.builtin.include_tasks: nginx.yml
   when: jitsi_meet_nginx_only_flag

@@ -1,10 +1,10 @@
 ---
 - name: Add Wavefront apt repository key.
-  apt_key:
+  ansible.builtin.apt_key:
     url: "{{ wavefront_repo_gpgkey }}"
     state: present
-    validate_certs: no
-  when: 
+    validate_certs: false
+  when:
     - wavefront_install_proxy
     - wavefront_proxy_from_apt
   tags:
@@ -14,12 +14,12 @@
     - proxy
 
 - name: Add Telgraf apt repository key.
-  apt_key:
+  ansible.builtin.apt_key:
     id: "{{ wavefront_telegraf_repo_gpgkey_id }}"
     url: "{{ wavefront_telegraf_repo_gpgkey }}"
     state: present
-    validate_certs: no
-  when: 
+    validate_certs: false
+  when:
     - wavefront_install_collector
     - wavefront_telegraf_from_apt
   tags:
@@ -29,13 +29,13 @@
     - collector
 
 - name: Add second Telgraf apt repository key.
-  apt_key:
+  ansible.builtin.apt_key:
     url: "{{ wavefront_telegraf_repo_gpgkey_2 }}"
     state: present
-    validate_certs: no
-  when: 
+    validate_certs: false
+  when:
     - wavefront_install_collector
-    - wavefront_telegraf_repo_gpgkey_2 != false
+    - not wavefront_telegraf_repo_gpgkey_2
     - wavefront_telegraf_from_apt
   tags:
     - prereqs
@@ -44,10 +44,10 @@
     - collector
 
 - name: Install Wavefront pre-requisite packages (Ubuntu)
-  apt:
-    name: ['apt-transport-https' ]
+  ansible.builtin.apt:
+    name: ['apt-transport-https']
     state: present
-    update_cache: yes
+    update_cache: true
   when: wavefront_proxy_from_apt or wavefront_telegraf_from_apt
   tags:
     - prereqs
@@ -57,10 +57,10 @@
     - collector
 
 - name: Add Wavefront Proxy apt repository.
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb {{ wavefront_proxy_pkg_url }}/ubuntu/ {{ ansible_distribution_release }} main"
     state: present
-    update_cache: yes
+    update_cache: true
   when:
     - wavefront_install_proxy
     - wavefront_proxy_from_apt
@@ -71,11 +71,11 @@
     - proxy
 
 - name: Add Wavefront Telegraf apt repository.
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb {{ wavefront_telegraf_pkg_url }}/ubuntu/ {{ ansible_distribution_release }} {{ wavefront_telegraf_repo_branch }}"
     state: present
-    update_cache: yes
-  when: 
+    update_cache: true
+  when:
     - wavefront_install_collector
     - wavefront_telegraf_from_apt
   tags:
@@ -85,11 +85,13 @@
     - collector
 
 - name: Remove Wavefront Telegraf apt repository.
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable"
     state: absent
   when: wavefront_telegraf_remove_repo
 
 - name: Remove telegraf apt source file
-  file: path=/etc/apt/sources.list.d/repos_influxdata_com_ubuntu.list state=absent
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/repos_influxdata_com_ubuntu.list
+    state: absent
   when: wavefront_telegraf_remove_repo

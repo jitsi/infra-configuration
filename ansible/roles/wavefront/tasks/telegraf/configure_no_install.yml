@@ -17,7 +17,7 @@
     src: telegraf.conf.wfcopy.j2
     dest: "{{ telegraf_main_config }}"
     mode: 0644
-  notify: restart telegraf
+  notify: Restart telegraf
   tags:
     - install
     - redhat
@@ -30,7 +30,7 @@
     src: 10-wavefront.conf.j2
     dest: "{{ telegraf_wavefront_output_plugin_config }}"
     mode: 0644
-  notify: restart telegraf
+  notify: Restart telegraf
   tags:
     - install
     - redhat

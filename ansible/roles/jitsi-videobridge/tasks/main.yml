@@ -1,9 +1,12 @@
 ---
-- include_tasks: install.yml
+- name: Include install Tasks
+  ansible.builtin.include_tasks: install.yml
   when: jvb_install_flag
 
-- include_tasks: upgrade.yml
+- name: Include upgrade Tasks
+  ansible.builtin.include_tasks: upgrade.yml
   when: jvb_upgrade_flag
 
-- include_tasks: configure.yml
+- name: Include configure Tasks
+  ansible.builtin.include_tasks: configure.yml
   when: jvb_configure_flag

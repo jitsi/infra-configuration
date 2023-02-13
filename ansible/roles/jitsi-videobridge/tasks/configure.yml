@@ -1,255 +1,385 @@
 ---
-- name: force install jitsi-videobridge package
-  apt: name="{{ jitsi_videobridge_deb_pkg_name }}={{ jitsi_videobridge_force_deb_pkg_version }}" state=present force=yes
+- name: Force install jitsi-videobridge package
+  ansible.builtin.apt:
+    name: "{{ jitsi_videobridge_deb_pkg_name }}={{ jitsi_videobridge_force_deb_pkg_version }}"
+    state: present
+    force: true
   when: jitsi_videobridge_force_deb_pkg_version
 
-#detect currently running JVB (finds either jitsi-videbridge or jitsi-videobridge2)
-- name: register installed videobridge package 
-  shell: dpkg -l | awk '/^\Si.*jitsi-videobridge/ {print $2}'
+# detect currently running JVB (finds either jitsi-videbridge or jitsi-videobridge2)
+- name: Register installed videobridge package
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg -l | awk '/^\Si.*jitsi-videobridge/ {print $2}'
+  args:
+    executable: /bin/bash
   register: jitsi_videobridge_package_shell
 
 - name: Set jvb installed videbridge variables
-  set_fact:
+  ansible.builtin.set_fact:
     jvb_installed_package: "{{ jitsi_videobridge_package_shell.stdout }}"
 
 - name: Set jvb_enable_multiple_shards=false for oracle
-  set_fact:
+  ansible.builtin.set_fact:
     jvb_enable_multiple_shards: false
   when: jvb_cloud_provider == "oracle" and not jvb_enable_consul
 
-#write out pre-custom facts configuration file
+# write out pre-custom facts configuration file
 - name: JVB Environments configuration
-  template: src="environments.json.j2" dest="/etc/jitsi/videobridge/environments.json"
+  ansible.builtin.template:
+    mode: 0644
+    src: "environments.json.j2"
+    dest: "/etc/jitsi/videobridge/environments.json"
 
-#provide bash script for muc client reconfigure
-- name: muc client reconfigure script upload
-  copy: dest="/usr/local/bin/configure-jvb-shards.sh" src="configure-jvb-shards.sh" mode=755 owner=root
+# provide bash script for muc client reconfigure
+- name: Upload muc client reconfigure script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jvb-shards.sh"
+    src: "configure-jvb-shards.sh"
+    mode: 0755
+    owner: root
 
-#provide bash script for muc client reconfigure
-- name: reconfigure jvb script aws
-  copy: dest="/usr/local/bin/reconfigure-jvb.sh" src="reconfigure-jvb.sh" mode=755 owner=root
+# provide bash script for muc client reconfigure
+- name: Upload reconfigure jvb script aws
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconfigure-jvb.sh"
+    src: "reconfigure-jvb.sh"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "aws"
 
-- name: reconfigure jvb script oracle
-  copy: dest="/usr/local/bin/reconfigure-jvb.sh" src="reconfigure-jvb-oracle.sh" mode=755 owner=root
+- name: Upload reconfigure jvb script oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconfigure-jvb.sh"
+    src: "reconfigure-jvb-oracle.sh"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "oracle"
 
-#provide bash script for muc client reconfigure
-- name: event wrapper script for JVB reconfiguration aws
-  copy: dest="/usr/local/bin/event-reconfigure-jvb.sh" src="event-reconfigure-jvb.sh" mode=755 owner=root
-  when:
-    - jvb_cloud_provider == "aws"
-    - jvb_enable_multiple_shards
-
-- name: event wrapper script for JVB reconfiguration oracle
-  copy: dest="/usr/local/bin/event-reconfigure-jvb.sh" src="event-reconfigure-jvb-oracle.sh" mode=755 owner=root
-  when:
-    - jvb_enable_multiple_shards
-    - jvb_cloud_provider == "oracle"
-
 - name: Remove custom facts for JVB
-  file:
-    path=/etc/ansible/facts.d/configure_jvb.fact
-    state=absent
+  ansible.builtin.file:
+    path: /etc/ansible/facts.d/configure_jvb.fact
+    state: absent
 
 - name: Install custom fact module for configure-jvb
-  copy: dest="/usr/local/bin/jvb-facts.py" src="configure-jvb.py" mode=0755 owner=root
-  when: 
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/jvb-facts.py"
+    src: "configure-jvb.py"
+    mode: 0755
+    owner: root
+  when:
     - (jvb_cloud_provider == "aws") or jvb_enable_consul
 
 - name: Install custom fact module for configure-jvb for oracle
-  copy: dest="/usr/local/bin/jvb-facts.py" src="configure-jvb-oracle.py" mode=0755 owner=root
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/jvb-facts.py"
+    src: "configure-jvb-oracle.py"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "oracle" and not jvb_enable_consul
 
-- name: load custom facts script from file
-  shell: /usr/local/bin/jvb-facts.py
+- name: Load custom facts script from file
+  ansible.builtin.command: /usr/local/bin/jvb-facts.py
   register: facts_result
 
-- set_fact:
+- name: Set JVB Facts
+  ansible.builtin.set_fact:
     jvb_facts: "{{ facts_result.stdout | from_json }}"
 
-- name: set XMPP hostname from dynamic fact if available
-  set_fact:
-     jvb_host: "{{ jvb_facts.xmpp_host_private_ip_address }}"
+- name: Set XMPP hostname from dynamic fact if available
+  ansible.builtin.set_fact:
+    jvb_host: "{{ jvb_facts.xmpp_host_private_ip_address }}"
   when: jvb_facts.xmpp_host_private_ip_address is defined
 
-- name: set drain mode if pool state is set to drain
-  set_fact:
-     jvb_initial_drain_mode: true
-  when: 
+- name: Set drain mode if pool state is set to drain
+  ansible.builtin.set_fact:
+    jvb_initial_drain_mode: true
+  when:
     - jvb_facts.pool_state is defined
     - jvb_facts.pool_state == 'drain'
 
-- name: set XMPP hostname for oracle
-  set_fact:
+- name: Set XMPP hostname for oracle
+  ansible.builtin.set_fact:
     jvb_host: "{{ xmpp_host_public_ip_address }}"
   when: jvb_cloud_provider == "oracle" and not jvb_enable_consul
 
-- name: set shard details
-  set_fact:
-     jvb_shards: "{{ jvb_facts.shards }}"
+- name: Set shard details
+  ansible.builtin.set_fact:
+    jvb_shards: "{{ jvb_facts.shards }}"
   when: jvb_facts.shards is defined
 
-- fail: msg="Failed to properly parse JVB shard information"
+- name: Fail when no shards are found
+  ansible.builtin.fail:
+    msg: "Failed to properly parse JVB shard information"
   when: jvb_enable_multiple_shards and (jvb_shards|length == 0)
 
-#write out post-custom facts configuration file
+# write out post-custom facts configuration file
 - name: JVB Shards configuration
-  template: src="shards.json.j2" dest="/etc/jitsi/videobridge/shards.json"
+  ansible.builtin.template:
+    mode: 0644
+    src: "shards.json.j2"
+    dest: "/etc/jitsi/videobridge/shards.json"
 
 # set JVB open file limits again
 - name: JVB file open limits
-  copy: dest="/etc/security/limits.d/jvb.conf" content="jvb - nofile {{ jvb_open_file_limit }}\nroot - nofile {{ jvb_open_file_limit }}\njvb soft core unlimited\nroot soft core unlimited\njvb hard core unlimited\nroot hard core unlimited\n"
+  ansible.builtin.copy:
+    mode: 0644
+    dest: "/etc/security/limits.d/jvb.conf"
+    content: "jvb - nofile {{ jvb_open_file_limit }}\nroot - nofile {{ jvb_open_file_limit }}
+     \njvb soft core unlimited\nroot soft core unlimited\njvb hard core unlimited\nroot hard core unlimited\n"
 
 # set JVB udp buffer parameters
+# set Jigasi udp buffer parameters
 - name: JVB buffer size maximum
-  shell: sysctl -w net.core.rmem_max={{ jvb_udp_buffer_size }}
+  ansible.posix.sysctl:
+    name: net.core.rmem_max
+    value: "{{ jvb_udp_buffer_size }}"
+    sysctl_set: true
+    state: present
+    reload: true
 
 - name: JVB buffer size count
-  shell: sysctl -w net.core.netdev_max_backlog={{ jvb_udp_buffer_max_backlog }}
+  ansible.posix.sysctl:
+    name: net.core.netdev_max_backlog
+    value: "{{ jvb_udp_buffer_max_backlog }}"
+    sysctl_set: true
+    state: present
+    reload: true
 
-- name: Increase default IP TTL
-  shell: sysctl -w net.ipv4.ip_default_ttl=128
+- name: JVB Increase default IP TTL
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_default_ttl
+    value: "128"
+    sysctl_set: true
+    state: present
+    reload: true
 
-#logging properties
-- name: configure JVB logging
-  template: dest="/etc/jitsi/videobridge/logging.properties" src="logging.properties.j2" mode=644 owner=root
+# logging properties
+- name: Configure JVB logging
+  ansible.builtin.template:
+    dest: "/etc/jitsi/videobridge/logging.properties"
+    src: "logging.properties.j2"
+    mode: 0644
+    owner: root
 
-#reconfigure java certificates to allow callstats SDK to work as expected
-#- name: post-install configure java certificates
+# reconfigure java certificates to allow callstats SDK to work as expected
+# - name: post-install configure java certificates
 #  command: /var/lib/dpkg/info/ca-certificates-java.postinst configure
-#  when: jvb_enable_callstats == true
+#  when: jvb_enable_callstats
 
 # Build video bridge files from templates (if flags are set)
-- name: jitsi-videobridge config file
-  template: src=config.j2 dest=/etc/jitsi/videobridge/config
-  notify: restart jitsi-videobridge systemd
-  when: jvb_configure_from_template_flag == true
+- name: Install jitsi-videobridge config file
+  ansible.builtin.template:
+    mode: 0644
+    src: config.j2
+    dest: /etc/jitsi/videobridge/config
+  notify: Restart jitsi-videobridge systemd
+  when: jvb_configure_from_template_flag
 
 # Make sure no appendages are left over from the debian package.
-- name: remove videobridge/sip-communicator.properties
-  file: path=/etc/jitsi/videobridge/sip-communicator.properties state=absent
+- name: Remove videobridge/sip-communicator.properties
+  ansible.builtin.file:
+    path: /etc/jitsi/videobridge/sip-communicator.properties
+    state: absent
 
-- name: jitsi-videobridge new config file
-  template: src=jvb.conf.j2 dest=/etc/jitsi/videobridge/jvb.conf
-  notify: restart jitsi-videobridge systemd
-  when: jvb_configure_from_template_flag == true
+- name: Install jitsi-videobridge new config file
+  ansible.builtin.template:
+    mode: 0644
+    src: jvb.conf.j2
+    dest: /etc/jitsi/videobridge/jvb.conf
+  notify: Restart jitsi-videobridge systemd
+  when: jvb_configure_from_template_flag
 
-#provide script for managing the auto-scale group lifecycle queue
-- name: lifecyle script upload
-  copy: dest="/usr/local/bin/monitor-terminating-instance.sh" src="monitor-terminating-instance.sh" mode=755 owner=root
+# provide script for managing the auto-scale group lifecycle queue
+- name: Upload lifecyle script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/monitor-terminating-instance.sh"
+    src: "monitor-terminating-instance.sh"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "aws"
 
-- name: lifecyle script systemd
-  copy: dest="/etc/systemd/system/monitor-terminating-instance.service" src="monitor-terminating-instance.service" mode=644 owner=root
+- name: Upload lifecyle script systemd
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/monitor-terminating-instance.service"
+    src: "monitor-terminating-instance.service"
+    mode: 0644
+    owner: root
   when: jvb_cloud_provider == "aws"
 
-#temporarily include this to install on existing JVBs
+# temporarily include this to install on existing JVBs
 # add a stats script to wrap the dd->colibri script
 - name: JVB stats script upload aws
-  copy: dest={{ path_to_stats_script }} src="jvb-stats.sh" mode=755 owner=root
+  ansible.builtin.copy:
+    dest: "{{ path_to_stats_script }}"
+    src: "jvb-stats.sh"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "aws"
 
 - name: JVB stats script upload oracle
-  copy: dest={{ path_to_stats_script }} src="jvb-stats-oracle.sh" mode=755 owner=root
+  ansible.builtin.copy:
+    dest: "{{ path_to_stats_script }}"
+    src: "jvb-stats-oracle.sh"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "oracle"
 
-#temporarily include this to install on existing JVBs
+# temporarily include this to install on existing JVBs
 # add a stats script to upload colibri stats to DataDog
 - name: JVB stats python script upload
-  copy: dest={{ path_to_stats_python_script }} src="jvb-stats.py" mode=755 owner=root
+  ansible.builtin.copy:
+    dest: "{{ path_to_stats_python_script }}"
+    src: "jvb-stats.py"
+    mode: 0755
+    owner: root
 
 - name: Copy terminate instance script oracle
-  template: src="terminate_instance_oracle.j2" dest="{{ jvb_path_to_terminate_instance_script }}" owner="{{ jvb_username }}" group=jitsi mode=0755
+  ansible.builtin.template:
+    src: "terminate_instance_oracle.j2"
+    dest: "{{ jvb_path_to_terminate_instance_script }}"
+    owner: "{{ jvb_username }}"
+    group: jitsi
+    mode: 0755
   when: jvb_cloud_provider == "oracle"
 
-- lineinfile: 
+- name: Allow JVB stats user in cron
+  ansible.builtin.lineinfile:
+    mode: 0644
     path: /etc/cron.allow
     regexp: "^{{ jvb_stats_cron_user }}"
     line: "{{ jvb_stats_cron_user }}"
-    create: yes 
+    create: true
   when: jvb_enable_stats_cron
 
 # Run the the health checker regularly
 - name: JVB stats script cron
-  cron: user={{ jvb_stats_cron_user }}
-        state=present
-        name="JVB stats script"
-        minute="{{ jvb_stats_cron.minute }}"
-        hour="{{ jvb_stats_cron.hour }}"
-        job="{{ jvb_stats_cron.job }}"
+  ansible.builtin.cron:
+    user: "{{ jvb_stats_cron_user }}"
+    state: present
+    name: "JVB stats script"
+    minute: "{{ jvb_stats_cron.minute }}"
+    hour: "{{ jvb_stats_cron.hour }}"
+    job: "{{ jvb_stats_cron.job }}"
   when: jvb_enable_stats_cron
 
 # add a health checker script to upload health stats to CloudWatch
 - name: JVB health check script upload
-  copy: dest={{ path_to_health_script }} src="jvb-health-check.sh" mode=755 owner=jvb
+  ansible.builtin.copy:
+    dest: "{{ path_to_health_script }}"
+    src: "jvb-health-check.sh"
+    mode: 0755
+    owner: jvb
   when: jvb_cloud_provider == "aws"
 
 # add a health checker script
 - name: JVB health check script upload
-  copy: dest={{ path_to_health_script }} src="jvb-health-check-oracle.sh" mode=755 owner=jvb
+  ansible.builtin.copy:
+    dest: "{{ path_to_health_script }}"
+    src: "jvb-health-check-oracle.sh"
+    mode: 0755
+    owner: jvb
   when: jvb_cloud_provider == "oracle"
 
 # write datachannel SSL key to JVB
-- name: create datachannel SSL key file
-  copy: dest=/etc/jitsi/videobridge/datachannel.key content="{{ jvb_data_channel_ssl_key_name }}" mode=600 owner="{{ jvb_username }}" group=jitsi
+- name: Create datachannel SSL key file
+  ansible.builtin.copy:
+    dest: /etc/jitsi/videobridge/datachannel.key
+    content: "{{ jvb_data_channel_ssl_key_name }}"
+    mode: 0600
+    owner: "{{ jvb_username }}"
+    group: jitsi
   when: jvb_enable_websockets_ssl
 
 # write datachannel SSL certs to JVB
-- name: create datachannel SSL certificate file
-  copy: dest=/etc/jitsi/videobridge/datachannel.crt content="{{ jvb_data_channel_ssl_certificate }}" mode=600 owner="{{ jvb_username }}" group=jitsi
+- name: Create datachannel SSL certificate file
+  ansible.builtin.copy:
+    dest: /etc/jitsi/videobridge/datachannel.crt
+    content: "{{ jvb_data_channel_ssl_certificate }}"
+    mode: 0600
+    owner: "{{ jvb_username }}"
+    group: jitsi
   when: jvb_enable_websockets_ssl
 
-#Create pkcs12 wrapper for SSL certificates
-- name: create pkcs12 SSL wrapper
-  shell: openssl pkcs12 -inkey /etc/jitsi/videobridge/datachannel.key -in /etc/jitsi/videobridge/datachannel.crt -export -out {{ jvb_websockets_ssl_keystore_pkcs12_path }} -passout pass:{{ jvb_websockets_ssl_keystore_password }}
+# Create pkcs12 wrapper for SSL certificates
+- name: Create pkcs12 SSL wrapper
+  ansible.builtin.command: openssl pkcs12 -inkey /etc/jitsi/videobridge/datachannel.key -in /etc/jitsi/videobridge/datachannel.crt -export
+    -out {{ jvb_websockets_ssl_keystore_pkcs12_path }} -passout pass:{{ jvb_websockets_ssl_keystore_password }}
   when: jvb_enable_websockets_ssl
 
-- name: import pkcs12 store into jetty keystore
-  shell: keytool -destkeystore {{ jvb_websockets_ssl_keystore_path }} -importkeystore -srcstoretype PKCS12 -srckeystore {{ jvb_websockets_ssl_keystore_pkcs12_path }} -deststorepass {{ jvb_websockets_ssl_keystore_password }} -srcstorepass {{ jvb_websockets_ssl_keystore_password }}
+- name: Import pkcs12 store into jetty keystore
+  ansible.builtin.command: keytool -destkeystore {{ jvb_websockets_ssl_keystore_path }} -importkeystore -srcstoretype PKCS12 -srckeystore
+     {{ jvb_websockets_ssl_keystore_pkcs12_path }} -deststorepass {{ jvb_websockets_ssl_keystore_password }} -srcstorepass
+     {{ jvb_websockets_ssl_keystore_password }}
   when: jvb_enable_websockets_ssl
 
-#provide script for managing the auto-scale group lifecycle queue
-- name: lifecyle script upload
-  copy: dest="/usr/local/bin/monitor-terminating-instance.sh" src="monitor-terminating-instance.sh" mode=755 owner=root
+# provide script for managing the auto-scale group lifecycle queue
+- name: Upload lifecyle script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/monitor-terminating-instance.sh"
+    src: "monitor-terminating-instance.sh"
+    mode: 0755
+    owner: root
   when: jvb_cloud_provider == "aws"
 
-- name: lifecyle script systemd
-  copy: dest="/etc/systemd/system/monitor-terminating-instance.service" src="monitor-terminating-instance.service" mode=644 owner=root
+- name: Upload lifecyle script systemd
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/monitor-terminating-instance.service"
+    src: "monitor-terminating-instance.service"
+    mode: 0644
+    owner: root
   when: jvb_cloud_provider == "aws"
 
-- name: enable monitor terminating instance systemd service
-  systemd: name=monitor-terminating-instance state=started enabled=yes daemon_reload=yes
+- name: Enable monitor terminating instance systemd service
+  ansible.builtin.systemd:
+    name: monitor-terminating-instance
+    state: started
+    enabled: true
+    daemon_reload: true
   when:
-    - jvb_image_build_flag == false and ansible_service_mgr == "systemd"
+    - not jvb_image_build_flag and ansible_service_mgr == "systemd"
     - jvb_cloud_provider == "aws"
 
-#Enable and run service if we are not building an AMI
-- name: enable JVB systemd service
-  systemd: name={{ jvb_systemd_service_name }} state=started enabled=yes daemon_reload=yes
-  when: jvb_image_build_flag == false and ansible_service_mgr == "systemd" 
+# Enable and run service if we are not building an AMI
+- name: Enable JVB systemd service
+  ansible.builtin.systemd:
+    name: "{{ jvb_systemd_service_name }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  when: not jvb_image_build_flag and ansible_service_mgr == "systemd"
 
 - name: Create directory for AWS credentials
-  file: path="/home/{{ jvb_health_check_cron_user }}/.aws" state=directory owner="{{ jvb_health_check_cron_user }}"
-  when: jvb_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
+  ansible.builtin.file:
+    mode: 0644
+    path: "/home/{{ jvb_health_check_cron_user }}/.aws"
+    state: directory
+    owner: "{{ jvb_health_check_cron_user }}"
+  when: jvb_cloud_provider == "oracle" and jvb_ddns_cleanup_flag
 
 - name: AWS credentials
-  template: src=aws_credentials.j2
-    dest="/home/{{ jvb_health_check_cron_user }}/.aws/credentials" mode=0640 owner="{{ jvb_health_check_cron_user }}"
-  when: jvb_cloud_provider == "oracle" and jvb_ddns_cleanup_flag == true
+  ansible.builtin.template:
+    src: aws_credentials.j2
+    dest: "/home/{{ jvb_health_check_cron_user }}/.aws/credentials"
+    mode: 0640
+    owner: "{{ jvb_health_check_cron_user }}"
+  when: jvb_cloud_provider == "oracle" and jvb_ddns_cleanup_flag
 
-- lineinfile: 
+- name: Add JVB health check user to cron allow
+  ansible.builtin.lineinfile:
+    mode: 0644
     path: /etc/cron.allow
     regexp: "^{{ jvb_health_check_cron_user }}"
     line: "{{ jvb_health_check_cron_user }}"
-    create: yes
+    create: true
 
 # Run the the health checker regularly
 - name: JVB health check script cron
-  cron: user={{ jvb_health_check_cron_user }}
-        state=present
-        name="JVB health check script"
-        minute="{{ jvb_health_check_cron.minute }}"
-        hour="{{ jvb_health_check_cron.hour }}"
-        job="{{ jvb_health_check_cron.job }}"
+  ansible.builtin.cron:
+    user: "{{ jvb_health_check_cron_user }}"
+    state: present
+    name: "JVB health check script"
+    minute: "{{ jvb_health_check_cron.minute }}"
+    hour: "{{ jvb_health_check_cron.hour }}"
+    job: "{{ jvb_health_check_cron.job }}"
   when: jvb_enable_health_check_cron

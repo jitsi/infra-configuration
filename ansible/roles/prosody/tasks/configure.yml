@@ -1,72 +1,84 @@
 ---
 
 # prosody-jvb
-- script: setup-prosody-jvb-service.sh
+- name: Configure prosody JVB service
+  ansible.builtin.script: setup-prosody-jvb-service.sh
   args:
     creates: /lib/systemd/system/prosody-jvb.service
   when: prosody_jvb_configure_flag
 
-- name: set tcp read buffer
-  sysctl:
+- name: Set tcp read buffer
+  ansible.posix.sysctl:
     name: net.ipv4.tcp_rmem
     value: "10240 87380 12582912"
-    sysctl_set: yes
+    sysctl_set: true
     state: present
-    reload: yes
+    reload: true
 
-- name: set tcp write buffer
-  sysctl:
+- name: Set tcp write buffer
+  ansible.posix.sysctl:
     name: net.ipv4.tcp_wmem
     value: "10240 87380 12582912"
-    sysctl_set: yes
+    sysctl_set: true
     state: present
-    reload: yes
+    reload: true
 
-- name: set tcp backlog buffer max
-  sysctl:
+- name: Set tcp backlog buffer max
+  ansible.posix.sysctl:
     name: net.core.netdev_max_backlog
     value: "10000"
     state: present
-    sysctl_set: yes
-    reload: yes
+    sysctl_set: true
+    reload: true
 
-- name: set local port range
-  sysctl:
+- name: Set local port range
+  ansible.posix.sysctl:
     name: net.ipv4.ip_local_port_range
     value: "10240 65535"
     state: present
-    sysctl_set: yes
-    reload: yes
+    sysctl_set: true
+    reload: true
 
-- name: set tcp retries to 7 (25.4 sec)
-  sysctl:
+- name: Set tcp retries to 7 (25.4 sec)
+  ansible.posix.sysctl:
     name: net.ipv4.tcp_retries2
     value: "7"
-    sysctl_set: yes
+    sysctl_set: true
     state: present
-    reload: yes
+    reload: true
 
 - name: Prosody file open limits
-  copy: dest="/etc/security/limits.d/prosody.conf" content="prosody - nofile {{ prosody_open_file_limit }}\nroot - nofile {{ prosody_open_file_limit }}"
+  ansible.builtin.copy:
+    mode: 0644
+    dest: "/etc/security/limits.d/prosody.conf"
+    content: "prosody - nofile {{ prosody_open_file_limit }}\nroot - nofile {{ prosody_open_file_limit }}"
 
-#set the systemd limits for default threads
-- name: systemd DefaultLimitNOFILE setting
-  lineinfile: dest=/etc/systemd/system.conf line="DefaultLimitNOFILE={{ prosody_open_file_limit }}" regexp="DefaultLimitNOFILE="
+# set the systemd limits for default threads
+- name: Set systemd DefaultLimitNOFILE setting
+  ansible.builtin.lineinfile:
+    dest: /etc/systemd/system.conf
+    line: "DefaultLimitNOFILE={{ prosody_open_file_limit }}"
+    regexp: "DefaultLimitNOFILE="
   when: ansible_service_mgr == "systemd"
 
-#set the systemd limits for default threads
-- name: systemd user DefaultLimitNOFILE setting
-  lineinfile: dest=/etc/systemd/user.conf line="DefaultLimitNOFILE={{ prosody_open_file_limit }}" regexp="DefaultLimitNOFILE="
+# set the systemd limits for default threads
+- name: Set systemd user DefaultLimitNOFILE setting
+  ansible.builtin.lineinfile:
+    dest: /etc/systemd/user.conf
+    line: "DefaultLimitNOFILE={{ prosody_open_file_limit }}"
+    regexp: "DefaultLimitNOFILE="
   when: ansible_service_mgr == "systemd"
 
-#set systemd to allow accounting for prosody
-- name: systemd prosody service overrides directory
-  file: path=/etc/systemd/system/prosody.service.d state=directory
+# set systemd to allow accounting for prosody
+- name: Create systemd prosody service overrides directory
+  ansible.builtin.file:
+    mode: 0755
+    path: /etc/systemd/system/prosody.service.d
+    state: directory
 
-- name: systemd prosody service overrides
-  copy:
-  args:
-    dest: /etc/systemd/system/prosody.service.d/50-accounting.conf 
+- name: Set systemd prosody service overrides
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/prosody.service.d/50-accounting.conf
     mode: 0644
     owner: root
     content: |
@@ -75,15 +87,17 @@
       CPUAccounting=yes
   register: prosody_accounting
 
-#set systemd to allow accounting for prosody
-- name: systemd prosody service overrides directory
-  file: path=/etc/systemd/system/prosody-jvb.service.d state=directory
+# set systemd to allow accounting for prosody
+- name: Create systemd prosody service overrides directory
+  ansible.builtin.file:
+    mode: 0755
+    path: /etc/systemd/system/prosody-jvb.service.d
+    state: directory
   when: prosody_jvb_configure_flag
 
-- name: systemd prosody JVB service overrides
-  copy:
-  args:
-    dest: /etc/systemd/system/prosody-jvb.service.d/50-accounting.conf 
+- name: Write systemd prosody JVB service overrides
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/prosody-jvb.service.d/50-accounting.conf
     mode: 0644
     owner: root
     content: |
@@ -93,286 +107,391 @@
   register: prosody_jvb_accounting
   when: prosody_jvb_configure_flag
 
-- name: systemd daemon-reload for prosody accounting
-  command: systemctl daemon-reload
+- name: Run systemd daemon-reload for prosody accounting
+  ansible.builtin.systemd:
+    daemon_reload: true
   when: prosody_accounting.changed or (prosody_jvb_configure_flag and prosody_jvb_accounting.changed)
 
-#detect currently running prosody (finds either prosody-trunk or prosody))
-- name: register installed prosody package
-  shell: dpkg -l | awk '/^\Si  prosody/ {print $2}'
+# detect currently running prosody (finds either prosody-trunk or prosody))
+- name: Register installed prosody package
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg -l | awk '/^\Si  prosody/ {print $2}'
+  args:
+    executable: /bin/bash
   register: prosody_package_shell
 
 - name: Set prosody installed version variables
-  set_fact:
+  ansible.builtin.set_fact:
     prosody_installed_package: "{{ prosody_package_shell.stdout }}"
 
-#generate new certificates for auth domain
-- name: generate auth domain certificate
-  command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj \
-                "/O={{ prosody_domain_name }}/OU={{ ansible_hostname }}/CN={{ prosody_auth_domain_name }}/emailAddress=webmaster@{{ ansible_hostname }}.{{ prosody_domain_name }}" \
-                -keyout /var/lib/prosody/{{ prosody_auth_domain_name }}.key \
-                -out /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
+# generate new certificates for auth domain
+- name: Generate auth domain certificate
+  ansible.builtin.command: |
+    openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj
+    "/O={{ prosody_domain_name }}/OU={{ ansible_hostname }}/CN={{ prosody_auth_domain_name }}/
+    emailAddress=webmaster@{{ ansible_hostname }}.{{ prosody_domain_name }}" \
+    -keyout /var/lib/prosody/{{ prosody_auth_domain_name }}.key \
+    -out /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
   args:
     creates: /var/lib/prosody/{{ prosody_auth_domain_name }}.key
 
-- name: link auth domain keyfile
-  file: state=link src=/var/lib/prosody/{{ prosody_auth_domain_name }}.key dest=/etc/prosody/certs/{{ prosody_auth_domain_name }}.key
+- name: Link auth domain keyfile
+  ansible.builtin.file:
+    state: link
+    src: /var/lib/prosody/{{ prosody_auth_domain_name }}.key
+    dest: /etc/prosody/certs/{{ prosody_auth_domain_name }}.key
 
-- name: link auth domain certificate
-  file: state=link src=/var/lib/prosody/{{ prosody_auth_domain_name }}.crt dest=/etc/prosody/certs/{{ prosody_auth_domain_name }}.crt
+- name: Link auth domain certificate
+  ansible.builtin.file:
+    state: link
+    src: /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
+    dest: /etc/prosody/certs/{{ prosody_auth_domain_name }}.crt
 
-- name: link auth domain certificate into /usr/local/share/ca-certificates
-  file: state=link src=/var/lib/prosody/{{ prosody_auth_domain_name }}.crt dest=/usr/local/share/ca-certificates/{{ prosody_auth_domain_name }}.crt
-  register: authdomain_calink
+- name: Link auth domain certificate into /usr/local/share/ca-certificates
+  ansible.builtin.file:
+    state: link
+    src: /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
+    dest: /usr/local/share/ca-certificates/{{ prosody_auth_domain_name }}.crt
+  notify: Rebuild ca certificates
 
-- name: generate prosody-jvb auth domain certificate
-  command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj \
-    "/O={{ prosody_domain_name }}/OU={{ ansible_hostname }}/CN={{ prosody_jvb_auth_domain_name }}/emailAddress=webmaster@{{ ansible_hostname }}.{{ prosody_domain_name }}" \
+- name: Generate prosody-jvb auth domain certificate
+  ansible.builtin.command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj \
+    "/O={{ prosody_domain_name }}/OU={{ ansible_hostname }}/CN={{ prosody_jvb_auth_domain_name }}/
+    emailAddress=webmaster@{{ ansible_hostname }}.{{ prosody_domain_name }}" \
     -keyout /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key \
     -out /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
   args:
     creates: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key
   when: prosody_jvb_configure_flag
 
-- name: link prosody-jvb auth domain keyfile
-  file: state=link src=/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key dest=/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.key
+- name: Link prosody-jvb auth domain keyfile
+  ansible.builtin.file:
+    state: link
+    src: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key
+    dest: /etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.key
   when: prosody_jvb_configure_flag
 
-- name: link prosody-jvb auth domain certificate
-  file: state=link src=/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt dest=/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.crt
+- name: Link prosody-jvb auth domain certificate
+  ansible.builtin.file:
+    state: link
+    src: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
+    dest: /etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.crt
   when: prosody_jvb_configure_flag
 
-- name: link prosody-jvb auth domain certificate into /usr/local/share/ca-certificates
-  file: state=link src=/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt dest=/usr/local/share/ca-certificates/{{ prosody_jvb_auth_domain_name }}.crt
-  register: jvb_authdomain_calink
+- name: Link prosody-jvb auth domain certificate into /usr/local/share/ca-certificates
+  ansible.builtin.file:
+    state: link
+    src: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
+    dest: /usr/local/share/ca-certificates/{{ prosody_jvb_auth_domain_name }}.crt
+  notify: Rebuild ca certificates
   when: prosody_jvb_configure_flag
 
-- name: rebuild ca certificates with auth domain certificate
-  command: update-ca-certificates
-  when: authdomain_calink.changed
+- name: Install prosody public certificate
+  ansible.builtin.copy:
+    src: "{{ prosody_ssh_key_crt_local_path }}"
+    dest: "/etc/prosody/certs/{{ prosody_domain_name }}.crt"
+    mode: 0644
+    force: false
 
-- name: rebuild ca certificates with jvb auth domain certificate
-  command: update-ca-certificates
-  when: jvb_authdomain_calink.changed
+- name: Install prosody private certificate
+  ansible.builtin.copy:
+    src: "{{ prosody_ssh_key_key_local_path }}"
+    dest: "/etc/prosody/certs/{{ prosody_domain_name }}.key"
+    mode: 0644
+    force: false
 
-- copy: src="{{ prosody_ssh_key_crt_local_path }}" dest="/etc/prosody/certs/{{ prosody_domain_name }}.crt" mode=0644 force=false
-- copy: src="{{ prosody_ssh_key_key_local_path }}" dest="/etc/prosody/certs/{{ prosody_domain_name }}.key" mode=0644 force=false
+- name: Install ASAP key
+  ansible.builtin.copy:
+    dest: "{{ prosody_asap_key_path }}"
+    mode: 0644
+    content: "{{ asap_key['key'] }}"
 
-- copy: dest="{{ prosody_asap_key_path }}" mode=0644 content="{{ asap_key['key'] }}"
-
-- name: check whether module muc_meeting_id exists
-  stat:
+- name: Check whether module muc_meeting_id exists
+  ansible.builtin.stat:
     path: /usr/share/jitsi-meet/prosody-plugins/mod_muc_meeting_id.lua
   register: muc_meeting_id_exists
 
-- name: check whether module mod_external_services exists
-  stat:
+- name: Check whether module mod_external_services exists
+  ansible.builtin.stat:
     path: /usr/share/jitsi-meet/prosody-plugins/mod_external_services.lua
   register: stat_mod_external_services
 
-- name: set mod_external_services fact
-  set_fact:
+- name: Set mod_external_services fact
+  ansible.builtin.set_fact:
     mod_external_services_exists: "{{ stat_mod_external_services.stat.exists }}"
 
-- name: build prosody.cfg.lua from template
-  template: src=prosody.cfg.lua.j2 dest=/etc/prosody/prosody.cfg.lua mode=0644
+- name: Build prosody.cfg.lua from template
+  ansible.builtin.template:
+    src: prosody.cfg.lua.j2
+    dest: /etc/prosody/prosody.cfg.lua
+    mode: 0644
 
-- name: build prosody-jvb.cfg.lua from template
-  template: src=prosody-jvb.cfg.lua.j2 dest=/etc/prosody-jvb/prosody.cfg.lua mode=0644
+- name: Build prosody-jvb.cfg.lua from template
+  ansible.builtin.template:
+    src: prosody-jvb.cfg.lua.j2
+    dest: /etc/prosody-jvb/prosody.cfg.lua
+    mode: 0644
   when: prosody_jvb_configure_flag
 
-- name: register focus prosody user
-  shell: prosodyctl register focus auth.{{ prosody_domain_name }} "{{ prosody_focus_user_secret }}"
+- name: Register focus prosody user
+  ansible.builtin.command: prosodyctl register focus auth.{{ prosody_domain_name }} "{{ prosody_focus_user_secret }}"
   args:
-    creates: /var/lib/prosody/auth.{{ prosody_domain_name |replace(".","%2") }}/accounts/focus.dat
+    creates: /var/lib/prosody/auth.{{ prosody_domain_name | replace(".", "%2") }}/accounts/focus.dat
 
-- name: check whether module mod_roster_command exists
-  stat:
+- name: Check whether module mod_roster_command exists
+  ansible.builtin.stat:
     path: /usr/share/jitsi-meet/prosody-plugins/mod_roster_command.lua
   register: stat_mod_roster_command
 
 - name: Add client_proxy to jicofo's roster
-  shell: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
-  when: 
+  ansible.builtin.command: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
+  when:
     - prosody_enable_client_proxy
     - stat_mod_roster_command.stat.exists
 
-- name: register focus prosody-jvb user
-  shell: prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register focus {{ prosody_jvb_auth_domain_name }} "{{ prosody_focus_user_secret }}"
+- name: Register focus prosody-jvb user
+  ansible.builtin.command: |
+    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register focus {{ prosody_jvb_auth_domain_name }} \
+     "{{ prosody_focus_user_secret }}"
   args:
-    creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name |replace(".","%2") }}/accounts/focus.dat
+    creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name | replace(".", "%2") }}/accounts/focus.dat
   when: prosody_jvb_configure_flag
 
-- name: install muc presence filter pfw rule
-  template: >
-    src="jvb_muc_presence_filter.pfw.j2"
-    dest="/usr/lib/prosody/rules.d/jvb_muc_presence_filter.pfw"
-    mode=0644
+- name: Install muc presence filter pfw rule
+  ansible.builtin.template:
+    src: "jvb_muc_presence_filter.pfw.j2"
+    dest: "/usr/lib/prosody/rules.d/jvb_muc_presence_filter.pfw"
+    mode: 0644
 
 # setup visitors prosody
-- name: the prosody visitor directory
-  file: path=/etc/prosody-v{{ item }} state=directory
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: build prosody.cfg.lua from template for visitor
-  template: src=prosody.cfg.lua.visitor.j2 dest=/etc/prosody-v{{ item }}/prosody.cfg.lua mode=0644
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: link certs prosody
-  file: state=link src=/etc/prosody/certs dest=/etc/prosody-v{{ item }}/certs
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: build systemd unit file for visitor
-  template: src=prosody-v.service.j2 dest=/lib/systemd/system/prosody-v{{ item }}.service
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: systemd prosody service overrides directory visitors
-  file: path=/etc/systemd/system/prosody-v{{ item }}.service.d state=directory
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: systemd prosody visitors service overrides
-  copy:
-  args:
-    dest: /etc/systemd/system/prosody-v{{ item }}.service.d/50-accounting.conf
+- name: Create the prosody visitor directory
+  ansible.builtin.file:
+    mode: 0644
+    path: "/etc/prosody-v{{ item }}"
+    state: directory
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
+- name: Build prosody.cfg.lua from template for visitor
+  ansible.builtin.template:
+    src: prosody.cfg.lua.visitor.j2
+    dest: "/etc/prosody-v{{ item }}/prosody.cfg.lua"
+    mode: 0644
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
+- name: Link certs prosody
+  ansible.builtin.file:
+    state: link
+    src: /etc/prosody/certs
+    dest: "/etc/prosody-v{{ item }}/certs"
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
+- name: Build systemd unit file for visitor
+  ansible.builtin.template:
+    mode: 0644
+    src: prosody-v.service.j2
+    dest: "/lib/systemd/system/prosody-v{{ item }}.service"
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
+- name: Install systemd prosody service overrides directory visitors
+  ansible.builtin.file:
+    mode: 0644
+    path: /etc/systemd/system/prosody-v{{ item }}.service.d
+    state: directory
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
+- name: Install systemd prosody visitors service overrides
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/prosody-v{{ item }}.service.d/50-accounting.conf"
     mode: 0644
     owner: root
     content: |
       [Service]
       MemoryAccounting=yes
       CPUAccounting=yes
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: systemd daemon-reload for prosody accounting for visitors
-  command: systemctl daemon-reload
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
+- name: Install systemd daemon-reload for prosody accounting for visitors
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Add jicofo user for visitors
-  shell: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua register focus auth.meet.jitsi "{{ prosody_focus_user_secret }}"
+  ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua register focus auth.meet.jitsi "{{ prosody_focus_user_secret }}"
   args:
     creates: /var/lib/prosody-v{{ item }}/auth%2meet%2jitsi/accounts/focus.dat
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
-- name: start and enable prosody visitors service
-  systemd: name=prosody-v{{ item }} state=started enabled=yes daemon_reload=yes masked=no
-  loop: "{{ range(0, prosody_visitors_count|int, 1)|list }}"
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
-- name: copy over the plugin for filtering internal muc access
-  copy: >
-    src="mod_muc_filter_access.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Start and enable prosody visitors service
+  ansible.builtin.systemd:
+    name: "prosody-v{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+    masked: false
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
-- name: copy over the plugin for muc event reporting
-  copy: >
-    src="mod_muc_events.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for filtering internal muc access
+  ansible.builtin.copy:
+    src: "mod_muc_filter_access.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc webhooks
-  copy: >
-    src="mod_muc_webhooks.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc event reporting
+  ansible.builtin.copy:
+    src: "mod_muc_events.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc jitsi auth
-  copy: >
-    src="mod_muc_auth_ban.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc webhooks
+  ansible.builtin.copy:
+    src: "mod_muc_webhooks.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc moderators
-  copy: >
-    src="mod_muc_moderators.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc jitsi auth
+  ansible.builtin.copy:
+    src: "mod_muc_auth_ban.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc vpaas auth
-  copy: >
-    src="mod_muc_auth_vpaas.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc moderators
+  ansible.builtin.copy:
+    src: "mod_muc_moderators.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc vpaas permissions
-  copy: >
-    src="mod_muc_permissions_vpaas.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc vpaas auth
+  ansible.builtin.copy:
+    src: "mod_muc_auth_vpaas.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc flip
-  copy: >
-    src="mod_muc_flip.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc vpaas permissions
+  ansible.builtin.copy:
+    src: "mod_muc_permissions_vpaas.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for muc end meeting
-  copy: >
-    src="mod_muc_end_meeting.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc flip
+  ansible.builtin.copy:
+    src: "mod_muc_flip.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the plugin for jigasi invite
-  copy: >
-    src="mod_muc_jigasi_invite.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for muc end meeting
+  ansible.builtin.copy:
+    src: "mod_muc_end_meeting.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
-- name: copy over the util internal lib
-  copy: >
-    src="util.internal.lib.lua"
-    dest="/usr/lib/prosody/modules/"
-    mode=0644
+- name: Copy over the plugin for jigasi invite
+  ansible.builtin.copy:
+    src: "mod_muc_jigasi_invite.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
+
+- name: Copy over the util internal lib
+  ansible.builtin.copy:
+    src: "util.internal.lib.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
 
 - name: Manage hosts name for the prosody domain {{ prosody_domain_name }}
-  lineinfile: >
-    dest=/etc/hosts
-    regexp='^{{ item.address }} {{ item.hostname }}$'
-    line='{{ item.address }} {{ item.hostname }}'
-    state={{ item.state | default("present") }} backup=yes
-    insertafter=EOF
-  with_items: prosody_local_domain
+  ansible.builtin.lineinfile:
+    dest: /etc/hosts
+    regexp: "^{{ item.address }} {{ item.hostname }}$"
+    line: "{{ item.address }} {{ item.hostname }}"
+    state: present
+    backup: true
+    insertafter: EOF
+  with_items: "{{ prosody_local_domain }}"
   when: prosody_local_domain is defined
 
-- name: change permissions for the prosody auth domainkey and crt
-  file: dest="/var/lib/prosody/{{ item }}" owner=prosody group=prosody
+- name: Change permissions for the prosody auth domainkey and crt
+  ansible.builtin.file:
+    dest: "/var/lib/prosody/{{ item }}"
+    owner: prosody
+    group: prosody
   with_items:
     - "{{ prosody_auth_domain_name }}.key"
     - "{{ prosody_auth_domain_name }}.crt"
 
-- name: change permissions for the prosody-jvb auth domain key and crt
-  file: dest="/var/lib/prosody/{{ item }}" owner=prosody group=prosody
+- name: Change permissions for the prosody-jvb auth domain key and crt
+  ansible.builtin.file:
+    dest: "/var/lib/prosody/{{ item }}"
+    owner: prosody
+    group: prosody
   with_items:
     - "{{ prosody_jvb_auth_domain_name }}.key"
     - "{{ prosody_jvb_auth_domain_name }}.crt"
   when: prosody_jvb_configure_flag
 
-- name: install prosody-log-filter script
-  copy: src=prosody-log-filter.sh dest=/usr/local/bin/prosody-log-filter.sh mode=0755
+- name: Install prosody-log-filter script
+  ansible.builtin.copy:
+    src: prosody-log-filter.sh
+    dest: /usr/local/bin/prosody-log-filter.sh
+    mode: 0755
   when: prosody_enable_log_filter
 
-- name: install prosody-log-filter service file
-  copy: src=prosody-log-filter.systemd dest=/lib/systemd/system/prosody-log-filter.service
+- name: Install prosody-log-filter service file
+  ansible.builtin.copy:
+    mode: 0644
+    src: prosody-log-filter.systemd
+    dest: /lib/systemd/system/prosody-log-filter.service
   when: prosody_enable_log_filter
 
-- name: start and enable the prosody-log-filter service
-  systemd: name=prosody-log-filter state=started enabled=yes daemon_reload=yes
+- name: Start and enable the prosody-log-filter service
+  ansible.builtin.systemd:
+    name: prosody-log-filter
+    state: started
+    enabled: true
+    daemon_reload: true
   when: prosody_enable_log_filter
 
-- name: install prosody-jvb-log-filter service file
-  copy: src=prosody-jvb-log-filter.systemd dest=/lib/systemd/system/prosody-jvb-log-filter.service
+- name: Install prosody-jvb-log-filter service file
+  ansible.builtin.copy:
+    mode: 0644
+    src: prosody-jvb-log-filter.systemd
+    dest: /lib/systemd/system/prosody-jvb-log-filter.service
   when: prosody_enable_log_filter and prosody_jvb_configure_flag
 
-- name: start and enable the prosody-jvb-log-filter service
-  systemd: name=prosody-jvb-log-filter state=started enabled=yes daemon_reload=yes
+- name: Start and enable the prosody-jvb-log-filter service
+  ansible.builtin.systemd:
+    name: prosody-jvb-log-filter
+    state: started
+    enabled: true
+    daemon_reload: true
   when: prosody_enable_log_filter and prosody_jvb_configure_flag
 
-- name: start and enable prosody service
-  systemd: name=prosody state=started enabled=yes daemon_reload=yes masked=no
+- name: Start and enable prosody service
+  ansible.builtin.systemd:
+    name: prosody
+    state: started
+    enabled: true
+    daemon_reload: true
+    masked: false
 
-- name: start and enable prosody-jvb service
-  systemd: name=prosody-jvb state=started enabled=yes daemon_reload=yes
+- name: Start and enable prosody-jvb service
+  ansible.builtin.systemd:
+    name: prosody-jvb
+    state: started
+    enabled: true
+    daemon_reload: true
   when: prosody_jvb_configure_flag
 
-- name: add moderator authentication
-  command: prosodyctl register {{ moderator_auth_user }} {{ prosody_domain_name }} "{{ moderator_auth_password }}" creates="{{ moderator_auth_domain_path }}"
+- name: Add moderator authentication
+  ansible.builtin.command: prosodyctl register {{ moderator_auth_user }} {{ prosody_domain_name }} "{{ moderator_auth_password }}"
+  args:
+    creates: "{{ moderator_auth_domain_path }}"
   when: prosody_create_users
 
   # Run the health checker regularly
-- name: enable prosody health check cron
-  cron: user=root
-        state=present
-        name="Prosody health check script"
-        minute="*"
-        hour="*"
-        job="/usr/local/bin/prosody-health-check.sh > /tmp/prosody-health-cron-output 2>&1"
+- name: Enable prosody health check cron
+  ansible.builtin.cron:
+    user: root
+    state: present
+    name: "Prosody health check script"
+    minute: "*"
+    hour: "*"
+    job: "/usr/local/bin/prosody-health-check.sh > /tmp/prosody-health-cron-output 2>&1"
   when: prosody_enable_health_check_cron

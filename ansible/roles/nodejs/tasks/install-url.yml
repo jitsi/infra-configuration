@@ -1,5 +1,7 @@
 ---
-- name: install nodejs from internal repo URL
-  apt: deb="{{ nodejs_url }}" state=present 
-  retries: 3 
+- name: Install nodejs from internal repo URL
+  ansible.builtin.apt:
+    deb: "{{ nodejs_url }}"
+    state: present
+  retries: 3
   delay: 1

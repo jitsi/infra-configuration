@@ -1,5 +1,5 @@
 - name: Setup apt repository for openjdk
-  ansible.builtin.apt_repository: 
+  ansible.builtin.apt_repository:
     repo: "ppa:openjdk-r/ppa"
     update_cache: true
   when:

@@ -1,3 +1,17 @@
 ---
-- name: reload prosody
-  service: name=prosody state=restarted
+- name: Reload prosody
+  ansible.builtin.service:
+    name: prosody
+    state: restarted
+
+- name: Remove patches # noqa ignore-errors
+  ansible.builtin.shell: |
+    set -o pipefail
+    find /usr/lib/prosody -name "*.orig" | xargs -r rm && find /usr/lib/prosody -name ".*.lua" | xargs -r rm
+  args:
+    executable: /bin/bash
+  when: prosody_apt_removed.changed or prosody_url_removed.changed
+  ignore_errors: true
+
+- name: Rebuild ca certificates
+  ansible.builtin.command: update-ca-certificates

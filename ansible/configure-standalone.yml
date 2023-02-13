@@ -158,6 +158,9 @@
         state: stopped
         enabled: false
       ignore_errors: true
+    - name: Disable colibri-ws proxy for standalone
+      ansible.builtin.set_fact:
+        jitsi_meet_colibri_proxy_enabled: false
   post_tasks:
     - name: Install consul signal state script
       ansible.builtin.copy:
