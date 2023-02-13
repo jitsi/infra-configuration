@@ -536,11 +536,13 @@ server {
     }
 {% endif %}
 
+{% if jitsi_meet_bad_room_list | length > 0 %}
     #ensure all inappropriate room names are redirected appropriately
-    location ~* ^/(camjerk|children|cuties|cuties2|kids|onlycutiesss|perv|perv1|pervroom|pervroom1|pervroom2|pervroom3|porn|sex|teens|teenz|tight|vids|youtubecuties)$
+    location ~* ^/({% for r in jitsi_meet_bad_room_list %}/{{ r }}{% if not loop.last %}|{% endif %}{% endfor %})$
     {
         rewrite ^/(.*)$ https://{{ jitsi_meet_domain_name }}/ permanent;
     }
+{% endif %}
 
     #Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
     location ~ ^/([^/?&:'"]+)$ {
