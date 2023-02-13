@@ -165,6 +165,7 @@ frontend www-http
 
 {% if haproxy_bad_room_list | length > 0 %}
    acl bad_room path {% for r in haproxy_bad_room_list %}/{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
+   
    acl bad_room_param urlp(room) {% for r in haproxy_bad_room_list %}{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
 {% endif %}
 
