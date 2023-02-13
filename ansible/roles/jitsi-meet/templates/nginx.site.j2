@@ -538,7 +538,7 @@ server {
 
 {% if jitsi_meet_bad_room_list | length > 0 %}
     #ensure all inappropriate room names are redirected appropriately
-    location ~* ^/({% for r in jitsi_meet_bad_room_list %}/{{ r }}{% if not loop.last %}|{% endif %}{% endfor %})$
+    location ~* ^/({% for r in jitsi_meet_bad_room_list %}{{ r }}{% if not loop.last %}|{% endif %}{% endfor %})$
     {
         rewrite ^/(.*)$ https://{{ jitsi_meet_domain_name }}/ permanent;
     }
