@@ -92,3 +92,17 @@
     dest: "{{ jicofo_health_script_path }}"
     mode: 0755
     owner: root
+
+- name: Copy pre-terminate collection script
+  ansible.builtin.copy:
+    src: "collect-pre-terminate-stats-jicofo.sh"
+    dest: "/usr/local/bin/collect-pre-terminate-stats-jicofo.sh"
+    mode: 0755
+    owner: root
+
+- name: Copy pre-terminate dump script
+  ansible.builtin.copy:
+    src: "dump-pre-terminate-stats-jicofo.sh"
+    dest: "/usr/local/bin/dump-pre-terminate-stats-jicofo.sh"
+    mode: 0755
+    owner: root
