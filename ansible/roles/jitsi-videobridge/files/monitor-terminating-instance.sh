@@ -195,6 +195,13 @@ do
                 $CLEANUP_ROUTE53_DNS
             fi
 
+            echo "Dump pre-terminate stats for JVB"
+            # this script is run from different users, e.g. jsidecar, ubuntu, root, and should not use sudo commands
+            PRE_TERMINATE_STATS="/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
+            if [ -f "$PRE_TERMINATE_STATS" ]; then
+                $PRE_TERMINATE_STATS
+            fi
+
             # now send the signal to terminate
             aws autoscaling complete-lifecycle-action \
              --lifecycle-hook-name "${LIFECYCLE_HOOK_NAME}" \
