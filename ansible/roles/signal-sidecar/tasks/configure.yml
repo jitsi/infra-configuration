@@ -27,6 +27,13 @@
     line: "WEIGHT_PARTICIPANTS={{ signal_sidecar_weight | to_json }}"
   notify: Restart signal-sidecar
 
+- name: Enable signal-sidecar prosody dump script
+  ansible.builtin.lineinfile:
+    dest: /etc/jitsi/signal-sidecar/config
+    regexp: '^PROSODY_DUMP='
+    line: "PROSODY_DUMP={{ signal_sidecar_prosody_dump_script }}"
+  notify: Restart signal-sidecar
+
 - name: Start signal-sidecar service
   ansible.builtin.service:
     name: signal-sidecar
