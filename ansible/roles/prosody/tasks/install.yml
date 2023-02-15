@@ -212,9 +212,9 @@
 
 - name: Apply mod_websocket session IP patch for prosody 0.12
   ansible.posix.patch:
-    basedir: /usr/lib/prosody
+    basedir: /
     src: "mod_websocket_session_ip-0.12.patch"
-    strip: 1
+    strip: 0
   when: (prosody_minor_version | int) == 12
 
 - name: Apply expat memory leak patch
