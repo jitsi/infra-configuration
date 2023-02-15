@@ -1,0 +1,28 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: false
+  become: true
+  strategy: free
+  vars_files:
+    - roles/jitsi-dumper/defaults/main.yml
+    - config/vars.yml
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+    - name: Install prosody dump script
+      ansible.builtin.template:
+        src: "roles/jitsi-dumper/templates/dump-prosody-oracle.sh.j2"
+        dest: "/usr/local/bin/dump-prosody.sh"
+        mode: 0755
+        owner: root
+    - name: Enable signal-sidecar prosody dump script
+      ansible.builtin.lineinfile:
+        dest: /etc/jitsi/signal-sidecar/config
+        regexp: '^PROSODY_DUMP='
+        line: "PROSODY_DUMP=/usr/local/bin/dump-prosody.sh"
+    - name: Install signal-sidecar # noqa package-latest
+      ansible.builtin.apt:
+        name: signal-sidecar
+        state: latest
