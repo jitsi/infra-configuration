@@ -3,22 +3,14 @@
 # Date 1676485553 21600
 #      Wed Feb 15 12:25:53 2023 -0600
 # Branch 0.12
-# Node ID 4480f9f470adb7aff57e65f3c1f11990cd369db1
+# Node ID 33da091ace9610805c5edadc3bc62c6a93d2c1c1
 # Parent  9ed628635dc66da3fdc28af836efcb1a6428fc95
 Set the session.ip property before the session filters are initialized when using mod_websocket
 
-diff -r 9ed628635dc6 -r 4480f9f470ad core/sessionmanager.lua
+diff -r 9ed628635dc6 -r 33da091ace96 core/sessionmanager.lua
 --- a/core/sessionmanager.lua	Thu Feb 09 22:57:32 2023 +0000
 +++ b/core/sessionmanager.lua	Wed Feb 15 12:25:53 2023 -0600
-@@ -31,6 +31,7 @@
- 
- local function new_session(conn)
- 	local session = sessionlib.new("c2s");
-+    session.ip = conn.http_remote_ip or conn:ip();
- 	sessionlib.set_id(session);
- 	sessionlib.set_logger(session);
- 	sessionlib.set_conn(session, conn);
-@@ -61,7 +62,6 @@
+@@ -61,7 +61,6 @@
  		end
  		return true;
  	end
@@ -26,7 +18,7 @@ diff -r 9ed628635dc6 -r 4480f9f470ad core/sessionmanager.lua
  	local conn_name = "c2s"..tostring(session):match("[a-f0-9]+$");
  	session.log = logger.init(conn_name);
  
-diff -r 9ed628635dc6 -r 4480f9f470ad plugins/mod_websocket.lua
+diff -r 9ed628635dc6 -r 33da091ace96 plugins/mod_websocket.lua
 --- a/plugins/mod_websocket.lua	Thu Feb 09 22:57:32 2023 +0000
 +++ b/plugins/mod_websocket.lua	Wed Feb 15 12:25:53 2023 -0600
 @@ -265,15 +265,14 @@
@@ -48,7 +40,7 @@ diff -r 9ed628635dc6 -r 4480f9f470ad plugins/mod_websocket.lua
  	session.secure = consider_websocket_secure or request.secure or session.secure;
  	session.websocket_request = request;
  
-diff -r 9ed628635dc6 -r 4480f9f470ad util/session.lua
+diff -r 9ed628635dc6 -r 33da091ace96 util/session.lua
 --- a/util/session.lua	Thu Feb 09 22:57:32 2023 +0000
 +++ b/util/session.lua	Wed Feb 15 12:25:53 2023 -0600
 @@ -23,7 +23,7 @@
