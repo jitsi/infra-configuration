@@ -50,6 +50,12 @@
     - grunt
     - grunt build
 
+- name: TestRTC | Postinstall libs dir
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ testrtc_web_root_path }}/libs"
+    state: directory
+
 - name: TestRTC | Deploy testrtc
   ansible.builtin.command: cp -a {{ testrtc_base_path }}/out/src {{ testrtc_web_root_path }}
   args:
