@@ -1,8 +1,8 @@
 ---
 hcv_environment: "all"
-#rsyslog_action_file_template: "%rawmsg%\n"
-#rsyslog_priv_drop_to_user: syslog
-#rsyslog_priv_drop_to_group: syslog
+# rsyslog_action_file_template: "%rawmsg%\n"
+# rsyslog_priv_drop_to_user: syslog
+# rsyslog_priv_drop_to_group: syslog
 items: []
 # rsyslog configuration defaults
 log_syslog_port: 514
@@ -17,7 +17,7 @@ rsyslog_inet6_input_enabled: false
 rsyslog_known_programs: ["kernel", "ntpd", "prosody", "ansible", "JVB", "Jicofo", "monitor-terminating-instance"]
 rsyslog_local_log_directory: "/var/log/local/"
 rsyslog_main_config: "/etc/rsyslog.conf"
-rsyslog_os_supported: no
+rsyslog_os_supported: false
 rsyslog_repeated_msg_reduction: "off"
 rsyslog_tcp_input_port: "{{ log_syslog_port }}"
 rsyslog_tcp_server_enabled: true

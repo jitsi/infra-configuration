@@ -2,8 +2,8 @@
 datadog_extensions: "false"
 statsd_port: 8125
 telegraf_additional_config_dir: "{{ telegraf_config_dir }}/telegraf.d"
-#telegraf variables
-#telegraf_config_wfcopy: "https://raw.githubusercontent.com/wavefrontHQ/integrations/master/telegraf/telegraf.conf"
+# telegraf variables
+# telegraf_config_wfcopy: "https://raw.githubusercontent.com/wavefrontHQ/integrations/master/telegraf/telegraf.conf"
 telegraf_config_dir: "/etc/telegraf"
 telegraf_hostname: "{{ ansible_fqdn }}"
 telegraf_http_port: 3878
@@ -22,12 +22,12 @@ wavefront_config: "{{ wavefront_config_dir }}/wavefront.conf"
 wavefront_config_dir: '/etc/wavefront/{{ wavefront_proxy_pkg }}'
 wavefront_configure_collector: false
 wavefront_create_cred_file: false
-wavefront_cred_file: "{{ lookup('env','HOME') }}/.wavefront/credentials"
+wavefront_cred_file: "{{ lookup('env', 'HOME') }}/.wavefront/credentials"
 wavefront_install_collector: false
 wavefront_install_proxy: false
 # defaults file for wavefront
 wavefront_instance: "metrics"
-#Other pip package related attributes
+# Other pip package related attributes
 wavefront_pip_pkg: wavefront-cli
 wavefront_pkg_state: 'present'
 wavefront_proxy_address: "{{ regional_wavefront_proxy | default('localhost') }}"
@@ -37,7 +37,7 @@ wavefront_proxy_json_port: "{{ telegraf_port }}"
 wavefront_proxy_pkg: 'wavefront-proxy'
 wavefront_proxy_pkg_url: 'https://packagecloud.io/wavefront/proxy'
 wavefront_proxy_port: "{{ telegraf_port }}"
-wavefront_proxy_version: "{{ '12.0-2' if ansible_distribution_release=='jammy' else '10.14-1' }}"
+wavefront_proxy_version: "{{ '12.0-2' if (ansible_distribution_major_version | int) >= 22 else '10.14-1' }}"
 wavefront_repo_base_url: "https://packagecloud.io/install/repositories/wavefront/{{ item.tool }}"
 wavefront_repo_gpgkey: "https://packagecloud.io/wavefront/proxy/gpgkey"
 wavefront_repo_install_url: "{{ wavefront_repo_base_url }}/config_file.repo?os={{ item.release }}&dist={{ item.version }}&source=script"

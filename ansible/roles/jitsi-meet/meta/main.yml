@@ -1,4 +1,15 @@
 ---
+galaxy_info:
+  role_name: jitsi_meet
+  author: Aaron van Meerten
+  description: configure jitsi-meet web
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
   - { role: jitsi-repo, when: jitsi_meet_install_flag }
   - { role: nginx, when: jitsi_meet_install_flag}

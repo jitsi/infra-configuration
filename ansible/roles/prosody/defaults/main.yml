@@ -1,15 +1,15 @@
 ---
-#give a default shard name in case none is provided
+# give a default shard name in case none is provided
 hcv_environment: all
 jitsi_meet_api_server_name: "signal-api-{{ prosody_domain_name }}"
-jitsi_meet_no_sharding: no
+jitsi_meet_no_sharding: false
 # This check by default is false, but on configure time we check the installed version of jitsi-meet, whether the module
 # exist and if it is there we enable it in the client prosody config template
 mod_external_services_exists: false
-moderator_auth_domain_path: "/var/lib/prosody/{{ prosody_auth_domain_name|regex_replace('\\.','%2e') }}/accounts/{{ moderator_auth_user }}.dat"
+moderator_auth_domain_path: "/var/lib/prosody/{{ prosody_auth_domain_name | regex_replace('\\.', '%2e') }}/accounts/{{ moderator_auth_user }}.dat"
 moderator_auth_password: "replaceme"
 moderator_auth_user: "moderator"
-prosody_admins: "{{ prosody_focus_admins|list }}"
+prosody_admins: "{{ prosody_focus_admins | list }}"
 prosody_apt_base_name: prosody
 prosody_asap_accepted_audiences:
   - jitsi
@@ -29,7 +29,7 @@ prosody_auth_domain_name: "auth.{{ prosody_domain_name }}"
 prosody_bosh_max_inactivity: 60
 prosody_breakout_rooms_enabled: true
 prosody_c2s_stanza_size_limit: '512*1024'
-#enable a jigasi component in prosody
+# enable a jigasi component in prosody
 prosody_cancel_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/cancel"
 prosody_cloud_provider: "{{ cloud_provider | default('oracle') }}"
 prosody_conference_info_url: false
@@ -53,20 +53,20 @@ prosody_enable_call_flow: false
 prosody_enable_client_proxy: true
 prosody_enable_debug_log: false
 prosody_enable_filter_iq_jibri: false
-#plugin to control outbound dialing
+# plugin to control outbound dialing
 prosody_enable_filter_iq_rayo: false
 prosody_enable_firewall: "{{ true if prosody_disable_messaging else prosody_enable_jvb_muc_presence_filter }}"
-#don't enable guest authentication by default
+# don't enable guest authentication by default
 prosody_enable_guest_auth: false
 prosody_enable_health_check_cron: true
-#flag to control the internal.auth{{ prosody_domain_name }} muc for jibri, jigasi and eventually JVB
+# flag to control the internal.auth{{ prosody_domain_name }} muc for jibri, jigasi and eventually JVB
 prosody_enable_internal_muc: true
 # enables jiconop2 module, optimizing connection join number of stanzas
 prosody_enable_jiconop_module: true
 prosody_enable_jvb_muc_presence_filter: true
 prosody_enable_lobby: false
 prosody_enable_log_filter: false
-#plugin to write logs on slow event processing
+# plugin to write logs on slow event processing
 prosody_enable_log_slow_events: true
 prosody_enable_mod_turncredentials: false
 prosody_enable_muc_census: true
@@ -78,14 +78,14 @@ prosody_enable_muc_rate_limit: true
 prosody_enable_muc_size: false
 prosody_enable_password_preset: false
 prosody_enable_end_meeting: false
-#don't enable authentication by default
+# don't enable authentication by default
 prosody_enable_plain_auth: false
-#flag to control whether to publish presence based on incoming user identity discovered from JWT
+# flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
 prosody_enable_rate_limit: false
-#don't enable tokens by default for now
+# don't enable tokens by default for now
 prosody_enable_tokens: true
-#plugin to check features when requesting a transcription
+# plugin to check features when requesting a transcription
 prosody_enable_transcription_filter: false
 # prosody_log_level: change 'info' to 'debug' for debug logs
 prosody_focus_admins:
@@ -115,7 +115,7 @@ prosody_jvb_domain_name: "jvb.{{ prosody_domain_name }}"
 prosody_jvb_mod_log_ringbuffer_size: 1024*1024*4
 prosody_jvb_muc_name: "muc.{{ prosody_jvb_domain_name }}"
 prosody_log_level: info
-prosody_log_syslog_enabled: no
+prosody_log_syslog_enabled: false
 prosody_log_syslog_hostname: localhost
 prosody_log_syslog_port: 514
 prosody_log_syslog_proto: udp
@@ -146,15 +146,19 @@ prosody_mod_turncredentials_enable_tcp: true
 prosody_mod_turncredentials_hosts: ["all-turnrelay.jitsi.net"]
 # TURN servers per region, available for use by all environments.
 prosody_mod_turncredentials_hosts_by_region:
-  ap-southeast-1: ["all-ap-se-1-turn.jitsi.net", "all-ap-south-1-turn.jitsi.net", "all-ap-se-2-turn.jitsi.net", "all-ap-ne-1-turn.jitsi.net"] #ap-se-1, #ap-south-1, #ap-se-2, ap-ne-1
-  ap-southeast-2: ["all-ap-se-2-turn.jitsi.net", "all-ap-south-1-turn.jitsi.net", "all-ap-se-1-turn.jitsi.net", "all-ap-ne-1-turn.jitsi.net"] #ap-se-2, #ap-south-1, #ap-se-1, ap-ne-1
-  eu-central-1: ["all-eu-central-1-turn.jitsi.net", "all-eu-west-1-turn.jitsi.net", "all-eu-west-2-turn.jitsi.net"] #eu-central-1, eu-west-1, eu-west-2
-  eu-west-1: ["all-eu-west-1-turn.jitsi.net", "all-eu-west-2-turn.jitsi.net", "all-eu-central-1-turn.jitsi.net"] #eu-west-1, eu-west-2, eu-central-1
-  us-east-1: ["all-us-east-1-turn.jitsi.net", "all-us-east-2-turn.jitsi.net", "all-ca-central-1-turn.jitsi.net"] #us-east-1, us-east-2, ca-central-1
-  us-west-1: ["all-us-west-1-turn.jitsi.net", "all-us-west-2-turn.jitsi.net", "all-ca-central-1-turn.jitsi.net"] #us-west-1, us-west-2, ca-central-1
-  us-west-2: ["all-us-west-2-turn.jitsi.net", "all-us-west-1-turn.jitsi.net", "all-ca-central-1-turn.jitsi.net"] #us-west-2, us-west-1, ca-central-1
+  ap-southeast-1: [
+    "all-ap-se-1-turn.jitsi.net", "all-ap-south-1-turn.jitsi.net", "all-ap-se-2-turn.jitsi.net", "all-ap-ne-1-turn.jitsi.net"
+  ] # ap-se-1, #ap-south-1, #ap-se-2, ap-ne-1
+  ap-southeast-2: [
+    "all-ap-se-2-turn.jitsi.net", "all-ap-south-1-turn.jitsi.net", "all-ap-se-1-turn.jitsi.net", "all-ap-ne-1-turn.jitsi.net"
+  ] # ap-se-2, #ap-south-1, #ap-se-1, ap-ne-1
+  eu-central-1: ["all-eu-central-1-turn.jitsi.net", "all-eu-west-1-turn.jitsi.net", "all-eu-west-2-turn.jitsi.net"] # eu-central-1, eu-west-1, eu-west-2
+  eu-west-1: ["all-eu-west-1-turn.jitsi.net", "all-eu-west-2-turn.jitsi.net", "all-eu-central-1-turn.jitsi.net"] # eu-west-1, eu-west-2, eu-central-1
+  us-east-1: ["all-us-east-1-turn.jitsi.net", "all-us-east-2-turn.jitsi.net", "all-ca-central-1-turn.jitsi.net"] # us-east-1, us-east-2, ca-central-1
+  us-west-1: ["all-us-west-1-turn.jitsi.net", "all-us-west-2-turn.jitsi.net", "all-ca-central-1-turn.jitsi.net"] # us-west-1, us-west-2, ca-central-1
+  us-west-2: ["all-us-west-2-turn.jitsi.net", "all-us-west-1-turn.jitsi.net", "all-ca-central-1-turn.jitsi.net"] # us-west-2, us-west-1, ca-central-1
 prosody_mod_turncredentials_port: 443
-prosody_mod_turncredentials_secret: "{{ coturn_secret|default('secret') }}"
+prosody_mod_turncredentials_secret: "{{ coturn_secret | default('secret') }}"
 prosody_muc_allowners: false
 prosody_muc_max_occupants: 21
 prosody_muc_max_occupants_ignore_list:
@@ -195,7 +199,8 @@ prosody_rate_limit_session_rate: 2000
 prosody_rate_limit_timeout: 60
 # whitelist localhost, internal network and specific NAT gateways (us-phoenix-1-jitsi-net, eu-frankfurt-1-jitsi-net)
 prosody_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8", "132.226.27.76", "193.122.10.119"]
-prosody_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
+prosody_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
+  else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
 prosody_server_public_key_repo_url: false
 prosody_slow_events_threshold: 0.5
 prosody_ssh_key_crt_local_path: jitsi.example.com.crt
@@ -210,7 +215,12 @@ prosody_token_allow_empty: true
 prosody_token_app_id: jitsi
 prosody_token_app_secret: replaceme
 # our networks and cloudflare ip-ranges (cloudflare ranges come from https://www.cloudflare.com/en-gb/ips/)
-prosody_trusted_proxies: ["127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32", "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"]
+prosody_trusted_proxies: [
+  "127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14",
+  "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20",
+  "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32",
+  "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"
+]
 prosody_url_version: 0.11.13
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax

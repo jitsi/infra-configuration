@@ -1,51 +1,56 @@
 ---
 - name: Ensure the system can use the HTTPS transport for APT
-  stat:
+  ansible.builtin.stat:
     path: /usr/lib/apt/methods/https
   register: apt_https_transport
 
 - name: Install HTTPS transport for APT
-  apt:
+  ansible.builtin.apt:
     pkg: apt-transport-https
-    state: installed
+    state: present
   when: not apt_https_transport.stat.exists
 
-#- name: Import the NodeSource GPG key into apt
+# - name: Import the NodeSource GPG key into apt
 #  apt_key:
 #    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
 #    state: present
 
 - name: Hack for NodeSource GPG issue
-  shell: curl --silent https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl --silent https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
+  args:
+    executable: /bin/bash
 
 - name: Add NodeSource deb repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: 'deb https://deb.nodesource.com/node_{{ debian_repo_version }} {{ ansible_distribution_release }} main'
     state: present
 
 - name: Add NodeSource deb-src repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: 'deb-src https://deb.nodesource.com/node_{{ debian_repo_version }} {{ ansible_distribution_release }} main'
     state: present
 
 - name: Add NodeSource repository preferences
-  template:
+  ansible.builtin.template:
+    mode: 0644
     src: etc/apt/preferences.d/deb_nodesource_com_node.pref.2
     dest: /etc/apt/preferences.d/deb_nodesource_com_node.pref
 
 - name: Install Node.js
-  apt:
+  ansible.builtin.apt:
     pkg:
       - nodejs={{ nodejs_version }}*
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Remove NodeSource deb repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: 'deb https://deb.nodesource.com/node_{{ debian_repo_version }} {{ ansible_distribution_release }} main'
     state: absent
 
 - name: Remove NodeSource deb-src repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: 'deb-src https://deb.nodesource.com/node_{{ debian_repo_version }} {{ ansible_distribution_release }} main'
     state: absent

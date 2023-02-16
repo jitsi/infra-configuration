@@ -1,2 +1,6 @@
-- template: src=nginx.site.j2 dest=/etc/nginx/sites-available/{{ jitsi_meet_domain_name }} mode=0644
-  notify: reload nginx
+- name: Nginx jitsi-meet site configuration
+  ansible.builtin.template:
+    src: nginx.site.j2
+    dest: /etc/nginx/sites-available/{{ jitsi_meet_domain_name }}
+    mode: 0644
+  notify: Reload nginx

@@ -1,6 +1,7 @@
 ---
 jitsi_dump_cloud_provider: "{{ cloud_provider | default('aws') }}"
 jitsi_dump_jibri_sns_topic: arn:aws:sns:us-west-2:103425057857:Jibri-Dumps
+jitsi_dump_oracle_s3_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
 jitsi_dump_s3_bucket: jitsi-infra-dumps
 jitsi_dump_sns_region: us-west-2
 jitsi_dump_sns_topic: arn:aws:sns:us-west-2:103425057857:JVB-Dumps

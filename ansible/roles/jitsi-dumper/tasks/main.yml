@@ -75,3 +75,10 @@
     dest: /usr/local/bin/dump-prosody-jvb.sh
     mode: "{{ jitsi_dumper_prosody_dump_jvb_mode }}"
   when: jitsi_dump_cloud_provider == "aws"
+
+- name: Upload prosody dump script
+  ansible.builtin.template:
+    src: dump-prosody-oracle.sh.j2
+    dest: /usr/local/bin/dump-prosody.sh
+    mode: 0755
+  when: jitsi_dump_cloud_provider == "oracle"

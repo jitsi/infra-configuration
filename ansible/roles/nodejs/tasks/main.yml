@@ -1,8 +1,9 @@
 # Install Node.js using packages crafted by NodeSource
 ---
-- include_tasks: install-apt.yml
+- name: Include apt install tasks
+  ansible.builtin.include_tasks: install-apt.yml
   when: nodejs_from_apt
 
-- include_tasks: install-url.yml
+- name: Include url install tasks
+  ansible.builtin.include_tasks: install-url.yml
   when: not nodejs_from_apt
-

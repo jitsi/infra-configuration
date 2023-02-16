@@ -6,12 +6,15 @@
 #   changed_when: prosody_check_deb.rc == 1
 
 - name: Download specific prosody nightly build
-  get_url: url="{{ prosody_dpkg_url }}" dest="{{ prosody_dpkg_path }}"
+  ansible.builtin.get_url:
+    mode: 0644
+    url: "{{ prosody_dpkg_url }}"
+    dest: "{{ prosody_dpkg_path }}"
   # when: prosody_check_deb.rc == 1
 
-- name: "Install prosody package from file"
-  command: dpkg -i {{ prosody_dpkg_path }}
+- name: Install prosody package from file
+  ansible.builtin.command: dpkg -i {{ prosody_dpkg_path }}
   # when: prosody_check_deb.rc == 1
 
-- name: mark hold on prosody package version
-  command: apt-mark hold {{ prosody_package_name }}
+- name: Mark hold on prosody package version
+  ansible.builtin.command: apt-mark hold {{ prosody_package_name }}

@@ -1,8 +1,8 @@
 # Ubuntu Family OS defaults
 ---
-rsyslog_package_names: 
+rsyslog_package_names:
   - rsyslog
 rsyslog_service_name: rsyslog
 rsyslog_file_owner: syslog
 rsyslog_file_group: adm
-rsyslog_os_supported: yes
+rsyslog_os_supported: true

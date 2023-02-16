@@ -1,3 +1,7 @@
 ---
-- service: name=prosody state=stopped enabled=no
+- name: Stop prosody service # noqa ignore-errors
+  ansible.builtin.service:
+    name: prosody
+    state: stopped
+    enabled: false
   ignore_errors: true

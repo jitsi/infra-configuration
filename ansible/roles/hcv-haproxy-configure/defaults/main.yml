@@ -2,6 +2,7 @@
 ansible_ec2_placement_region:
 haproxy_agent_check: true
 haproxy_agent_check_port: 6060
+haproxy_bad_room_list: "{{ bad_room_list | default([]) }}"
 haproxy_backend_fall_count: 2
 haproxy_backend_name: nodes
 haproxy_backend_port: 443

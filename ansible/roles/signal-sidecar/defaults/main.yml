@@ -8,6 +8,7 @@ signal_sidecar_enabled: true
 signal_sidecar_install_flag: true
 signal_sidecar_log_dir: "/var/log/jitsi"
 signal_sidecar_max_participants: 5000
+signal_sidecar_prosody_dump_script: /usr/local/bin/dump-prosody.sh
 signal_sidecar_service_name: "signal-sidecar"
 signal_sidecar_weight: false
 signal_sidecar_user_name: "signal-sidecar"

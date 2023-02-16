@@ -14,12 +14,12 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
-    - name: update apt cache
-      apt:
+    - name: Update apt cache
+      ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 86400
       tags: setup
-    - name: include roles
+    - name: Include roles
       ansible.builtin.include_role:
         name: "{{ role_name }}"
       loop: "{{ patch_ansible_roles.split(' ') }}"

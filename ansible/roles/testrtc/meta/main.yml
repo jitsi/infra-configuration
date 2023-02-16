@@ -1,5 +1,14 @@
 ---
-
+galaxy_info:
+  author: Aaron van Meerten
+  description: configure testrtc
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
 dependencies:
   - { role: "nodejs", when: testrtc_install_flag }
   - { role: "nginx", when: testrtc_install_flag }

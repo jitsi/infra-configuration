@@ -15,7 +15,8 @@
 
 - name: Restart haproxy systemd
   ansible.builtin.systemd:
-    name: haproxy state=restarted
+    name: haproxy
+    state: restarted
     daemon_reload: true
   notify: Set shard states
 
