@@ -203,12 +203,19 @@
     strip: 2
   when: (prosody_minor_version | int) == 11
 
-- name: Apply mod_websocket session IP patch
+- name: Apply mod_websocket session IP patch for prosody 0.11
   ansible.posix.patch:
     basedir: /usr/lib/prosody
     src: "mod_websocket_session_ip.patch"
     strip: 1
   when: (prosody_minor_version | int) == 11
+
+- name: Apply mod_websocket session IP patch for prosody 0.12
+  ansible.posix.patch:
+    basedir: /
+    src: "mod_websocket_session_ip-0.12.patch"
+    strip: 0
+  when: (prosody_minor_version | int) == 12
 
 - name: Apply expat memory leak patch
   ansible.posix.patch:
