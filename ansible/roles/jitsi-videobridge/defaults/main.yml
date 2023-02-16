@@ -210,8 +210,8 @@ jvb_websockets_port: "{{ 9090 if jvb_nginx_ssl_enabled else 443 }}"
 jvb_websockets_ssl_keystore_password: jitsimeet
 jvb_websockets_ssl_keystore_path: /etc/jitsi/videobridge/ssl.store
 jvb_websockets_ssl_keystore_pkcs12_path: /etc/jitsi/videobridge/ssl.pkcs12
-jvb_ws_additional_domain: "{{ jvb_server_prefix + '.' + jvb_ws_domain_suffix }}",
-jvb_ws_additional_domain_enabled: "{{ jvb_colibri_proxy_enabled }}",
+jvb_ws_additional_domain: "{{ jvb_server_prefix + '.' + jvb_ws_domain_suffix }}"
+jvb_ws_additional_domain_enabled: "{{ jvb_colibri_proxy_enabled }}"
 jvb_ws_domain: "{{ environment_domain_name if jvb_colibri_proxy_enabled else jvb_server_prefix + '.' + jvb_ws_domain_suffix }}"
 jvb_ws_domain_suffix: "jitsi.net"
 jvb_ws_relay_domain: "{{ jvb_server_prefix + '.' + jvb_ws_domain_suffix if jvb_colibri_proxy_enabled else false }}"
