@@ -82,7 +82,7 @@ prosody_enable_end_meeting: false
 prosody_enable_plain_auth: false
 # flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
-prosody_enable_rate_limit: false
+prosody_enable_rate_limit: true
 # don't enable tokens by default for now
 prosody_enable_tokens: true
 # plugin to check features when requesting a transcription
