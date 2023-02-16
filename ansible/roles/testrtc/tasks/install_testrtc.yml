@@ -59,13 +59,7 @@
 - name: TestRTC | Deploy testrtc
   ansible.builtin.command: cp -a {{ testrtc_base_path }}/out/src {{ testrtc_web_root_path }}
   args:
-    creates: "{{ testrtc_web_root_path }}"
-
-- name: TestRTC | Postinstall libs dir
-  ansible.builtin.file:
-    mode: 0755
-    path: "{{ testrtc_web_root_path }}/libs"
-    state: directory
+    creates: "{{ testrtc_web_root_path }}/main.js"
 
 - name: TestRTC | Postinstall move main.js
   ansible.builtin.command: mv {{ testrtc_web_root_path }}/main.js {{ testrtc_web_root_path }}/libs
