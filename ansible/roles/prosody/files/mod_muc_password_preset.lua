@@ -278,7 +278,7 @@ local function queryForPassword(room)
         -- create lobby and set moderator
         if code_ == 200 then
             local conference_res = json.decode(content_);
-            module:log("debug","Receive conference response from vmms %s",inspect(conference_res))
+            module:log("debug","Receive conference info response %s",inspect(conference_res))
             room._data.moderator_id = conference_res.moderatorId;
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
             room._data.max_occupants = conference_res.maxOccupants;
