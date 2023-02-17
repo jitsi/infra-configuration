@@ -58,12 +58,6 @@ end
 local muc_domain
     = module:get_option_string("muc_mapper_domain", muc_domain_prefix.."."..muc_domain_base);
 
-local auth_domain_prefix
-    = module:get_option_string("auth_domain_prefix", "auth");
--- The 'auth' internal domain used by jicofo
-local auth_domain
-    = module:get_option_string("auth_domain", auth_domain_prefix.."."..muc_domain_base);
-
 -- option to enable/disable room API token verifications
 local enableTokenVerification
     = module:get_option_boolean("enable_password_token_verification", true);
@@ -86,11 +80,6 @@ if conferenceInfoURL == "" then
     module:log("warn", "No 'muc_conference_info_url' option set, disabling preset passwords");
     return
 end
-
--- store iqs we had filtered before sent to jicofo
-local pendingPresences = {}
--- store jids of rooms which are currently waiting for password query to finish
-local pendingPasswordQueries = {}
 
 -- Utility function to check and convert a room JID from real [foo]room1@muc.example.com to virtual room1@muc.foo.example.com
 local function room_jid_match_rewrite_from_internal(room_jid)
@@ -273,92 +262,67 @@ local function queryForPassword(room)
 
     module:log("info","Querying for password to %s", pURL);
 
-    local function clearJicofoPending(room)
-        module:log("debug", "Clearing pending jicofo response if exists")
+    local function clearJicofoPending(room_instance)
+        module:log("debug", "Unlock room jicofo")
 
-        -- send the stanza if it exists
-        if pendingPresences[room.jid] ~= nil then
-            module:log("debug", "Send initial presence stanza:%s", pendingPresences[room.jid])
-
-            module:send(pendingPresences[room.jid]);
-
-            pendingPresences[room.jid] = nil
-        end
+        module:context(muc_domain):fire_event('jicofo-unlock-room', { room = room_instance; });
     end
 
     local function timeoutPasswordQuery()
-        local room = room
-
-        -- clear waiting queries on timeout
-        pendingPasswordQueries[room.jid] = nil
-
-        if pendingPresences[room.jid] ~= nil then
-            module:log("warn", "Timeout triggered for password query after %s seconds for room %s", passwordTimeout, room.jid);
-        end
-
-        -- check for paused jicofo iq, send if found
         clearJicofoPending(room)
     end
 
     local function cb(content_, code_, response_, request_)
-        local room = room
-        module:log("debug","Local room var is %s",room)
-        -- clear waiting queries on response
-        pendingPasswordQueries[room.jid] = nil
+        module:log("debug","Local room var is %s", room)
 
-        if pendingPresences[room.jid] ~= nil then
-
-            -- create lobby and set moderator
-            if code_ == 200 then
-                local conference_res = json.decode(content_);
-                module:log("debug","Receive conference response from vmms %s",inspect(conference_res))
-                room._data.moderator_id = conference_res.moderatorId;
-                room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
-                room._data.max_occupants = conference_res.maxOccupants;
-                if room._data.starts_with_lobby then
-                    room._data.lobby_type = conference_res.lobbyType or 'WAIT_FOR_APPROVAL'
-                    module:log("debug", "Will create %s lobby for room jid = %s", room._data.lobby_type, room.jid);
-                    module:fire_event("create-lobby-room", { room = room; });
-                end
-            else
-                module:log("warn", "External call failed, we do not set lobby and everybody authenticated is moderator")
-                room._data.moderator_id = nil;
-                room._data.starts_with_lobby = false;
-                -- propagate the error to lib-jitsi-meet if is a JaaS meeting
-                if is_vpaas(room.jid) then
-                    local err = json.decode(content_)
-                    module:log("debug", "Propagate error %s", inspect(err))
-                    local status = err.status
-                    local messageKey = err.messageKey
-                    if status and status == 400 and messageKey and messageKey == 'settings.provisioning.exception' then
-                        room._data.jaas_err = err.message;
-                    end
-                end
+        -- create lobby and set moderator
+        if code_ == 200 then
+            local conference_res = json.decode(content_);
+            module:log("debug","Receive conference response from vmms %s",inspect(conference_res))
+            room._data.moderator_id = conference_res.moderatorId;
+            room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
+            room._data.max_occupants = conference_res.maxOccupants;
+            if room._data.starts_with_lobby then
+                room._data.lobby_type = conference_res.lobbyType or 'WAIT_FOR_APPROVAL'
+                module:log("debug", "Will create %s lobby for room jid = %s", room._data.lobby_type, room.jid);
+                module:fire_event("create-lobby-room", { room = room; });
             end
-
-            -- from this point we should parse the response and grab the password
-            -- then we just run room:set_password()
-            local logLevel = 'error';
-            if code_ == 200 then
-                logLevel = 'debug';
-                local r = json.decode(content_)
-                if r['passcodeProtected'] then
-                    if r['passcode'] and r['passcode'] ~= "" then
-                        module:log("info", "Found passcode in response, setting for room %s", room)
-                        room:set_password(r['passcode'])
-                    end
-                end
-            elseif code_ == 404 then
-                logLevel = 'debug'
-                module:log("debug", "Conference was not found");
-            end
-            module:log(logLevel,
-                "URL Callback Code Content Response: %s %s %s",
-                code_, content_, inspect(response_));
-            clearJicofoPending(room)
         else
-            module:log("error","Password http request finished with no pending presences for room:%s", room.jid);
+            module:log("warn", "External call failed, we do not set lobby and everybody authenticated is moderator")
+            room._data.moderator_id = nil;
+            room._data.starts_with_lobby = false;
+            -- propagate the error to lib-jitsi-meet if is a JaaS meeting
+            if is_vpaas(room.jid) then
+                local err = json.decode(content_)
+                module:log("debug", "Propagate error %s", inspect(err))
+                local status = err.status
+                local messageKey = err.messageKey
+                if status and status == 400 and messageKey and messageKey == 'settings.provisioning.exception' then
+                    room._data.jaas_err = err.message;
+                end
+            end
         end
+
+        -- from this point we should parse the response and grab the password
+        -- then we just run room:set_password()
+        local logLevel = 'error';
+        if code_ == 200 then
+            logLevel = 'debug';
+            local r = json.decode(content_)
+            if r['passcodeProtected'] then
+                if r['passcode'] and r['passcode'] ~= "" then
+                    module:log("info", "Found passcode in response, setting for room %s", room)
+                    room:set_password(r['passcode'])
+                end
+            end
+        elseif code_ == 404 then
+            logLevel = 'debug'
+            module:log("debug", "Conference was not found");
+        end
+        module:log(logLevel,
+            "URL Callback Code Content Response: %s %s %s",
+            code_, content_, inspect(response_));
+        clearJicofoPending(room)
     end
 
     local headers = http_headers or {}
@@ -369,8 +333,7 @@ local function queryForPassword(room)
     -- start timer to watch and timeout request
     timer.add_task(passwordTimeout, timeoutPasswordQuery)
 
-    pendingPasswordQueries[room.jid] = true;
-    local request = http.request(pURL, {
+    http.request(pURL, {
         headers = headers,
         method = "GET",
     }, cb);
@@ -388,36 +351,6 @@ function check_set_room_password(room)
     queryForPassword(room)
 end
 
--- Finds is the presence in the event for creating the room and addressed
--- to jicofo when entering the conference muc component
-function filterJicofoPresence(event)
-    local stanza = event.stanza;
-    local x = stanza:get_child('x', 'http://jabber.org/protocol/muc#user');
-
-    -- skip non join presences or health check presences
-    if x == nil or is_healthcheck_room(stanza.attr.from) then
-        return nil;
-    end
-
-    -- let's check is this for jicofo in the conference muc component
-    -- if there is a password query pending we want to filter all presences
-    -- after the initial on (status code 201) there can be several others (status code 110)
-    -- but as jicofo is an admin and there will be no actual changes in the affiliation and role
-    -- we can just skip those (that's we are skiping them and not storing)
-    if string.find(stanza.attr.from, muc_domain..'/focus') then
-        local roomJid = stanza.attr.from:sub(1,-(string.len('/focus') + 1));
-
-        if pendingPasswordQueries[roomJid] ~= nil then
-            module:log("debug","Found room stanza from jicofo %s", stanza);
-            if not pendingPresences[roomJid] then
-                pendingPresences[roomJid] = stanza;
-            end
-            return true;
-        end
-    end
-
-end
-
 -- executed on every host added internally in prosody, including components
 function process_host(host)
     if host == muc_domain then -- the conference muc component
@@ -425,6 +358,12 @@ function process_host(host)
 
         module:context(host):hook("muc-room-pre-create", function(event)
             check_set_room_password(event.room);
+        end);
+        module:context(host):hook('jicofo-unlock-room', function()
+            -- we skip it for all rooms (this will not be fired for healthcheck rooms)
+            -- as we do password check for all rooms and will fire it there always
+            -- in case of success or in case of timeout or error
+            return true;
         end);
     end
 
@@ -459,10 +398,5 @@ function module.add_host(host_module)
                 ["GET room-password"] = function (event) return async_handler_wrapper(event,handle_get_room_password) end;
             };
         });
-
-    elseif host_module.host == auth_domain then
-        module:log("info","Hook to presences before sending them to jicofo for %s", host_module.host)
-
-        host_module:hook("presence/full", filterJicofoPresence, 1200);
     end
 end
