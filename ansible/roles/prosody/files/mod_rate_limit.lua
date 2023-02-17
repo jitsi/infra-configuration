@@ -1,5 +1,6 @@
 local cache = require"util.cache";
 local ceil = math.ceil;
+local http_server = require "net.http.server";
 local gettime = require "util.time".now
 local filters = require "util.filters";
 local new_throttle = require "util.throttle".create;
@@ -68,6 +69,14 @@ local function is_whitelisted_jid(jid)
 	return config.whitelist_jids:contains(jid);
 end
 
+-- Discover real remote IP of a session
+-- Note: http_server.get_request_from_conn() was added in Prosody 0.12.3,
+-- this code provides backwards compatibility with older versions
+local get_request_from_conn = http_server.get_request_from_conn or function (conn)
+	local response = conn and conn._http_open_response;
+	return response and response.request or nil;
+end;
+
 -- Add an IP to the set of limied IPs
 local function limit_ip(ip)
 	module:log("info", "Limiting %s due to login/join rate exceeded.", ip);
@@ -134,8 +143,7 @@ function filter_stanza(stanza, session)
 	return stanza;
 end
 
-local function on_login(session)
-	local ip = session.ip;
+local function on_login(session, ip)
 	local login_rate = login_rates:get(ip);
 	if not login_rate then
 		module:log("debug", "Create new join rate for %s", ip);
@@ -152,13 +160,14 @@ local function on_login(session)
 end
 
 local function filter_hook(session)
-    local ip = session.ip;
+	local request = get_request_from_conn(session.conn);
+	local ip = request and request.ip or session.ip;
 	module:log("debug", "New session from %s", ip);
     if is_whitelisted(ip) or (session.username and is_whitelisted_jid(session.username..'@'..session.host)) then
         return;
     end
 
-	on_login(session);
+	on_login(session, ip);
 
 	-- creates the stanzas rates
 	session.presence_rate = new_throttle(config.presence_rate, 2);
