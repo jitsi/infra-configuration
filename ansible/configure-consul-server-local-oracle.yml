@@ -16,6 +16,13 @@
     shard_role: consul
     cloud_provider: oracle
   pre_tasks:
+    - name: Setup new repo template file
+      ansible.builtin.template:
+        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
+        owner: root
+        mode: 0600
+      tags: setup
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
