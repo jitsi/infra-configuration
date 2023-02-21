@@ -8,6 +8,17 @@ events {
     use                 epoll;
 }
 
+stream {
+    upstream prosodylimited {
+        server 127.0.0.1:5280;
+    }
+    server {
+        listen    15280;
+        proxy_upload_rate 10k;
+        proxy_pass prosodylimited;
+    }
+}
+
 http {
 
     ##
