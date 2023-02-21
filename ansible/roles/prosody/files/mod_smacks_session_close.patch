@@ -1,25 +1,36 @@
-Index: plugins/mod_smacks.lua
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/plugins/mod_smacks.lua b/plugins/mod_smacks.lua
---- a/plugins/mod_smacks.lua	(revision d4daf40caa518a89e51222e6e1d9c230db02839a)
-+++ b/plugins/mod_smacks.lua	(date 1670649730425)
-@@ -493,13 +493,13 @@
- 		sessionmanager.destroy_session(session, "Hibernating too long");
- 		sessions_expired(1);
- 	end);
-+	-- we need the queue in advance because on conn:close the session will be destroyed and queue cleaned
-+	local queue = session.outgoing_stanza_queue;
- 	if session.conn then
- 		local conn = session.conn;
--		c2s_sessions[conn] = nil;
--		session.conn = nil;
- 		conn:close();
- 	end
--	module:fire_event("smacks-hibernation-start", { origin = session; queue = session.outgoing_stanza_queue:table() });
-+	module:fire_event("smacks-hibernation-start", { origin = session; queue = queue:table() });
- 	return true; -- Postpone destruction for now
- end);
+
+# HG changeset patch
+# User Matthew Wild <mwild1@gmail.com>
+# Date 1676916615 0
+# Node ID 0598d822614f6637a5baaec78570db025c76f722
+# Parent  94a99330ce8738f71568bec571d7bef502ed5924
+mod_websocket: Fire pre-session-close event (fixes #1800)
+
+This event was added in a7c183bb4e64 and is required to make mod_smacks know
+that a session was intentionally closed and shouldn't be hibernated (see
+fcea4d9e7502).
+
+Because this was missing from mod_websocket's session.close(), mod_smacks
+would always attempt to hibernate websocket sessions even if they closed
+cleanly.
+
+That mod_websocket has its own copy of session.close() is something to fix
+another day (probably not in the stable branch). So for now this commit makes
+the minimal change to get things working again.
+
+Thanks to Damian and the Jitsi team for reporting.
+
+diff -r 94a99330ce87 -r 0598d822614f plugins/mod_websocket.lua
+--- a/plugins/mod_websocket.lua	Fri Feb 17 17:01:19 2023 +0000
++++ b/plugins/mod_websocket.lua	Mon Feb 20 18:10:15 2023 +0000
+@@ -63,6 +63,9 @@
  
+ local function session_close(session, reason)
+ 	local log = session.log or log;
++	local close_event_payload = { session = session, reason = reason };
++	module:context(session.host):fire_event("pre-session-close", close_event_payload);
++	reason = close_event_payload.reason;
+ 	if session.conn then
+ 		if session.notopen then
+ 			session:open_stream();
+

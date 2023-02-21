@@ -177,8 +177,8 @@
     basedir: /usr/lib/prosody/modules
     src: "mod_smacks_session_close.patch"
     strip: 2
-  # when:
-  #   - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
+  when:
+    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
 
 - name: Apply mod_websocket_auth_token patch
   ansible.posix.patch:
