@@ -10,7 +10,6 @@
     find /usr/lib/prosody -name "*.orig" | xargs -r rm && find /usr/lib/prosody -name ".*.lua" | xargs -r rm
   args:
     executable: /bin/bash
-  when: prosody_apt_removed.changed or prosody_url_removed.changed
   ignore_errors: true
 
 - name: Rebuild ca certificates
