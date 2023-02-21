@@ -44,7 +44,25 @@
         executable: /bin/bash
       register: jibri_version
       changed_when: jibri_version.rc != 0
-
+    - name: Remove old jitsi repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
+        state: absent
+        update_cache: false
+      tags: setup
+    - name: Remove old jitsi trusted repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_auth_url_old }} unstable/"
+        state: absent
+        update_cache: false
+      tags: setup
+    - name: Setup new repo template file
+      ansible.builtin.template:
+        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
+        owner: root
+        mode: 0600
+      tags: setup
     - name: Remove NodeSource deb repository
       ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
