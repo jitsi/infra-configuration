@@ -51,6 +51,11 @@
     path: '/etc/nginx/conf.d'
     state: directory
     mode: 0755
+- name: Streams directory
+  ansible.builtin.file:
+    path: '/etc/nginx/conf.stream'
+    state: directory
+    mode: 0755
 
 - name: Configure status server
   ansible.builtin.copy:

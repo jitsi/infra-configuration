@@ -87,6 +87,13 @@
     mode: 0644
   notify: Restart nginx
 
+- name: Install jitsi-meet stream config
+  ansible.builtin.template:
+    src: nginx.stream.j2
+    dest: "/etc/nginx/conf.stream/prosodylimited.conf"
+    mode: 0644
+  notify: Restart nginx
+
 - name: Remove default nginx site
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default

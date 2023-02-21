@@ -8,6 +8,7 @@ events {
     use                 epoll;
 }
 
+
 http {
 
     ##
@@ -77,6 +78,9 @@ http {
     include /etc/nginx/sites-enabled/*;
 }
 
+stream {
+    include /etc/nginx/conf.stream/*.conf;
+}
 
 #mail {
 #   # See sample authentication script at:
