@@ -36,13 +36,15 @@ jvb_disable_bwe: false
 jvb_disable_tcp: true
 jvb_domain_name: "{{ prosody_domain_name }}"
 jvb_download_yourkit: false
+jvb_enable_all_timeseries: false
 jvb_enable_brctrl_timeseries: false
 jvb_enable_bwe_timeseries: false
-jvb_enable_all_timeseries: false
 # enable consul discovery of prosody nodes by default
 jvb_enable_consul: true
 # enable bridges in other regions/shards connecting to all shards in release
 jvb_enable_cross_region: false
+jvb_enable_cryptex_endpoint: false
+jvb_enable_cryptex_relay: false
 jvb_enable_health_check_cron: true
 jvb_enable_message_transport_logs: false
 jvb_enable_multi_stream: true

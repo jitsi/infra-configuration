@@ -32,6 +32,15 @@ videobridge {
     jvb-last-n = 25
     {%- endif -%}
   }
+  cryptex {
+    {% if jvb_enable_cryptex_endpoint %}
+    endpoint = true
+    {% endif %}
+
+    {% if jvb_enable_cryptex_relay %}
+    relay = true
+    {% endif %}
+  }
 
   health {
     sticky-failures = true
