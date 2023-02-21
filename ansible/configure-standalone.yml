@@ -33,6 +33,8 @@
     java_use_11: true
     # add proxypass in nginx config for JVB colibri stats
     jitsi_meet_enable_colibri_websockets: true
+    # disable colibri passthru to JVB IP
+    jitsi_meet_colibri_proxy_enabled: false
     jvb_ws_domain: "{{ prosody_domain_name }}"
     # disable egress health in standalone
     egress_enable_health_cron: false
@@ -152,6 +154,7 @@
         enabled: false
       ignore_errors: true
       when: not standalone_enable_fluentd
+      tags: "provision"
     - name: Stop jitsi-system-events # noqa ignore-errors
       ansible.builtin.service:
         name: "jitsi-system-events"
@@ -161,6 +164,7 @@
     - name: Disable colibri-ws proxy for standalone
       ansible.builtin.set_fact:
         jitsi_meet_colibri_proxy_enabled: false
+      tags: "provision"
   post_tasks:
     - name: Install consul signal state script
       ansible.builtin.copy:
