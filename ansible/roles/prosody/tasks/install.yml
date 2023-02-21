@@ -171,6 +171,8 @@
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules/muc
     src: "muc_lib_visitor_broadcast.patch"
+  when:
+    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
 
 - name: Apply mod_smacks_session_close patch
   ansible.posix.patch:
