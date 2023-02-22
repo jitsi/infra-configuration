@@ -5,6 +5,7 @@
 
 - name: Mark unhold on nginx package version
   ansible.builtin.command: apt-mark unhold {{ nginx_package }} nginx-extras
+  notify: Remove GeoIP
 
 - name: Install nginx
   ansible.builtin.apt:
