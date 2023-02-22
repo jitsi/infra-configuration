@@ -1,11 +1,5 @@
 ---
 # consul apt key
-- name: Remove consul apt key
-  ansible.builtin.apt_key:
-    url: "{{ consul_apt_key }}"
-    state: absent
-    validate_certs: false
-
 - name: Install consul apt key
   ansible.builtin.apt_key:
     url: "{{ consul_apt_key }}"
