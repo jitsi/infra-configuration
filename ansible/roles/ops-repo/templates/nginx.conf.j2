@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name {{ops_repo_hostname}};
+    root {{ops_repo_mount_point}}/repo;
+    location / {
+        #             autoindex on;
+        fancyindex on;              # Enable fancy indexes.
+        fancyindex_exact_size off;  # Output human-readable file sizes.
+        fancyindex_ignore changes mini-dinstall .db;
+
+        auth_basic "Repository Login";
+        auth_basic_user_file /etc/nginx/htpasswd.repo;
+    }
+}

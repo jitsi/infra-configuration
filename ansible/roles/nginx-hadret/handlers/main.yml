@@ -1,0 +1,21 @@
+---
+- name: Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: true
+
+- name: Stop nginx
+  ansible.builtin.service:
+    name: nginx
+    state: stopped
+
+- name: Remove GeoIP
+  ansible.builtin.file:
+    path: /etc/nginx/modules-enabled/70-mod-stream-geoip.conf
+    state: absent
+
+- name: Restart rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted

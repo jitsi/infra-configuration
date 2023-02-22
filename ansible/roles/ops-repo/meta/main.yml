@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: ops_repo
+  author: Aaron van Meerten
+  description: configure web server for debian repo
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
+dependencies:
+  - { role: nginx-hadret }

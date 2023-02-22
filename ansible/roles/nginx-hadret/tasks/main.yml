@@ -1,0 +1,75 @@
+---
+- name: Add nginx hadret repository from PPA and install its signing key on Ubuntu target
+  ansible.builtin.apt_repository:
+    repo: ppa:hadret/nginx
+
+- name: Mark unhold on nginx package version
+  ansible.builtin.command: apt-mark unhold {{ nginx_package }} nginx-extras
+  notify: Remove GeoIP
+
+- name: Install nginx
+  ansible.builtin.apt:
+    name: "{{ nginx_package }}={{ nginx_version }}"
+    state: present
+  notify: Stop nginx
+
+- name: Flush handlers to stop nginx
+  ansible.builtin.meta: flush_handlers
+
+- name: Mark hold on nginx package version
+  ansible.builtin.command: apt-mark hold {{ nginx_package }} nginx-extras
+
+- name: Install fancyindex module
+  ansible.builtin.apt:
+    name: "libnginx-mod-http-fancyindex"
+    state: present
+
+# main nginx configuration tweaks
+- name: Nginx main configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: 0644
+  notify: Restart nginx
+
+# directories for custom configuration
+- name: Nginx config sites available directory
+  ansible.builtin.file:
+    path: '/etc/nginx/sites-available'
+    state: directory
+    mode: 0755
+
+- name: Nginx config sites enabled directory
+  ansible.builtin.file:
+    path: '/etc/nginx/sites-enabled'
+    state: directory
+    mode: 0755
+
+- name: Nginx config conf.d directory
+  ansible.builtin.file:
+    path: '/etc/nginx/conf.d'
+    state: directory
+    mode: 0755
+
+- name: Nginx config status server config
+  ansible.builtin.copy:
+    src: 'status_server'
+    dest: '/etc/nginx/sites-available/status_server'
+    mode: 0644
+  notify: Restart nginx
+
+- name: Nginx config status server enabled
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/status_server
+    dest: /etc/nginx/sites-enabled/status_server
+    state: link
+  notify: Restart nginx
+
+- name: Nginx rsyslog config
+  ansible.builtin.include_tasks: rsyslog.yml
+
+- name: Nginx service started and enabled
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

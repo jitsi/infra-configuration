@@ -1,0 +1,53 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  gather_timeout: 180
+  become_user: root
+  become: true
+  force_handlers: true
+  vars:
+    shard_role: repo
+    cloud_provider: oracle
+    private_ip: "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/oci-logging.yml
+    - secrets/repo.yml
+    - secrets/ops-repo.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  pre_tasks:
+    - name: Gather AWS facts
+      amazon.aws.ec2_metadata_facts:
+      tags: "ec2_facts"
+      when: cloud_provider == 'aws'
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+  roles:
+    - { role: "iptables-repo", tags: "iptables", when: cloud_provider == 'oracle' }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: haproxy_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled and not datadog_enabled
+      vars:
+        telegraf_inputs:
+          nginx:
+            urls: ["http://localhost:888/nginx_status/"]
+          nstat:
+            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+        telegraf_tags:
+          role: "repo"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud: "{{ cloud_provider }}"
+
+    - { role: "ops-repo", tags: "ops-repo"}

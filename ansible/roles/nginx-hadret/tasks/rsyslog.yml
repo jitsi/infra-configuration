@@ -1,0 +1,17 @@
+---
+- name: Install nginx rsyslog config
+  ansible.builtin.template:
+    src: 47-nginx.conf.j2
+    dest: /etc/rsyslog.d/47-nginx.conf
+    mode: 0644
+  register: syslog_template
+  when: nginx_log_syslog_enabled
+  notify: Restart rsyslog
+
+- name: Remove nginx rsyslog config
+  ansible.builtin.file:
+    path: /etc/rsyslog.d/47-nginx.conf
+    state: absent
+  register: syslog_template
+  when: not nginx_log_syslog_enabled
+  notify: Restart rsyslog
