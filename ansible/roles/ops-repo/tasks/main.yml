@@ -21,6 +21,11 @@
     dest: "{{ ops_repo_s3fs_credentials_path }}"
   no_log: true
 
+- name: Install apt pre-requisites
+  ansible.builtin.apt:
+    name: s3fs
+    state: present
+
 - name: Mount ops-repo bucket
   ansible.posix.mount:
     src: "s3fs#{{ ops_repo_bucket }}"
