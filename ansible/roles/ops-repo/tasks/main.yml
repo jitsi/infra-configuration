@@ -1,0 +1,54 @@
+---
+- name: Create ops-repo mount point
+  ansible.builtin.file:
+    path: "{{ ops_repo_mount_point }}"
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: Create ops-repo htaccess
+  ansible.builtin.template:
+    mode: 0644
+    owner: www-data
+    src: htpasswd.repo.j2
+    dest: /etc/nginx/htpasswd.repo
+
+- name: Create ops-repo s3fs passwd
+  ansible.builtin.copy:
+    mode: 0600
+    owner: root
+    content: "{{ ops_repo_s3fs_credentials }}"
+    dest: "{{ ops_repo_s3fs_credentials_path }}"
+  no_log: true
+
+- name: Mount ops-repo bucket
+  ansible.posix.mount:
+    src: "s3fs#{{ ops_repo_bucket }}"
+    path: "{{ ops_repo_mount_point }}"
+    opts: "{{ ops_repo_s3fs_options }}"
+    fstype: "fuse"
+    state: mounted
+
+# clear out default site installed
+- name: Remove default nginx config
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart nginx
+
+- name: Deploy ops-repo website configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/ops-repo
+    mode: 0644
+  notify: Restart nginx
+
+- name: Enable ops-repo nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/ops-repo
+    dest: /etc/nginx/sites-enabled/ops-repo
+    state: link
+  notify: Restart nginx
+
+- name: Ensure handlers are notified now to avoid firewall conflicts.
+  ansible.builtin.meta: flush_handlers

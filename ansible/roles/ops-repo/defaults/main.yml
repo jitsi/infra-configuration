@@ -1,0 +1,16 @@
+---
+ops_repo_bucket: ops-repo
+ops_repo_region: "{{ oracle_region | default('us-phoenix-1') }}"
+ops_repo_s3_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
+ops_repo_s3fs_credentials: replaceme
+ops_repo_s3fs_credentials_path: /etc/.s3fs-passwd
+ops_repo_hostname: ops-repo.example.com
+ops_repo_mount_point: /mnt/ops-repo
+ops_repo_htpasswd_users:
+  - username: example
+    password: hash123456
+    description: replace me
+ops_repo_s3fs_options: |
+  _netdev,passwd_file={{ ops_repo_s3fs_credentials_path }},\
+  url=https://{{ ops_repo_s3_namespace }}.compat.objectstorage.{{ ops_repo_region }}.oraclecloud.com,\
+  nomultipart,use_path_request_style,endpoint={{ ops_repo_region }},allow_other,umask=000
