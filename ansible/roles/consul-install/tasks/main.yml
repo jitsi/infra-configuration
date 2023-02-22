@@ -1,16 +1,16 @@
 ---
 # consul apt key
 - name: Install consul apt key
-  ansible.builtin.apt_key:
+  ansible.builtin.get_url:
+    mode: 0644
     url: "{{ consul_apt_key }}"
-    id: DA418C88A3219F7B
-    state: present
-    validate_certs: false
+    dest: /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
 # consul apt repo
 - name: Install consul apt repo
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ consul_architecture }}] {{ consul_apt_repo }} {{ ansible_distribution_release }} main"
+    repo: "deb [arch={{ consul_architecture }} signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+{{ consul_apt_repo }} {{ ansible_distribution_release }} main"
     state: present
     update_cache: true
 
