@@ -11,4 +11,4 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - {role: consul-agent}
+  - {role: consul-agent, consul_install_flag: false}
