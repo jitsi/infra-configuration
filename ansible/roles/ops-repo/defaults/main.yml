@@ -10,7 +10,6 @@ ops_repo_htpasswd_users:
   - username: example
     password: hash123456
     description: replace me
-ops_repo_s3fs_options: |
-  _netdev,passwd_file={{ ops_repo_s3fs_credentials_path }},\
-  url=https://{{ ops_repo_s3_namespace }}.compat.objectstorage.{{ ops_repo_region }}.oraclecloud.com,\
-  nomultipart,use_path_request_style,endpoint={{ ops_repo_region }},allow_other,umask=000
+ops_repo_s3fs_options: "_netdev,passwd_file={{ ops_repo_s3fs_credentials_path }},\
+url=https://{{ ops_repo_s3_namespace }}.compat.objectstorage.{{ ops_repo_region }}.oraclecloud.com,\
+nomultipart,use_path_request_style,endpoint={{ ops_repo_region }},allow_other,umask=000"
