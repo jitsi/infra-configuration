@@ -1,0 +1,17 @@
+---
+nginx_log_syslog_enabled: false
+nginx_log_syslog_hostname: localhost
+nginx_log_syslog_port: 514
+nginx_package: "nginx-core"
+nginx_ppa: ppa:hadret/nginx
+nginx_user: www-data
+nginx_version: "*"
+# each worker can handled 50000 connections
+nginx_worker_connections: 50000
+# nginx_apt_repo_url: http://ppa.launchpad.net/hadret/nginx/ubuntu/
+# nginx_apt_key_url: http://nginx.org/keys/nginx_signing.key
+# run twice as many workers as virtual CPUs
+nginx_worker_processes: "{{ ansible_processor_vcpus * 2 }}"
+# the max files all workers combined can have open
+# must still be lower than the ulimit -n value for the www-data user
+nginx_worker_rlimit_nofile: 150000

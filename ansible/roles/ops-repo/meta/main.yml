@@ -11,4 +11,4 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - { role: nginx }
+  - { role: nginx-hadret }

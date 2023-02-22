@@ -1,0 +1,18 @@
+$ModLoad imfile
+$PrivDropToGroup adm
+
+# Nginx access file:
+$InputFileName /var/log/nginx/access.log
+$InputFileTag nginx-access:
+$InputFileStateFile stat-nginx-access
+$InputFileSeverity info
+$InputFilePersistStateInterval 20000
+$InputRunFileMonitor
+
+#Nginx Error file:
+$InputFileName /var/log/nginx/error.log
+$InputFileTag nginx-error:
+$InputFileStateFile stat-nginx-error
+$InputFileSeverity error
+$InputFilePersistStateInterval 20000
+$InputRunFileMonitor
