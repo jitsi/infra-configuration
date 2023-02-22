@@ -1,7 +1,7 @@
 server {
     listen 80;
     server_name {{ops_repo_hostname}};
-    root {{ops_repo_mount}}/repo;
+    root {{ops_repo_mount_point}}/repo;
     location / {
         #             autoindex on;
         fancyindex on;              # Enable fancy indexes.
