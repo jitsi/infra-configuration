@@ -333,3 +333,7 @@ jitsi_meet_dynamic_linking:
   ibi: "com.atlassian.JitsiMeet.ios"
   isi: "1165103905"
 # end deeplinking config
+legal_urls:
+  helpCentre: 'https://web-cdn.jitsi.net/faq/meet-faq.html'
+  privacy: 'https://jitsi.org/meet/privacy'
+  terms: 'https://jitsi.org/meet/terms'

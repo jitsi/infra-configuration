@@ -452,6 +452,9 @@ whiteboard: {
         enableSuspendVideoTest: true
 {% endif %}
     },
+{% if legal_urls %}
+    legalUrls: {{legal_urls | to_json}},
+{% endif %}
     deeplinking: {
         desktop: {
             appName: "{{ jitsi_meet_desktop_app_name }}"
