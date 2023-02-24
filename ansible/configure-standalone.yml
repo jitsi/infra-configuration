@@ -237,7 +237,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: true, fluentd_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: false, when: standalone_enable_fluentd}
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
