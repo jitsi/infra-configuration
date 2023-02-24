@@ -49,7 +49,7 @@
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: true, fluentd_configure_flag: false}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: "{{ base_fluentd_install_flag == 'true' }}", fluentd_configure_flag: false}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_install_collector: true
