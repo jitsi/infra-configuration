@@ -1,16 +1,16 @@
 # Run as sudo
-Cmnd_Alias DEVICE42_DMIDECODE = /usr/sbin/dmidecode -s *, /usr/sbin/dmidecode -t *, /bin/grep '' /sys/devices/virtual/dmi/id/*
-Cmnd_Alias DEVICE42_CRONTAB = /usr/bin/crontab -u * -l, /bin/ls /var/spool/cron/crontabs, /bin/ls /var/spool/cron
-Cmnd_Alias DEVICE42_DISK = /sbin/fdisk -l, /sbin/hdparm -l *
-Cmnd_Alias DEVICE42_IPTABLES = /sbin/iptables -t nat -L -n -v
-Cmnd_Alias DEVICE42_PARTS = /usr/bin/lspci -nn -vm, /usr/bin/systool -c fc_host -v
+Cmnd_Alias JDEVICE42_DMIDECODE = /usr/sbin/dmidecode -s *, /usr/sbin/dmidecode -t *, /bin/grep '' /sys/devices/virtual/dmi/id/*
+Cmnd_Alias JDEVICE42_CRONTAB = /usr/bin/crontab -u * -l, /bin/ls /var/spool/cron/crontabs, /bin/ls /var/spool/cron
+Cmnd_Alias JDEVICE42_DISK = /sbin/fdisk -l, /sbin/hdparm -l *
+Cmnd_Alias JDEVICE42_IPTABLES = /sbin/iptables -t nat -L -n -v
+Cmnd_Alias JDEVICE42_PARTS = /usr/bin/lspci -nn -vm, /usr/bin/systool -c fc_host -v
 # sudo, next non-sudo
-Cmnd_Alias DEVICE42_PORTS = /bin/netstat -anp, /bin/ss -tuapn
+Cmnd_Alias JDEVICE42_PORTS = /bin/netstat -anp, /bin/ss -tuapn
 # OS specific services and packages.
 # non sudo, then sudo
-Cmnd_Alias DEVICE42_PACKAGES = /sbin/chkconfig --list
-Cmnd_Alias DEVICE42_SERVICES = /usr/bin/find /etc/init.d -perm *, /usr/bin/find /etc/rc.d -perm *, /bin/systemctl status *, /bin/systemctl list-units *, /bin/systemctl list-jobs *, /bin/systemctl list-dependencies *
+Cmnd_Alias JDEVICE42_PACKAGES = /sbin/chkconfig --list
+Cmnd_Alias JDEVICE42_SERVICES = /usr/bin/find /etc/init.d -perm *, /usr/bin/find /etc/rc.d -perm *, /bin/systemctl status *, /bin/systemctl list-units *, /bin/systemctl list-jobs *, /bin/systemctl list-dependencies *
 # virtual machines and containers
 # Always sudo
 Cmnd_Alias DEVICE42_CONTAINERS = /usr/bin/docker info, /usr/bin/docker ps *, /usr/bin/docker inspect *, /usr/bin/docker top *
-%device42 ALL=(ALL) NOPASSWD: DEVICE42_DMIDECODE, DEVICE42_CRONTAB, DEVICE42_DISK, DEVICE42_IPTABLES, DEVICE42_PARTS, DEVICE42_PORTS, DEVICE42_PACKAGES, DEVICE42_SERVICES, DEVICE42_CONTAINERS
+%device42 ALL=(ALL) NOPASSWD: JDEVICE42_DMIDECODE, JDEVICE42_CRONTAB, JDEVICE42_DISK, JDEVICE42_IPTABLES, JDEVICE42_PARTS, JDEVICE42_PORTS, JDEVICE42_PACKAGES, JDEVICE42_SERVICES, DEVICE42_CONTAINERS
