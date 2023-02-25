@@ -220,10 +220,8 @@ server {
 
     #also listen on all 127.0.0.1 IPs
     listen 127.0.0.1:443 ssl {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
-    listen [::]:443 ssl {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
 
     listen 127.0.0.1:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
-    listen [::]:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
 
 {% if not jitsi_meet_redirect_to_ssl %}
     listen *:80 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
