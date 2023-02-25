@@ -1,6 +1,5 @@
 server {
     listen 127.0.0.1:888;
-    listen [::1]:888;
     server_name  localhost;
     location /nginx_status {
         stub_status on;
