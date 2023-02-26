@@ -71,6 +71,16 @@
     state: present
   when: common_cloud_provider == "oracle"
 
+- name: Set executable bit on pip-installed aws binary
+  ansible.builtin.file:
+    path: /usr/local/bin/aws
+    mode: 0755
+
+- name: Set executable bit on pip-installed oci binary
+  ansible.builtin.file:
+    path: /usr/local/bin/oci
+    mode: 0755
+
 # getaddrinfo configurator
 - name: Configure getaddrinfo
   ansible.builtin.template:
