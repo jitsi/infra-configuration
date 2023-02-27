@@ -19,3 +19,9 @@
     owner: root
     group: root
     mode: 0644
+
+- name: Re-enable unattended-upgrades
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | sudo debconf-set-selections
+    sudo dpkg-reconfigure -f noninteractive unattended-upgrades
