@@ -196,6 +196,7 @@
     - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "testrtc", tags: "testrtc", testrtc_configure_flag: true }
-    - { role: "consul-signal", tags: "consul-signal", consul_signal_public_ip: "{{ core_public_ip }}", consul_cloud_provider: "{{ core_cloud_provider }}" }
+    - { role: "consul-signal", tags: "consul-signal", consul_signal_install_flag: false,
+        consul_signal_public_ip: "{{ core_public_ip }}", consul_cloud_provider: "{{ core_cloud_provider }}" }
     - { role: "prosody-egress", tags: "prosody-egress",
         prosody_egress_install_flag: false, prosody_egress_configure_flag: true, egress_cloud_provider: "{{ core_cloud_provider }}" }

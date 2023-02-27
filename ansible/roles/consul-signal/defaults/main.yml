@@ -2,3 +2,4 @@
 consul_signal_cloud_provider: "{{ cloud_provider | default('aws') }}"
 consul_signal_private_ip: "{{ ansible_default_ipv4.address }}"
 consul_signal_public_ip: "{{ ansible_ec2_public_ipv4 | default('') }}"
+consul_signal_install_flag: true
