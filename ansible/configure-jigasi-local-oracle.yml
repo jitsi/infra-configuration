@@ -99,14 +99,6 @@
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
       tags: boot
-    - name: Stop jitsi-system-events
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      register: stop_jitsi_system_events_results
-      ignore_errors: true
-      tags: boot
     - name: Register installed jigasi package
       # Version: 2.1-198-gb3d9736e-1
       ansible.builtin.shell: |
@@ -127,7 +119,7 @@
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jigasi_enable_fluentd }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jigasi_enable_fluentd }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

@@ -72,14 +72,6 @@
       ignore_errors: true
       tags: boot
       when: not jvb_enable_fluentd
-    - name: Stop jitsi-system-events
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      register: stop_jitsi_system_events_results
-      ignore_errors: true
-      tags: boot
     - name: Get instance's VNIC
       ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/vnics/
@@ -145,7 +137,7 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "sshusers", tags: "ssh", ssh_users_config_flag: false, ssh_users_accounts_flag: false, ssh_users_system_flag: true }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jvb_enable_fluentd }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jvb_enable_fluentd }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

@@ -155,12 +155,6 @@
       ignore_errors: true
       when: not standalone_enable_fluentd
       tags: "provision"
-    - name: Stop jitsi-system-events # noqa ignore-errors
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      ignore_errors: true
     - name: Disable colibri-ws proxy for standalone
       ansible.builtin.set_fact:
         jitsi_meet_colibri_proxy_enabled: false
@@ -237,7 +231,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd", base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
@@ -271,7 +265,7 @@
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "prosody-egress", tags: "prosody-egress" }
     - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb", when: tcpdump_prosody_jvb_enabled }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: standalone_enable_fluentd}
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ prosody_domain_name }}"

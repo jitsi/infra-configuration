@@ -49,6 +49,3 @@ ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
 --extra-vars "cloud_name=$CLOUD_NAME cloud_provider=$CLOUD_PROVIDER hcv_environment=$ENVIRONMENT prosody_domain_name=$DOMAIN shard_name=$SHARD jitsi_release_number=$RELEASE_NUMBER" \
 -e "{jvb_reconfigure_on_changes_flag: $JVB_RECONFIGURE_ON_CHANGES_FLAG}" \
 ansible/configure-jvb-local.yml
-
-#eventually if this is all successful, then notify other system components via jitsi-system-events
-#TODO: actually do the above

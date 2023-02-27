@@ -54,5 +54,5 @@
           environment: "{{ hcv_environment }}"
           region: "{{ cloud_region }}"
           cloud_provider: "{{ cloud_provider }}"
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: consul_enable_fluentd }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: consul_enable_fluentd }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
