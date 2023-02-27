@@ -8,9 +8,8 @@ of haproxies per
 envrionment with usually two deployed in an instance pool per region.
 
 HAProxy stick tables are used to map conference names to shards. These are
-synchronized across the global mesh. A `proxymonitor` service runs on a cron job
-on an instance to check for split brains and patch them across the fleet as
-needed.
+synchronized across the global mesh. `monitor haproxy` jobs runs on jenkins
+to check for split brains and patch them across the fleet as needed
 
 HAProxies rely on consul service discovery to find shards and identify them as
 backends.
@@ -56,9 +55,8 @@ Most HAProxy configuration is in the `hcv-haproxy-configure` role.
 * Is the haproxy version what you expect?
     * `haproxy -v`
 * Do the ASGs or Instance Pool dashboards show the proper number of instances?
-* Have recent proxymonitor runs resulted in any split brains?
-    * `ssh-jitsi proxymonitor`
-    * `tail -f /var/log/[environment]/.log` 
+* Have recent `monitor haproxy` job runs resulted in any split brains?
+    * check [Split Brain alarms in Cloudwatch](https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#alarmsV2:?~(search~'Split))
 * Do all of the haproxies show each other as peers and have the stick table?
     * `ssh-jitsi [haproxy]`
     * `echo "show peers" | sudo -u haproxy socat stdio /var/run/haproxy/admin.sock | grep addr | grep haproxy`
@@ -67,12 +65,6 @@ Most HAProxy configuration is in the `hcv-haproxy-configure` role.
     * `sudo service tenant-pin status`
 * Are haproxies behaving as expected in the wavefront dashboard?
     * https://metrics.wavefront.com/u/P6bjgLNKz2?t=8x8 
-
-### deploying proxymonitor
-
-The proxymonitor is built with ansible using the `hcv-haproxy-cluster-monitor`
-role. It uses the `haproxy-status.sh` script running on a cron job to accomplish
-this. This script can also be run locally to check for split brains.
 
 ### live release
 
