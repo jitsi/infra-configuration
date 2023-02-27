@@ -53,3 +53,10 @@
     mode: 0755
     path: /etc/td-agent/config.d
     state: directory
+
+- name: Fluentd directive to read config directory
+  ansible.builtin.lineinfile:
+    path: /etc/td-agent/td-agent.conf
+    line: "@include config.d/*.conf"
+    insertafter: EOF
+    state: present
