@@ -55,6 +55,12 @@
   args:
     creates: "{{ testrtc_web_root_path }}"
 
+- name: TestRTC | Create libs dir
+  ansible.builtin.file:
+    path: "{{ testrtc_web_root_path }}/libs"
+    state: directory
+    mode: 0755
+
 - name: TestRTC | Postinstall move main.js
   ansible.builtin.command: mv {{ testrtc_web_root_path }}/main.js {{ testrtc_web_root_path }}/libs
   args:
