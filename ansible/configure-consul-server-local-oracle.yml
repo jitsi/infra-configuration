@@ -34,6 +34,7 @@
     - { role: "common", tags: "common"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "sshusers", tags: "ssh" }
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "consul-server", tags: "consul-server"}
     - { role: "consul-server-start", tags: "consul-server-start"}
     - role: "wavefront"
