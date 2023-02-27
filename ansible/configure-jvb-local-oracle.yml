@@ -72,14 +72,6 @@
       ignore_errors: true
       tags: boot
       when: not jvb_enable_fluentd
-    - name: Stop jitsi-system-events
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      register: stop_jitsi_system_events_results
-      ignore_errors: true
-      tags: boot
     - name: Get instance's VNIC
       ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/vnics/

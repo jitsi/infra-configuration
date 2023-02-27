@@ -144,12 +144,6 @@
       tags: boot
       when: not core_enable_fluentd
 
-    - name: Stop jitsi-system-events # noqa ignore-errors
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      ignore_errors: true
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:

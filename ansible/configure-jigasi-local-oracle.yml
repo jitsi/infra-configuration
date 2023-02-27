@@ -99,14 +99,6 @@
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
       tags: boot
-    - name: Stop jitsi-system-events
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      register: stop_jitsi_system_events_results
-      ignore_errors: true
-      tags: boot
     - name: Register installed jigasi package
       # Version: 2.1-198-gb3d9736e-1
       ansible.builtin.shell: |

@@ -155,12 +155,6 @@
       ignore_errors: true
       when: not standalone_enable_fluentd
       tags: "provision"
-    - name: Stop jitsi-system-events # noqa ignore-errors
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      ignore_errors: true
     - name: Disable colibri-ws proxy for standalone
       ansible.builtin.set_fact:
         jitsi_meet_colibri_proxy_enabled: false

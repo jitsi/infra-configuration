@@ -73,13 +73,6 @@
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
-    - name: Stop jitsi-system-events # noqa ignore-errors
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: not jitsi_system_events_enabled
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
