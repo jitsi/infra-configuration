@@ -163,7 +163,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "fluentd-jitsi", tags: "fluentd",
-        cloud_provider: "{{ core_cloud_provider }}", fluentd_install_flag: false, fluentd_configure_flag: true, when: core_enable_fluentd }
+        cloud_provider: "{{ core_cloud_provider }}", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: core_enable_fluentd }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

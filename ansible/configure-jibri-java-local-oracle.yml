@@ -87,7 +87,7 @@
         state: restarted
   roles:
     - { role: "fluentd-jitsi", tags: "fluentd",
-        fluentd_install_flag: false, fluentd_configure_flag: true, fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
+        fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

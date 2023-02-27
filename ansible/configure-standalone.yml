@@ -237,7 +237,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
@@ -271,7 +271,7 @@
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "prosody-egress", tags: "prosody-egress" }
     - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb", when: tcpdump_prosody_jvb_enabled }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: standalone_enable_fluentd}
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ prosody_domain_name }}"

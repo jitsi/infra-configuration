@@ -1,6 +1,8 @@
 ---
-fluentd_install_flag: true
-fluentd_configure_flag: true
+base_fluentd_install_flag: 'true'
+fluentd_install_flag: "{{ (base_fluentd_install_flag == 'true' and fluentd_jitsi_install_flag) }}"
+fluentd_jitsi_install_flag: true
+fluentd_jitsi_configure_flag: true
 fluentd_cloud_provider: "{{ cloud_provider | default('aws') }}"
 fluentd_jitsi_ansible_enabled: false
 fluentd_jitsi_bootstrap_enabled: false

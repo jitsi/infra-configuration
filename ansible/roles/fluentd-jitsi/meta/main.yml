@@ -11,5 +11,5 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - { role: rsyslog, when: fluentd_install_flag }
+  - { role: rsyslog, when: fluentd_jitsi_install_flag }
   - { role: fluentd, when: fluentd_install_flag }

@@ -99,7 +99,6 @@
     - { role: "journald", tags: "journald"}
     - { role: "monit", tags: "monit"}
     - { role: "rsyslog", tags: "rsyslog"}
-    - { role: "aws-scripts-mon", tags: "aws-scripts-mon"}
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "JVB", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
     - { role: jitsi-videobridge, tags: "jitsi-videobridge",

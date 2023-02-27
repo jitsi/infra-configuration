@@ -55,7 +55,7 @@
     - { role: "haproxy-lua", tags: "haproxy-lua" }
     - { role: "haproxy", tags: "haproxy", haproxy_manage_config: true }
     - { role: "haproxy-jigasi", tags: "haproxy-jigasi" }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: jigasi_enable_fluentd }
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jigasi_enable_fluentd }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
