@@ -29,7 +29,6 @@
   become: true
   become_user: root
   vars:
-    base_fluentd_install_flag: 'false'
     jvb_region: "{{ cloud_region }}"
     java_use_11: true
     # add proxypass in nginx config for JVB colibri stats
@@ -232,7 +231,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd", base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
