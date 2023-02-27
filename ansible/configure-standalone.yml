@@ -29,6 +29,7 @@
   become: true
   become_user: root
   vars:
+    base_fluentd_install_flag: 'false'
     jvb_region: "{{ cloud_region }}"
     java_use_11: true
     # add proxypass in nginx config for JVB colibri stats
