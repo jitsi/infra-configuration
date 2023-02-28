@@ -151,6 +151,6 @@
 
 - name: Perform ansible client install cleanup via pip
   ansible.builtin.pip:
-    name: ansible
+    name: ['ansible', 'ansible-core']
     state: absent
   when: (ansible_distribution_major_version | int) >= 20
