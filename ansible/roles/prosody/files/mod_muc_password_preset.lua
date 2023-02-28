@@ -263,7 +263,7 @@ local function queryForPassword(room)
     module:log("info","Querying for password to %s", pURL);
 
     local function clearJicofoPending(room_instance)
-        module:log("debug", "Unlock room jicofo %s", room.jid)
+        module:log("debug", "Unlock room jicofo %s", room_instance.jid)
 
         module:context(muc_domain):fire_event('jicofo-unlock-room', { room = room_instance; pass_preset_fired = true;});
     end
