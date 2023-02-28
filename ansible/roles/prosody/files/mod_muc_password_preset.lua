@@ -148,9 +148,9 @@ function handle_get_room_password (event)
     if (not event.request.url.query) then
         return { status_code = 400 };
     end
-	local params = parse(event.request.url.query);
-	local room_name = params["room"];
-	local domain_name = params["domain"];
+    local params = parse(event.request.url.query);
+    local room_name = params["room"];
+    local domain_name = params["domain"];
     local subdomain = params["subdomain"];
     local conference = params["conference"];
 
@@ -263,9 +263,9 @@ local function queryForPassword(room)
     module:log("info","Querying for password to %s", pURL);
 
     local function clearJicofoPending(room_instance)
-        module:log("debug", "Unlock room jicofo")
+        module:log("debug", "Unlock room jicofo %s", room.jid)
 
-        module:context(muc_domain):fire_event('jicofo-unlock-room', { room = room_instance; });
+        module:context(muc_domain):fire_event('jicofo-unlock-room', { room = room_instance; pass_preset_fired = true;});
     end
 
     local function timeoutPasswordQuery()
@@ -359,12 +359,17 @@ function process_host(host)
         module:context(host):hook("muc-room-pre-create", function(event)
             check_set_room_password(event.room);
         end);
-        module:context(host):hook('jicofo-unlock-room', function()
+        module:context(host):hook('jicofo-unlock-room', function(e)
+            -- we do not block events we fired
+            if e.pass_preset_fired then
+                return;
+            end
+
             -- we skip it for all rooms (this will not be fired for healthcheck rooms)
             -- as we do password check for all rooms and will fire it there always
             -- in case of success or in case of timeout or error
             return true;
-        end);
+        end, 1000); -- make sure we are the first listener
     end
 
 end
