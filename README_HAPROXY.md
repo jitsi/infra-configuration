@@ -47,6 +47,9 @@ time shards are added or deleted from the environment. The `haproxy-reload` job
 is used to refresh HAProxy configurations across the mesh:
 * https://jenkins.jitsi.net/job/haproxy-reload
 
+When a HAProxy is provisioned it is tagged with a release branch. This branch
+will always be used to generate the configuration.
+
 Most HAProxy configuration is in the `hcv-haproxy-configure` role.
 
 ### haproxy upgrade checklist
