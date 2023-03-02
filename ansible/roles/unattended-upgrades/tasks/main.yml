@@ -37,6 +37,8 @@
     systemctl unmask apt-daily.timer
     systemctl unmask apt-daily-upgrade.service
     systemctl unmask apt-daily-upgrade.timer
+  args:
+    executable: /bin/bash
 
 - name: Restart apt-daily.timer
   ansible.builtin.service:
