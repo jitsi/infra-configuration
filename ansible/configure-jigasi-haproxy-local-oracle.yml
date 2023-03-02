@@ -47,6 +47,7 @@
     - { role: "common", tags: "common" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "sshusers", tags: "ssh" }
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}

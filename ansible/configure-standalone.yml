@@ -226,7 +226,7 @@
     - { role: "openjdk-java", tags: "openjdk" }
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "sshusers", tags: "ssh" }
-    # - { role: "unattended-upgrades", tags: "unattended-upgrades"}
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
