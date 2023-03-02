@@ -4,12 +4,12 @@
 
 HAProxy is globally deployed on Jitsi edge nodes to ensure that signaling
 traffic for a conference reaches the appropriate shard. There is a global mesh
-of haproxies per
-envrionment with usually two deployed in an instance pool per region.
+of haproxies per envrionment with usually two deployed in an instance pool per
+region.
 
 HAProxy stick tables are used to map conference names to shards. These are
-synchronized across the global mesh. `monitor haproxy` jobs runs on jenkins
-to check for split brains and patch them across the fleet as needed
+synchronized across the global mesh. `monitor haproxy` jobs runs on jenkins to
+check for split brains and patch them across the fleet as needed
 
 HAProxies rely on consul service discovery to find shards and identify them as
 backends.
@@ -21,18 +21,17 @@ Do this by going to a consul server in the region/environment and create an
 entry in the kv store, e.g.,
 `consul kv put releases/stage-8x8/live release-3629`
 
-Now use the `haproxy-create-release` job to build new CloudFormation or
+Now use the `haproxy-create-release` jenkins job to build new CloudFormation or
 Terraform stacks:
-* https://jenkins.jitsi.net/job/haproxy-create-release/
 
-This job is also used to build new images ahead of a `haproxy-recyle`, which is
-used to replace existing HAProxy instances with fresh instances on the latest
-release created for the region/environment (*CURRENTLY AWS-ONLY*).
-* https://jenkins.jitsi.net/job/haproxy-recycle/
+This job is also used to build new images ahead of the `haproxy-recyle` job,
+which is used to replace existing HAProxy instances with fresh instances on the
+latest release created for the region/environment.
 
-The recycle job adds instances to the ASG (OCI future: Instance Pool) that run
-the new release, allows them to mesh with the old instances, then tears down
-the old instnaces.
+The recycle job adds instances to the AWS ASG or OCI Instance Pool that run the
+new release, allows them to mesh with the old instances, then tears down the
+old instances. Running this job will break existing websocket connections to
+signal nodes, but the Jitsi clients are generally resilient to this.
 
 Given that this job will potentially disrupt all traffic for an environment, it
 can be run by hand from the jenkins machine using the `SCALE_UP_ONLY` and
