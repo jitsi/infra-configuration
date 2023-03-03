@@ -236,61 +236,9 @@ jitsi_meet_signal_api_ssl_key_name: "{{ jitsi_meet_ssl_key_name }}"
 jitsi_meet_signal_kick_endpoint: false
 jitsi_meet_signal_sidecar_enabled: true
 jitsi_meet_site_path: /usr/share/jitsi-meet
-jitsi_meet_ssl_certificate: |
-  -----BEGIN CERTIFICATE-----
-  MIIEPDCCAySgAwIBAgIJAJdaEs48ZdrNMA0GCSqGSIb3DQEBBQUAMHExCzAJBgNV
-  BAYTAlVTMQ4wDAYDVQQIEwVUZXhhczEPMA0GA1UEBxMGQXVzdGluMRIwEAYDVQQK
-  EwlBdGxhc3NpYW4xEDAOBgNVBAsTB0hpcENoYXQxGzAZBgNVBAMTEnhtcHAwLmRv
-  bWFpbi5sb2NhbDAeFw0xNTA4MTQxMjA4MjZaFw0yNTA4MTExMjA4MjZaMHExCzAJ
-  BgNVBAYTAlVTMQ4wDAYDVQQIEwVUZXhhczEPMA0GA1UEBxMGQXVzdGluMRIwEAYD
-  VQQKEwlBdGxhc3NpYW4xEDAOBgNVBAsTB0hpcENoYXQxGzAZBgNVBAMTEnhtcHAw
-  LmRvbWFpbi5sb2NhbDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANCq
-  0ZnMABs01QHCxxCfyL78ijp51zQ8m+ICx7UKHcjOX9gBobkiC0Ec+dn4Bgsc7daH
-  vf4U7YY/PW2osjPAlS39z4Qx5caxHR+4BCjfJ6rEZ/sVRn9Mp86V02ZmvMq7h8/X
-  0kzLdUoAw6LVdMMGp66YMlfFs6ZX0YnA87znnI6gE99eH8YBnGK4b5bXEKBvISYF
-  IiR/axwy2EVSZ6IW1oJQQMOZD1kCxbeVb+1BVHn2HBPfg0cOTNAhTtoHbVjliTsp
-  ckHyPBcWBwgz+Blm8bFa42cH9RE4VPUPLZSrK+v0a0VJPQe7lNezaenWazP47an0
-  397oLiDAc10b2hJc3W0CAwEAAaOB1jCB0zAdBgNVHQ4EFgQUVLBLChtV5OqGBcdc
-  xJ5Z3t91mecwgaMGA1UdIwSBmzCBmIAUVLBLChtV5OqGBcdcxJ5Z3t91meehdaRz
-  MHExCzAJBgNVBAYTAlVTMQ4wDAYDVQQIEwVUZXhhczEPMA0GA1UEBxMGQXVzdGlu
-  MRIwEAYDVQQKEwlBdGxhc3NpYW4xEDAOBgNVBAsTB0hpcENoYXQxGzAZBgNVBAMT
-  EnhtcHAwLmRvbWFpbi5sb2NhbIIJAJdaEs48ZdrNMAwGA1UdEwQFMAMBAf8wDQYJ
-  KoZIhvcNAQEFBQADggEBADOj8HcU/Hw3lkQvPxSza3KF84Rs82Ju6ZoCrF5WYHhz
-  6Z4iJ8GGu8Koj77uv5Fqlw62A5upO6ENS8I7uF/vAJn4x4qisstqmzzSfVAGNRpT
-  MPB1WfHvQV9g/O76U3W5JXQKPzT757uMtpfurOOqySCG4P52jjBH+hXEqiqA4KLd
-  Qe87AYiMGa6jmki0ZqicEktwBBb9RpKrjkCXurq2oYavPVmTCHH+HQd2tuANCJME
-  PL/HdnXRz/tCkuBR4uuDj7GCkruUmqxZGcU1KrhpjAiwpGBLd45AoTe9Kxmeq/2K
-  fUGeQIt7Tcbhji2IquZoF8BQMiwScUUTYyLU/MM2PIY=
-  -----END CERTIFICATE-----
+jitsi_meet_ssl_certificate: replaceme
 jitsi_meet_ssl_dest_dir: /etc/nginx/ssl
-jitsi_meet_ssl_key_name: |
-  -----BEGIN RSA PRIVATE KEY-----
-  MIIEpQIBAAKCAQEA0KrRmcwAGzTVAcLHEJ/IvvyKOnnXNDyb4gLHtQodyM5f2AGh
-  uSILQRz52fgGCxzt1oe9/hTthj89baiyM8CVLf3PhDHlxrEdH7gEKN8nqsRn+xVG
-  f0ynzpXTZma8yruHz9fSTMt1SgDDotV0wwanrpgyV8WzplfRicDzvOecjqAT314f
-  xgGcYrhvltcQoG8hJgUiJH9rHDLYRVJnohbWglBAw5kPWQLFt5Vv7UFUefYcE9+D
-  Rw5M0CFO2gdtWOWJOylyQfI8FxYHCDP4GWbxsVrjZwf1EThU9Q8tlKsr6/RrRUk9
-  B7uU17Np6dZrM/jtqfTf3uguIMBzXRvaElzdbQIDAQABAoIBAQDCs9D1v6sNt8NV
-  bEhQk7c9tejI3W1XmYIeZlev7muSNjaqGAOt+j0kGYRsxQfmkKy/81LtZNuo2xNX
-  YgQ9U+Ie0ugxwllTh2nUceC3vlmF9tPLLbPlDkK5+YUS1KQuSsNTxV6+N04Oqh3h
-  r2jOnUQTHoJC8f9KJEEpVzhWuIqVbMonmB7dt4EOwj6z2q+hqQYgbkH5hi6Tdz2N
-  cUKra7acA6bzKUoKoEsg7Z8yXKu1h8qJpTfNExOfyA3SzHzOoueZHoOcdmM8gn30
-  m+W8YNS3iEYFIUAQUtXlP+5jzYlNFeXq574VzN7pNiPK4q1OzQ436xtWlT4d2Sb/
-  +u+oD4+lAoGBAPeNPNlkk020UePzZvtZexDyiGqg97wXB28Ll/siB8ILJHx5UZlu
-  2vEProT6vp3cZWveNXmaPe+oluAgXGncxviGd6ktF5Iv5ymacwzySwGeSESbxiMx
-  PvrcP6+6b9igDaF2JvSbZRp/LgpvCL8/i89jH0HCWs8ZVdjeRBBlPn4TAoGBANfJ
-  3OSc8U7NMsZn9vyJ3Hc2gyZLS0QG1zgXbzHKxXAFthAxnLPPcfnvOMxYWCVqPQPp
-  /hxNmZL3bJGV76egk04Yuh8j+axddQsJ5rQEbDtTs6eVaTmm/nIhZK2doVz9T2fI
-  PHkJf4FkHfLvib0lauyuVz4x6r64ah5XEH1GdKZ/AoGAGbVLOnBdc9ZkIr4mVbgH
-  Nc1aKWiqEZh6pyeXEveHwrkRgvO+a6a9igdM4nZ/0TkQN1GOUCCaigcCFCiIMF5D
-  M5ATYThTmFTtNr7Zb+DBtVtQuf9LZmA44Ch7XK6J6v9EKx5wETsKFuRaTa8WQ3Y/
-  +LuchWG/uH4zEiCTBPjeso0CgYEAvOd+dLPfm3iPZplE4rddRQ93qGJptVe3uObq
-  9M/qH7MgOvTzlYWY5Y/CTUFZiQeD+pUxW12jf8ESTjDP6BLuYYPMC87Wl0oJWGyG
-  hjkI9rbDo4Vs5IeIYClTlZlU1a77gIMOTXc/I+qdPTrtfaPwAtpsjYntUqDmZUEa
-  slCndckCgYEAg8f+rJ9kLGpWL8K2nW9GiC/ZI1c31u4RV2VccdBUX6ur8jkytOEO
-  6/9Jm2Y88ISJFGHHMh+Hp9eW3Kca1BE0SSy92qPzk0s/5aVqsZb+DHZYDQsK6/yS
-  ZUN4cJtj5/BRMvNwehgpedebsmzvFgnh4RSS3oHpJZYHLXjKdHai9Z8=
-  -----END RSA PRIVATE KEY-----
+jitsi_meet_ssl_key_name: replaceme
 jitsi_meet_start_audio_muted_count: 25
 jitsi_meet_start_video_muted_count: 25
 jitsi_meet_stun_hosts:
