@@ -83,7 +83,7 @@ else
     while IFS='' read -r LINE || [ -n "$LINE" ]; do
         IP=$(echo $LINE | awk '{ print $1 }')
         echo "## confirming ssh liveness of $IP"
-        timeout 10 ssh -n -o StrictHostKeyChecking=no -F $LOCAL_PATH/../config/ssh.config $ANSIBLE_SSH_USER@$IP "uptime > /dev/null" && echo $LINE >> $LIVE_INVENTORY || SSH_FAILED_IPS="$SSH_FAILED_IPS $IP"
+        timeout 20 ssh -n -o StrictHostKeyChecking=no -F $LOCAL_PATH/../config/ssh.config $ANSIBLE_SSH_USER@$IP "uptime > /dev/null" && echo $LINE >> $LIVE_INVENTORY || SSH_FAILED_IPS="$SSH_FAILED_IPS $IP"
     done < "${BASE_INVENTORY}"
 fi
 
@@ -121,7 +121,7 @@ fi
 
 FAILED_IP_COUNT=$(echo "$SSH_FAILED_IPS" | wc | awk '{ print $2 }') 
 if [[ $FAILED_IP_COUNT -gt 0 ]]; then
-    echo "## WARNING: $FAILED_IP_COUNT nodes were skipped ssh failure: $SSH_FAILED_IPS"
+    echo "## WARNING: $FAILED_IP_COUNT nodes were skipped due to ssh failure:$SSH_FAILED_IPS"
     FINAL_RET=2
 fi
 
