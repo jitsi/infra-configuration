@@ -37,30 +37,10 @@
     systemctl unmask apt-daily.timer
     systemctl unmask apt-daily-upgrade.service
     systemctl unmask apt-daily-upgrade.timer
+    service apt-daily.timer start
+    service apt-daily-upgrade.timer start
+    echo "service apt-daily start" | at now + 1 hour
+    echo "service apt-daily-update start" | at now + 2 hours
+    echo "service unattended-upgrades start" | at now + 3 hours
   args:
     executable: /bin/bash
-
-- name: Restart apt-daily.timer
-  ansible.builtin.service:
-    name: apt-daily.timer
-    state: restarted
-
-- name: Restart apt-daily-upgrade.timer
-  ansible.builtin.service:
-    name: apt-daily-upgrade.timer
-    state: restarted
-
-- name: Restart apt-daily.service
-  ansible.builtin.service:
-    name: apt-daily.service
-    state: restarted
-
-- name: Restart apt-daily-upgrade.service
-  ansible.builtin.service:
-    name: apt-daily-upgrade.service
-    state: restarted
-
-- name: Restart unattended-upgrades
-  ansible.builtin.service:
-    name: unattended-upgrades
-    state: restarted
