@@ -314,6 +314,18 @@
     path: "{{ haproxy_release_tenant_map_path }}"
     state: "{{ 'file' if tenant_map_file.stat.exists else 'touch' }}"
 
+# ensure existence of tenant map file
+- name: Check for existence of ban map file
+  ansible.builtin.stat:
+    path: "{{ haproxy_ban_map_path }}"
+  register: ban_map_file
+
+- name: Create empty ban map # noqa args[module]
+  ansible.builtin.file:
+    mode: 0644
+    path: "{{ haproxy_ban_map_path }}"
+    state: "{{ 'file' if ban_map_file.stat.exists else 'touch' }}"
+
 - name: Change haproxy default config
   ansible.builtin.template:
     src: haproxy_default.j2
