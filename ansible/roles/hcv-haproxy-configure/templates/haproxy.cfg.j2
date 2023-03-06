@@ -208,14 +208,15 @@ frontend www-http
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
    http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
 {% endif %}
+
    # check if room exists in ban map
-   http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_map_path }}) if is_room !not_room
+   http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_map_path }})
    # ban if ban map value 'ban' is set for room
-   acl banned_room req.ban_room -i ban
+   acl banned_room var(req.ban_room) -m str ban
    # redirect to homepage if initial page request
-   http-request redirect code 301 https://%[hdr(host)]/ if banned_room is_room url_room !not_room
+   http-request redirect location / if banned_room !url_room
    # 403 if a bosh/websocket or other
-   http-request deny if banned_room is_room !not_room
+   http-request deny if banned_room url_room
 
    http-response add-header X-Proxy-Region {{ haproxy_region }}
    http-response add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
