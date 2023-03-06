@@ -1,13 +1,14 @@
 ---
-- hosts: all
+- name: Main
+  hosts: all
   gather_facts: true
   become_user: root
   become: yes
   vars_files:
-    - credentials/credentials-wavefront.yml
-    - credentials/credentials-oci-logging.yml
-    - environments/all/group_vars/all.yml
-    - "environments/{{hcv_environment}}/group_vars/all.yml"
+    - secrets/wavefront.yml
+    - secrets/oci-logging.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     shard_role: wf-proxy
     fluentd_jitsi_oci_logs_enabled: true
