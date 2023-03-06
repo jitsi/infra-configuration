@@ -41,6 +41,7 @@
 
   roles:
     - { role: "common", tags: "common" }
+    - { role: "ansible-install", tags: "ansible-install" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}

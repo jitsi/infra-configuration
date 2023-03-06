@@ -1,0 +1,32 @@
+---
+# install ansible packages
+# ansible-pull is used during final machine configuration
+- name: Install ansible prerequsities
+  ansible.builtin.apt:
+    name: [git, python3-netaddr, software-properties-common]
+    state: present
+
+- name: Install ansible client install via apt
+  ansible.builtin.apt:
+    name: ansible
+    state: present
+  when: ansible_install_from_apt
+
+- name: Remove ansible client install via apt
+  ansible.builtin.apt:
+    name: ansible
+    state: present
+  when: not ansible_install_from_apt
+
+- name: Install ansible client install via pip
+  ansible.builtin.pip:
+    name: ansible
+    version: 6.6.0
+    state: present
+  when: ansible_install_from_pip
+
+- name: Perform ansible client install cleanup via pip
+  ansible.builtin.pip:
+    name: ['ansible', 'ansible-core']
+    state: absent
+  when: not ansible_install_from_pip

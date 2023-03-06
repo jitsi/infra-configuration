@@ -1,0 +1,3 @@
+---
+ansible_install_from_apt: false
+ansible_install_from_pip: true
