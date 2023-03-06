@@ -28,6 +28,7 @@
     - { role: "common", tags: "common"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "iptables-selenium-grid", tags: "iptables"}
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}

@@ -7,8 +7,8 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
-
   roles:
     - { role: "iptables-jenkins", tags: "iptables"}
     - { role: "jenkins", tags: "jenkins"}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}

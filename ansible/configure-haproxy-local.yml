@@ -113,6 +113,7 @@
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }
     - { role: "sshusers", tags: "ssh" }
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
