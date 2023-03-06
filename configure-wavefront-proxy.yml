@@ -1,0 +1,30 @@
+---
+- hosts: all
+  gather_facts: true
+  become_user: root
+  become: yes
+  vars_files:
+    - credentials/credentials-wavefront.yml
+    - credentials/credentials-oci-logging.yml
+    - environments/all/group_vars/all.yml
+    - "environments/{{hcv_environment}}/group_vars/all.yml"
+  vars:
+    shard_role: wf-proxy
+    fluentd_jitsi_oci_logs_enabled: true
+    java_use_11: true
+  roles:
+    - { role: "openjdk-java", tags: "openjdk-java", when: cloud_provider=="oracle", java_install_flag: false }
+    - { role: "iptables-wf-proxy", when: cloud_provider=="oracle"}
+    - role: "wavefront"
+      tags: "wavefront-proxy"
+      wavefront_install_proxy: true
+      wavefront_proxy_address: localhost
+      telegraf_tags:
+        role: "wf-proxy"
+        cloud_name: "{{cloud_name}}"
+        region: "{{ region }}"
+        cloud: "{{ cloud_provider }}"
+        environment: "{{ hcv_environment }}"
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: wavefront_enable_fluentd }
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
