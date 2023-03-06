@@ -10,3 +10,4 @@
     - sites/{{hcv_environment}}/vars.yml
   roles:
     - { role: "thousandeyes", tags: "thousandeyes"}
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}

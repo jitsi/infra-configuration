@@ -80,6 +80,7 @@
     - { role: "iptables-coturn", tags: "iptables-coturn"}
 #    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
     - { role: "common", tags: "common"}
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_coturn_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
