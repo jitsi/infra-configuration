@@ -216,6 +216,7 @@ jitsi_meet_p2p_preferred_codec: "VP9"
 jitsi_meet_people_search_query_types: "['user','conferenceRooms']"
 jitsi_meet_performance_stats: false
 jitsi_meet_polls_disabled: false
+jitsi_meet_prefer_sctp: false
 jitsi_meet_prefer_vp9_codec_jvb: true
 jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
 jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"

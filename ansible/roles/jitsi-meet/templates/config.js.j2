@@ -20,6 +20,9 @@ var config = {
 {% endif %}
         focus: 'focus.{{ jitsi_meet_xmpp_domain_name }}',
     },
+    bridgeChannel: {
+        preferSctp: {{ jitsi_meet_prefer_sctp }},
+    },
     disableSimulcast: {% if jitsi_meet_enable_simulcast %}false{% else %}true{% endif %},
 {% if jitsi_meet_resolution %}
     constraints: {
