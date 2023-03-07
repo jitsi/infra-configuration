@@ -14,6 +14,22 @@
     enabled: false
   ignore_errors: true
 
+# Stop and disable postfix if it exists
+- name: Stop postfix if present # noqa ignore-errors
+  ansible.builtin.service:
+    name: postfix
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+# Stop and disable OCI version of fluentd if it exists
+- name: Stop postfix if present # noqa ignore-errors
+  ansible.builtin.service:
+    name: unified-monitoring-agent
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
 # Disable Ubuntu autoupdates
 - name: Disable automatic updates on boot # noqa ignore-errors
   ansible.builtin.command: "{{ item }}"
