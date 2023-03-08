@@ -312,23 +312,24 @@ def write_map_and_update_haproxy(ctx, map_type, ctype, consul_dict, haproxy_dict
                     click.echo("## failed to set_map")
                     ireport[errors_key].append('haproxy_socket')
             ireport[delete_key].append(f"{ckey} {haproxy_dict[ckey]}")
-        # remaining entries in consul_dict need to be added to the live haproxy map
-        for ckey in consul_dict.keys():
-            if not ctx.obj['DRY_RUN']:
-                success = ctx.obj['HAPROXY_SOCKET'].add_map(ctx.obj[map_type], ckey, consul_dict[ckey])
-                if not success:
-                    click.echo("## failed to set_map")
-                    ireport[errors_key].append('haproxy_socket')
-            ireport[add_key].append(f"{ckey} {consul_dict[ckey]}")
 
-        # update the map file, only if there have been changes
+    # remaining entries in consul_dict need to be added to the live haproxy map
+    for ckey in consul_dict.keys():
         if not ctx.obj['DRY_RUN']:
-            if len(ireport[add_key]) > 0 or len(ireport[update_key]) > 0 or len(ireport[delete_key]) > 0:
-                try:
-                    with open(ctx.obj[map_type], 'w', encoding="UTF-8") as ckey_map_file:
-                        ckey_map_file.write(ireport[map_file_contents_key])
-                except OSError:
-                    ireport[errors_key].append('map_file_write')
+            success = ctx.obj['HAPROXY_SOCKET'].add_map(ctx.obj[map_type], ckey, consul_dict[ckey])
+            if not success:
+                click.echo("## failed to set_map")
+                ireport[errors_key].append('haproxy_socket')
+        ireport[add_key].append(f"{ckey} {consul_dict[ckey]}")
+
+    # update the map file, only if there have been changes
+    if not ctx.obj['DRY_RUN']:
+        if len(ireport[add_key]) > 0 or len(ireport[update_key]) > 0 or len(ireport[delete_key]) > 0:
+            try:
+                with open(ctx.obj[map_type], 'w', encoding="UTF-8") as ckey_map_file:
+                    ckey_map_file.write(ireport[map_file_contents_key])
+            except OSError:
+                ireport[errors_key].append('map_file_write')
 
     return ireport
 
