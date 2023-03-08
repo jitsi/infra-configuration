@@ -53,9 +53,9 @@ fi
 
 if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
     ENVIRONMENT_LIST=$(ls $LOCAL_PATH/../sites/)
-    echo "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in ALL environments: $ENVIRONMENT_LIST"
+    echo -e "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in ALL environments:\n$ENVIRONMENT_LIST"
 else
-    echo "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in these environments: $ENVIRONMENT_LIST"
+    echo -e "## applying $ANSIBLE_PLAYBOOK_FILE to nodes with role $ROLE in region $ORACLE_REGION with ansible roles '$ANSIBLE_ROLES' in these environments:\n$ENVIRONMENT_LIST"
 fi
 
 RELEASE_PARAM=""
@@ -75,7 +75,7 @@ done
 
 LIVE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-live.inventory"
 
-SSH_FAILED_COUNT=0
+SSH_FAILED_IPS=""
 if [[ "$SKIP_SSH_CONFIRMATION" == "true" ]]; then
     echo "## skipping ssh confirmation"
     cp $BASE_INVENTORY $LIVE_INVENTORY
@@ -83,7 +83,7 @@ else
     while IFS='' read -r LINE || [ -n "$LINE" ]; do
         IP=$(echo $LINE | awk '{ print $1 }')
         echo "## confirming ssh liveness of $IP"
-        timeout 10 ssh -n -o StrictHostKeyChecking=no -F $LOCAL_PATH/../config/ssh.config $ANSIBLE_SSH_USER@$IP "uptime > /dev/null" && echo $LINE >> $LIVE_INVENTORY || SSH_FAILED_COUNT=$(($SSH_FAILED_COUNT+1))
+        timeout 20 ssh -n -o StrictHostKeyChecking=no -F $LOCAL_PATH/../config/ssh.config $ANSIBLE_SSH_USER@$IP "uptime > /dev/null" && echo $LINE >> $LIVE_INVENTORY || SSH_FAILED_IPS="$SSH_FAILED_IPS $IP"
     done < "${BASE_INVENTORY}"
 fi
 
@@ -119,8 +119,9 @@ if [[ $ANSIBLE_FAILURES -gt 0 ]]; then
     FINAL_RET=1
 fi
 
-if [[ $SSH_FAILED_COUNT -gt 0 ]]; then
-    echo "## WARNING: $SSH_FAILED_COUNT nodes were skipped due to ssh failure"
+FAILED_IP_COUNT=$(echo "$SSH_FAILED_IPS" | wc | awk '{ print $2 }') 
+if [[ $FAILED_IP_COUNT -gt 0 ]]; then
+    echo "## WARNING: $FAILED_IP_COUNT nodes were skipped due to ssh failure:$SSH_FAILED_IPS"
     FINAL_RET=2
 fi
 
