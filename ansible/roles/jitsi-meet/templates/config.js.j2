@@ -21,7 +21,7 @@ var config = {
         focus: 'focus.{{ jitsi_meet_xmpp_domain_name }}',
     },
     bridgeChannel: {
-        preferSctp: {{ jitsi_meet_prefer_sctp }},
+        preferSctp: {{ jitsi_meet_prefer_sctp | to_json }},
     },
     disableSimulcast: {% if jitsi_meet_enable_simulcast %}false{% else %}true{% endif %},
 {% if jitsi_meet_resolution %}
