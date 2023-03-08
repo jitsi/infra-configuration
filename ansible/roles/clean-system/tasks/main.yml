@@ -23,7 +23,7 @@
   ignore_errors: true
 
 # Stop and disable OCI version of fluentd if it exists
-- name: Stop postfix if present # noqa ignore-errors
+- name: Stop unified-monitoring-agent if present # noqa ignore-errors
   ansible.builtin.service:
     name: unified-monitoring-agent
     state: stopped
