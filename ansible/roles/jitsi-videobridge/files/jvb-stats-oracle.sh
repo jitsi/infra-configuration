@@ -6,6 +6,8 @@
 #now run the python that pushes stats to DD
 /usr/local/bin/jvb-stats.py
 
+JVB_RESTARTS="$(systemctl show jitsi-videobridge2.service -p NRestarts | cut -d= -f2)"
+echo -n "jitsi.JVB.restarts:${JVB_RESTARTS}|g|#systemd" | nc -4u -w1 localhost 8125
 
 # Save more detailed jvb stats locally for postmortem.
 LOCAL_STATS_DIR="/tmp/jvb-stats"
