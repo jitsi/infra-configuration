@@ -22,6 +22,8 @@ SNS_FILE_PATH="/tmp/${PROGNAME}.txt"
 function run_stats() {
   #now run the python that pushes stats to DD
   /usr/local/bin/jvb-stats.py
+  JVB_RESTARTS="$(systemctl show jitsi-videobridge2.service -p NRestarts | cut -d= -f2)"
+  echo -n "jitsi.JVB.restarts:${JVB_RESTARTS}|g" | nc -4u -w1 localhost 8125
 }
 
 function send_to_sns() {
