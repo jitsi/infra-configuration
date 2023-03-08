@@ -56,6 +56,8 @@ haproxy_release_backends: false
 haproxy_release_live: false
 haproxy_release_live_map_path: /etc/haproxy/maps/live.map
 haproxy_release_tenant_map_path: /etc/haproxy/maps/tenant.map
+haproxy_ban_rooms_map_path: /etc/haproxy/maps/banned_rooms.map
+haproxy_ban_tenants_map_path: /etc/haproxy/maps/banned_tenants.map
 haproxy_region: "{{ oracle_to_aws_region_map[haproxy_cloud_region] if haproxy_cloud_provider == 'oracle' else haproxy_cloud_region | default('default') }}"
 haproxy_regions: "{{ haproxy_regions_by_region[haproxy_region] | default(default_regions) }}"
 # required due to changes in configuration scripts which check for specific haproxy version

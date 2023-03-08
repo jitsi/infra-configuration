@@ -3,5 +3,7 @@ haproxy_tenant_pin_enabled: false
 haproxy_tenant_pin_install_flag: false
 haproxy_tenant_pin_log_dir: "/var/log"
 haproxy_tenant_pin_map_path: /etc/haproxy/maps/tenant.map
+haproxy_tenant_banned_rooms_map_path: /etc/haproxy/maps/banned_rooms.map
+haproxy_tenant_banned_tenants_map_path: /etc/haproxy/maps/banned_tenants.map
 haproxy_tenant_pin_service_name: "tenant-pin"
 haproxy_tenant_pin_tick_duration: 5
