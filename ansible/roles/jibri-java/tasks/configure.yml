@@ -130,7 +130,9 @@
     dest: "/etc/rsyslog.d/23-jibri.conf"
 
 - name: Restart rsyslogd
-  ansible.builtin.command: /etc/init.d/rsyslog rotate
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
 
 - name: Start Jibri XMPP Service
   ansible.builtin.service:
