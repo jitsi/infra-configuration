@@ -171,7 +171,7 @@
           procstat: "{{ telegraf_inputs_procstat }}"
           prometheus:
             urls: ["http://localhost:6000/metrics"]
-            namepass: ["http*", "signal*"]
+            namepass: ["http*", "signal*", "prosody*"]
         telegraf_tags:
           shard-role: "core"
           role: "core"
