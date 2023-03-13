@@ -1,0 +1,5 @@
+---
+nomad_docker_auth_file_path: "{{ docker_auth_file_path }}"
+nomad_docker_auth_file:
+  credHelpers:
+    "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
