@@ -53,7 +53,8 @@
 - name: Install default admin user
   docker_container:
     name: firezone
-    state: present
+    state: started
+    ignore_image: true
     command: bin/create-or-reset-admin
     timeout: 360
 
