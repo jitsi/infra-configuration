@@ -59,7 +59,7 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
-    - { role: "consul-agent", tags: "consul"}
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "docker", tags: "docker" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }

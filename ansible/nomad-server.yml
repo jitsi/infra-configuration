@@ -34,7 +34,7 @@
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
     - { role: "sshusers", tags: "ssh" }
-    - { role: "consul-agent", tags: "consul"}
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nomad", tags: "nomad" }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
