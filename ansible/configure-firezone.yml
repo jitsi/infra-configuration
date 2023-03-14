@@ -16,9 +16,10 @@
     shard_role: vpn
     fluentd_jitsi_oci_logs_enabled: true
   pre_tasks:
-    - apt:
-      update_cache: true
-      tags: setup
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
   roles:
      - { role: "common", tags: "common" }
      - { role: "sshusers", tags: "ssh" }
