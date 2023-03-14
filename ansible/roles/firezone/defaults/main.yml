@@ -1,0 +1,5 @@
+---
+firezone_sitename: "vpn-dev.jitsi.net"
+firezone_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+firezone_ssl_dest_dir: /etc/nginx/ssl
+firezone_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
