@@ -428,10 +428,10 @@ backend release-{{ release }}
   {%- else -%}
     {{ item['public_ip'] }}
   {%- endif -%}
-    :{{ haproxy_backend_port }} id {{ item['id'] }} 
+    :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} 
   {%- if not item['local'] %} backup{% endif -%}
-  {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-  {%- if haproxy_agent_check -%} no-check agent-check agent-port {{ haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
+  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
+  {%- if haproxy_agent_check -%} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
     {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
@@ -444,9 +444,9 @@ backend release-{{ release }}
   {%- else -%}
     {{ item['public_ip'] }}
   {%- endif -%}
-    :{{ haproxy_backend_port }} id {{ item['id'] }} backup 
-  {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
+    :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} backup 
+  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
+  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
     {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
