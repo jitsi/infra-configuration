@@ -104,7 +104,7 @@ videobridge {
         # SHARD {{ s }}
         {{ s }} {
           HOSTNAME={{ jvb_shards[s]['xmpp_host_public_ip_address'] if jvb_use_public_ip and not jvb_shards[s]['prefer_private'] else jvb_shards[s]['xmpp_host_private_ip_address'] }}
-          PORT={{ jvb_xmpp_port }}
+          PORT={{ jvb_shards[s]['host_port'] if jvb_shards[s]['host_port'] is defined else jvb_xmpp_port }}
 {% if prosody_jvb_configure_flag %}
           DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
           MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"

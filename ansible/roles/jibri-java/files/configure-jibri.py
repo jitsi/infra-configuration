@@ -134,8 +134,11 @@ def fact_from_instance(instance, local_data=None):
     return fact
 
 def fact_from_service(service, local_data, dc):
+    host_port = 5222
     environment = service['ServiceMeta']['environment']
     domain = service['ServiceMeta']['domain']
+    if 'prosody_client_port' in service['ServiceMeta']:
+        host_port = int(service['ServiceMeta']['prosody_client_port'])
     if 'shard' in service['ServiceMeta']:
         shard = service['ServiceMeta']['shard']
     else:
@@ -156,11 +159,11 @@ def fact_from_service(service, local_data, dc):
     if dc.startswith(environment):
         prefer_private = True;
 
-
     fact = {
         'environment': environment,
         'shard': shard,
         'xmpp_domain': domain,
+        'host_port': host_port,
         'xmpp_host_private_ip_address': private_ip,
         'xmpp_host_public_ip_address': public_ip,
         'id': shard,

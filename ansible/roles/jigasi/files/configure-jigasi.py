@@ -132,8 +132,11 @@ def fact_from_instance(instance, local_data=None):
     return fact
 
 def fact_from_service(service, local_data):
+    host_port = 5222
     environment = service['ServiceMeta']['environment']
     domain = service['ServiceMeta']['domain']
+    if 'prosody_client_port' in service['ServiceMeta']:
+        host_port = int(service['ServiceMeta']['prosody_client_port'])
     if service['ServiceID'] == 'all':
         shard = domain.replace('.','-')
     else:
@@ -156,6 +159,7 @@ def fact_from_service(service, local_data):
         'xmpp_domain': domain,
         'xmpp_host_private_ip_address': private_ip,
         'xmpp_host_public_ip_address': public_ip,
+        'host_port': host_port,
         'id': shard,
         'address': private_ip,
         'jid': '%s@%s.%s'%(local_data['jid_username'],local_data['auth_prefix'],domain),
