@@ -54,6 +54,9 @@ modules_enabled = {
       "debug_traceback";
       "log_ringbuffer";
 {% endif %}
+{% if prosody_mod_measure_stanza_counts %}
+      "measure_stanza_counts";
+{% endif %}
 
 };
 
