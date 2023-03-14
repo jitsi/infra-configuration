@@ -1,21 +1,24 @@
 ---
-- hosts: all
+- name: Wait for cloud-init
+  hosts: all
   gather_facts: true
   become_user: root
   become: yes
   strategy: free
   vars_files:
-    - credentials/credentials-ssh.yml
-    - credentials/credentials-bitbucket.yml
-    - credentials/credentials-oci-logging.yml
-    - environments/all/group_vars/all.yml
-    - environments/{{ hcv_environment }}/group_vars/all.yml
+    - secrets/credentials-ssh.yml
+    - secrets/ssl-certificates.yml
+    - secrets/credentials-bitbucket.yml
+    - secrets/credentials-oci-logging.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   vars:
     shard_role: vpn
     fluentd_jitsi_oci_logs_enabled: true
   pre_tasks:
-     - apt: update_cache=yes cache_valid_time=86400 
-       tags: setup
+    - apt:
+      update_cache: true
+      tags: setup
   roles:
      - { role: "common", tags: "common" }
      - { role: "sshusers", tags: "ssh" }
@@ -28,5 +31,5 @@
      - { role: "docker", tags: "docker"}
      - { role: "iptables-firezone", tags: "iptables"}
      - { role: "firezone", tags: "firezone"}
-     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jumpbox_enable_fluentd }
+     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: firezone_enable_fluentd }
      - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
