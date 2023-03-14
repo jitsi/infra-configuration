@@ -6,7 +6,7 @@
   become: yes
   strategy: free
   vars_files:
-    - secrets/credentials-ssh.yml
+    - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/credentials-bitbucket.yml
     - secrets/credentials-oci-logging.yml
