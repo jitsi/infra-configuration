@@ -121,7 +121,7 @@ net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTI
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USER_ID={{ server['jid'] }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_SERVER_OVERRIDDEN=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_ADDRESS={{ server['xmpp_host_private_ip_address'] }}
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ jigasi_xmpp_port }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ server['host_port'] if server['host_port'] is defined else jigasi_xmpp_port }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_SECURE=true
 #base64 AES keyLength:256 or 128
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_xmpp_password|b64encode }}
