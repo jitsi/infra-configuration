@@ -99,10 +99,10 @@ def backend_from_service(consul_url,service,datacenter,local_datacenters):
     agent_port = 6060
     backend_port = 443
     if 'signal_sidecar_agent_port' in service['ServiceMeta']:
-        agent_port = service['ServiceMeta']['signal_sidecar_agent_port']
+        agent_port = int(service['ServiceMeta']['signal_sidecar_agent_port'])
 
     if 'http_backend_port' in service['ServiceMeta']:
-        backend_port = service['ServiceMeta']['http_backend_port']
+        backend_port = int(service['ServiceMeta']['http_backend_port'])
 
     if 'ServiceTaggedAddresses' in service:
         private_ip = service['ServiceTaggedAddresses']['lan']['Address']

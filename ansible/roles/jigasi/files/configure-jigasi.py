@@ -136,7 +136,7 @@ def fact_from_service(service, local_data):
     environment = service['ServiceMeta']['environment']
     domain = service['ServiceMeta']['domain']
     if 'prosody_client_port' in service['ServiceMeta']:
-        host_port = service['ServiceMeta']['prosody_client_port']
+        host_port = int(service['ServiceMeta']['prosody_client_port'])
     if service['ServiceID'] == 'all':
         shard = domain.replace('.','-')
     else:
