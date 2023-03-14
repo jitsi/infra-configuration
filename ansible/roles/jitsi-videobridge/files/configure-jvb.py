@@ -67,8 +67,11 @@ aws_metadata_url = 'http://169.254.169.254/latest/dynamic/instance-identity/docu
 aws_public_ipv4_url = 'http://169.254.169.254/latest/meta-data/public-ipv4'
 
 def fact_from_service(service, dc):
+    host_port = 6222
     environment = service['ServiceMeta']['environment']
     domain = service['ServiceMeta']['domain']
+    if 'prosody_jvb_client_port' in service['ServiceMeta']:
+        host_port = service['ServiceMeta']['prosody_jvb_client_port']
     if 'shard' in service['ServiceMeta']:
         shard = service['ServiceMeta']['shard']
     else:
@@ -87,6 +90,7 @@ def fact_from_service(service, dc):
         'environment': environment,
         'shard': shard,
         'xmpp_domain': domain,
+        'host_port': host_port,
         'xmpp_host_private_ip_address': private_ip,
         'xmpp_host_public_ip_address': public_ip,
         'id': shard,
