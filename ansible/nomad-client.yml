@@ -1,0 +1,77 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/wavefront.yml
+    - secrets/consul.yml
+    - secrets/nomad.yml
+    - secrets/oci-logging.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  vars:
+    cloud_provider: oracle
+    shard_role: nomad-pool
+    nomad_node_role: client
+    nomad_meta:
+      environment: "{{ hcv_environment }}"
+      cloud_name: "{{ cloud_name }}"
+      cloud_region: "{{ oracle_region }}"
+      pool_type: "{{ nomad_pool_type }}"
+      public_ip: "{{ cloud_public_ip }}"
+  pre_tasks:
+    - name: Get instance's VNIC
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/vnics/
+      register: vnic_result
+      tags: setup
+    - name: Set JVB Vnic variable
+      ansible.builtin.set_fact:
+        jvb_vnic: "{{ vnic_result.json[0].vnicId }}"
+      tags: setup
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set JVB shape variable
+      ansible.builtin.set_fact:
+        jvb_shape: "{{ instance_result.json.shape }}"
+      tags: setup
+    - name: Get instance's Public IP from VNIC
+      ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
+      register: vnic_details_result
+      tags: setup
+    - name: Set cloud IP variable
+      ansible.builtin.set_fact:
+        cloud_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
+      tags: setup
+    - name: Update apt-cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+  roles:
+    - { role: "iptables-serf", tags: "iptables-serf"}
+    - { role: "iptables-nomad", tags: "iptables-nomad"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    - { role: "docker", tags: "docker" }
+    - { role: "nomad-jitsi", tags: "nomad-jitsi" }
+    - { role: "nomad", tags: "nomad" }
+#    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+  tasks:
+    - name: Consul service enablement
+      ansible.builtin.systemd:
+        name: consul
+        state: started
+        enabled: true
+    - name: Start nomad
+      ansible.builtin.service:
+        name: nomad
+        state: started
+        enabled: true

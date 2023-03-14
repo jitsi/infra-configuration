@@ -1,0 +1,50 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/wavefront.yml
+    - secrets/consul.yml
+    - secrets/oci-logging.yml
+    - secrets/nomad.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  vars:
+    nomad_node_role: server
+    cloud_provider: oracle
+    shard_role: nomad
+  pre_tasks:
+    - name: Set nomad node role to server
+      ansible.builtin.set_fact:
+        nomad_node_role: server
+      tags: setup
+    - name: Update apt-cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+  roles:
+    - { role: "iptables-serf", tags: "iptables-serf"}
+    - { role: "iptables-nomad", tags: "iptables-nomad"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "common", tags: "common"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    - { role: "nomad", tags: "nomad" }
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+  tasks:
+    - name: Consul service enablement
+      ansible.builtin.systemd:
+        name: consul
+        state: started
+        enabled: true
+    - name: Start nomad
+      ansible.builtin.service:
+        name: nomad
+        state: started
+        enabled: true
