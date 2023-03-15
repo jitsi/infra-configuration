@@ -30,8 +30,8 @@
   ansible.builtin.lineinfile:
     dest: /opt/firezone/.env
     state: present
-    regexp: "^ADMIN_EMAIL="
-    line: "ADMIN_EMAIL=meetings-ops@8x8.com"
+    regexp: "^DEFAULT_ADMIN_EMAIL="
+    line: "DEFAULT_ADMIN_EMAIL={{ firezone_email }}"
 
 - name: Change config TLS options
   ansible.builtin.blockinfile:
