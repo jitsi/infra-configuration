@@ -77,8 +77,14 @@ def fact_from_service(service, dc):
     else:
         shard = ''
     if 'ServiceTaggedAddresses' in service:
-        private_ip = service['ServiceTaggedAddresses']['lan']['Address']
-        public_ip = service['ServiceTaggedAddresses']['wan']['Address']
+        if 'lan' in service['ServiceTaggedAddresses']:
+            private_ip = service['ServiceTaggedAddresses']['lan']['Address']
+        elif 'lan_ipv4' in service['ServiceTaggedAddresses']:
+            private_ip = service['ServiceTaggedAddresses']['lan_ipv4']['Address']
+        if 'wan' in service['ServiceTaggedAddresses']:
+            public_ip = service['ServiceTaggedAddresses']['wan']['Address']
+        elif 'wan_ipv4' in service['ServiceTaggedAddresses']:
+            public_ip = service['ServiceTaggedAddresses']['wan_ipv4']['Address']
     else:
         private_ip = public_ip = service['Address']
 

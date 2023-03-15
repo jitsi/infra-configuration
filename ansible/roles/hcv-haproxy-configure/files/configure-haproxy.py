@@ -64,8 +64,14 @@ def peer_from_service(service,datacenter):
     public_ip = None
     private_ip = None
     if 'ServiceTaggedAddresses' in service:
-        private_ip = service['ServiceTaggedAddresses']['lan']['Address']
-        public_ip = service['ServiceTaggedAddresses']['wan']['Address']
+        if 'lan' in service['ServiceTaggedAddresses']:
+            private_ip = service['ServiceTaggedAddresses']['lan']['Address']
+        elif 'lan_ipv4' in service['ServiceTaggedAddresses']:
+            private_ip = service['ServiceTaggedAddresses']['lan_ipv4']['Address']
+        if 'wan' in service['ServiceTaggedAddresses']:
+            public_ip = service['ServiceTaggedAddresses']['wan']['Address']
+        elif 'wan_ipv4' in service['ServiceTaggedAddresses']:
+            public_ip = service['ServiceTaggedAddresses']['wan_ipv4']['Address']
     else:
         private_ip = service['Address']
 
@@ -105,8 +111,14 @@ def backend_from_service(consul_url,service,datacenter,local_datacenters):
         backend_port = int(service['ServiceMeta']['http_backend_port'])
 
     if 'ServiceTaggedAddresses' in service:
-        private_ip = service['ServiceTaggedAddresses']['lan']['Address']
-        public_ip = service['ServiceTaggedAddresses']['wan']['Address']
+        if 'lan' in service['ServiceTaggedAddresses']:
+            private_ip = service['ServiceTaggedAddresses']['lan']['Address']
+        elif 'lan_ipv4' in service['ServiceTaggedAddresses']:
+            private_ip = service['ServiceTaggedAddresses']['lan_ipv4']['Address']
+        if 'wan' in service['ServiceTaggedAddresses']:
+            public_ip = service['ServiceTaggedAddresses']['wan']['Address']
+        elif 'wan_ipv4' in service['ServiceTaggedAddresses']:
+            public_ip = service['ServiceTaggedAddresses']['wan_ipv4']['Address']
     else:
         public_ip = private_ip = service['Address']
 
