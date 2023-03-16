@@ -53,6 +53,7 @@ set -x
 export NOMAD_VAR_environment="$ENVIRONMENT"
 export NOMAD_VAR_domain="$DOMAIN"
 export NOMAD_VAR_shard="$SHARD"
+export NOMAD_VAR_octo_region="$ORACLE_REGION"
 # [ -n "$SHARD_STATE" ] && export NOMAD_VAR_shard_state="$SHARD_STATE"
 export NOMAD_VAR_release_number="$RELEASE_NUMBER"
 export NOMAD_VAR_tag="$DOCKER_TAG"
