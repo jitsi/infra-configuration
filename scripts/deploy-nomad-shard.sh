@@ -42,12 +42,12 @@ JICOFO_XMPP_PASSWORD_VARIABLE="prosody_focus_user_secret"
 set +x
 set -e
 set -o pipefail
-export NOMAD_VAR_jvb_xmpp_password="$(ansible-vault view $ENCRYPTED_JVB_CREDENTIALS_FILE --vault-password $VAULT_PASSWORD_FILE | yq eval ".${JVB_XMPP_PASSWORD_VARIABLE}" -)"
+export NOMAD_VAR_jvb_auth_password="$(ansible-vault view $ENCRYPTED_JVB_CREDENTIALS_FILE --vault-password $VAULT_PASSWORD_FILE | yq eval ".${JVB_XMPP_PASSWORD_VARIABLE}" -)"
 export NOMAD_VAR_jibri_xmpp_password="$(ansible-vault view $ENCRYPTED_JIBRI_CREDENTIALS_FILE --vault-password $VAULT_PASSWORD_FILE | yq eval ".${JIBRI_XMPP_PASSWORD_VARIABLE}" -)"
 export NOMAD_VAR_jibri_recorder_password="$(ansible-vault view $ENCRYPTED_JIBRI_CREDENTIALS_FILE --vault-password $VAULT_PASSWORD_FILE | yq eval ".${JIBRI_RECORDER_PASSWORD_VARIABLE}" -)"
 export NOMAD_VAR_jigasi_xmpp_password="$(ansible-vault view $ENCRYPTED_JIGASI_CREDENTIALS_FILE --vault-password $VAULT_PASSWORD_FILE | yq eval ".${JIGASI_XMPP_PASSWORD_VARIABLE}" -)"
 
-export NOMAD_VAR_jicofo_xmpp_password="$(cat $JICOFO_CREDENTIALS_FILE | yq eval .${JICOFO_XMPP_PASSWORD_VARIABLE} -)"
+export NOMAD_VAR_jicofo_auth_password="$(cat $JICOFO_CREDENTIALS_FILE | yq eval .${JICOFO_XMPP_PASSWORD_VARIABLE} -)"
 set -x
 
 export NOMAD_VAR_environment="$ENVIRONMENT"

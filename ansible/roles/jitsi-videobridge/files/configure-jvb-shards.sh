@@ -21,12 +21,16 @@ SHARDS=$(cat $SHARD_FILE | jq -r ".shards|keys|.[]")
 for SHARD in $SHARDS; do
     echo "Adding shard $SHARD"
     SHARD_IP=$(cat $SHARD_FILE | jq -r ".shards.\"$SHARD\".xmpp_host_private_ip_address")
+    SHARD_PORT=$(cat $SHARD_FILE | jq -r ".shards.\"$SHARD\".host_port")
+    if [[ "$SHARD_PORT" == "null" ]]; then
+        SHARD_PORT=$XMPP_PORT
+    fi
     T="
 {
     \"id\":\"$SHARD\",
     \"domain\":\"$DOMAIN\",
     \"hostname\":\"$SHARD_IP\",
-    \"port\":\"$XMPP_PORT\",
+    \"port\":\"$SHARD_PORT\",
     \"username\":\"$USERNAME\",
     \"password\":\"$PASSWORD\",
     \"muc_jids\":\"$MUC_JIDS\",
