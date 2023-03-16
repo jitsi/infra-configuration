@@ -1498,6 +1498,7 @@ EOF
         ENABLE_CODEC_VP8="1"
         ENABLE_CODEC_VP9="1"
         ENABLE_CODEC_H264="1"
+        ENABLE_CODEC_OPUS_RED="1"
         XMPP_DOMAIN = "${var.domain}"
         PUBLIC_URL="https://${var.domain}/"
         JICOFO_AUTH_PASSWORD = "${var.jicofo_auth_password}"
