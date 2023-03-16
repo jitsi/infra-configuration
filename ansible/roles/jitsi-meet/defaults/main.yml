@@ -133,7 +133,6 @@ jitsi_meet_giphy_sdk_key: ''
 jitsi_meet_enable_gzip: false
 jitsi_meet_enable_insecure_room_name_warning: false
 jitsi_meet_enable_layer_suspension: false
-jitsi_meet_enable_lipsync: false
 jitsi_meet_enable_livestreaming: false
 jitsi_meet_enable_local_video_flip: true
 jitsi_meet_enable_lock_room_for_all: false
