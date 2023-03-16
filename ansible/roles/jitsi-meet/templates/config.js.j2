@@ -133,7 +133,6 @@ var config = {
     //new desktop sharing settings
     desktopSharingChromeExtId: '{{ jitsi_meet_chrome_desktop_key }}', // Id of desktop streamer Chrome extension
     desktopSharingChromeSources: ['screen', 'window', 'tab'],
-    enableLipSync: {% if jitsi_meet_enable_lipsync %}true{% else %}false{% endif %},
     enableSaveLogs: {% if jitsi_meet_enable_save_logs %}true{% else %}false{% endif %},
     disableRtx: false, // Enables RTX everywhere
     channelLastN: {{ jitsi_meet_channel_last_n }}, // The default value of the channel attribute last-n.
