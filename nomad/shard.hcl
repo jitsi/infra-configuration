@@ -52,6 +52,10 @@ variable jibri_xmpp_password {
     default = "9a27d152ddb7a85574dd4a4a301a77f"
 }
 
+variable enable_auto_owner {
+    type = string
+    default = "false"
+}
 
 job "[JOB_NAME]" {
   region = "global"
@@ -1490,6 +1494,7 @@ EOF
         JICOFO_ENABLE_REST="1"
         JICOFO_ENABLE_BRIDGE_HEALTH_CHECKS="1"
         JICOFO_HEALTH_CHECKS_USE_PRESENCE="1"
+        ENABLE_AUTO_OWNER="${var.enable_auto_owner}"
         OCTO_BRIDGE_SELECTION_STRATEGY="RegionBasedBridgeSelectionStrategy"
         // BRIDGE_STRESS_THRESHOLD=""
         BRIDGE_AVG_PARTICIPANT_STRESS="0.005"
