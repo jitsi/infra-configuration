@@ -57,11 +57,31 @@ variable enable_auto_owner {
     default = "false"
 }
 
+variable wavefront_proxy_server {
+    type = string
+    default = "localhost"
+}
+
+variable cloud_provider {
+    type = string
+    default = "oracle"
+}
+
 job "[JOB_NAME]" {
   region = "global"
   datacenters = [var.dc]
 
   type        = "service"
+
+  meta {
+    domain = "${var.domain}"
+    shard = "${var.shard}"
+    release_number = "${var.release_number}"
+    environment = "${var.environment}"
+    octo_region = "${var.octo_region}"
+    cloud_provider = "${var.cloud_provider}"
+    wavefront_proxy_server = "${var.wavefront_proxy_server}"
+  }
 
   // must have linux for network mode
   constraint {
@@ -98,6 +118,8 @@ job "[JOB_NAME]" {
       }
       port "jicofo-http" {
         to = 8888
+      }
+      port "telegraf-statsd" {
       }
     }
 
@@ -174,6 +196,81 @@ job "[JOB_NAME]" {
         port = "prosody-jvb-client"
         interval = "10s"
         timeout = "2s"
+      }
+    }
+
+    task "telegraf" {
+      driver = "docker"
+      config {
+        privileged = true
+        image        = "telegraf:latest"
+        ports = ["telegraf-statsd"]
+        volumes = ["local/telegraf.conf:/etc/telegraf/telegraf.conf"]
+      }
+
+      template {
+        data = <<EOF
+[agent]
+  interval = "60s"
+  round_interval = false
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "60s"
+  flush_jitter = "0s"
+  precision = ""
+  debug = true
+  quiet = false
+  hostname = "{{ env "NOMAD_META_shard" }}"
+  omit_hostname = false
+
+[[inputs.mem]]
+  fieldpass = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
+
+[[inputs.net]]
+  fieldpass = ["bytes*","drop*","packets*","err*","tcp*","udp*"]
+
+[[inputs.swap]]
+  fieldpass = ["total", "used"]
+
+[[inputs.system]]
+  fieldpass = ["load*"]
+
+[[inputs.statsd]]
+  service_address = ":{{ env "NOMAD_HOST_PORT_telegraf_statsd" }}"
+  delete_gauges = true
+  delete_counters = true
+  delete_sets = true
+  delete_timings = true
+  percentiles = [90]
+  metric_separator = "_"
+  allowed_pending_messages = 10000
+  percentile_limit = 1000
+  datadog_extensions = true
+
+[[inputs.prometheus]]
+    urls = ["http://{{ env "NOMAD_IP_jicofo_http" }}:{{ env "NOMAD_HOST_PORT_jicofo_http" }}/metrics","http://{{ env "NOMAD_IP_prosody_http" }}:{{ env "NOMAD_HOST_PORT_prosody_http" }}/metrics"]
+
+[[outputs.wavefront]]
+  url = "http://{{ env "NOMAD_META_wavefront_proxy_server" }}:2878"
+  metric_separator = "."
+  source_override = ["hostname", "snmp_host", "node_host"]
+  convert_paths = true
+  use_regex = false
+
+
+[global_tags]
+  shard-role = "core"
+  role = "core"
+  environment = "{{ env "NOMAD_META_environment" }}"
+  shard = "{{ env "NOMAD_META_shard" }}"
+  region = "{{ env "NOMAD_META_octo_region" }}"
+  release_number = "{{ env "NOMAD_META_release_number" }}"
+  cloud = "{{  env "NOMAD_META_cloud_provider" }}"
+  cloud_provider = "{{ env "NOMAD_META_cloud_provider" }}"
+
+EOF
+        destination = "local/telegraf.conf"
       }
     }
 
@@ -665,7 +762,8 @@ EOF
 #
 # Basic configuration options
 #
-
+GLOBAL_CONFIG="statistics = \"internal\"\nstatistics_interval = \"manual\"\nopenmetrics_allow_cidr = \"0.0.0.0/0\""
+GLOBAL_MODULES="http_openmetrics,measure_stanza_counts"
 # Directory where all configuration will be stored
 CONFIG=~/.jitsi-meet-cfg
 
@@ -1504,7 +1602,7 @@ EOF
         ENABLE_CODEC_VP9="1"
         ENABLE_CODEC_H264="1"
         ENABLE_CODEC_OPUS_RED="1"
-        JICOFO_CONF_SSRC_REWRITING="1"
+        JICOFO_CONF_SSRC_REWRITING="0"
         JICOFO_CONF_MAX_AUDIO_SENDERS=999999
         JICOFO_CONF_MAX_VIDEO_SENDERS=999999
         JICOFO_CONF_STRIP_SIMULCAST="1"
