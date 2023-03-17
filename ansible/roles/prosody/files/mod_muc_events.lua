@@ -789,6 +789,10 @@ local function handleSpeakerStats(event)
         return;
     end
     local requestBody = { sessionId = event.roomSpeakerStats.sessionId; isBreakoutRoom = event.roomSpeakerStats.isBreakout or false; breakoutRoomId = event.roomSpeakerStats.breakoutRoomId; speakerStats = {}; };
+    if isBreakoutRoom then
+        module:log("debug", "Speaker stats is not handled for breakout rooms for now.");
+        return;
+    end
     for user_jid, speakerTime in pairs(event.roomSpeakerStats) do
         if (user_jid ~= "dominantSpeakerId" and user_jid ~= "sessionId" and user_jid ~= "isBreakout" and user_jid ~= "breakoutRoomId") then
             if not util.is_blacklisted(user_jid) then
