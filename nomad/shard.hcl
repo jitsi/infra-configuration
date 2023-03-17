@@ -88,6 +88,7 @@ job "[JOB_NAME]" {
     attribute = "${attr.kernel.name}"
     value     = "linux"
   }
+
   group "signal" {
     count = 1
 
@@ -125,7 +126,7 @@ job "[JOB_NAME]" {
 
     service {
       name = "signal"
-      tags = ["${var.domain}","${var.shard}"]
+      tags = ["${var.domain}","${var.shard}","urlprefix-${var.domain}/"]
 
       meta {
         domain = "${var.domain}"
@@ -249,7 +250,7 @@ job "[JOB_NAME]" {
   datadog_extensions = true
 
 [[inputs.prometheus]]
-    urls = ["http://{{ env "NOMAD_IP_jicofo_http" }}:{{ env "NOMAD_HOST_PORT_jicofo_http" }}/metrics","http://{{ env "NOMAD_IP_prosody_http" }}:{{ env "NOMAD_HOST_PORT_prosody_http" }}/metrics"]
+    urls = ["http://{{ env "NOMAD_IP_jicofo_http" }}:{{ env "NOMAD_HOST_PORT_jicofo_http" }}/metrics","http://{{ env "NOMAD_IP_prosody_http" }}:{{ env "NOMAD_HOST_PORT_prosody_http" }}/metrics","http://{{ env "NOMAD_IP_signal_sidecar_http" }}:{{ env "NOMAD_HOST_PORT_signal_sidecar_http" }}/metrics"]
 
 [[outputs.wavefront]]
   url = "http://{{ env "NOMAD_META_wavefront_proxy_server" }}:2878"
@@ -286,6 +287,8 @@ EOF
         data = <<EOF
         HTTP_PORT={{ env "NOMAD_HOST_PORT_signal_sidecar_http" }}
         TCP_PORT={{ env "NOMAD_HOST_PORT_signal_sidecar_agent" }}
+        CENSUS_POLL=true
+        CENSUS_HOST={{ env "NOMAD_META_domain" }}
         JICOFO_ORIG=http://{{ env "NOMAD_IP_jicofo_http" }}:{{ env "NOMAD_HOST_PORT_jicofo_http" }}
         PROSODY_ORIG=http://{{ env "NOMAD_IP_prosody_http" }}:{{ env "NOMAD_HOST_PORT_prosody_http" }}
 EOF
@@ -730,6 +733,7 @@ EOF
       config {
         image        = "jitsi/prosody:${var.tag}"
         ports = ["prosody-http","prosody-client"]
+        volumes = ["local/prosody-plugins-custom:/prosody-plugins-custom"]
       }
 
       env {
@@ -756,6 +760,47 @@ EOF
         # XMPP domain for the jibri recorder
         XMPP_RECORDER_DOMAIN = "recorder.${var.domain}"
       }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_measure_stanza_counts/mod_measure_stanza_counts.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_debug_traceback/mod_debug_traceback.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_secure_interfaces/mod_secure_interfaces.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/mod_firewall.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/definitions.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/actions.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/marks.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/conditions.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/test.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_log_ringbuffer/mod_log_ringbuffer.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+
 
       template {
         data = <<EOF
@@ -763,7 +808,7 @@ EOF
 # Basic configuration options
 #
 GLOBAL_CONFIG="statistics = \"internal\"\nstatistics_interval = \"manual\"\nopenmetrics_allow_cidr = \"0.0.0.0/0\""
-GLOBAL_MODULES="http_openmetrics,measure_stanza_counts"
+GLOBAL_MODULES="http_openmetrics,measure_stanza_counts,log_ringbuffer,firewall,muc_census,log_ringbuffer"
 # Directory where all configuration will be stored
 CONFIG=~/.jitsi-meet-cfg
 
