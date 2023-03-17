@@ -15,8 +15,6 @@
   vars:
     cloud_provider: oracle
     shard_role: nomad-pool
-    nomad_telemetry: true
-    nomad_telemetry_prometheus_metrics: true
     nomad_node_role: client
     nomad_meta:
       environment: "{{ hcv_environment }}"
