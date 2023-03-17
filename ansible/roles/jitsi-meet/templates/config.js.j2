@@ -395,6 +395,9 @@ var config = {
 {% if jitsi_meet_disable_reactions %}
     disableReactions: true,
 {% endif %}
+{% if jitsi_meet_enable_webhid_feature %}
+    enableWebHIDFeature: true,
+{% endif %}
 faceLandmarks: {
     enableFaceCentering: {% if jitsi_meet_enable_face_landmarks_enable_centering %}true{% else %}false{% endif %},
     enableFaceExpressionsDetection: {% if jitsi_meet_enable_face_landmarks_detect_expressions %}true{% else %}false{% endif %},

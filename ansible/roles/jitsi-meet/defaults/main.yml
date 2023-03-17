@@ -160,6 +160,7 @@ jitsi_meet_enable_unified_plan_chromium_p2p: true
 jitsi_meet_enable_unsafe_room_warning: false
 jitsi_meet_enable_user_roles_based_on_token: false
 jitsi_meet_enable_welcome_page: true
+jitsi_meet_enable_webhid_feature: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
 jitsi_meet_feedback_percentage: 100
