@@ -14,6 +14,8 @@
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     nomad_node_role: server
+    nomad_telemetry: true
+    nomad_telemetry_prometheus_metrics: true
     cloud_provider: oracle
     shard_role: nomad
   pre_tasks:
@@ -36,6 +38,24 @@
     - { role: "sshusers", tags: "ssh" }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nomad", tags: "nomad" }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled and not datadog_enabled
+      vars:
+        telegraf_inputs:
+          prometheus:
+            urls: ["http://localhost:4646//v1/metrics?format=prometheus"]
+        telegraf_tags:
+          shard-role: "nomad-server"
+          role: "nomad-server"
+          pool-type: "nomad_pool_type"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud: "{{ cloud_provider }}"
+          cloud_provider: "{{ cloud_provider }}"
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
     - name: Consul service enablement
