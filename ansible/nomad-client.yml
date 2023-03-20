@@ -23,7 +23,7 @@
       pool_type: "{{ nomad_pool_type }}"
       public_ip: "{{ cloud_public_ip }}"
   pre_tasks:
-    - name: Stop telegraf for nomad clients
+    - name: Stop telegraf for nomad clients # noqa ignore-errors
       ansible.builtin.service:
         name: telegraf
         state: stopped
