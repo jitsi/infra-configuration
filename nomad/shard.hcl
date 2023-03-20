@@ -57,11 +57,6 @@ variable enable_auto_owner {
     default = "false"
 }
 
-variable wavefront_proxy_server {
-    type = string
-    default = "localhost"
-}
-
 variable cloud_provider {
     type = string
     default = "oracle"
@@ -80,7 +75,6 @@ job "[JOB_NAME]" {
     environment = "${var.environment}"
     octo_region = "${var.octo_region}"
     cloud_provider = "${var.cloud_provider}"
-    wavefront_proxy_server = "${var.wavefront_proxy_server}"
   }
 
   // must have linux for network mode
@@ -120,8 +114,6 @@ job "[JOB_NAME]" {
       port "jicofo-http" {
         to = 8888
       }
-      port "telegraf-statsd" {
-      }
     }
 
     service {
@@ -154,15 +146,55 @@ job "[JOB_NAME]" {
     }
 
     service {
+      name = "jicofo"
+      tags = ["${var.shard}", "${var.environment}","ip-${NOMAD_IP_jicofo_http}"]
+      port = "jicofo-http"
+
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
+    }
+
+    service {
       name = "prosody-http"
-      tags = ["${var.shard}"]
+      tags = ["${var.shard}","ip-${NOMAD_IP_prosody_http}"]
       port = "prosody-http"
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
 
       check {
         name     = "health"
         type     = "http"
         path     = "/http-bind"
         port     = "prosody-http"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    service {
+      name = "signal-sidecar"
+      tags = ["${var.shard}","ip-${NOMAD_IP_signal_sidecar_http}"]
+      port = "signal-sidecar-http"
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
+
+      check {
+        name     = "health"
+        type     = "http"
+        path     = "/health"
+        port     = "signal-sidecar-http"
         interval = "10s"
         timeout  = "2s"
       }
@@ -188,6 +220,12 @@ job "[JOB_NAME]" {
 
       name = "prosody-jvb-client"
       tags = ["${var.shard}"]
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
 
       port = "prosody-jvb-client"
 
@@ -200,80 +238,6 @@ job "[JOB_NAME]" {
       }
     }
 
-    task "telegraf" {
-      driver = "docker"
-      config {
-        privileged = true
-        image        = "telegraf:latest"
-        ports = ["telegraf-statsd"]
-        volumes = ["local/telegraf.conf:/etc/telegraf/telegraf.conf"]
-      }
-
-      template {
-        data = <<EOF
-[agent]
-  interval = "60s"
-  round_interval = false
-  metric_batch_size = 1000
-  metric_buffer_limit = 10000
-  collection_jitter = "0s"
-  flush_interval = "60s"
-  flush_jitter = "0s"
-  precision = ""
-  debug = true
-  quiet = false
-  hostname = "{{ env "NOMAD_META_shard" }}"
-  omit_hostname = false
-
-[[inputs.mem]]
-  fieldpass = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
-
-[[inputs.net]]
-  fieldpass = ["bytes*","drop*","packets*","err*","tcp*","udp*"]
-
-[[inputs.swap]]
-  fieldpass = ["total", "used"]
-
-[[inputs.system]]
-  fieldpass = ["load*"]
-
-[[inputs.statsd]]
-  service_address = ":{{ env "NOMAD_HOST_PORT_telegraf_statsd" }}"
-  delete_gauges = true
-  delete_counters = true
-  delete_sets = true
-  delete_timings = true
-  percentiles = [90]
-  metric_separator = "_"
-  allowed_pending_messages = 10000
-  percentile_limit = 1000
-  datadog_extensions = true
-
-[[inputs.prometheus]]
-    urls = ["http://{{ env "NOMAD_IP_jicofo_http" }}:{{ env "NOMAD_HOST_PORT_jicofo_http" }}/metrics","http://{{ env "NOMAD_IP_prosody_http" }}:{{ env "NOMAD_HOST_PORT_prosody_http" }}/metrics","http://{{ env "NOMAD_IP_signal_sidecar_http" }}:{{ env "NOMAD_HOST_PORT_signal_sidecar_http" }}/metrics"]
-
-[[outputs.wavefront]]
-  url = "http://{{ env "NOMAD_META_wavefront_proxy_server" }}:2878"
-  metric_separator = "."
-  source_override = ["hostname", "snmp_host", "node_host"]
-  convert_paths = true
-  use_regex = false
-
-
-[global_tags]
-  shard-role = "core"
-  role = "core"
-  environment = "{{ env "NOMAD_META_environment" }}"
-  shard = "{{ env "NOMAD_META_shard" }}"
-  region = "{{ env "NOMAD_META_octo_region" }}"
-  release_number = "{{ env "NOMAD_META_release_number" }}"
-  cloud = "{{  env "NOMAD_META_cloud_provider" }}"
-  cloud_provider = "{{ env "NOMAD_META_cloud_provider" }}"
-
-EOF
-        destination = "local/telegraf.conf"
-      }
-    }
 
     task "signal-sidecar" {
       driver = "docker"

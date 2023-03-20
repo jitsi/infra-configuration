@@ -31,7 +31,6 @@ NOMAD_DC="$ENVIRONMENT-$ORACLE_REGION"
 [ -z "$ENCRYPTED_JIBRI_CREDENTIALS_FILE" ] && ENCRYPTED_JIBRI_CREDENTIALS_FILE="$LOCAL_PATH/../ansible/secrets/jibri.yml"
 [ -z "$ENCRYPTED_JIGASI_CREDENTIALS_FILE" ] && ENCRYPTED_JIGASI_CREDENTIALS_FILE="$LOCAL_PATH/../ansible/secrets/jigasi.yml"
 [ -z "$JICOFO_CREDENTIALS_FILE" ] && JICOFO_CREDENTIALS_FILE="$LOCAL_PATH/../sites/$ENVIRONMENT/vars.yml"
-[ -z "$CONFIG_VARS_FILE" ] && CONFIG_VARS_FILE="$LOCAL_PATH/../config/vars.yml"
 
 JVB_XMPP_PASSWORD_VARIABLE="jvb_xmpp_password"
 JIBRI_XMPP_PASSWORD_VARIABLE="jibri_auth_password"
@@ -51,8 +50,6 @@ export NOMAD_VAR_jigasi_xmpp_password="$(ansible-vault view $ENCRYPTED_JIGASI_CR
 export NOMAD_VAR_jicofo_auth_password="$(cat $JICOFO_CREDENTIALS_FILE | yq eval .${JICOFO_XMPP_PASSWORD_VARIABLE} -)"
 set -x
 
-WAVEFRONT_PROXY_VARIABLE="wavefront_proxy_host_by_cloud.$ENVIRONMENT-$ORACLE_REGION"
-export NOMAD_VAR_wavefront_proxy_server="$(cat $CONFIG_VARS_FILE | yq eval .${WAVEFRONT_PROXY_VARIABLE} -)"
 export NOMAD_VAR_environment="$ENVIRONMENT"
 export NOMAD_VAR_domain="$DOMAIN"
 export NOMAD_VAR_shard="$SHARD"
