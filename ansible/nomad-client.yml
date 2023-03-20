@@ -23,6 +23,12 @@
       pool_type: "{{ nomad_pool_type }}"
       public_ip: "{{ cloud_public_ip }}"
   pre_tasks:
+    - name: Stop telegraf for nomad clients
+      ansible.builtin.service:
+        name: telegraf
+        state: stopped
+        enabled: false
+      ignore_errors: true
     - name: Get instance's VNIC
       ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/vnics/
