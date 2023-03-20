@@ -57,17 +57,32 @@ variable enable_auto_owner {
     default = "false"
 }
 
+variable cloud_provider {
+    type = string
+    default = "oracle"
+}
+
 job "[JOB_NAME]" {
   region = "global"
   datacenters = [var.dc]
 
   type        = "service"
 
+  meta {
+    domain = "${var.domain}"
+    shard = "${var.shard}"
+    release_number = "${var.release_number}"
+    environment = "${var.environment}"
+    octo_region = "${var.octo_region}"
+    cloud_provider = "${var.cloud_provider}"
+  }
+
   // must have linux for network mode
   constraint {
     attribute = "${attr.kernel.name}"
     value     = "linux"
   }
+
   group "signal" {
     count = 1
 
@@ -103,7 +118,7 @@ job "[JOB_NAME]" {
 
     service {
       name = "signal"
-      tags = ["${var.domain}","${var.shard}"]
+      tags = ["${var.domain}","${var.shard}","urlprefix-${var.domain}/"]
 
       meta {
         domain = "${var.domain}"
@@ -131,15 +146,55 @@ job "[JOB_NAME]" {
     }
 
     service {
+      name = "jicofo"
+      tags = ["${var.shard}", "${var.environment}","ip-${NOMAD_IP_jicofo_http}"]
+      port = "jicofo-http"
+
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
+    }
+
+    service {
       name = "prosody-http"
-      tags = ["${var.shard}"]
+      tags = ["${var.shard}","ip-${NOMAD_IP_prosody_http}"]
       port = "prosody-http"
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
 
       check {
         name     = "health"
         type     = "http"
         path     = "/http-bind"
         port     = "prosody-http"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    service {
+      name = "signal-sidecar"
+      tags = ["${var.shard}","ip-${NOMAD_IP_signal_sidecar_http}"]
+      port = "signal-sidecar-http"
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
+
+      check {
+        name     = "health"
+        type     = "http"
+        path     = "/health"
+        port     = "signal-sidecar-http"
         interval = "10s"
         timeout  = "2s"
       }
@@ -165,6 +220,12 @@ job "[JOB_NAME]" {
 
       name = "prosody-jvb-client"
       tags = ["${var.shard}"]
+      meta {
+        domain = "${var.domain}"
+        shard = "${var.shard}"
+        release_number = "${var.release_number}"
+        environment = "${meta.environment}"
+      }
 
       port = "prosody-jvb-client"
 
@@ -176,6 +237,7 @@ job "[JOB_NAME]" {
         timeout = "2s"
       }
     }
+
 
     task "signal-sidecar" {
       driver = "docker"
@@ -189,6 +251,8 @@ job "[JOB_NAME]" {
         data = <<EOF
         HTTP_PORT={{ env "NOMAD_HOST_PORT_signal_sidecar_http" }}
         TCP_PORT={{ env "NOMAD_HOST_PORT_signal_sidecar_agent" }}
+        CENSUS_POLL=true
+        CENSUS_HOST={{ env "NOMAD_META_domain" }}
         JICOFO_ORIG=http://{{ env "NOMAD_IP_jicofo_http" }}:{{ env "NOMAD_HOST_PORT_jicofo_http" }}
         PROSODY_ORIG=http://{{ env "NOMAD_IP_prosody_http" }}:{{ env "NOMAD_HOST_PORT_prosody_http" }}
 EOF
@@ -633,6 +697,7 @@ EOF
       config {
         image        = "jitsi/prosody:${var.tag}"
         ports = ["prosody-http","prosody-client"]
+        volumes = ["local/prosody-plugins-custom:/prosody-plugins-custom"]
       }
 
       env {
@@ -659,13 +724,55 @@ EOF
         # XMPP domain for the jibri recorder
         XMPP_RECORDER_DOMAIN = "recorder.${var.domain}"
       }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_measure_stanza_counts/mod_measure_stanza_counts.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_debug_traceback/mod_debug_traceback.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_secure_interfaces/mod_secure_interfaces.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/mod_firewall.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/definitions.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/actions.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/marks.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/conditions.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_firewall/test.lib.lua"
+        destination = "local/prosody-plugins-custom/mod_firewall"
+      }
+      artifact {
+        source      = "https://hg.prosody.im/prosody-modules/raw-file/tip/mod_log_ringbuffer/mod_log_ringbuffer.lua"
+        destination = "local/prosody-plugins-custom"
+      }
+
 
       template {
         data = <<EOF
 #
 # Basic configuration options
 #
-
+GLOBAL_CONFIG="statistics = \"internal\"\nstatistics_interval = \"manual\"\nopenmetrics_allow_cidr = \"0.0.0.0/0\""
+GLOBAL_MODULES="http_openmetrics,measure_stanza_counts,log_ringbuffer,firewall,muc_census,log_ringbuffer"
 # Directory where all configuration will be stored
 CONFIG=~/.jitsi-meet-cfg
 
@@ -1504,7 +1611,7 @@ EOF
         ENABLE_CODEC_VP9="1"
         ENABLE_CODEC_H264="1"
         ENABLE_CODEC_OPUS_RED="1"
-        JICOFO_CONF_SSRC_REWRITING="1"
+        JICOFO_CONF_SSRC_REWRITING="0"
         JICOFO_CONF_MAX_AUDIO_SENDERS=999999
         JICOFO_CONF_MAX_VIDEO_SENDERS=999999
         JICOFO_CONF_STRIP_SIMULCAST="1"
