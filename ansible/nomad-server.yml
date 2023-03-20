@@ -10,6 +10,7 @@
     - secrets/consul.yml
     - secrets/oci-logging.yml
     - secrets/nomad.yml
+    - secrets/repo.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:

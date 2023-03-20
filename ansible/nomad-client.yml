@@ -63,26 +63,6 @@
     - { role: "docker", tags: "docker" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
-    - role: "wavefront"
-      tags: "telegraf"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
-      wavefront_install_collector: true
-      datadog_extensions: "true"
-      when: telegraf_enabled and not datadog_enabled
-      vars:
-        telegraf_inputs:
-          docker:
-            endpoint: "unix:///var/run/docker.sock"
-          prometheus:
-            urls: ["http://localhost:4646//v1/metrics?format=prometheus"]
-        telegraf_tags:
-          shard-role: "nomad-pool"
-          role: "nomad-pool"
-          pool-type: "nomad_pool_type"
-          environment: "{{ hcv_environment }}"
-          region: "{{ cloud_region }}"
-          cloud: "{{ cloud_provider }}"
-          cloud_provider: "{{ cloud_provider }}"
 #    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
     - name: Consul service enablement
