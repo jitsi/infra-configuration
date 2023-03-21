@@ -294,6 +294,15 @@ server {
     rewrite ^.*/static/close2.html$ {{ jitsi_meet_close_page_redirect_url }} redirect;
 {% endif %}
 
+{% if jitsi_meet_enable_userdirs %}
+    # userdirs
+    location ~ ^/~(.+?)(/.*)?$ {
+        alias /home/$1/public_html$2;
+        index  index.html index.htm;
+        autoindex on;
+    }
+{% endif %}
+
     location = /nginx_status {
       stub_status on;
       access_log   off;

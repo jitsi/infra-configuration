@@ -127,6 +127,7 @@ jitsi_meet_enable_file_recordings: false
 jitsi_meet_enable_file_recordings_service: false
 jitsi_meet_enable_file_recordings_sharing: false
 jitsi_meet_enable_forced_client_reload: false
+jitsi_meet_enable_userdirs: false
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
 jitsi_meet_enable_gzip: false
