@@ -1,0 +1,24 @@
+{
+  "shards": [
+{{ range $dc := datacenters -}}
+{{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc}}{{range $index, $item := service $service -}}
+{{ scratch.SetX "domain" .ServiceMeta.domain -}}
+{{ if ne $index 0}},{{ end }}
+    {
+      "shard":"{{.ServiceMeta.shard}}",
+      "domain":"{{.ServiceMeta.domain}}",
+      "address":"{{.Address}}",
+      "xmpp_host_private_ip_address":"{{.Address}}",
+      "host_port":"{{ with .ServiceMeta.prosody_jvb_client_port}}{{.}}{{ else }}6222{{ end }}"
+    }
+{{ end }}{{ end -}}
+  ],
+  "drain_mode":"{{ envOrDefault "JVB_INITIAL_DRAIN_MODE" "ready" }}",
+  "port": 6222,
+  "domain":"auth.jvb.{{ scratch.Get "domain" }}",
+  "muc_jids":"jvbbrewery@muc.jvb.{{ scratch.Get "domain" }}",
+  "username":"{{ envOrDefault "JVB_USERNAME" "jvb" }}",
+  "password":"{{ envOrDefault "JVB_PASSWORD" "jvb" }}",
+  "muc_nickname":"{{ envOrDefault "JVB_MUC_NICKNAME" "jvb1" }}",
+  "iq_handler_mode":"{{ envOrDefault "JVB_IQ_HANDLER_MODE" "sync" }}"
+}

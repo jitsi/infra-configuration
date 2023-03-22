@@ -31,6 +31,28 @@
     src: "environments.json.j2"
     dest: "/etc/jitsi/videobridge/environments.json"
 
+# write out consul template configuration file
+- name: JVB Environments configuration
+  ansible.builtin.template:
+    owner: root
+    mode: 0600
+    src: "consul-template.env.j2"
+    dest: "/etc/jitsi/videobridge/consul-template.env"
+
+- name: Copy consul-template shards.json template
+  ansible.builtin.copy:
+    src: "shards.json.template"
+    dest: "/etc/jitsi/videobridge/shards.json.template"
+    mode: 0644
+    owner: root
+
+- name: Copy consul-template xmpp.conf template
+  ansible.builtin.copy:
+    src: "xmpp.conf.template"
+    dest: "/etc/jitsi/videobridge/xmpp.conf.template"
+    mode: 0644
+    owner: root
+
 # provide bash script for muc client reconfigure
 - name: Upload muc client reconfigure script
   ansible.builtin.copy:
@@ -187,6 +209,14 @@
     mode: 0644
     src: jvb.conf.j2
     dest: /etc/jitsi/videobridge/jvb.conf
+  notify: Restart jitsi-videobridge systemd
+  when: jvb_configure_from_template_flag
+
+- name: Install jitsi-videobridge xmpp config file
+  ansible.builtin.template:
+    mode: 0644
+    src: xmpp.conf.j2
+    dest: /etc/jitsi/videobridge/xmpp.conf
   notify: Restart jitsi-videobridge systemd
   when: jvb_configure_from_template_flag
 
