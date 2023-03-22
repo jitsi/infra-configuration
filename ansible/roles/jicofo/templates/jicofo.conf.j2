@@ -111,6 +111,7 @@ jicofo {
 
   octo {
     enabled={{ 'true' if jicofo_enable_octo else 'false' }}
+    sctp-datachannels = {{ jicofo_enable_sctp_relay | to_json }}
   }
 
   rest {
