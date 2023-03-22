@@ -1,7 +1,7 @@
 {
   "service": {
     "name": "signal",
-    "tags":["{{ hcv_environment }}"],
+    "tags":["{{ hcv_environment }}","release-{{jitsi_release_number}}","shard-{{ shard_name }}"],
     "meta": {
         "environment":"{{ hcv_environment }}",
         "domain":"{{ prosody_domain_name }}",
