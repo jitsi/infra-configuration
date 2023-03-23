@@ -1,0 +1,29 @@
+jibri.api.xmpp.environments = [
+{{ range $sidx,$item scratch.MapValues "shards" }}
+    {
+        name = "{{ .ServiceMeta.environment }}"
+        xmpp-server-hosts = ["{{ .Address }}:{{ .Port }}"]
+        xmpp-domain = "{{ .ServiceMeta.domain }}"
+        control-login {
+            domain = "auth.{{ .ServiceMeta.domain }}"
+            username = "{{ envOrDefault "JIBRI_USERNAME" "jibri" }}"
+            password = "{{ envOrDefault "JIBRI_PASSWORD" "password" }}"
+            port = 5222
+        }
+        control-muc {
+            domain = "internal.auth.{{ .ServiceMeta.domain }}"
+            room-name = "{{ envOrDefault "JIBRI_BREWERY" "JibriBrewery" }}"
+            nickname = "{{ envOrDefault "JIBRI_MUC_NICKNAME" "jibri1" }}"
+        }
+        call-login {
+            domain = "recorder.{{ .ServiceMeta.domain }}"
+            username = "{{ envOrDefault "RECORDER_USERNAME" "recorder" }}"
+            password = "{{ envOrDefault "RECORDER_PASSWORD" "password" }}"
+        }
+        strip-from-room-domain = "conference."
+        usage-timeout = "{{ envOrDefault "JIBRI_USAGE_TIMEOUT" "0" }} minutes"
+        trust-all-xmpp-certs = true
+        randomize-control-muc-nickname = true
+    },
+{{ end -}}
+]

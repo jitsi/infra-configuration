@@ -20,6 +20,23 @@
     fluentd_jitsi_region: us-west-2
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
+    consul_template_env:
+      JIBRI_USERNAME: "{{ jibri_xmpp_username }}"
+      JIBRI_PASSWORD: "{{ jibri_xmpp_password }}"
+      JIBRI_MUC_NICKNAME: "{{ ansible_hostname }}"
+      RECORDER_USERNAME: "{{ jibri_selenium_auth_user }}"
+      RECORDER_PASSWORD: "{{ jibri_selenium_auth_password }}"
+      JIBRI_USAGE_TIMEOUT: "{{ jibri_environments[hcv_environment]['usage_timeout']
+        if hcv_environment in jibri_environments and 'usage_timeout' in jibri_environments[hcv_environment] else 0 }}"
+    consul_template_template_files:
+      - src: roles/java-jibri/files/xmpp.conf.template
+    consul_template_templates:
+      - name: "xmpp.conf.template"
+        dest: "/etc/jitsi/jibri/xmpp.conf"
+        cmd: "/usr/sbin/service jibri reload"
+        perms: 0640
+        backup: false
+
   pre_tasks:
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
@@ -80,7 +97,8 @@
         state: restarted
   roles:
     - { role: "fluentd-jitsi", tags: "fluentd",
-        fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
+        fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true,
+        fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
@@ -107,4 +125,5 @@
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
+    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template }
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}
