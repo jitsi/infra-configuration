@@ -8,7 +8,7 @@ jibri.api.xmpp.environments = [
             domain = "auth.{{ .ServiceMeta.domain }}"
             username = "{{ envOrDefault "JIBRI_USERNAME" "jibri" }}"
             password = "{{ envOrDefault "JIBRI_PASSWORD" "password" }}"
-            port = 5222
+            port = {{ .Port }}
         }
         control-muc {
             domain = "internal.auth.{{ .ServiceMeta.domain }}"
