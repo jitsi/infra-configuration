@@ -2,13 +2,13 @@ jibri.api.xmpp.environments = [
 {{ range $index, $item := service "signal" -}}
     {
         name = "{{ .ServiceMeta.environment }}"
-        xmpp-server-hosts = ["{{ .Address }}:{{ .Port }}"]
+        xmpp-server-hosts = ["{{ .Address }}:{{ with .ServiceMeta.prosody_client_port}}{{.}}{{ else }}5222{{ end }}"]
         xmpp-domain = "{{ .ServiceMeta.domain }}"
         control-login {
             domain = "auth.{{ .ServiceMeta.domain }}"
             username = "{{ envOrDefault "JIBRI_USERNAME" "jibri" }}"
             password = "{{ envOrDefault "JIBRI_PASSWORD" "password" }}"
-            port = {{ .Port }}
+            port = {{ with .ServiceMeta.prosody_client_port}}{{.}}{{ else }}5222{{ end }}
         }
         control-muc {
             domain = "internal.auth.{{ .ServiceMeta.domain }}"
