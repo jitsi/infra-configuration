@@ -29,7 +29,7 @@
       JIBRI_USAGE_TIMEOUT: "{{ jibri_environments[hcv_environment]['usage_timeout']
         if hcv_environment in jibri_environments and 'usage_timeout' in jibri_environments[hcv_environment] else 0 }}"
     consul_template_template_files:
-      - src: roles/java-jibri/files/xmpp.conf.template
+      - src: roles/jibri-java/files/xmpp.conf.template
     consul_template_templates:
       - name: "xmpp.conf.template"
         dest: "/etc/jitsi/jibri/xmpp.conf"
