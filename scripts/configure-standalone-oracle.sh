@@ -131,6 +131,7 @@ $([ -n "$PROSODY_ENABLE_TOKENS" ] && echo "-e prosody_enable_tokens=$PROSODY_ENA
 $([ -n "$JITSI_MEET_PROSODY_VERSION" ] && echo "-e jitsi_meet_prosody_deb_pkg_version=$JITSI_MEET_PROSODY_VERSION") \
 $([ -n "$ORACLE_REGION" ] && echo "-e oracle_region=$ORACLE_REGION") \
 -e "test_id=$UNIQUE_ID" \
+-e "unique_id=$UNIQUE_ID" \
 -e "ansible_ssh_user=$ANSIBLE_SSH_USER" \
 --vault-password-file .vault-password.txt \
 --tags "$DEPLOY_TAGS"

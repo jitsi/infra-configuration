@@ -1,0 +1,44 @@
+videobridge.apis.xmpp-client.configs {
+{% if not jvb_enable_multiple_shards %}
+    shard {
+        PORT={{ jvb_xmpp_port }}
+    {% if prosody_jvb_configure_flag %}
+        DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
+        MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
+    {% else %}
+        DOMAIN={{ jvb_auth_domain }}
+        MUC_JIDS="{{ jvb_brewery_muc }}"
+        MUC="{{ jvb_brewery_muc }}"
+    {% endif %}
+        # TODO: don't disable :(
+        DISABLE_CERTIFICATE_VERIFICATION=true
+        HOSTNAME={{ jvb_host }}
+        USERNAME={{ jvb_auth_user }}
+        PASSWORD={{ jvb_auth_password }}
+        MUC_NICKNAME={{ ansible_hostname }}
+        IQ_HANDLER_MODE={{ jvb_iq_handler_mode }}
+    }
+{% else %}
+{% for s in jvb_shards %}
+    # SHARD {{ s }}
+    {{ s }} {
+        HOSTNAME={{ jvb_shards[s]['xmpp_host_public_ip_address'] if jvb_use_public_ip and not jvb_shards[s]['prefer_private'] else jvb_shards[s]['xmpp_host_private_ip_address'] }}
+        PORT={{ jvb_shards[s]['host_port'] if jvb_shards[s]['host_port'] is defined else jvb_xmpp_port }}
+{% if prosody_jvb_configure_flag %}
+        DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
+        MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
+{% else %}
+        DOMAIN={{ jvb_auth_domain }}
+        MUC_JIDS="{{ jvb_brewery_muc }}"
+{% endif %}
+        MUC="{{ jvb_brewery_muc }}"
+        USERNAME={{ jvb_auth_user }}
+        PASSWORD={{ jvb_auth_password }}
+        MUC_NICKNAME={{ ansible_hostname }}
+        IQ_HANDLER_MODE={{ jvb_iq_handler_mode }}
+        # TODO: don't disable :(
+        DISABLE_CERTIFICATE_VERIFICATION=true
+    }
+{% endfor %}
+{% endif %}
+}

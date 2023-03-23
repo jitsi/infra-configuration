@@ -190,6 +190,14 @@
   notify: Restart jitsi-videobridge systemd
   when: jvb_configure_from_template_flag
 
+- name: Install jitsi-videobridge xmpp config file
+  ansible.builtin.template:
+    mode: 0644
+    src: xmpp.conf.j2
+    dest: /etc/jitsi/videobridge/xmpp.conf
+  notify: Restart jitsi-videobridge systemd
+  when: jvb_configure_from_template_flag
+
 # provide script for managing the auto-scale group lifecycle queue
 - name: Upload lifecyle script
   ansible.builtin.copy:

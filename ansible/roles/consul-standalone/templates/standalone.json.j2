@@ -1,7 +1,7 @@
 {
   "service": {
     "name": "all",
-    "tags":["{{ hcv_environment }}"],
+    "tags":["{{ hcv_environment }}","standalone-{{ consul_standalone_id }}"],
     "meta": {
         "environment":"{{ hcv_environment }}",
         "domain":"{{ prosody_domain_name }}"

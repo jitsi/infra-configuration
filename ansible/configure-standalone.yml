@@ -3,7 +3,7 @@
   hosts: all
   become: true
   become_user: root
-  gather_facts: false
+  gather_facts: true
   pre_tasks:
     - name: Wait for ssh to come up
       ansible.builtin.wait_for:
@@ -39,6 +39,25 @@
     # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
+    consul_template_env:
+      JVB_USERNAME: "{{ jvb_auth_user }}"
+      JVB_PASSWORD: "{{ jvb_auth_password }}"
+      JVB_IQ_HANDLER_MODE: "{{ jvb_iq_handler_mode }}"
+      JVB_INITIAL_DRAIN_MODE: "{{ jvb_initial_drain_mode|to_json }}"
+      JVB_MUC_NICKNAME: "{{ ansible_hostname }}"
+      JVB_POOL_MODE: "{{ jvb_pool_mode }}"
+    consul_template_template_files:
+      - src: roles/jitsi-videobridge/files/shards.json.template
+      - src: roles/jitsi-videobridge/files/xmpp.conf.template
+    consul_template_templates:
+      - name: "shards.json.template"
+        dest: "/etc/jitsi/videobridge/shards.json"
+        perms: 0640
+        backup: false
+      - name: "xmpp.conf.template"
+        dest: "/etc/jitsi/videobridge/xmpp.conf"
+        perms: 0640
+        backup: false
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
@@ -231,7 +250,9 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
-    - { role: "fluentd-jitsi", tags: "fluentd", base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd",
+        base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "consul-template", tags: "consul-template", when: jvb_enable_consul_template}
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}

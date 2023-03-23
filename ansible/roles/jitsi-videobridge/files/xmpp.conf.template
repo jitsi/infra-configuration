@@ -1,0 +1,40 @@
+{{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
+{{ if eq $pool_mode "remote" "global" -}}
+  {{ range $dcidx, $dc := datacenters -}}
+    {{ if or (and (eq $pool_mode "remote") (ne $dcidx 0)) (eq $pool_mode "global") -}}
+      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+      {{range $index, $item := service $service -}}
+        {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+      {{ end -}}
+    {{ end -}}
+  {{ end -}}
+{{ else -}}
+  {{ if eq $pool_mode "local" -}}
+    {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
+    {{ scratch.Set "service" $service -}}
+  {{ else -}}
+    {{ $service := print "shard-" (env "SHARD") ".signal" -}}
+    {{ scratch.Set "service" $service -}}
+  {{ end -}}
+  {{ $service := scratch.Get "service" -}}
+  {{range $index, $item := service $service -}}
+    {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+  {{ end -}}
+{{ end -}}
+videobridge.apis.xmpp-client.configs {
+{{ range $sindex, $item := scratch.MapValues "shards" -}}
+    # SHARD {{ .ServiceMeta.shard }}
+    {{ .ServiceMeta.shard }} {
+        HOSTNAME={{ .Address }}
+        PORT={{ with .ServiceMeta.prosody_jvb_client_port}}{{.}}{{ else }}6222{{ end }}
+        DOMAIN=auth.jvb.{{ .ServiceMeta.domain }}
+        MUC_JIDS="jvbbrewery@muc.jvb.{{ .ServiceMeta.domain }}"
+        USERNAME={{ envOrDefault "JVB_USERNAME" "jvb" }}
+        PASSWORD={{  envOrDefault "JVB_PASSWORD" "jvb" }}
+        MUC_NICKNAME={{ envOrDefault "JVB_MUC_NICKNAME" "jvb1" }}
+        IQ_HANDLER_MODE={{ envOrDefault "JVB_IQ_HANDLER_MODE" "sync" }}
+        # TODO: don't disable :(
+        DISABLE_CERTIFICATE_VERIFICATION=true
+    }
+{{ end -}}
+}
