@@ -1,5 +1,5 @@
 {
-  "shards": [
+  "shards": {
 {{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
 {{ if eq $pool_mode "remote" "global" -}}
   {{ range $dcidx, $dc := datacenters -}}
@@ -27,7 +27,7 @@
 {{ range $sindex, $item := scratch.MapValues "shards" -}}
   {{ scratch.SetX "domain" .ServiceMeta.domain -}}
   {{ if ne $sindex 0}},{{ end }}
-    {
+    "{{.ServiceMeta.shard}}": {
       "shard":"{{.ServiceMeta.shard}}",
       "domain":"{{ .ServiceMeta.domain }}",
       "address":"{{.Address}}",
@@ -35,7 +35,7 @@
       "host_port":"{{ with .ServiceMeta.prosody_jvb_client_port}}{{.}}{{ else }}6222{{ end }}"
     }
 {{ end -}}
-  ],
+  },
   "drain_mode":{{ envOrDefault "JVB_INITIAL_DRAIN_MODE" "false" }},
   "port": 6222,
   "domain":"auth.jvb.{{ scratch.Get "domain" }}",
