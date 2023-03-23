@@ -16,7 +16,7 @@
 
 echo "## starting patch-nodes.sh"
 
-if [  -z "$1" ]
+if [ -z "$1" ]
 then
   ANSIBLE_SSH_USER=$(whoami)
   echo "## ansible SSH user is not defined. We use current user: $ANSIBLE_SSH_USER"
@@ -26,7 +26,7 @@ else
 fi
 
 if [ -z "$ENVIRONMENT_LIST" ]; then
-    if [ -z "$ENVIRONMENT" ]; then
+    if [ -n "$ENVIRONMENT" ]; then
         ENVIRONMENT_LIST=$ENVIRONMENT
     else
         echo "## ERROR in patch-nodes.sh: ENVIRONMENT or ENVIRONMENT_LIST must be set"
@@ -70,7 +70,7 @@ BASE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}.inventory"
 
 for ENV in $ENVIRONMENT_LIST; do
     echo "## building $ROLE inventory for $ENV in region $ORACLE_REGION"
-    $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --batch --inventory $RELEASE_PARAM >> $BASE_INVENTORY
+    $LOCAL_PATH/node.py --environment $ENV --role $ROLE --region $ORACLE_REGION --oracle --oracle_only --batch --inventory $RELEASE_PARAM >> $BASE_INVENTORY
 done
 
 LIVE_INVENTORY="./batch-${ROLE}-${ORACLE_REGION}-live.inventory"
