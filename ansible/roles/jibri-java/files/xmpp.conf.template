@@ -1,5 +1,5 @@
 jibri.api.xmpp.environments = [
-{{ range $sidx,$item scratch.MapValues "shards" }}
+{{ range $index, $item := service "signal" -}}
     {
         name = "{{ .ServiceMeta.environment }}"
         xmpp-server-hosts = ["{{ .Address }}:{{ .Port }}"]
