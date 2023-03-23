@@ -115,6 +115,13 @@
     group: jitsi
     mode: 0640
 
+- name: Write jibri xmpp config file
+  ansible.builtin.template:
+    src: xmpp.conf.j2
+    dest: /etc/jitsi/jibri/xmpp.conf
+    group: jitsi
+    mode: 0640
+
 - name: Override jibri xorg config, to keep resolution 1280x720 for sip-jibri
   ansible.builtin.copy:
     src: "sip-jibri-xorg-video-dummy.conf"
