@@ -16,3 +16,6 @@
 [submodule "ansible/roles/nomad"]
 	path = ansible/roles/nomad
 	url = https://github.com/aaronkvanmeerten/ansible-nomad.git
+[submodule "ansible/roles/consul-template"]
+	path = ansible/roles/consul-template
+	url = https://github.com/aaronkvanmeerten/ansible-consul-template.git
