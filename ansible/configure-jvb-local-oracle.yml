@@ -23,6 +23,20 @@
     shard_role: JVB
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
+    consul_template_template_files:
+      - src: roles/jitsi-videobridge/files/shards.json.template
+      - src: roles/jitsi-videobridge/files/xmpp.conf.template
+    consul_template_templates:
+      - name: "shards.json.template"
+        dest: "/etc/jitsi/videobridge/shards.json"
+        cmd: "/usr/local/bin/configure-jvb-shards.sh"
+        perms: 0640
+        backup: false
+      - name: "xmpp.conf.template"
+        dest: "/etc/jitsi/videobridge/xmpp.conf"
+        perms: 0640
+        backup: false
+
   pre_tasks:
     - name: Remove old jitsi repo
       ansible.builtin.apt_repository:
@@ -150,6 +164,10 @@
             urls: ["http://localhost:888/nginx_status/"]
           nstat:
             fieldpass: ["UdpInErrors", "Udp6InErrors"]
+          procstat:
+            - systemd_unit: "jitsi-videobridge2.service"
+              cmdline_tag: false
+              pid_tag: false
         telegraf_tags:
           shard-role: "JVB"
           role: "JVB"
@@ -170,5 +188,5 @@
         jvb_ddns_install_flag: false, jvb_ddns_configure_flag: true, jvb_ddns_cleanup_flag: true, ipv6_enabled: false }
     - { role: "jitsi-videobridge", tags: "jitsi-videobridge",
         jvb_image_build_flag: false, jvb_install_flag: false, jvb_configure_flag: true, jvb_ddns_cleanup_flag: true }
-    # once all JVB images have jvb-rtcstats-push installed we can set install_flag to false below
+    - { role: "consul-template", tags: "consul-template", when: jvb_enable_consul_template }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
