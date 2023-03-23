@@ -134,6 +134,7 @@ venv.bak/
 .vault-password.txt
 .facts/
 
+.batch/
 *.inventory
 
 # mypy
