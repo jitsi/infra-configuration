@@ -39,6 +39,13 @@
     # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
+    consul_template_env:
+      JVB_USERNAME: "{{ jvb_auth_user }}"
+      JVB_PASSWORD: "{{ jvb_auth_password }}"
+      JVB_IQ_HANDLER_MODE: "{{ jvb_iq_handler_mode }}"
+      JVB_INITIAL_DRAIN_MODE: "{{ jvb_initial_drain_mode|to_json }}"
+      JVB_MUC_NICKNAME: "{{ ansible_hostname }}"
+
     consul_template_template_files:
       - src: roles/jitsi-videobridge/files/shards.json.template
       - src: roles/jitsi-videobridge/files/xmpp.conf.template
