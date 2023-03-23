@@ -136,6 +136,19 @@
         state: absent
         update_cache: false
       tags: boot
+    - name: Collect consul template server IP
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl https://{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net/v1/catalog/service/consul  | jq -r ".[].Address" | shuf | head -1
+      args:
+        executable: /bin/bash
+      register: consul_server_output
+      tags: boot
+    - name: Set consul template server IP
+      ansible.builtin.set_fact:
+        consul_template_consul_server: "{{ consul_server_output.stdout }}"
+      tags: boot
+
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
