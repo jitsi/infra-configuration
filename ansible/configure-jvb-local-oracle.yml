@@ -23,6 +23,13 @@
     shard_role: JVB
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
+    consul_template_env:
+      JVB_USERNAME: "{{ jvb_auth_user }}"
+      JVB_PASSWORD: "{{ jvb_auth_password }}"
+      JVB_IQ_HANDLER_MODE: "{{ jvb_iq_handler_mode }}"
+      JVB_INITIAL_DRAIN_MODE: "{{ jvb_initial_drain_mode|to_json }}"
+      JVB_MUC_NICKNAME: "{{ ansible_hostname }}"
+      JVB_POOL_MODE: "{{ jvb_pool_mode }}"
     consul_template_template_files:
       - src: roles/jitsi-videobridge/files/shards.json.template
       - src: roles/jitsi-videobridge/files/xmpp.conf.template
