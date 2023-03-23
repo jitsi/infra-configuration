@@ -1,6 +1,28 @@
+{{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
+{{ if eq $pool_mode "remote" "global" -}}
+  {{ range $dcidx, $dc := datacenters -}}
+    {{ if or (and (eq $pool_mode "remote") (ne $dcidx 0)) (eq $pool_mode "global") -}}
+      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+      {{range $index, $item := service $service -}}
+        {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+      {{ end -}}
+    {{ end -}}
+  {{ end -}}
+{{ else -}}
+  {{ if eq $pool_mode "local" -}}
+    {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
+    {{ scratch.Set "service" $service -}}
+  {{ else -}}
+    {{ $service := print "shard-" (env "SHARD") ".signal" -}}
+    {{ scratch.Set "service" $service -}}
+  {{ end -}}
+  {{ $service := scratch.Get "service" -}}
+  {{range $index, $item := service $service -}}
+    {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+  {{ end -}}
+{{ end -}}
 videobridge.apis.xmpp-client.configs {
-{{range $dc := datacenters -}}
-{{$service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc}}{{range $index, $item := service $service -}}
+{{ range $sindex, $item := scratch.MapValues "shards" -}}
     # SHARD {{ .ServiceMeta.shard }}
     {{ .ServiceMeta.shard }} {
         HOSTNAME={{ .Address }}
@@ -14,5 +36,5 @@ videobridge.apis.xmpp-client.configs {
         # TODO: don't disable :(
         DISABLE_CERTIFICATE_VERIFICATION=true
     }
-{{ end }}{{ end -}}
+{{ end -}}
 }

@@ -1,19 +1,42 @@
 {
   "shards": [
-{{ range $dc := datacenters -}}
-{{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc}}{{range $index, $item := service $service -}}
-{{ scratch.SetX "domain" .ServiceMeta.domain -}}
-{{ if ne $index 0}},{{ end }}
+{{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
+{{ if eq $pool_mode "remote" "global" -}}
+  {{ range $dcidx, $dc := datacenters -}}
+    {{ if or (and (eq $pool_mode "remote") (ne $dcidx 0)) (eq $pool_mode "global") -}}
+      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+      {{range $index, $item := service $service -}}
+        {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+      {{ end -}}
+    {{ end -}}
+  {{ end -}}
+{{ else -}}
+  {{ if eq $pool_mode "local" -}}
+    {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
+    {{ scratch.Set "service" $service -}}
+  {{ else -}}
+    {{ $service := print "shard-" (env "SHARD") ".signal" -}}
+    {{ scratch.Set "service" $service -}}
+  {{ end -}}
+  {{ $service := scratch.Get "service" -}}
+  {{range $index, $item := service $service -}}
+    {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+  {{ end -}}
+{{ end -}}
+
+{{ range $sindex, $item := scratch.MapValues "shards" -}}
+  {{ scratch.SetX "domain" .ServiceMeta.domain -}}
+  {{ if ne $sindex 0}},{{ end }}
     {
       "shard":"{{.ServiceMeta.shard}}",
-      "domain":"{{.ServiceMeta.domain}}",
+      "domain":"{{ .ServiceMeta.domain }}",
       "address":"{{.Address}}",
       "xmpp_host_private_ip_address":"{{.Address}}",
       "host_port":"{{ with .ServiceMeta.prosody_jvb_client_port}}{{.}}{{ else }}6222{{ end }}"
     }
-{{ end }}{{ end -}}
+{{ end -}}
   ],
-  "drain_mode":"{{ envOrDefault "JVB_INITIAL_DRAIN_MODE" "ready" }}",
+  "drain_mode":{{ envOrDefault "JVB_INITIAL_DRAIN_MODE" "false" }},
   "port": 6222,
   "domain":"auth.jvb.{{ scratch.Get "domain" }}",
   "muc_jids":"jvbbrewery@muc.jvb.{{ scratch.Get "domain" }}",
