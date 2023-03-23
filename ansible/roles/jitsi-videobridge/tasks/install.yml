@@ -260,17 +260,3 @@
     dest: "/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
     mode: 0755
     owner: root
-
-- name: Copy consul-template shards.json template
-  ansible.builtin.copy:
-    src: "shards.json.template"
-    dest: "/etc/jitsi/videobridge/shards.json.template"
-    mode: 0755
-    owner: root
-
-- name: Copy consul-template xmpp.conf template
-  ansible.builtin.copy:
-    src: "xmpp.conf.template"
-    dest: "/etc/jitsi/videobridge/xmpp.conf.template"
-    mode: 0755
-    owner: root
