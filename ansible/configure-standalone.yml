@@ -39,6 +39,19 @@
     # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
+    consul_template_template_files:
+      - src: roles/jitsi-videobridge/files/shards.json.template
+      - src: roles/jitsi-videobridge/files/xmpp.conf.template
+    consul_template_templates:
+      - name: "shards.json.template"
+        dest: "/etc/jitsi/videobridge/shards.json"
+        cmd: "/usr/local/bin/reconfigure-jvb-shards.sh"
+        perms: 0600
+        backup: false
+      - name: "xmpp.conf.template"
+        dest: "/etc/jitsi/videobridge/xmpp.conf"
+        perms: 0600
+        backup: false
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
