@@ -231,7 +231,8 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
-    - { role: "fluentd-jitsi", tags: "fluentd", base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
+    - { role: "fluentd-jitsi", tags: "fluentd",
+        base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
     - { role: "consul-template", tags: "consul-template"}
 
   # install phase of jitsi components
