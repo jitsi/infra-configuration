@@ -1,5 +1,11 @@
-jibri.api.xmpp.environments = [
 {{ range $index, $item := service "signal" -}}
+    {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+{{ end -}}
+{{ range $index, $item := service "all" -}}
+    {{ scratch.MapSetX "shards" .ServiceMeta.domain $item  -}}
+{{ end -}}
+jibri.api.xmpp.environments = [
+{{ range $sindex, $item := scratch.MapValues "shards" -}}
     {
         name = "{{ .ServiceMeta.environment }}"
         xmpp-server-hosts = ["{{ .Address }}:{{ with .ServiceMeta.prosody_client_port}}{{.}}{{ else }}5222{{ end }}"]
