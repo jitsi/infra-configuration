@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -d "/opt/consul-template" ]; then
+    echo "Consul template exists, skipping direct reconfiguration of jibri"
+    exit 0
+fi
+
 LOGPATH="/var/log/jitsi/reconfigure-jibri.log"
 #first rebuild the configuration files
 echo "Reconfiguring jibri, check logs in $LOGPATH"
