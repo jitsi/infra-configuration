@@ -87,16 +87,16 @@
     mode: 0600
   notify: Restart nginx
 
-- name: Configure nginx virtualhost for firezone
-  ansible.builtin.template:
-    mode: 0644
-    src: nginx.conf.j2
-    dest: "/etc/nginx/sites-available/{{ firezone_sitename }}"
-  notify: Restart nginx
-
-- name: Enable firezone site
-  ansible.builtin.file:
-    src: "/etc/nginx/sites-available/{{ firezone_sitename }}"
-    dest: "/etc/nginx/sites-enabled/{{ firezone_sitename }}"
-    state: link
-  notify: Restart nginx
+#- name: Configure nginx virtualhost for firezone
+#  ansible.builtin.template:
+#    mode: 0644
+#    src: nginx.conf.j2
+#    dest: "/etc/nginx/sites-available/{{ firezone_sitename }}"
+#  notify: Restart nginx
+#
+#- name: Enable firezone site
+#  ansible.builtin.file:
+#    src: "/etc/nginx/sites-available/{{ firezone_sitename }}"
+#    dest: "/etc/nginx/sites-enabled/{{ firezone_sitename }}"
+#    state: link
+#  notify: Restart nginx
