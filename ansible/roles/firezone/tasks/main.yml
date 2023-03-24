@@ -46,19 +46,19 @@
     cmd: docker compose up -d
     chdir: /opt/firezone
 
-- name: Wait for docker to come up
-  ansible.builtin.wait_for:
-    timeout: 120
-
-- name: Install default admin user
-  ansible.builtin.command:
-    cmd: docker compose exec firezone bin/create-or-reset-admin
-    chdir: /opt/firezone
-
-- name: Make sure docker comes up on restart
-  ansible.builtin.systemd:
-    enabled: true
-    name: docker
+#- name: Wait for docker to come up
+#  ansible.builtin.wait_for:
+#    timeout: 120
+#
+#- name: Install default admin user
+#  ansible.builtin.command:
+#    cmd: docker compose exec firezone bin/create-or-reset-admin
+#    chdir: /opt/firezone
+#
+#- name: Make sure docker comes up on restart
+#  ansible.builtin.systemd:
+#    enabled: true
+#    name: docker
 
 - name: Assure "/etc/nginx/ssl" dir exists
   ansible.builtin.file:
