@@ -48,7 +48,7 @@
 
 - name: Wait for docker to come up
   ansible.builtin.wait_for:
-    timeout: 60
+    timeout: 120
 
 - name: Install default admin user
   ansible.builtin.command:
