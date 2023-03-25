@@ -5,9 +5,9 @@ upstream firezone {
 
 server {
     listen 443 ssl default;
-    ssl_certificate {{ firezone_ssl_dir }}/{{ dns_name }}.crt;
-    ssl_certificate_key {{ firezone_ssl_dir }}/{{ dns_name }}.key;
-    ssl_dhparam {{ firezone_ssl_dir }}/dhparam.pem;
+    ssl_certificate {{ firezone_nginx_ssl_dir }}/{{ dns_name }}.crt;
+    ssl_certificate_key {{ firezone_nginx_ssl_dir }}/{{ dns_name }}.key;
+    ssl_dhparam {{ firezone_nginx_ssl_dir }}/dhparam.pem;
 
     server_name {{ dns_name }};
     charset utf-8;
