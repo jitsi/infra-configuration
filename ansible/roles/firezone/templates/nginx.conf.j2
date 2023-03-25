@@ -1,0 +1,37 @@
+upstream firezone {
+  keepalive 32;              # keepalive connections
+  server 172.25.0.100:13000  # firezone IP and port
+}
+
+server {
+    listen 443 ssl default;
+    ssl_certificate {{ firezone_container_ssl_dir }}/{{ firezone_sitename }}.crt;
+    ssl_certificate_key {{ firezone_container_ssl_dir }}/{{ firezone_sitename }}.key;
+    ssl_dhparam {{ firezone_container_ssl_dir }}/dhparam.pem;
+
+    server_name {{ firezone_sitename }};
+    charset utf-8;
+
+    location / {
+      proxy_pass         http://firezone;
+      proxy_redirect     default;
+      proxy_http_version 1.1;
+
+      proxy_set_header   Host              $host;
+      proxy_set_header   X-Real-IP         $remote_addr;
+      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header   X-Forwarded-Proto $scheme;
+      proxy_max_temp_file_size 0;
+
+      #this is the maximum upload size
+      client_max_body_size       10m;
+      client_body_buffer_size    128k;
+
+      proxy_connect_timeout      90;
+      proxy_send_timeout         90;
+      proxy_read_timeout         90;
+      proxy_buffering            off;
+      proxy_request_buffering    off; # Required for HTTP CLI commands
+      proxy_set_header Connection ""; # Clear for keepalive
+    }
+}
