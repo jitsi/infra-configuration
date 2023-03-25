@@ -28,6 +28,7 @@
      - { role: "logrotate", tags: "logrotate"}
      - { role: "journald", tags: "journald"}
      - { role: "rsyslog", tags: "rsyslog"}
+     - { role: "nginx", tags: "nginx"}
      - { role: "docker", tags: "docker"}
      - { role: "iptables-firezone", tags: "iptables"}
      - { role: "firezone", tags: "firezone"}

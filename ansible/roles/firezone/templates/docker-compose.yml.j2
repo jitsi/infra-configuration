@@ -10,17 +10,10 @@ x-deploy: &default-deploy
 version: '3.7'
 
 services:
-  nginx:
-    image: nginx/alpine:${NGINX_VERSION:-latest}
-    volumes:
-      - ${FZ_INSTALL_DIR:-.}/nginx:/etc/nginx
-    network_mode: "host"
-    deploy:
-      <<: *default-deploy
-
   firezone:
     image: firezone/firezone:${VERSION:-latest}
     ports:
+      - "13000:13000"
       - ${WIREGUARD_PORT:-51820}:${WIREGUARD_PORT:-51820}/udp
     env_file:
       # This should contain a list of env vars for configuring Firezone.

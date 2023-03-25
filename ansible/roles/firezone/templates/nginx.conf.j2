@@ -1,15 +1,15 @@
 upstream firezone {
-  keepalive 32;              # keepalive connections
-  server 172.25.0.100:13000  # firezone IP and port
+  keepalive 32;       # keepalive connections
+  server 0:13000;     # firezone IP and port
 }
 
 server {
     listen 443 ssl default;
-    ssl_certificate {{ firezone_container_ssl_dir }}/{{ firezone_sitename }}.crt;
-    ssl_certificate_key {{ firezone_container_ssl_dir }}/{{ firezone_sitename }}.key;
-    ssl_dhparam {{ firezone_container_ssl_dir }}/dhparam.pem;
+    ssl_certificate {{ firezone_ssl_dir }}/{{ dns_name }}.crt;
+    ssl_certificate_key {{ firezone_ssl_dir }}/{{ dns_name }}.key;
+    ssl_dhparam {{ firezone_ssl_dir }}/dhparam.pem;
 
-    server_name {{ firezone_sitename }};
+    server_name {{ dns_name }};
     charset utf-8;
 
     location / {

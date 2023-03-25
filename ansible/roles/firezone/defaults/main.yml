@@ -1,9 +1,6 @@
 ---
 firezone_email: "email@example.com"
-firezone_nginx_dir: /opt/firezone/nginx
-firezone_container_nginx_dir: /etc/nginx
 firezone_sitename: "vpn.example.com"
 firezone_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
-firezone_ssl_dir: "{{ firezone_nginx_dir }}/ssl"
-firezone_container_ssl_dir: "{{ firezone_container_nginx_dir }}/ssl"
+firezone_ssl_dir: "/etc/nginx/ssl"
 firezone_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
