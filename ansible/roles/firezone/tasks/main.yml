@@ -13,7 +13,7 @@
 - name: Configure firezone docker compose
   ansible.builtin.template:
     mode: 0644
-    src: docker-compse.yml.j2
+    src: docker-compose.yml.j2
     dest: "/opt/firezone/docker-compose.yml"
 
 - name: Generate firezone environment
