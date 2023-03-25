@@ -71,17 +71,17 @@
     src: nginx.conf.j2
     dest: "{{ firezone_nginx_dir }}/{{ firezone_sitename }}"
 
-- name: Enable firezone site
-  ansible.builtin.file:
-    src: "{{ firezone_nginx_dir }}/{{ firezone_sitename }}"
-    dest: "{{ firezone_nginx_dir }}/{{ firezone_sitename }}"
-    state: link
-
-- name: Bring up nginx, postgres, and firezone in Docker
-  ansible.builtin.command:
-    cmd: docker compose up -d
-    chdir: /opt/firezone
-
+#- name: Enable firezone site
+#  ansible.builtin.file:
+#    src: "{{ firezone_nginx_dir }}/{{ firezone_sitename }}"
+#    dest: "{{ firezone_nginx_dir }}/{{ firezone_sitename }}"
+#    state: link
+#
+#- name: Bring up nginx, postgres, and firezone in Docker
+#  ansible.builtin.command:
+#    cmd: docker compose up -d
+#    chdir: /opt/firezone
+#
 #- name: Wait for docker to come up
 #  ansible.builtin.wait_for:
 #    timeout: 120
