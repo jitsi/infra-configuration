@@ -3,6 +3,12 @@ upstream firezone {
   server 0:13000;     # firezone IP and port
 }
 
+# websocket support
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  '' close;
+}
+
 server {
     listen 443 ssl;
     ssl_certificate {{ firezone_nginx_ssl_dir }}/{{ firezone_sitename }}.crt;
@@ -22,6 +28,10 @@ server {
       proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header   X-Forwarded-Proto $scheme;
       proxy_max_temp_file_size 0;
+
+      # websocket support
+      proxy_set_header   Connection        $connection_upgrade;
+      proxy_set_header   Upgrade           $http_upgrade;
 
       #this is the maximum upload size
       client_max_body_size       10m;
