@@ -80,6 +80,13 @@
     regexp: "^DEFAULT_ADMIN_EMAIL="
     line: "DEFAULT_ADMIN_EMAIL={{ firezone_email }}"
 
+- name: Change default IPs to route to firezone
+  ansible.builtin.lineinfile:
+    dest: /opt/firezone/.env
+    state: present
+    regexp: "^DEFAULT_CLIENT_ALLOWED_IPS="
+    line: "DEFAULT_CLIENT_ALLOWED_IPS={{ firezone_network_ips }}"
+
 - name: Bring up postgres and firezone in Docker
   ansible.builtin.command:
     cmd: docker compose up -d
