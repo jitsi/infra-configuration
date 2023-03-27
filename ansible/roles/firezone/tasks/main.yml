@@ -16,28 +16,28 @@
   ignore_errors: true
   args:
     creates: "{{ firezone_nginx_ssl_dir }}/dhparam.pem"
-  notify: Restart nginx
+#  notify: Restart nginx
 
 - name: Copy SSL certificate
   ansible.builtin.copy:
     mode: 0644
     content: "{{ firezone_ssl_certificate }}"
     dest: "{{ firezone_nginx_ssl_dir }}/{{ firezone_sitename }}.crt"
-  notify: Restart nginx
+#  notify: Restart nginx
 
 - name: Copy SSL private key
   ansible.builtin.copy:
     content: "{{ firezone_ssl_key_name }}"
     dest: "{{ firezone_nginx_ssl_dir }}/{{ firezone_sitename }}.key"
     mode: 0600
-  notify: Restart nginx
+#  notify: Restart nginx
 
 - name: Configure nginx firezone host
   ansible.builtin.template:
     mode: 0644
     src: nginx.conf.j2
     dest: "{{ firezone_nginx_site_dir }}/{{ firezone_sitename }}.conf"
-  notify: Restart nginx
+#  notify: Restart nginx
 
 - name: Install docker compose
   ansible.builtin.apt:
