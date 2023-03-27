@@ -319,6 +319,7 @@ bosh_max_inactivity = {{ prosody_bosh_max_inactivity }};
 s2s_connect_overrides = {
 {% for i in range(prosody_visitors_count|int) %}
         ["conference.v{{ i }}.meet.jitsi"] = { "127.0.0.1", {{ 52690+i }} };
+        ["v{{ i }}.meet.jitsi"] = { "127.0.0.1", {{ 52690+i }} };
 {% endfor %}
 };
 s2s_whitelist = {
@@ -402,7 +403,7 @@ VirtualHost "{{ prosody_domain_name }}"
           "room_metadata";
 {% endif %}
 {% if prosody_visitors_enabled %}
-          "xxl_conference";
+          "visitors";
 {% endif %}
         }
         shard_name = "{{ shard_name }}"
@@ -681,4 +682,11 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 Component "metadata.{{ prosody_domain_name }}" "room_metadata_component"
     muc_component = "conference.{{ prosody_domain_name }}"
     breakout_rooms_component = "breakout.{{ prosody_domain_name }}"
+{% endif %}
+
+{% if prosody_visitors_enabled %}
+Component "visitors.{{ prosody_domain_name }}" "visitors_component"
+    {% if prosody_visitors_auto_allow %}
+    auto_allow_visitor_promotion = true
+    {% endif %}
 {% endif %}

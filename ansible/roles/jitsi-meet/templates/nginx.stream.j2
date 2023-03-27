@@ -6,3 +6,16 @@ server {
     proxy_upload_rate 10k;
     proxy_pass prosodylimited;
 }
+
+{% if jitsi_meet_visitors_enabled %}
+{% for i in range(jitsi_meet_visitors_count|int) %}
+    upstream prosodylimited{{ i }} {
+        server 127.0.0.1:{{ 52800 + i }}
+    }
+    server {
+        listen    {{ 15280 + i }};
+        proxy_upload_rate 10k;
+        proxy_pass prosodylimited{{ i }};
+    }
+{% endfor %}
+{% endif %}

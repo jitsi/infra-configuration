@@ -229,6 +229,7 @@ prosody_version: 0.12.*
 prosody_version_shell: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
 prosody_visitors_enabled: false
 prosody_visitors_count: 0
+prosody_visitors_auto_allow: false
 prosody_vpaas_public_key_repo_url: false
 # Enables SMACKS module in prosody and XMPP stream resume functionality in jitsi-meet
 prosody_xmpp_resume: true
