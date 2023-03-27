@@ -35,7 +35,7 @@
 - name: Overwrite nginx default config to redirect 80 to 443
   ansible.builtin.template:
     mode: 0644
-    src: nginx_default.conf
+    src: "nginx_default.conf"
     dest: "{{ firezone_nginx_site_dir }}/default.conf"
   notify: Restart nginx
 
