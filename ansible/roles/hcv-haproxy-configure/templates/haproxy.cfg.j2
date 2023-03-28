@@ -380,8 +380,7 @@ backend {{ item['shard'] }}
       {{ item['public_ip'] }}
   {%- endif -%}
       :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} 
-  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%} 
-      no-check
+  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif %} no-check
 
 {% endfor %}
 {% if haproxy_release_backends -%}
