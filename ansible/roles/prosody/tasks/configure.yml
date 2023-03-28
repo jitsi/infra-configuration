@@ -267,7 +267,7 @@
 # setup visitors prosody
 - name: Create the prosody visitor directory
   ansible.builtin.file:
-    mode: 0644
+    mode: 0755
     path: "/etc/prosody-v{{ item }}"
     state: directory
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
