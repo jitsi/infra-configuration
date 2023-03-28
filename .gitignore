@@ -136,6 +136,7 @@ venv.bak/
 
 .batch/
 *.inventory
+.batch
 
 # mypy
 .mypy_cache/
