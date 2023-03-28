@@ -162,6 +162,7 @@ jicofo {
                 hostname = 127.0.0.1
                 port = {{ 52220+i }}
                 domain = auth.meet.jitsi
+                xmpp-domain = v{{ i }}.meet.jitsi
                 password = {{ jicofo_auth_password }}
                 disable-certificate-verification = true
             }
