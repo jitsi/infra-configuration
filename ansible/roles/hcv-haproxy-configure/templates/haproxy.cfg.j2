@@ -350,7 +350,7 @@ backend {{ haproxy_backend_name }}
       :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} 
   {%- if not item['local'] %} backup{% endif -%}
   {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
+  {% if haproxy_agent_check %} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
   {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
