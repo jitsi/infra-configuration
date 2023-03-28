@@ -1,0 +1,34 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  vars_files:
+    - secrets/nomad.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  vars:
+    nomad_node_role: server
+    nomad_telemetry: true
+    nomad_telemetry_prometheus_metrics: true
+    cloud_provider: oracle
+    shard_role: nomad
+  pre_tasks:
+    - name: Set nomad node role to server
+      ansible.builtin.set_fact:
+        nomad_node_role: server
+      tags: setup
+    - name: Update apt-cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+  roles:
+    - { role: "iptables-nomad", tags: "iptables-nomad"}
+    - { role: "nomad", tags: "nomad" }
+  tasks:
+    - name: Start nomad
+      ansible.builtin.service:
+        name: nomad
+        state: started
+        enabled: true

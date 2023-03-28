@@ -3,7 +3,6 @@ global
   log 127.0.0.1  local1 warning
   chroot /var/lib/haproxy
   stats socket {{ haproxy_stats_socket }} mode 660 level admin expose-fd listeners
-  server-state-file /tmp/server_state
 {% if haproxy_sticky_enabled %}
   lua-load /etc/haproxy/lua/http_backend_pick.lua
 {% endif %}
@@ -46,9 +45,6 @@ defaults
   option redispatch
 {% if haproxy_http_log_enabled %}
   option httplog
-{% endif %}
-{% if not haproxy_sticky_enabled %}
-  load-server-state-from-file global
 {% endif %}
 
   maxconn 2000000
@@ -347,10 +343,10 @@ backend {{ haproxy_backend_name }}
   {%- else -%}
       {{ item['public_ip'] }}
   {%- endif -%}
-      :{{ haproxy_backend_port }} id {{ item['id'] }} 
+      :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} 
   {%- if not item['local'] %} backup{% endif -%}
-  {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
+  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
+  {% if haproxy_agent_check %} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
   {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
@@ -379,9 +375,8 @@ backend {{ item['shard'] }}
   {%- else -%}
       {{ item['public_ip'] }}
   {%- endif -%}
-      :{{ haproxy_backend_port }} 
-  {%- if haproxy_backend_port==443 %} ssl verify none {% endif -%}
-      no-check
+      :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} 
+  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif %} no-check
 
 {% endfor %}
 {% if haproxy_release_backends -%}
@@ -431,7 +426,7 @@ backend release-{{ release }}
     :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} 
   {%- if not item['local'] %} backup{% endif -%}
   {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
-  {%- if haproxy_agent_check -%} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
+  {%- if haproxy_agent_check %} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
     {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
   {%- endif %}
