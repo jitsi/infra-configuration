@@ -1,4 +1,11 @@
 ---
+- name: Ensure signal-sidecar status file owner
+  ansible.builtin.file:
+    owner: signal-sidecar
+    mode: 0644
+    dest: "/etc/jitsi/shard-status"
+    state: file
+
 - name: Enable signal-sidecar census poll
   ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
