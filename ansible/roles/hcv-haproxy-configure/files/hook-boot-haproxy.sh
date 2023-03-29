@@ -25,12 +25,6 @@ DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 [ -z "$SHARD_ROLE" ] && SHARD_ROLE="haproxy"
 
 PLAYBOOK="configure-haproxy-local.yml"
-BARON_STICKY_ENABLED="false"
-
-if [ "$SHARD_ROLE" == "baron-haproxy" ]; then
-    PLAYBOOK="configure-baron-haproxy-local.yml"
-    BARON_STICKY_ENABLED="true"
-fi
 
 #do all the heavy lifting
 ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
@@ -41,5 +35,5 @@ ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
 -C "$GIT_BRANCH" \
 --tags "$DEPLOY_TAGS" \
 --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT prosody_domain_name=$DOMAIN" \
--e "{haproxy_sticky_enabled: $BARON_STICKY_ENABLED, haproxy_baron_enabled: $BARON_STICKY_ENABLED, haproxy_boot_flag: true}" \
+-e "{haproxy_boot_flag: true}" \
 ansible/$PLAYBOOK

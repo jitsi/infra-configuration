@@ -73,7 +73,6 @@ haproxy_stats_cron_user: ubuntu
 haproxy_stats_socket: '/run/haproxy/admin.sock'
 haproxy_stick_entry_include_host: true
 haproxy_stick_table_not_web: false
-haproxy_sticky_enabled: false
 haproxy_systemd_path: '/lib/systemd/system/haproxy.service'
 # roundrobin all backup servers by default
 haproxy_use_allbackups: true
