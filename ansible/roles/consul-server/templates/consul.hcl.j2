@@ -5,6 +5,7 @@ retry_join = {{ consul_retry_join_lan }}
 retry_join_wan = {{ consul_retry_join_wan }}
 server = true
 bootstrap_expect = 3
+advertise_addr = "{{ ansible_default_ipv4.address }}"
 addresses {
     http = "0.0.0.0"
 }
