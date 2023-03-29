@@ -3,9 +3,7 @@ global
   log 127.0.0.1  local1 warning
   chroot /var/lib/haproxy
   stats socket {{ haproxy_stats_socket }} mode 660 level admin expose-fd listeners
-{% if haproxy_sticky_enabled %}
   lua-load /etc/haproxy/lua/http_backend_pick.lua
-{% endif %}
   stats timeout 30s
   user haproxy
   group haproxy
@@ -62,7 +60,6 @@ defaults
   errorfile 503 /etc/haproxy/errors/503.http
   errorfile 504 /etc/haproxy/errors/504.http
 
-{% if not haproxy_sticky_enabled %}
 peers mypeers
 {% if haproxy_enable_vpc_peering|bool() %}
 {% for item in haproxy_facts.peers %}
@@ -72,7 +69,6 @@ peers mypeers
 {% for item in haproxy_facts.peers %}
   peer {{ item['peername'] }} {{ item['peer_ip'] }}:{{ haproxy_peer_port }}
 {% endfor %}
-{% endif %}
 {% endif %}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
@@ -232,17 +228,8 @@ frontend www-http
    use_backend jvb-colibri-proxy if jvb_path
 {% endif %}
 {% if haproxy_web_backend_enabled %}
-{% if haproxy_sticky_enabled %}
-   http-request lua.http_backend_action
-   use_backend %[var(req.nodeId)] if not_web
-{% else %}
    use_backend {{ haproxy_backend_name }} if not_web
-{% endif %}
    default_backend web
-{% else %}
-{% if haproxy_sticky_enabled %}
-   http-request lua.http_backend_action
-   use_backend %[var(req.nodeId)]
 {% else %}
 {% for item in haproxy_facts.backends %}
    use_backend {{ item['shard'] }} if { path_beg /{{ item['shard'] }}/ }
@@ -255,7 +242,6 @@ frontend www-http
    default_backend {{ haproxy_backend_name }}
 {% endif %}
 
-{% endif -%}
 {% endif -%}
 {% endif -%}
 
@@ -287,13 +273,8 @@ backend web
 {% endif %}
 
 backend local_health
-{% if haproxy_sticky_enabled %}
-   server local 127.0.0.1:50057
-{% else %}
    server local 127.0.0.1:8080
-{% endif %}
 
-{% if not haproxy_sticky_enabled %}
 backend {{ haproxy_backend_name }}
 {% if haproxy_corp_headers_enabled %}
   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
@@ -353,7 +334,6 @@ backend {{ haproxy_backend_name }}
   
 {% endfor %}
 {% endif %}
-{% endif %} {# ends if not haproxy_sticky_enabled #}
 
 {% for item in haproxy_facts.backends %}
 backend {{ item['shard'] }}
