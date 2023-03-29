@@ -1,6 +1,7 @@
 datacenter = "{{ consul_datacenter }}"
 data_dir = "/opt/consul"
-bind_addr = "{{ ansible_default_ipv4.address }}"
+bind_addr = "0.0.0.0"
+client_addr = "0.0.0.0"
 advertise_addr = "{{ ansible_default_ipv4.address }}"
 {% if consul_encryption_key %}
 encrypt = "{{ consul_encryption_key }}"
