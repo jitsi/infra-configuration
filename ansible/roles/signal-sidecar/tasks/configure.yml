@@ -34,6 +34,27 @@
     line: "PROSODY_DUMP={{ signal_sidecar_prosody_dump_script }}"
   notify: Restart signal-sidecar
 
+- name: Enable signal-sidecar consul shard status
+  ansible.builtin.lineinfile:
+    dest: /etc/jitsi/signal-sidecar/config
+    regexp: '^CONSUL_STATUS='
+    line: "CONSUL_STATUS={{ signal_sidecar_consul_status | to_json }}"
+  notify: Restart signal-sidecar
+
+- name: Set signal-sidecar consul shard status key
+  ansible.builtin.lineinfile:
+    dest: /etc/jitsi/signal-sidecar/config
+    regexp: '^CONSUL_STATUS_KEY='
+    line: "CONSUL_STATUS_KEY={{ signal_sidecar_consul_status_key }}"
+  notify: Restart signal-sidecar
+
+- name: Enable signal-sidecar consul signal reports publish
+  ansible.builtin.lineinfile:
+    dest: /etc/jitsi/signal-sidecar/config
+    regexp: '^CONSUL_REPORT_KEY='
+    line: "CONSUL_REPORT_KEY={{ signal_sidecar_consul_report_key }}"
+  notify: Restart signal-sidecar
+
 - name: Start signal-sidecar service
   ansible.builtin.service:
     name: signal-sidecar
