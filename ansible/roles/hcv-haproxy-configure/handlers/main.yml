@@ -29,5 +29,4 @@
   args:
     executable: /bin/bash
   when:
-    - not haproxy_sticky_enabled
     - haproxy_set_shard_states_on_reconfigure
