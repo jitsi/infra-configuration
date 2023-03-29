@@ -6,6 +6,13 @@
   notify:
     - Restart signal-sidecar
 
+- name: Install signal-sidecar status file
+  ansible.builtin.copy:
+    owner: signal-sidecar
+    mode: 0644
+    dest: "/etc/jitsi/shard-status"
+    content: "drain"
+
 - name: Create application log directory
   ansible.builtin.file:
     mode: 0775

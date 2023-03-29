@@ -1,6 +1,4 @@
 #!/bin/bash
-SHARD_DATA_SCRIPT="/usr/local/bin/set-shard-state-consul.sh"
-SIGNAL_REPORT_URL="http://localhost:6000/signal/report"
 STATS_FILE_PATH="/tmp/jicofo-stats.json"
 LAST_STATS_FILE_PATH="/tmp/last-jicofo-stats.json"
 
@@ -30,12 +28,5 @@ if [ -e "$STATS_FILE_PATH" ]; then
     else
         # no previous stats file found, so only copy last stats for use in the next check
         cp $STATS_FILE_PATH $LAST_STATS_FILE_PATH
-    fi
-fi
-
-SIGNAL_REPORT=$(curl $SIGNAL_REPORT_URL)
-if [ $? -eq 0 ]; then
-    if [ -n "$SIGNAL_REPORT" ]; then
-        $SHARD_DATA_SCRIPT "$SIGNAL_REPORT" "signal-report"
     fi
 fi
