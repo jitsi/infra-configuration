@@ -10,7 +10,7 @@ server {
 {% if jitsi_meet_visitors_enabled %}
 {% for i in range(jitsi_meet_visitors_count|int) %}
     upstream prosodylimited{{ i }} {
-        server 127.0.0.1:{{ 52800 + i }}
+        server 127.0.0.1:{{ 52800 + i }};
     }
     server {
         listen    {{ 25280 + i }};
