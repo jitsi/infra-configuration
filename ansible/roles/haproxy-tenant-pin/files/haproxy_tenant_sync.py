@@ -26,7 +26,7 @@ def fetch_map_from_consul(ctx, subpath):
         return []
     try:
         response_json = response.json()
-    except requests.exceptions.JSONDecodeError:
+    except requests.JSONDecodeError:
         if ctx.obj['DEBUG']:
             click.echo(f"## invalid JSON from {pin_url}: {response.text}")
         return None
