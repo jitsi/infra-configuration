@@ -1092,9 +1092,6 @@ def find_alb_from_stack_name(stack_name,region=None, descriptions_and_tags=None)
 
     for alb_name in descriptions_and_tags:
         alb_stack_name = extract_tag(descriptions_and_tags[alb_name]['Tags'],'cf_stack_name')
-        if stack_name.endswith('baron-haproxy'):
-            stack_name=stack_name.replace('baron-haproxy','haproxy')
-
         if alb_stack_name == stack_name:
             return descriptions_and_tags[alb_name]
 
