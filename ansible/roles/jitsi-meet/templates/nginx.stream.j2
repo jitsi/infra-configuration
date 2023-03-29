@@ -13,7 +13,7 @@ server {
         server 127.0.0.1:{{ 52800 + i }}
     }
     server {
-        listen    {{ 15280 + i }};
+        listen    {{ 25280 + i }};
         proxy_upload_rate 10k;
         proxy_pass prosodylimited{{ i }};
     }

@@ -190,6 +190,16 @@ upstream prosodylimited {
     server 127.0.0.1:15280;
     keepalive 2;
 }
+{% if jitsi_meet_visitors_enabled %}
+{% for i in range(jitsi_meet_visitors_count|int) %}
+upstream prosodylimited{{ i }} {
+    zone upstreams 64K;
+    server 127.0.0.1:{{ 25280 + i }};;
+    keepalive 2;
+}
+{% endfor %}
+{% endif %}
+
 
 {% if jitsi_meet_visitors_enabled %}
 {% for i in range(jitsi_meet_visitors_count|int) %}
