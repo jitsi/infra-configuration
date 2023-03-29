@@ -190,6 +190,16 @@ upstream prosodylimited {
     server 127.0.0.1:15280;
     keepalive 2;
 }
+{% if jitsi_meet_visitors_enabled %}
+{% for i in range(jitsi_meet_visitors_count|int) %}
+upstream prosodylimited{{ i }} {
+    zone upstreams 64K;
+    server 127.0.0.1:{{ 25280 + i }};
+    keepalive 2;
+}
+{% endfor %}
+{% endif %}
+
 
 {% if jitsi_meet_visitors_enabled %}
 {% for i in range(jitsi_meet_visitors_count|int) %}
@@ -206,6 +216,15 @@ map $arg_vnode $prosody_node {
 {% if jitsi_meet_visitors_enabled %}
 {% for i in range(jitsi_meet_visitors_count|int) %}
         v{{ i }} v{{ i }};
+{% endfor %}
+{% endif %}
+}
+
+map $arg_vnode $prosody_bosh_node {
+    default prosodylimited;
+{% if jitsi_meet_visitors_enabled %}
+{% for i in range(jitsi_meet_visitors_count|int) %}
+        v{{ i }} prosodylimited{{ i }};
 {% endfor %}
 {% endif %}
 }
@@ -341,7 +360,7 @@ server {
 
     # BOSH
     location = /http-bind {
-        proxy_pass      http://prosodylimited/http-bind?prefix=$prefix&$args;
+        proxy_pass      http://$prosody_bosh_node/http-bind?prefix=$prefix&$args;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Connection "";
         # proxy_set_header Host $http_host;

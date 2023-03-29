@@ -31,6 +31,7 @@ modules_enabled = {
       'bosh';
       's2s_bidi';
       's2s_whitelist';
+      's2soutinjection';
       'certs_s2soutinjection';
 {% if prosody_enable_firewall and prosody_disable_messaging %}
       "firewall";
@@ -40,7 +41,11 @@ modules_enabled = {
 {% endif %}
 };
 
-s2s_whitelist = {};
+s2s_whitelist = {
+    'conference.{{ prosody_domain_name }}', -- needed for visitors to send messages to main room
+    'visitors.{{ prosody_domain_name }}'; -- needed for sending promotion request to visitors.{{ prosody_domain_name }} component
+    '{{ prosody_domain_name }}'; -- unavailable presences back to main room
+};
 
 {% if prosody_enable_mod_turncredentials %}
 {% if prosody_mod_turncredentials_secret %}
@@ -117,7 +122,9 @@ trusted_proxies = {
 
 -- this is added to make certs_s2soutinjection work
 s2s_connect_overrides = {
+    ["conference.{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 }; -- needed for visitors to send messages to main room
     ["{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 };
+    ["visitors.{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 };
 }
 
 plugin_paths = { '/usr/share/jitsi-meet/prosody-plugins/' }
@@ -176,6 +183,7 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
         "rate_limit";
 {% endif %}
         'fmuc';
+        's2soutinjection';
     }
     muc_room_default_presence_broadcast = {
         visitor = false;

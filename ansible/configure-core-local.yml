@@ -11,8 +11,6 @@
     core_public_ip: "{{ oracle_public_ip | default('') if core_cloud_provider == 'oracle' else ansible_ec2_public_ipv4 | default('') }}"
     core_private_ip: "{{ ansible_default_ipv4.address }}"
     consul_cloud_provider: "{{ core_cloud_provider }}"
-    visitors_enabled: "false"
-    visitors_count: "0"
     procstat_visitor_units_str: "{% for i in range(visitors_count|int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
     procstat_units: "{{ ['prosody','prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled=='true'
       else ['prosody','prosody-jvb', 'prosody-egress'] }}"
@@ -182,15 +180,15 @@
           cloud: "{{ cloud_provider }}"
           cloud_provider: "{{ core_cloud_provider }}"
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true,
-        prosody_visitors_enabled: "{{ visitors_enabled=='true' }}", prosody_visitors_count: "{{ visitors_count }}" }
+        prosody_visitors_enabled: "{{ visitors_enabled }}", prosody_visitors_count: "{{ visitors_count }}" }
     - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb" }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true }
     # enable java 11 if set for the environment
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jicofo_java_11 }}", java_install_flag: false }
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true,
-        jicofo_visitors_enabled: "{{ visitors_enabled=='true' }}", jicofo_visitors_count: "{{ visitors_count }}" }
+        jicofo_visitors_enabled: "{{ visitors_enabled }}", jicofo_visitors_count: "{{ visitors_count }}" }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true,
-        jitsi_meet_visitors_enabled: "{{ visitors_enabled=='true' }}", jitsi_meet_visitors_count: "{{ visitors_count }}" }
+        jitsi_meet_visitors_enabled: "{{ visitors_enabled }}", jitsi_meet_visitors_count: "{{ visitors_count }}" }
     - { role: "jibri-auth", tags: "jibri-auth"}
     - { role: "jigasi-auth", tags: "jigasi-auth"}
     - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}

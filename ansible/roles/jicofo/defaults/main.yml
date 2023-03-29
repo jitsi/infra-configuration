@@ -63,5 +63,8 @@ jicofo_strip_simulcast: true
 jicofo_use_presence_for_jvb_health: false
 jicofo_visitors_enabled: false
 jicofo_visitors_count: 0
+jicofo_visitors_max_participants: false
 jicofo_xmpp_logging_enabled: false
 shard_number: "65535"
+visitors_enabled: false
+visitors_count: 0
