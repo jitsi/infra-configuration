@@ -234,3 +234,5 @@ prosody_vpaas_public_key_repo_url: false
 # Enables SMACKS module in prosody and XMPP stream resume functionality in jitsi-meet
 prosody_xmpp_resume: true
 shard_name: "{{ hcv_environment }}"
+visitors_enabled: false
+visitors_count: 0

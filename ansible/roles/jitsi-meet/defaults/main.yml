@@ -286,3 +286,5 @@ legal_urls:
   helpCentre: 'https://web-cdn.jitsi.net/faq/meet-faq.html'
   privacy: 'https://jitsi.org/meet/privacy'
   terms: 'https://jitsi.org/meet/terms'
+visitors_enabled: false
+visitors_count: 0
