@@ -61,7 +61,7 @@ jvb_enable_ufrag_prefix: false
 jvb_enable_websockets: true
 jvb_enable_websockets_ssl: "{{ false if jvb_nginx_ssl_enabled else true | bool }}"
 jvb_enable_yourkit: false
-jvb_graceful_shutdown_max_duration: "6 hours"
+jvb_graceful_shutdown_max_duration: "1 hour"
 jvb_graceful_shutdown_min_participants: 0
 jvb_health_check_cron:
   hour: "*"
