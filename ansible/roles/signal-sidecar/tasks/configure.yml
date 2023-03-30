@@ -48,6 +48,13 @@
     line: "CONSUL_STATUS={{ signal_sidecar_consul_status | to_json }}"
   notify: Restart signal-sidecar
 
+- name: Enable signal-sidecar consul report publishing
+  ansible.builtin.lineinfile:
+    dest: /etc/jitsi/signal-sidecar/config
+    regexp: '^CONSUL_REPORTS='
+    line: "CONSUL_REPORTS={{ signal_sidecar_consul_reports | to_json }}"
+  notify: Restart signal-sidecar
+
 - name: Set signal-sidecar consul shard status key
   ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
