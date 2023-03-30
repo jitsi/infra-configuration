@@ -86,7 +86,6 @@ var config = {
     // New P2P options
     p2p: {
         enabled: {% if jitsi_meet_enable_p2p %}true{% else %}false{% endif %},
-        enableUnifiedOnChrome: {% if jitsi_meet_enable_unified_plan_chromium_p2p %}true{% else %}false{% endif %},
 {% if jitsi_meet_p2p_preferred_codec %}
         preferredCodec: '{{ jitsi_meet_p2p_preferred_codec }}',
 {% endif %}
@@ -136,15 +135,6 @@ var config = {
     enableSaveLogs: {% if jitsi_meet_enable_save_logs %}true{% else %}false{% endif %},
     disableRtx: false, // Enables RTX everywhere
     channelLastN: {{ jitsi_meet_channel_last_n }}, // The default value of the channel attribute last-n.
-{% if jitsi_meet_last_n_limits %}
-    lastNLimits: {
-        5: 20,
-        30: 15,
-        50: 10,
-        70: 5,
-        90: 2
-    },
-{% endif %}
     flags: {
         sourceNameSignaling: {% if jitsi_meet_enable_source_name_signaling %}true{% else %}false{% endif %},
         sendMultipleVideoStreams: {% if jitsi_meet_enable_send_multiple_streams %}true{% else %}false{% endif %},
@@ -341,12 +331,6 @@ var config = {
 {% if jitsi_meet_disable_record_audio_notification %}
     disableRecordAudioNotification: true,
 {% endif %}
-{% if jitsi_meet_enable_layer_suspension %}
-    enableLayerSuspension: true,
-{% else %}
-    enableLayerSuspension: false,
-{% endif %}
-        enableUnifiedOnChrome: {% if jitsi_meet_enable_unified_plan_chromium %}true{% else %}false{% endif %},
 {% if jitsi_meet_enable_forced_client_reload %}
     enableForcedReload: true,
 {% else %}
@@ -452,11 +436,6 @@ whiteboard: {
     e2eping: {
         enabled: {{ jitsi_meet_e2eping_enabled | to_json }}
     },
-    abTesting: {
-{% if jitsi_meet_enable_p2p_suspend_video_test %}
-        enableSuspendVideoTest: true
-{% endif %}
-    },
 {% if legal_urls %}
     legalUrls: {{legal_urls | to_json}},
 {% endif %}
@@ -486,17 +465,11 @@ whiteboard: {
         }
     },
     testing: {
-    {% if jitsi_meet_callstats_threshold %}
-        callStatsThreshold: {{ jitsi_meet_callstats_threshold }}, // % of users that will have callStats enabled.
-    {% endif %}
     {% if jitsi_meet_mobile_xmpp_ws_threshold %}
         mobileXmppWsThreshold: {{ jitsi_meet_mobile_xmpp_ws_threshold }},
     {% endif %}
     {% if jitsi_meet_no_auto_local_audio %}
         noAutoLocalAudio: true,
-    {% endif %}
-    {% if jitsi_meet_enable_ss_resolution_constraints %}
-        setScreenSharingResolutionConstraints: true,
     {% endif %}
     }
 };
