@@ -129,6 +129,9 @@ jicofo {
     {% if jicofo_visitors_max_participants %}
     max-participants = {{ jicofo_visitors_max_participants }}
     {% endif %}
+    {% if jicofo_visitors_max_visitors_per_node %}
+    max-visitors-per-node = {{ jicofo_visitors_max_visitors_per_node }}
+    {% endif %}
   }
   {% endif %}
 

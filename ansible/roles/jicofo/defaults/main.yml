@@ -64,6 +64,7 @@ jicofo_use_presence_for_jvb_health: false
 jicofo_visitors_enabled: false
 jicofo_visitors_count: 0
 jicofo_visitors_max_participants: false
+jicofo_visitors_max_visitors_per_node: false
 jicofo_xmpp_logging_enabled: false
 shard_number: "65535"
 visitors_enabled: false

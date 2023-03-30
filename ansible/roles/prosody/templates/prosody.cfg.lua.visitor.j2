@@ -184,6 +184,9 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% endif %}
         'fmuc';
         's2soutinjection';
+{% if prosody_visitors_muc_max_occupants %}
+        'muc_max_occupants';
+{% endif %}
     }
     muc_room_default_presence_broadcast = {
         visitor = false;
@@ -192,6 +195,12 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
     };
     muc_room_locking = false
     muc_room_default_public_jids = true
+{% if prosody_visitors_muc_max_occupants %}
+    muc_max_occupants = {{ prosody_visitors_muc_max_occupants }}
+    muc_access_whitelist = {
+        "{{ prosody_domain_name }}";
+    }
+{% endif %}
 {% if prosody_enable_rate_limit %}
     -- Max allowed join/login rate in events per second.
 	rate_limit_login_rate = {{ prosody_rate_limit_login_rate }};
