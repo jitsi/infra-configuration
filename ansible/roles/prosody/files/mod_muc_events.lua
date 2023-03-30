@@ -789,7 +789,7 @@ local function handleSpeakerStats(event)
         return;
     end
     local requestBody = { sessionId = event.roomSpeakerStats.sessionId; isBreakoutRoom = event.roomSpeakerStats.isBreakout or false; breakoutRoomId = event.roomSpeakerStats.breakoutRoomId; speakerStats = {}; };
-    if isBreakoutRoom then
+    if requestBody.isBreakoutRoom then
         module:log("debug", "Speaker stats is not handled for breakout rooms for now.");
         return;
     end
