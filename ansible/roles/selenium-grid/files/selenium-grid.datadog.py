@@ -27,7 +27,7 @@ class SeleniumGridCheck(AgentCheck):
             session_count = len(sessions['value'])
 
             end_time = time.time()
-        except requests.exceptions.Timeout as e:
+        except requests.Timeout as e:
             # If there's a timeout
 #            self.timeout_event(url, timeout, aggregation_key)
             return
