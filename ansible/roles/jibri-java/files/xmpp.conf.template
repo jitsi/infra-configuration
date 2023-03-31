@@ -1,8 +1,8 @@
 {{ range $index, $item := service "signal" -}}
     {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
 {{ end -}}
-{{ range $index, $item := service "all" -}}
-    {{ scratch.MapSetX "shards" .ServiceMeta.domain $item  -}}
+{{ range $index, $item := service "haproxy" -}}
+    {{ scratch.MapSetX "peers" .ServiceMeta.domain $item  -}}
 {{ end -}}
 jibri.api.xmpp.environments = [
 {{ range $sindex, $item := scratch.MapValues "shards" -}}

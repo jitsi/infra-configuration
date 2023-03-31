@@ -37,8 +37,8 @@
     systemctl unmask apt-daily.timer
     systemctl unmask apt-daily-upgrade.service
     systemctl unmask apt-daily-upgrade.timer
-    service apt-daily.timer start
-    service apt-daily-upgrade.timer start
+    systemctl start apt-daily.timer
+    systemctl start apt-daily-upgrade.timer
     echo "service apt-daily start" | at now + 1 hour
     echo "service apt-daily-upgrade start" | at now + 2 hours
     echo "service unattended-upgrades start" | at now + 3 hours
