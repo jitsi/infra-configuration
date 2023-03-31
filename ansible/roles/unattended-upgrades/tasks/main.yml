@@ -1,7 +1,7 @@
 ---
-- name: Install unattended-upgrades
+- name: Install unattended-upgrades and at
   ansible.builtin.apt:
-    name: unattended-upgrades
+    name: ['unattended-upgrades', 'at']
     state: present
 
 - name: Create unattended-upgrades configuration (10periodic)
