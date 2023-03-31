@@ -56,7 +56,7 @@ mvn test \
  -Dchrome.enable.headless=true \
  -Dwdm.gitHubTokenName={{ torture_github_user }} \
  -Dwdm.gitHubTokenSecret={{ torture_github_token }} \
- -Djitsi-meet.instance.url="https://{{ hcv_domain }}" \
+ -Djitsi-meet.instance.url="https://{{ hcv_domain }}{{ test_subdir }}" \
  -DhostResolverRules="MAP {{ hcv_domain }} {{ shard_ip_address }}" \
  -DallowInsecureCerts=true \
  -Dorg.jitsi.iframe.page_path="{{ jitsi_torture_iframe_page }}" \

@@ -7,6 +7,7 @@
     - config/vars.yml
   vars:
     ec2_object_name: "torture.lonely.jitsi.net"
+    test_subdir: ""
   tasks:
     - name: Debug output
       ansible.builtin.debug:
