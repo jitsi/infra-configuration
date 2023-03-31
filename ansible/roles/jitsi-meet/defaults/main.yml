@@ -68,7 +68,6 @@ jitsi_meet_callstats_app_id: "{{ callstats_app_id }}"
 jitsi_meet_callstats_app_secret: "{{ callstats_app_secret }}"
 jitsi_meet_callstats_customscript_url: false
 jitsi_meet_callstats_disable_logs: false
-jitsi_meet_callstats_threshold: false
 jitsi_meet_cdn_base_url: "https://web-cdn.jitsi.net"
 jitsi_meet_cdn_deployment_enabled: false
 jitsi_meet_cdn_distribution_id: "E1CYRHC3DEPH0L"
@@ -132,15 +131,12 @@ jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
 jitsi_meet_enable_gzip: false
 jitsi_meet_enable_insecure_room_name_warning: false
-jitsi_meet_enable_layer_suspension: false
 jitsi_meet_enable_livestreaming: false
 jitsi_meet_enable_local_video_flip: true
 jitsi_meet_enable_lock_room_for_all: false
 jitsi_meet_enable_lock_room_ten_digits: false
 jitsi_meet_enable_multi_domain: false
 jitsi_meet_enable_p2p: false
-# A/B test ratio: controls whether to suspend video in p2p when connectivity issue are detected
-jitsi_meet_enable_p2p_suspend_video_test: false
 jitsi_meet_enable_p2p_turn: false
 jitsi_meet_enable_prejoin_page: false
 jitsi_meet_enable_room_api: false
@@ -149,14 +145,11 @@ jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
 jitsi_meet_enable_simulcast: true
 jitsi_meet_enable_source_name_signaling: false
-jitsi_meet_enable_ss_resolution_constraints: true
 jitsi_meet_enable_ssrc_rewriting: false
 jitsi_meet_disable_stage_filmstrip: false
 jitsi_meet_enable_stereo: false
 jitsi_meet_enable_transcription: false
 jitsi_meet_enable_turn_udp_jvb: false
-jitsi_meet_enable_unified_plan_chromium: true
-jitsi_meet_enable_unified_plan_chromium_p2p: true
 jitsi_meet_enable_unsafe_room_warning: false
 jitsi_meet_enable_user_roles_based_on_token: false
 jitsi_meet_enable_welcome_page: true
@@ -186,7 +179,6 @@ jitsi_meet_hepop_analytics_urls_by_environment_type:
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
 jitsi_meet_jvb_disabled_codec: "H264"
-jitsi_meet_last_n_limits: false
 jitsi_meet_load_test_enabled: false
 jitsi_meet_load_test_repo: https://github.com/jitsi/jitsi-meet-load-test.git
 jitsi_meet_microsoft_api_app_client_id: false
