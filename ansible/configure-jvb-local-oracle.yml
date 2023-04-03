@@ -23,6 +23,9 @@
     shard_role: JVB
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
+    consul_template_consul_ssl_enabled: true
+    consul_template_consul_server: "{{ hcv_environment }}-{{ cloud_region }}-consul.{{ dns_zone_name }}"
+    consul_template_consul_port: "443"
     consul_template_env:
       JVB_USERNAME: "{{ jvb_auth_user }}"
       JVB_PASSWORD: "{{ jvb_auth_password }}"
@@ -145,18 +148,6 @@
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
-      tags: boot
-    - name: Collect consul template server IP
-      ansible.builtin.shell: |
-        set -o pipefail
-        curl https://{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net/v1/catalog/service/consul  | jq -r ".[].Address" | shuf | head -1
-      args:
-        executable: /bin/bash
-      register: consul_server_output
-      tags: boot
-    - name: Set consul template server IP
-      ansible.builtin.set_fact:
-        consul_template_consul_server: "{{ consul_server_output.stdout }}"
       tags: boot
 
   post_tasks:
