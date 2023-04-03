@@ -42,6 +42,8 @@
         backup: false
       - name: "xmpp.conf.template"
         dest: "/etc/jitsi/videobridge/xmpp.conf"
+        user: "root"
+        group: "jitsi"
         perms: 0640
         backup: false
 
