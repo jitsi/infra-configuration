@@ -63,7 +63,7 @@ peers mypeers
 {% raw %}{{ range $dc := datacenters }}
   {{ $dc_haproxies := print "haproxy@" $dc }}
   {{ range $haproxy $dc_haproxies }}
-    peer {{ $haproxy.Node }} {{ $haproxy.Address }}:{{ envOrDefault "HAPROXY_PEER_PORT" "1024" }}
+    peer {{ $haproxy.Node }} {{ $haproxy.Address }}:{{ $haproxy.Port }}
   {{ end }}
 {{ end }}{% endraw %}
 
@@ -187,7 +187,7 @@ frontend www-http
    http-request add-header X-Proxy-Region {{ haproxy_region }}
 {% if haproxy_release_backends %}
    # find the default live release (GA)
-   http-request set-var(req.live_backend) str(live),map({% raw %}{{ env "HAPROXY_RELEASE_LIVE_MAP_PATH" }}, {{ keyOrDefault "releases/{{ env "ENVIRONMENT" }}/live" "{{ env "HAPROXY_LIVE_RELEASE" }}"){% endraw %}
+   http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
    acl url_release urlp_reg(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
@@ -309,16 +309,16 @@ backend {{ haproxy_backend_name }}
 {% endif %}
 
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
-
-{% raw %}{{ range $dc := datacenters }}
+{% raw %}
+{{ range $dc := datacenters }}
   {{ $dc_shards := print "shard@" $dc }}
   {{ range $shard := $dc_shards }}
-    {{ scratch.MapSet "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}
-    {{ scratch.MapSet "shards" $shard.Node $shard.Value }}
+    {{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}
+    {{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard.Value }}
     {{ if $dc eq (env "CONSUL_LOCAL_DATACENTER") }}
-      {{ scratch.MapSet "shard_local" $shard.Node "True" }}
-    {{ else}}
-      {{ scratch.MapSet "shard_local" $shard.Node "False" }}
+      {{ scratch.MapSet "shard_local" $shard.ServiceMeta.shard "True" }}
+    {{ else }}
+      {{ scratch.MapSet "shard_local" $shard.ServiceMeta.shard "False" }}
     {{ end }}
 backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
@@ -335,9 +335,10 @@ backend {{ $shard.ServiceMeta.shard }}
 {%- endif %}
   option forwardfor
   server shard-{% raw %}{{ $shard.Name }} {{ $shard.Address }}:{{ $shard.Port }}{{ if $shard.Port eq 443 }} ssl verify none{{ end }}{% endraw %} no check
-
-{% endfor %}
-{% raw %}{{ range $release := scratch.MapValues "releases" }}
+{% raw %}
+  {{ end }}
+{{ end }}
+{{ range $release := scratch.MapValues "releases" }}
 backend release-{{ $release.Key }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
@@ -374,30 +375,22 @@ backend release-{{ $release.Key }}
   stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
 
 {% raw %}
-{{ $hbp := (envOrDefault "HAPROXY_BACKEND_PORT" "443") }}
-{{ range $shard := scratch.MapValues "local_shards" }}
-{{ if $shard.ServiceMeta.release_number eq $release.Key }}
-  server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $hbp }} id{{ if $hbp eq "443" }} ssl verify none{{ end }}
+{{ range $shard := scratch.MapValues "shards" }}
+  {{ if $shard.ServiceMeta.release_number eq $release.Key }}
+  server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }}{{ if not $shard.MapSet "shard_local" $shard.ServiceMeta.shard }} backup {{ end }}{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }}
+### FORGOT HAPROXY AGENT CHECK
+  {{ end }}
+{{ end }}
+{{ range $shard := scratch.MapValues "shards" }}
+  {{ if $shard.ServiceMeta.release_number ne $release.Key }}
+  server {{ $release.Key }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }} backup{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }}
+### FORGOT HAPROXY AGENT CHECK
+  {{ end }}
+{{ end }}
 
-#### GET THE ID
-#### {{ scratch.MapSet "shard_local" $shard.Node "True" }}
-
-
-{% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
-{% if item['release_number'] == release %}
-    {{ item['private_ip'] }}
-  {%- else -%}
-    {{ item['public_ip'] }}
-  {%- endif -%}
-    :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} 
-  {%- if not item['local'] %} backup{% endif -%}
-  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
   {%- if haproxy_agent_check %} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
   {%- elif haproxy_check_port -%}
     {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
-  {%- endif %}
-{%- endif %}  
-{% endfor %}
 
 
 
