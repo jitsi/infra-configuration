@@ -31,6 +31,10 @@ videobridge {
     {%- if jvb_last_n_limits -%}
     jvb-last-n = 25
     {%- endif -%}
+
+    {%- if jvb_assumed_bandwidth_limit -%}
+    assumed-bandwidth-limit = {{ jvb_assumed_bandwidth_limit }}
+    {%- endif -%}
   }
   cryptex {
     {% if jvb_enable_cryptex_endpoint %}
