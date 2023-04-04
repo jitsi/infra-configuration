@@ -24,17 +24,17 @@ videobridge {
   }
 
   cc {
-    {%- if jvb_disable_bwe -%}
+    {% if jvb_disable_bwe %}
     trust-bwe = false
-    {%- endif -%}
+    {% endif %}
 
-    {%- if jvb_last_n_limits -%}
+    {% if jvb_last_n_limits %}
     jvb-last-n = 25
-    {%- endif -%}
+    {% endif %}
 
-    {%- if jvb_assumed_bandwidth_limit -%}
+    {% if jvb_assumed_bandwidth_limit %}
     assumed-bandwidth-limit = {{ jvb_assumed_bandwidth_limit }}
-    {%- endif -%}
+    {% endif %}
   }
   cryptex {
     {% if jvb_enable_cryptex_endpoint %}
