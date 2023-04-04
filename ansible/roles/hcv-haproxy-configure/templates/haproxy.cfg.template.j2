@@ -316,9 +316,9 @@ backend {{ haproxy_backend_name }}
     {{ scratch.MapSet "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}
     {{ scratch.MapSet "shards" $shard.Node $shard.Value }}
     {{ if $dc eq (env "CONSUL_LOCAL_DATACENTER") }}
-      {{ scratch.Set $shard.Node "local" }}
+      {{ scratch.MapSet "shard_local" $shard.Node "True" }}
     {{ else}}
-      {{ scratch.Set $shard.Node "remote" }}
+      {{ scratch.MapSet "shard_local" $shard.Node "False" }}
     {{ end }}
 backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
@@ -380,6 +380,7 @@ backend release-{{ $release.Key }}
   server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $hbp }} id{{ if $hbp eq "443" }} ssl verify none{{ end }}
 
 #### GET THE ID
+#### {{ scratch.MapSet "shard_local" $shard.Node "True" }}
 
 
 {% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
