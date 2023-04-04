@@ -40,7 +40,7 @@
     chain: INPUT
     ctstate: NEW
     protocol: tcp
-    destination_port: "9998:9999"
+    destination_port: "9996:9999"
     jump: ACCEPT
     action: insert
     comment: Added via ansible post-launch configuration script
