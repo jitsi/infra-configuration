@@ -1,4 +1,32 @@
 ---
+- name: Create loki mount point
+  ansible.builtin.file:
+    path: "{{ nomad_loki_mount_point }}"
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: Create nomad s3fs passwd
+  ansible.builtin.copy:
+    mode: 0600
+    owner: root
+    content: "{{ nomad_s3fs_credentials }}"
+    dest: "{{ nomad_s3fs_credentials_path }}"
+  no_log: true
+
+- name: Install apt pre-requisites
+  ansible.builtin.apt:
+    name: s3fs
+    state: present
+
+- name: Mount loki bucket
+  ansible.posix.mount:
+    src: "s3fs#{{ nomad_loki_bucket }}"
+    path: "{{ nomad_loki_mount_point }}"
+    opts: "{{ nomad_loki_s3fs_options }}"
+    fstype: "fuse"
+    state: mounted
+
 - name: ECR credentials dependency
   ansible.builtin.apt:
     name: amazon-ecr-credential-helper
