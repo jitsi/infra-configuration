@@ -13,7 +13,6 @@
     consul_template_env:
       CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
       HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
-      HAPROXY_BACKEND_PORT: "{{ http_backend_port }}"
       HAPROXY_BACKEND_USE_PRIVATE_IP: "{{ haproxy_backend_use_private_ip }}"
       HAPROXY_LIVE_RELEASE: "{{ haproxy_release_live }}"
       HAPROXY_RELEASE_LIVE_MAP_PATH: "{{ haproxy_release_live_map_path }}"
