@@ -6,7 +6,7 @@ nomad_docker_auth_file_path: "{{ docker_auth_file_path }}"
 nomad_docker_auth_file:
   credHelpers:
     "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
-nomad_loki_bucket: loki
+nomad_loki_bucket: "loki-{{ hcv_environment }}"
 nomad_loki_region: "{{ oracle_region | default('us-phoenix-1') }}"
 nomad_loki_s3_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
 nomad_loki_s3fs_options: "_netdev,passwd_file={{ nomad_s3fs_credentials_path }},\
