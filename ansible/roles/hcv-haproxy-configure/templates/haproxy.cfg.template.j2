@@ -62,7 +62,7 @@ defaults
 peers mypeers
 {% raw %}{{ range $dc := datacenters }}
   {{ $dc_haproxies := print "haproxy@" $dc }}
-  {{ range $haproxy $dc_haproxies }}
+  {{ range $haproxy := service $dc_haproxies }}
     peer {{ $haproxy.Node }} {{ $haproxy.Address }}:{{ $haproxy.Port }}
   {{ end }}
 {{ end }}{% endraw %}
@@ -311,11 +311,11 @@ backend {{ haproxy_backend_name }}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% raw %}
 {{ range $dc := datacenters }}
-  {{ $dc_shards := print "shard@" $dc }}
-  {{ range $shard := $dc_shards }}
+  {{ $dc_shards := print "signal@" $dc }}
+  {{ range $shard := service $dc_shards }}
     {{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}
-    {{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard.Value }}
-    {{ if $dc eq (env "CONSUL_LOCAL_DATACENTER") }}
+    {{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}
+    {{ if eq $dc (env "CONSUL_LOCAL_DATACENTER") }}
       {{ scratch.MapSet "shard_local" $shard.ServiceMeta.shard "True" }}
     {{ else }}
       {{ scratch.MapSet "shard_local" $shard.ServiceMeta.shard "False" }}
@@ -334,7 +334,7 @@ backend {{ $shard.ServiceMeta.shard }}
   redirect scheme https if !{ ssl_fc }
 {%- endif %}
   option forwardfor
-  server shard-{% raw %}{{ $shard.Name }} {{ $shard.Address }}:{{ $shard.Port }}{{ if $shard.Port eq 443 }} ssl verify none{{ end }}{% endraw %} no check
+  server shard-{% raw %}{{ $shard.Name }} {{ $shard.Address }}:{{ $shard.Port }}{{ if eq $shard.Port 443 }} ssl verify none{{ end }}{% endraw %} no check
 {% raw %}
   {{ end }}
 {{ end }}
@@ -377,12 +377,12 @@ backend release-{{ $release.Key }}
 {% raw %}
 {{ range $shard := scratch.MapValues "shards" }}
   {{ if eq $shard.ServiceMeta.release_number $release.Key }}
-  server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }}{{ if not $shard.MapSet "shard_local" $shard.ServiceMeta.shard }} backup {{ end }}{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
+  server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }}{{ if eq (scratch.Get "shard_local_" $shard.ServiceMeta.shard) "False" }} backup {{ end }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
   {{ end }}
 {{ end }}
 {{ range $shard := scratch.MapValues "shards" }}
   {{ if ne $shard.ServiceMeta.release_number $release.Key }}
-  server {{ $release.Key }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }} backup{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
+  server {{ $release.Key }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }} backup{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
   {{ end }}
 {{ end }}
 {{ end }}
