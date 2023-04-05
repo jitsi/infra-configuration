@@ -23,7 +23,7 @@
         perms: 0640
         backup: false
     consul_template_template_templates:
-      - src: roles/hcv_haproxy_configure/templates/haproxy.cfg.template.j2
+      - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
     private_ip: "{{ ansible_default_ipv4.address }}"
     host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
