@@ -28,7 +28,7 @@ selenium_grid_extras_node_config_file2: '{{ selenium_grid_extras_path }}/node_55
 selenium_grid_extras_node_service_name: 'selenium-grid-extras-node'
 selenium_grid_extras_path: '/opt/selenium_grid_extras'
 selenium_grid_extras_repo: git@github.com:8x8Cloud/selenium-grid-extras.git
-selenium_grid_extras_src_path: /tmp/selenium-grid-extras
+selenium_grid_extras_src_path: "{{ selenium_grid_homedir }}/selenium-grid-extras"
 selenium_grid_extras_ssh_private_key_path: /root/.ssh/id_rsa
 selenium_grid_extras_version: '2.0.4'
 selenium_grid_file: '{{ selenium_grid_path }}/selenium-server-standalone.jar'
