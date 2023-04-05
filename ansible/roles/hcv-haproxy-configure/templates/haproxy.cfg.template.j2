@@ -376,38 +376,14 @@ backend release-{{ $release.Key }}
 
 {% raw %}
 {{ range $shard := scratch.MapValues "shards" }}
-  {{ if $shard.ServiceMeta.release_number eq $release.Key }}
-  server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }}{{ if not $shard.MapSet "shard_local" $shard.ServiceMeta.shard }} backup {{ end }}{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }}
-### FORGOT HAPROXY AGENT CHECK
+  {{ if eq $shard.ServiceMeta.release_number $release.Key }}
+  server {{ $release.Key }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }}{{ if not $shard.MapSet "shard_local" $shard.ServiceMeta.shard }} backup {{ end }}{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
   {{ end }}
 {{ end }}
 {{ range $shard := scratch.MapValues "shards" }}
-  {{ if $shard.ServiceMeta.release_number ne $release.Key }}
-  server {{ $release.Key }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }} backup{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }}
-### FORGOT HAPROXY AGENT CHECK
+  {{ if ne $shard.ServiceMeta.release_number $release.Key }}
+  server {{ $release.Key }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard.ServiceMeta.shard_id }} backup{{ if $shard.ServiceMeta.http_backend_port eq "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
   {{ end }}
 {{ end }}
-
-  {%- if haproxy_agent_check %} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
-  {%- elif haproxy_check_port -%}
-    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
-
-
-
-{% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
-{% if item['release_number'] != release %}
-  server {{ release }}-fallback-{{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
-    {{ item['private_ip'] }}
-  {%- else -%}
-    {{ item['public_ip'] }}
-  {%- endif -%}
-    :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} backup 
-  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
-  {%- elif haproxy_check_port -%}
-    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
-  {%- endif %}
-{%- endif %}  
-{% endfor %}
-
-{% endfor %} {# haproxy_facts.releases #}
+{{ end }}
+{% endraw %}
