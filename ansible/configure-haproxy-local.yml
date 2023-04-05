@@ -38,6 +38,7 @@
     - secrets/consul.yml
     - secrets/oci-logging.yml
     - secrets/repo.yml
+    - roles/hcv-haproxy-configure/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
