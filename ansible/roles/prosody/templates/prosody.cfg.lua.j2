@@ -438,7 +438,7 @@ VirtualHost "{{ prosody_domain_name }}"
         room_metadata_component = "metadata.{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_visitors_enabled %}
-        visitors_ignore_list = { "recorder.{{ prosody_domain_name }}" }`
+        visitors_ignore_list = { "recorder.{{ prosody_domain_name }}" }
 {% endif %}
 
 {% if prosody_enable_guest_auth %}
