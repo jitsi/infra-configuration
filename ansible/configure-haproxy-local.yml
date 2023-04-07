@@ -10,6 +10,18 @@
     shard_role: haproxy
     cloud_provider: oracle
     cloud_public_ip: ""
+    consul_template_env:
+      CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
+      HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
+      HAPROXY_RELEASE_LIVE_MAP_PATH: "{{ haproxy_release_live_map_path }}"
+    consul_template_templates:
+      - name: "haproxy.cfg.template"
+        dest: "/tmp/haproxy.cfg.nomad"
+        #cmd: "/usr/local/bin/check-install-haproxyconf.sh"
+        perms: 0640
+        backup: false
+    consul_template_template_templates:
+      - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
     private_ip: "{{ ansible_default_ipv4.address }}"
     host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
@@ -23,6 +35,7 @@
     - secrets/consul.yml
     - secrets/oci-logging.yml
     - secrets/repo.yml
+    - roles/hcv-haproxy-configure/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
@@ -147,6 +160,7 @@
     - { role: "consul-haproxy", tags: "consul-haproxy",
         consul_haproxy_install_flag: false, consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure", haproxy_reconfigure_run: false }
+    - { role: "consul-template", tags: "consul-template", when: haproxy_enable_consul_template }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
     - { role: "haproxy-tenant-pin", tags: "haproxy-tenant-pin", haproxy_tenant_pin_install_flag: true, haproxy_tenant_pin_configure_flag: true }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
