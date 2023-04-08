@@ -330,7 +330,7 @@ backend {{ $shard.ServiceMeta.shard }}
   redirect scheme https if !{ ssl_fc }
 {%- endif %}
   option forwardfor
-  server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if eq $shard.Port 443 }} ssl verify none{{ end }}{% endraw %} no check
+  server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if eq $shard.Port 443 }} ssl verify none{{ end }}{% endraw %} no-check
 {% raw %}
   {{ end }}
 {{ end }}
