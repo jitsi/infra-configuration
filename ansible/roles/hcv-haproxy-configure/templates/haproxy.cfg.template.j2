@@ -318,6 +318,7 @@ backend {{ haproxy_backend_name }}
     {{ end }}
     {{ $shardIsLocal := index (scratch.Get "shard_local") $shard.ServiceMeta.shard }}
   server {{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard.ServiceMeta.shard_id }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
+  {{ end }}
 {{ end }}
 
 {{ range $shard := scratch.Get "shards" }}
@@ -337,7 +338,6 @@ backend {{ $shard.ServiceMeta.shard }}
   option forwardfor
   server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if eq $shard.Port 443 }} ssl verify none{{ end }}{% endraw %} no-check
 {% raw %}
-  {{ end }}
 {{ end }}
 {{ range $release := scratch.MapValues "releases" }}
 backend release-{{ $release }}
