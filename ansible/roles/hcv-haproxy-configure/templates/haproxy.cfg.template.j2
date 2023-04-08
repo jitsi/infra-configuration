@@ -316,6 +316,11 @@ backend {{ haproxy_backend_name }}
     {{ else }}
       {{ scratch.MapSet "shard_local" $shard.ServiceMeta.shard "False" }}
     {{ end }}
+    {{ $shardIsLocal := index (scratch.Get "shard_local") $shard.ServiceMeta.shard }}
+  server {{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard.ServiceMeta.shard_id }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
+{{ end }}
+
+{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
@@ -374,12 +379,12 @@ backend release-{{ $release }}
 {{ range $shard := scratch.MapValues "shards" }}
   {{ if eq $shard.ServiceMeta.release_number $release }}
   {{ $shardIsLocal := index (scratch.Get "shard_local") $shard.ServiceMeta.shard }}
-  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard.ServiceMeta.shard_id }}{{ if eq $shardIsLocal "False" }} backup {{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
+  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if eq $shardIsLocal "False" }} backup {{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
   {{ end }}
 {{ end }}
 {{ range $shard := scratch.MapValues "shards" }}
   {{ if ne $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.Port }} id {{ $shard.ServiceMeta.shard_id }} backup {{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
+  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.Port }}{{ if eq $shardIsLocal "False" }} backup {{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256
   {{ end }}
 {{ end }}
 {{ end }}
