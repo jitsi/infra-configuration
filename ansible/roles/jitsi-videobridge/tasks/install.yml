@@ -260,3 +260,10 @@
     dest: "/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
     mode: 0755
     owner: root
+
+- name: Copy JVB graceful shutdown wrapper
+  ansible.builtin.copy:
+    src: "graceful-shutdown-wrapper-jvb.sh"
+    dest: "/usr/local/bin/graceful-shutdown-wrapper-jvb.sh"
+    mode: 0755
+    owner: root

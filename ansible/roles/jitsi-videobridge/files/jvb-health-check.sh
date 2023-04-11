@@ -142,6 +142,14 @@ else
     #only dump memory and set unhealth once, then write to lock file and never do it again unless lock is cleared
     if [ ! -f $HEALTH_FAIL_LOCK_FILE ]; then
       echo 'Unhealthy' > $HEALTH_FAIL_LOCK_FILE
+
+      echo "Dump pre-terminate stats for JVB"
+      # this script is run from different users, e.g. jsidecar, ubuntu, root, and should not use sudo commands
+      PRE_TERMINATE_STATS="/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
+      if [ -x "$PRE_TERMINATE_STATS" ]; then
+          $PRE_TERMINATE_STATS
+      fi
+
       #Begin graceful shutdown of JVB in a background process
       sudo /usr/share/jitsi-videobridge/graceful_shutdown.sh > $GRACEFUL_SHUTDOWN_FILE 2>&1 &
 
@@ -185,13 +193,6 @@ else
             CLEANUP_ROUTE53_DNS="/usr/local/bin/cleanup_route53_dns.sh"
             if [ -f "$CLEANUP_ROUTE53_DNS" ]; then
                 $CLEANUP_ROUTE53_DNS
-            fi
-
-            echo "Dump pre-terminate stats for JVB"
-            # this script is run from different users, e.g. jsidecar, ubuntu, root, and should not use sudo commands
-            PRE_TERMINATE_STATS="/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
-            if [ -x "$PRE_TERMINATE_STATS" ]; then
-                $PRE_TERMINATE_STATS
             fi
 
             $AWS_BIN ec2 terminate-instances --instance-ids "$EC2_INSTANCE_ID"
