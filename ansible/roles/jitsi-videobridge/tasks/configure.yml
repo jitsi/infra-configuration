@@ -48,6 +48,13 @@
     owner: root
   when: jvb_cloud_provider == "aws"
 
+- name: Copy JVB graceful shutdown wrapper
+  ansible.builtin.copy:
+    src: "graceful-shutdown-wrapper-jvb.sh"
+    dest: "/usr/local/bin/graceful-shutdown-wrapper-jvb.sh"
+    mode: 0755
+    owner: root
+
 - name: Upload reconfigure jvb script oracle
   ansible.builtin.copy:
     dest: "/usr/local/bin/reconfigure-jvb.sh"

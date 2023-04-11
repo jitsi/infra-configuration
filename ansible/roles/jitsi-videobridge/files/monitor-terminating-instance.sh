@@ -162,7 +162,14 @@ do
             done)&
 
             PID=$(/bin/systemctl show -p MainPID $JVB_SERVICE_NAME | cut -d '=' -f2)
-            if [[ $PID > 0 ]]; then
+            if [[ $PID -gt 0 ]]; then
+                echo "Dump pre-terminate stats for JVB"
+                # this script is run from different users, e.g. jsidecar, ubuntu, root, and should not use sudo commands
+                PRE_TERMINATE_STATS="/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
+                if [ -x "$PRE_TERMINATE_STATS" ]; then
+                    $PRE_TERMINATE_STATS
+                fi
+
                 SHUTDOWN_OUTPUT=$(/usr/share/jitsi-videobridge/graceful_shutdown.sh 2>&1)
                 SHUTDOWN_RESULT=$?
                 if [ $SHUTDOWN_RESULT -eq 0 ]; then
@@ -193,13 +200,6 @@ do
             CLEANUP_ROUTE53_DNS="/usr/local/bin/cleanup_route53_dns.sh"
             if [ -f "$CLEANUP_ROUTE53_DNS" ]; then
                 $CLEANUP_ROUTE53_DNS
-            fi
-
-            echo "Dump pre-terminate stats for JVB"
-            # this script is run from different users, e.g. jsidecar, ubuntu, root, and should not use sudo commands
-            PRE_TERMINATE_STATS="/usr/local/bin/dump-pre-terminate-stats-jvb.sh"
-            if [ -x "$PRE_TERMINATE_STATS" ]; then
-                $PRE_TERMINATE_STATS
             fi
 
             # now send the signal to terminate
