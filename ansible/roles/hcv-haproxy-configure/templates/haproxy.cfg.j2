@@ -234,6 +234,8 @@ frontend www-http
    use_backend {{ item['shard'] }} if { path_beg /{{ item['shard'] }}/ }
 {% endfor %}
 {% if haproxy_release_backends %}
+   # use release backend if not a room and ?release is set in querystring
+   use_backend %[urlp_reg(release)] if url_release !url_room { urlp_reg(release), nbsrv gt 0 }
    # use release override or tenant pin if there are servers for it
    use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
    use_backend %[var(req.live_backend)]
