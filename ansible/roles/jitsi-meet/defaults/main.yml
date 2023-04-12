@@ -247,8 +247,8 @@ jitsi_meet_title_metadata_override: false
 jitsi_meet_toolbar_buttons_filter: []
 jitsi_meet_user_documentation_url: false
 jitsi_meet_video_quality: false
-jitsi_meet_visitors_enabled: false
-jitsi_meet_visitors_count: 0
+jitsi_meet_visitors_enabled: "{{ visitors_enabled | default(false) }}"
+jitsi_meet_visitors_count: "{{ visitors_count | default(0) }}"
 jitsi_meet_web_version: false
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
@@ -279,5 +279,3 @@ legal_urls:
   helpCentre: 'https://web-cdn.jitsi.net/faq/meet-faq.html'
   privacy: 'https://jitsi.org/meet/privacy'
   terms: 'https://jitsi.org/meet/terms'
-visitors_enabled: false
-visitors_count: 0
