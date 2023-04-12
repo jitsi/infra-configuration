@@ -181,7 +181,7 @@ frontend www-http
    http-request add-header X-Forwarded-Proto https
    http-request add-header X-Proxy-Region {{ haproxy_region }}
    # find the default live release (GA)
-   http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }})
+   http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_backend_name }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
    acl url_release urlp_reg(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
