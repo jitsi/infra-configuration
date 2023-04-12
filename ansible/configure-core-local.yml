@@ -135,11 +135,16 @@
       ignore_errors: true
       tags: boot
       when: not core_enable_fluentd
-    - name: Set up procstat telegraf variable
+
+    - name: Set procstat visitors units variable
       ansible.builtin.set_fact:
         procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
+    - name: Set procstat units variable
+      ansible.builtin.set_fact:
         procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled == 'true'
           else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
+    - name: Set up procstat telegraf variable
+      ansible.builtin.set_fact:
         telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
           {% if not loop.last %},{% endif %}{% endfor %}]"
         telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str | from_yaml }}"
