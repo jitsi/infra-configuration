@@ -76,7 +76,7 @@
       tags: setup
     - name: Set procstat units variable
       ansible.builtin.set_fact:
-        procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled == 'true'
+        procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled
           else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
       tags: setup
     - name: Set procstat input string
