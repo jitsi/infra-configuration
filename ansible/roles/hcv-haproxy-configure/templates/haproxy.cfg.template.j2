@@ -299,7 +299,7 @@ backend {{ haproxy_backend_name }}
 {%- endif %}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}
-  server {{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard.ServiceMeta.shard_id }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}
+  server {{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ add $shard.ServiceMeta.shard_id 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}
 {{ end }}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
