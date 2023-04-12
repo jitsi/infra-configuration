@@ -13,7 +13,7 @@
     consul_cloud_provider: "{{ core_cloud_provider }}"
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
-    procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
+    procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
     procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled
       else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
     telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
