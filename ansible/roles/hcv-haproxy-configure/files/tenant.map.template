@@ -1,0 +1,3 @@
+{{ $tenant_pin_path := print "releases/" (env "ENVIRONMENT") "/tenant }}
+{{ range ls $tenant_pin_path }}
+{{ .Key }} {{ .Value }}{{ end }}

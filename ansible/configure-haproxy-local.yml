@@ -12,12 +12,28 @@
     cloud_public_ip: ""
     consul_template_env:
       CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
+      ENVIRONMENT: "{{ hcv_environment }}"
       HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
       HAPROXY_RELEASE_LIVE_MAP_PATH: "{{ haproxy_release_live_map_path }}"
     consul_template_templates:
       - name: "haproxy.cfg.template"
         dest: "/tmp/haproxy.cfg.nomad"
         #cmd: "/usr/local/bin/check-install-haproxyconf.sh"
+        perms: 0640
+        backup: false
+      - name: "up.map.template"
+        dest: "/etc/haproxy/maps/up.map"
+        #cmd: script that sets up map with socat
+        perms: 0640
+        backup: false
+      - name: "live.map.template"
+        dest: "/etc/haproxy/maps/live.map"
+        # cmd: script that sets live map with socat
+        perms: 0640
+        backup: false
+      - name: "tenant.map.template"
+        dest: "/etc/haproxy/maps/tenant.map"
+        # cmd: script that sets tenant pin map with socat
         perms: 0640
         backup: false
     consul_template_template_templates:
