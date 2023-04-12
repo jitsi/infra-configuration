@@ -10,7 +10,7 @@ DIR=$(mktemp -d)
 cd $DIR
 
 for i in payload-verification node-stats pool-stats queue-stats transit-stats task-pool-stats \
-  ice-stats xmpp-delay-stats tossed-packet-stats; do
+  ice-stats xmpp-delay-stats tossed-packet-stats conference-packet-stats; do
     curl -s 0:8080/debug/stats/jvb/$i | jq . > $i.json
 done
 
