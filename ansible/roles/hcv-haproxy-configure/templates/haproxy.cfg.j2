@@ -192,9 +192,9 @@ frontend www-http
    # find the default live release (GA)
    http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_release_live }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
-   acl url_release urlp_reg(release) .+
+   acl url_release urlp(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
-   http-request set-var(req.tenant_pin) url_param(release),lower if url_release
+   http-request set-var(req.tenant_pin) url_param(release),lower if url_release { urlp(release), nbsrv gt 0 }
    # check to see if there's a tenant pin and use this if there is no override
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
    http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
@@ -234,8 +234,6 @@ frontend www-http
    use_backend {{ item['shard'] }} if { path_beg /{{ item['shard'] }}/ }
 {% endfor %}
 {% if haproxy_release_backends %}
-   # use release backend if not a room and ?release is set in querystring
-   use_backend %[urlp_reg(release)] if url_release !url_room { urlp_reg(release), nbsrv gt 0 }
    # use release override or tenant pin if there are servers for it
    use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
    use_backend %[var(req.live_backend)]
