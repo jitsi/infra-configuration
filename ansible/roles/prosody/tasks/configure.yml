@@ -295,7 +295,7 @@
 
 - name: Install systemd prosody service overrides directory visitors
   ansible.builtin.file:
-    mode: 0644
+    mode: 0755
     path: /etc/systemd/system/prosody-v{{ item }}.service.d
     state: directory
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
