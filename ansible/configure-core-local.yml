@@ -62,6 +62,14 @@
         msg: "Fail when shard_number is not correctly set"
       when: not ((shard_number | int) >= 1 and (shard_number | int) <= 65535)
 
+    - name: Show visitors enabled
+      ansible.builtin.debug:
+        var: visitors_enabled
+
+    - name: Show visitors count
+      ansible.builtin.debug:
+        var: visitors_count
+
     - name: Set procstat visitors units variable
       ansible.builtin.set_fact:
         procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
