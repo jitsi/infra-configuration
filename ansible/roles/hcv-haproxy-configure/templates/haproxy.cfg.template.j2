@@ -60,7 +60,8 @@ defaults
   errorfile 504 /etc/haproxy/errors/504.http
 
 peers mypeers{% raw %}{{ range $dc := datacenters }}{{ $dc_haproxies := print "haproxy@" $dc }}{{ range $haproxy := service $dc_haproxies }}
-  peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}{{ end }}{% endraw %}
+  peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}{{ end }}
+{% endraw %}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
 listen admin
@@ -298,7 +299,7 @@ backend {{ haproxy_backend_name }}
 {%- endif %}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}
-  server {{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard.ServiceMeta.shard_id }}{{ if ne $index "0" }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}
+  server {{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard.ServiceMeta.shard_id }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}
 {{ end }}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
@@ -350,7 +351,7 @@ backend release-{{ $release }}
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }}
   stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
 {% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if ne $index "0" }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}
+  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if ne $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.Port }}{{ if ne $index "0" }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}
+  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.Port }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ end }}{% endraw %}
