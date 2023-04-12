@@ -62,6 +62,26 @@
         msg: "Fail when shard_number is not correctly set"
       when: not ((shard_number | int) >= 1 and (shard_number | int) <= 65535)
 
+    - name: Set procstat visitors units variable
+      ansible.builtin.set_fact:
+        procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
+      tags: setup
+    - name: Set procstat units variable
+      ansible.builtin.set_fact:
+        procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled == 'true'
+          else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
+      tags: setup
+    - name: Set procstat input string
+      ansible.builtin.set_fact:
+        telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
+          {% if not loop.last %},{% endif %}{% endfor %}]"
+      tags: setup
+    - name: Set up procstat telegraf variable
+      ansible.builtin.set_fact:
+        telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str | from_yaml }}"
+      tags: setup
+
+
     - name: Gather AWS facts
       amazon.aws.ec2_metadata_facts:
       tags: "ec2_facts"
@@ -135,21 +155,6 @@
       ignore_errors: true
       tags: boot
       when: not core_enable_fluentd
-
-    - name: Set procstat visitors units variable
-      ansible.builtin.set_fact:
-        procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
-    - name: Set procstat units variable
-      ansible.builtin.set_fact:
-        procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled == 'true'
-          else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
-    - name: Set procstat input string
-      ansible.builtin.set_fact:
-        telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
-          {% if not loop.last %},{% endif %}{% endfor %}]"
-    - name: Set up procstat telegraf variable
-      ansible.builtin.set_fact:
-        telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str | from_yaml }}"
 
   post_tasks:
     - name: Restart rsyslog
