@@ -112,38 +112,38 @@ frontend www-http
    http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
    default_backend {{ haproxy_backend_name }}
 {% else %}
-   #detect if we're a health check, if so do not put it in access log
+   # detect if we're a health check, if so do not put it in access log
    acl is_healthcheck url /about/health
    http-request set-log-level silent if is_healthcheck
 
-   #detect if we find the room name in the URL
+   # detect if we find the room name in the URL
    acl url_room url_reg [?&]room=
 
-   #detect if path contains anything from our whitelist, if so then it's NOT a room path
+   # detect if path contains anything from our whitelist, if so then it's NOT a room path
    acl not_room path_end config.js interface_config.js favicon.ico http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock pwa-worker.js manifest.json
    acl not_room path_beg /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
    acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
    acl not_room path_beg /about/health
-   #whitelist includes any paths which start with a group but still contain our whitelist string
+   # whitelist includes any paths which start with a group but still contain our whitelist string
    acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
    acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|conference-request|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|pwa-worker.js|manifest.json)$
    acl not_room path /
 
-   #if the path should go to a shard
+   # if the path should go to a shard
    acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password /_unlock
    acl not_web hdr_beg(host) -i signal-api-
    acl not_web path_beg /about/health
 
-   #if the path has at least one subdirectory, we assume it's a group
+   # if the path has at least one subdirectory, we assume it's a group
    acl has_group path_reg ^/([^/]+)/(.*)
 
-   #if the path contains our whitelist of subdirectories, it is not a group
+   # if the path contains our whitelist of subdirectories, it is not a group
    acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
 
-   #if the path is about/health it is not a group
+   # if the path is about/health it is not a group
    acl not_group path_beg /about/health
 
-   #we assume the path is a room if we have all renderable characters
+   # we assume the path is a room if we have all renderable characters
    acl is_room path_reg ^/([[:graph:]]+)$
 {% if haproxy_corp_headers_enabled %}
    http-request set-var(txn.is_room) always_true if is_room
@@ -163,26 +163,25 @@ frontend www-http
    http-request deny if bad_room_param
    http-request redirect location / if bad_room
 
-   #first check URL for a room parameter, if it's provided then skip any room detection and use it
+   # first check URL for a room parameter, if it's provided then skip any room detection and use it
    http-request set-header X-Room %[url_param(room),lower] if url_room
 
-   #if we found a group (subdirectory) value, set the path as the starting point
+   # if we found a group (subdirectory) value, set the path as the starting point
    http-request set-header X-Group %[path,lower] if has_group !not_group
    http-request replace-header X-Group /([^/]+/)(.*) \1 if has_group !not_group
 
-   #use the path as the starting point to find the room name, if no URL param was found
+   # use the path as the starting point to find the room name, if no URL param was found
    http-request set-header X-Room %[path,lower] if is_room !url_room !not_room
 
-   #now extract the room name from the URL (path part following the final /) if we think the URL has a room in it
+   # now extract the room name from the URL (path part following the final /) if we think the URL has a room in it
    http-request replace-header X-Room .*/([^/]+)$ \1  if is_room !url_room !not_room
 
-   #check if we have already found a room and set our header
+   # check if we have already found a room and set our header
    acl room_set hdr_reg(X-Room) .+
 
-   #finally set the header with the value for the stick table
-   # by adding the group and room values.
-   # If the group value isn't defined it will be blank.
-   # If room value isn't defined the whole set-header is skipped due to the ACl above
+   # set the header with the value for the stick table by adding the group and room values.
+   #   If the group value isn't defined it will be blank.
+   #   If room value isn't defined the whole set-header is skipped due to the ACL above
    http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
    http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
