@@ -179,7 +179,6 @@ frontend www-http
 
    http-request add-header X-Forwarded-Proto https
    http-request add-header X-Proxy-Region {{ haproxy_region }}
-{% if haproxy_release_backends %}
    # find the default live release (GA)
    http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
@@ -189,7 +188,6 @@ frontend www-http
    # check to see if there's a tenant pin and use this if there is no override
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
    http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
-{% endif %}
 
    # check if tenant is set
    http-request set-var(req.ban_tenant) var(req.tenant),lower,map({{ haproxy_ban_tenants_map_path }}) if has_group !not_group

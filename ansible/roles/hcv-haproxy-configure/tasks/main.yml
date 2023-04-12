@@ -249,7 +249,6 @@
   ansible.builtin.stat:
     path: "{{ haproxy_release_live_map_path }}"
   register: release_live
-  when: haproxy_release_backends
 
 - name: Pull live map file value
   ansible.builtin.shell: |
@@ -260,14 +259,12 @@
   ignore_errors: true
   register: release_live_result
   when:
-    - haproxy_release_backends
     - release_live.stat.exists
 
 - name: Set haproxy_release_live
   ansible.builtin.set_fact:
     haproxy_release_live: "{{ release_live_result.stdout }}"
   when:
-    - haproxy_release_backends
     - release_live.stat.exists
     - not release_live_result.failed
 
@@ -277,21 +274,18 @@
     msg: "haproxy_facts.live_release is empty"
   when:
     - haproxy_facts.live_release is not defined or not haproxy_facts.live_release
-    - haproxy_release_backends
     - not release_live.stat.exists
 
 - name: Set haproxy_release_live from facts if no existing map file
   ansible.builtin.set_fact:
     haproxy_release_live: "{{ haproxy_facts.live_release }}"
   when:
-    - haproxy_release_backends
     - not release_live.stat.exists
 
 - name: Fail when no live release is found
   ansible.builtin.fail:
     msg: "no live release was found"
   when:
-    - haproxy_release_backends
     - not haproxy_release_live
 
 - name: Write live map file
@@ -299,7 +293,6 @@
     mode: 0644
     dest: "{{ haproxy_release_live_map_path }}"
     content: "live {{ haproxy_release_live }}"
-  when: haproxy_release_backends
 
 # ensure existence of tenant map file
 - name: Check for existence of tenant map file

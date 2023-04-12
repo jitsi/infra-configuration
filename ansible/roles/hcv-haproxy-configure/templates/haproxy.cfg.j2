@@ -188,7 +188,6 @@ frontend www-http
 
    http-request add-header X-Forwarded-Proto https
    http-request add-header X-Proxy-Region {{ haproxy_region }}
-{% if haproxy_release_backends %}
    # find the default live release (GA)
    http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_release_live }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
@@ -198,7 +197,6 @@ frontend www-http
    # check to see if there's a tenant pin and use this if there is no override
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
    http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
-{% endif %}
 
    # check if tenant is set
    http-request set-var(req.ban_tenant) var(req.tenant),lower,map({{ haproxy_ban_tenants_map_path }}) if has_group !not_group
@@ -233,13 +231,9 @@ frontend www-http
 {% for item in haproxy_facts.backends %}
    use_backend {{ item['shard'] }} if { path_beg /{{ item['shard'] }}/ }
 {% endfor %}
-{% if haproxy_release_backends %}
    # use release override or tenant pin if there are servers for it
    use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
    use_backend %[var(req.live_backend)]
-{% else %}
-   default_backend {{ haproxy_backend_name }}
-{% endif %}
 
 {% endif -%}
 {% endif -%}
@@ -316,23 +310,6 @@ backend {{ haproxy_backend_name }}
 {% endif %}
 
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
-{% if not haproxy_release_backends -%}
-{% for item in haproxy_facts.backends %}
-  server {{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
-      {{ item['private_ip'] }}
-  {%- else -%}
-      {{ item['public_ip'] }}
-  {%- endif -%}
-      :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} 
-  {%- if not item['local'] %} backup{% endif -%}
-  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
-  {% if haproxy_agent_check %} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
-  {%- elif haproxy_check_port -%}
-  {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
-  {%- endif %}
-  
-{% endfor %}
-{% endif %}
 
 {% for item in haproxy_facts.backends %}
 backend {{ item['shard'] }}
@@ -358,7 +335,6 @@ backend {{ item['shard'] }}
   {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif %} no-check
 
 {% endfor %}
-{% if haproxy_release_backends -%}
 {% for release in haproxy_facts.releases %}
 backend release-{{ release }}
 {% if haproxy_corp_headers_enabled %}
@@ -428,4 +404,3 @@ backend release-{{ release }}
 {% endfor %}
 
 {% endfor %} {# haproxy_facts.releases #}
-{% endif %} {# haproxy_release_backends #}
