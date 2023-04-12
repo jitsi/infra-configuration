@@ -2,9 +2,11 @@
   "service": {
     "name": "haproxy",
     "tags":["{{ hcv_environment }}"],
+    {% set _, _, octet3, octet4 = consul_haproxy_private_ip.split('.') %}
     "meta": {
         "environment":"{{ hcv_environment }}",
         "domain":"{{ environment_domain_name }}"
+        "hostname":"{{ hcv_environment ~ "-haproxy-" ~  octet3 ~ octet4 }}
     },
     "tagged_addresses": {
       "lan": {
