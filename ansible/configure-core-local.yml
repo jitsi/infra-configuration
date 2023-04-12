@@ -13,6 +13,13 @@
     consul_cloud_provider: "{{ core_cloud_provider }}"
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
+    procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
+    procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled
+      else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
+    telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
+      {% if not loop.last %},{% endif %}{% endfor %}]"
+    telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str | from_yaml }}"
+
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
@@ -61,34 +68,6 @@
       ansible.builtin.fail:
         msg: "Fail when shard_number is not correctly set"
       when: not ((shard_number | int) >= 1 and (shard_number | int) <= 65535)
-
-    - name: Show visitors enabled
-      ansible.builtin.debug:
-        var: visitors_enabled
-
-    - name: Show visitors count
-      ansible.builtin.debug:
-        var: visitors_count
-
-    - name: Set procstat visitors units variable
-      ansible.builtin.set_fact:
-        procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v-{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
-      tags: setup
-    - name: Set procstat units variable
-      ansible.builtin.set_fact:
-        procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled
-          else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
-      tags: setup
-    - name: Set procstat input string
-      ansible.builtin.set_fact:
-        telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
-          {% if not loop.last %},{% endif %}{% endfor %}]"
-      tags: setup
-    - name: Set up procstat telegraf variable
-      ansible.builtin.set_fact:
-        telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str | from_yaml }}"
-      tags: setup
-
 
     - name: Gather AWS facts
       amazon.aws.ec2_metadata_facts:
