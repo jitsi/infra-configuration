@@ -192,7 +192,7 @@ frontend www-http
    # find the default live release (GA)
    http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_release_live }})
    # if release set in querystring, use this as an override of the live backend and tenant pin
-   acl url_release urlp(release) .+
+   acl url_release urlp_reg(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
    http-request set-var(req.tenant_pin) url_param(release),lower if url_release { urlp(release), nbsrv gt 0 }{
    # check to see if there's a tenant pin and use this if there is no override
