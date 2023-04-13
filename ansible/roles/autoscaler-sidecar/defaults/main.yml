@@ -20,7 +20,7 @@ autoscaler_graceful_shutdown_script: "{{
   autoscaler_graceful_shutdown_scripts[autoscaler_instance_type]
   if autoscaler_graceful_shutdown_scripts[autoscaler_instance_type] is defined else '' }}"
 autoscaler_graceful_shutdown_scripts:
-  'JVB': /usr/share/jitsi-videobridge/graceful_shutdown.sh
+  'JVB': /usr/local/bin/graceful-shutdown-wrapper-jvb.sh
   'jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
   'jigasi': /usr/share/jigasi/graceful_shutdown.sh
   'sip-jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh

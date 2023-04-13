@@ -227,13 +227,11 @@ prosody_url_version: 0.11.13
 prosody_version: 0.12.*
 # shell command to extract installed prosody version string from dpkg
 prosody_version_shell: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
-prosody_visitors_enabled: false
-prosody_visitors_count: 0
+prosody_visitors_enabled: "{{ visitors_enabled | default(false) }}"
+prosody_visitors_count: "{{ visitors_count | default(0) }}"
 prosody_visitors_auto_allow: false
 prosody_visitors_muc_max_occupants: false
 prosody_vpaas_public_key_repo_url: false
 # Enables SMACKS module in prosody and XMPP stream resume functionality in jitsi-meet
 prosody_xmpp_resume: true
 shard_name: "{{ hcv_environment }}"
-visitors_enabled: false
-visitors_count: 0

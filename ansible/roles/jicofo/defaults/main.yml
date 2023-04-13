@@ -61,11 +61,9 @@ jicofo_stats_python_script_path: "/usr/local/bin/jicofo-stats.py"
 jicofo_stats_script_path: "/usr/local/bin/jicofo-stats.sh"
 jicofo_strip_simulcast: true
 jicofo_use_presence_for_jvb_health: false
-jicofo_visitors_enabled: false
-jicofo_visitors_count: 0
+jicofo_visitors_enabled: "{{ visitors_enabled | default(false) }}"
+jicofo_visitors_count: "{{ visitors_count | default(0) }}"
 jicofo_visitors_max_participants: false
 jicofo_visitors_max_visitors_per_node: false
 jicofo_xmpp_logging_enabled: false
 shard_number: "65535"
-visitors_enabled: false
-visitors_count: 0

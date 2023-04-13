@@ -182,6 +182,7 @@ frontend www-http
    # set the header with the value for the stick table by adding the group and room values.
    #   If the group value isn't defined it will be blank.
    #   If room value isn't defined the whole set-header is skipped due to the ACL above
+
    http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
    http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
@@ -277,6 +278,7 @@ backend {{ haproxy_backend_name }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -345,6 +347,7 @@ backend release-{{ release }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -367,6 +370,7 @@ backend release-{{ release }}
   balance hdr(X-StickToken)
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
+
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
   stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
 
