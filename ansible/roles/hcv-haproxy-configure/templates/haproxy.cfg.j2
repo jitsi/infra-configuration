@@ -182,7 +182,7 @@ frontend www-http
    #finally set the header with the value for the stick table
    # by adding the group and room values.
    # If the group value isn't defined it will be blank.
-   # If room value isn't defined the whole set-header is skipped due to the ACl above
+   # If room value isn't defined the whole set-header is skipped due to the ACl above -- WRONG
    http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
    http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
@@ -194,7 +194,7 @@ frontend www-http
    # if release set in querystring, use this as an override of the live backend and tenant pin
    acl url_release urlp_reg(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
-   http-request set-var(req.tenant_pin) url_param(release),lower if url_release
+   http-request set-var(req.tenant_pin) url_param(release),lower if url_release { urlp(release), nbsrv gt 0 }
    # check to see if there's a tenant pin and use this if there is no override
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
    http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
@@ -284,6 +284,7 @@ backend {{ haproxy_backend_name }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -293,13 +294,13 @@ backend {{ haproxy_backend_name }}
   # pass client IP to server
   option forwardfor
 
-  balance hdr(X-StickToken)
+  balance hdr(X-StickToken) if stick_token
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
 
   stick-table type string len 200 size 200k peers mypeers expire 5m srvkey addr 
-  stick match hdr(X-StickToken) table {{ haproxy_backend_name }}
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
+  stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
 
 {% if haproxy_use_allbackups %}
   # use all backup servers like normal if primary is down
@@ -370,6 +371,7 @@ backend release-{{ release }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -389,11 +391,12 @@ backend release-{{ release }}
   option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
 {% endif %}
   
-  balance hdr(X-StickToken)
+  balance hdr(X-StickToken) if stick_token
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
-  stick match hdr(X-StickToken) table {{ haproxy_backend_name }}
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
+
+  stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
 
 {% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
 {% if item['release_number'] == release %}
