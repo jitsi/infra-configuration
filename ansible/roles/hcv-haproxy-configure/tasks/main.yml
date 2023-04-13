@@ -347,7 +347,9 @@
     mode: "0755"
   notify:
     - Reload haproxy systemd
-  when: not haproxy_build_ami and not haproxy_configure_only
+  when:
+    - not haproxy_build_ami
+    - not haproxy_configure_only
 
 - name: Generate new test haproxy.cfg file in /tmp
   ansible.builtin.template:
