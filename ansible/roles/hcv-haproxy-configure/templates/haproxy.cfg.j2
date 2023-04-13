@@ -294,7 +294,7 @@ backend {{ haproxy_backend_name }}
   # pass client IP to server
   option forwardfor
 
-  balance hdr(X-StickToken) if stick_token
+  balance hdr(X-StickToken)
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
 
@@ -391,7 +391,7 @@ backend release-{{ release }}
   option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
 {% endif %}
   
-  balance hdr(X-StickToken) if stick_token
+  balance hdr(X-StickToken)
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
 
