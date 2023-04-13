@@ -18,7 +18,7 @@
     consul_template_templates:
       - name: "haproxy.cfg.template"
         dest: "/tmp/haproxy.cfg.nomad"
-        #cmd: "/usr/local/bin/check-install-haproxyconf.sh"
+        cmd: "DRAFT_CONFIG=/tmp/haproxy.cfg.nomad /usr/local/bin/check-install-haproxycfg.sh"
         perms: 0640
         backup: false
       - name: "up.map.template"
