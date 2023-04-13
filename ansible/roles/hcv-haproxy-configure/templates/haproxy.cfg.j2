@@ -194,7 +194,7 @@ frontend www-http
    # if release set in querystring, use this as an override of the live backend and tenant pin
    acl url_release urlp_reg(release) .+
    http-request set-header X-StickTokenFlag true if url_release room_set
-   http-request set-var(req.tenant_pin) url_param(release),lower if url_release { urlp(release), nbsrv gt 0 }
+   http-request set-var(req.tenant_pin) url_param(release),lower if url_release
    # check to see if there's a tenant pin and use this if there is no override
    http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
    http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
