@@ -182,7 +182,7 @@ frontend www-http
    #finally set the header with the value for the stick table
    # by adding the group and room values.
    # If the group value isn't defined it will be blank.
-   # If room value isn't defined the whole set-header is skipped due to the ACl above
+   # If room value isn't defined the whole set-header is skipped due to the ACl above -- WRONG
    http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
    http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
@@ -294,7 +294,7 @@ backend {{ haproxy_backend_name }}
   # pass client IP to server
   option forwardfor
 
-  balance hdr(X-StickToken)
+  balance hdr(X-StickToken) if stick_token
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
 
@@ -391,7 +391,7 @@ backend release-{{ release }}
   option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
 {% endif %}
   
-  balance hdr(X-StickToken)
+  balance hdr(X-StickToken) if stick_token
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
 
