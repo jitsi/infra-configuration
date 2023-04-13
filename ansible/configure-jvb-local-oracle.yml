@@ -41,13 +41,13 @@
       - name: "shards.json.template"
         dest: "/etc/jitsi/videobridge/shards.json"
         cmd: "/usr/local/bin/configure-jvb-shards.sh"
-        perms: 0640
+        perms: 0644
         backup: false
       - name: "xmpp.conf.template"
         dest: "/etc/jitsi/videobridge/xmpp.conf"
         user: "root"
         group: "jitsi"
-        perms: 0640
+        perms: 0644
         backup: false
 
   pre_tasks:
