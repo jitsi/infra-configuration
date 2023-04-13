@@ -284,6 +284,7 @@ backend {{ haproxy_backend_name }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -298,8 +299,8 @@ backend {{ haproxy_backend_name }}
   hash-balance-factor 150
 
   stick-table type string len 200 size 200k peers mypeers expire 5m srvkey addr 
-  stick match hdr(X-StickToken) table {{ haproxy_backend_name }}
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
+  stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
 
 {% if haproxy_use_allbackups %}
   # use all backup servers like normal if primary is down
@@ -370,6 +371,7 @@ backend release-{{ release }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -392,7 +394,9 @@ backend release-{{ release }}
   balance hdr(X-StickToken)
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag
+
+  stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
 
 {% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
 {% if item['release_number'] == release %}
