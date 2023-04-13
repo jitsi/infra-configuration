@@ -22,18 +22,18 @@
         perms: 0640
         backup: false
       - name: "up.map.template"
-        dest: "/etc/haproxy/maps/up.map"
-        #cmd: script that sets up map with socat
+        dest: "{{ haproxy_health_up_map_path }}"
+        cmd: "UPDATE_MAP={{ haproxy_health_up_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
       - name: "live.map.template"
-        dest: "/etc/haproxy/maps/live.map"
-        # cmd: script that sets live map with socat
+        dest: "{{ haproxy_release_live_map_path }}"
+        cmd: "UPDATE_MAP={{ haproxy_release_live_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
       - name: "tenant.map.template"
-        dest: "/etc/haproxy/maps/tenant.map"
-        # cmd: script that sets tenant pin map with socat
+        dest: "{{ haproxy_release_tenant_map_path }}"
+        cmd: "UPDATE_MAP={{ haproxy_release_tenant_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
     consul_template_template_templates:
