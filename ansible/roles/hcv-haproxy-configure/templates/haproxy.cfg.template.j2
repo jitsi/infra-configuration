@@ -172,9 +172,7 @@ frontend www-http
    # check if we have already found a room and set our header
    acl room_set hdr_reg(X-Room) .+
 
-   # set the header with the value for the stick table by adding the group and room values.
-   #   If the group value isn't defined it will be blank.
-   #   If room value isn't defined the whole set-header is skipped due to the ACL above
+   # set stick token header with stick token; may be set to blank if group and room are blank
    http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
    http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
