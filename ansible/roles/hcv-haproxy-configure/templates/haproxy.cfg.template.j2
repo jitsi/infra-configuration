@@ -310,7 +310,7 @@ backend {{ $shard.ServiceMeta.shard }}
   redirect scheme https if !{ ssl_fc }
 {%- endif %}
   option forwardfor
-  server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port 443 }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
+  server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{{ range $release := scratch.MapValues "releases" }}
 backend release-{{ $release }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
