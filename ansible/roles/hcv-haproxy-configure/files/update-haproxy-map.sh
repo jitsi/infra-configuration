@@ -21,6 +21,7 @@ fi
 echo "## updating live config with $UPDATE_MAP"
 
 echo "prepare map $UPDATE_MAP" | socat /var/run/haproxy/admin.sock stdio
+echo "clear map $UPDATE_MAP" | socat /var/run/haproxy/admin.sock stdio
 
 while IFS='' read -r line || [ -n "$line" ]; do
     echo "add map $UPDATE_MAP $line" | socat /var/run/haproxy/admin.sock stdio
