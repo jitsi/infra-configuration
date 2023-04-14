@@ -3,6 +3,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     mount | grep -q {{ nomad_loki_mount_point }}
+  args:
+    executable: /bin/bash
   register: loki_mount_results
   ignore_errors: true
 
