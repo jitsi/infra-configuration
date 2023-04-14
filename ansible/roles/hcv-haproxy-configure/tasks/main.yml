@@ -401,3 +401,11 @@
     dest: /usr/local/bin/update-haproxy-map.sh
   when:
     - haproxy_enable_consul_template
+
+- name: install haproxy config checker script
+  ansible.builtin.copy:
+    mode: 0744
+    src: check-install-haproxycfg.sh
+    dest: /usr/local/bin/check-install-haproxycfg.sh
+  when:
+    - haproxy_enable_consul_template
