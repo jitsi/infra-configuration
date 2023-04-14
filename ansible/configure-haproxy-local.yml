@@ -16,8 +16,8 @@
       HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
     consul_template_templates:
       - name: "haproxy.cfg.template"
-        dest: "/tmp/haproxy.cfg.nomad"
-        cmd: "/usr/local/bin/check-haproxy-config.sh /tmp/haproxy.cfg.test"
+        dest: "/tmp/haproxy.cfg.test"
+        cmd: "/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test"
         perms: 0640
         backup: false
       - name: "live.map.template"
