@@ -231,8 +231,8 @@ frontend www-http
 {% if haproxy_jvb_colibri_proxy_enabled %}
 backend jvb-colibri-proxy
   server jvb localhost:{{ haproxy_jvb_colibri_proxy_port }} id 1 no-check
-{% endif -%} 
 
+{% endif %}
 {% if haproxy_web_backend_enabled %}
 backend web
    # set the Host header to the one the ingress expects
@@ -246,13 +246,13 @@ backend web
    http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
    http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
-
 {% if haproxy_enable_https_redirect %}
    redirect scheme https if !{ ssl_fc }
 {% endif %}
    option forwardfor
 
    server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
+
 {% endif %}
 backend local_health
    server local 127.0.0.1:8080
