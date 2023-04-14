@@ -310,7 +310,7 @@ backend {{ $shard.ServiceMeta.shard }}
   redirect scheme https if !{ ssl_fc }
 {%- endif %}
   option forwardfor
-  server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if eq $shard.Port 443 }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
+  server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port 443 }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{{ range $release := scratch.MapValues "releases" }}
 backend release-{{ $release }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
@@ -346,7 +346,7 @@ backend release-{{ $release }}
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
   stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag if stick_token
 {% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
+  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if ne $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }} backup{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
+  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }} backup{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ end }}{% endraw %}
