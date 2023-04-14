@@ -7,12 +7,20 @@
   vars:
     shard_role: coturn
     cloud_provider: oracle
+    nomad_node_role: client
+    nomad_meta:
+      environment: "{{ hcv_environment }}"
+      cloud_name: "{{ cloud_name }}"
+      cloud_region: "{{ oracle_region }}"
+      pool_type: "coturn"
+      public_ip: "{{ cloud_public_ip }}"
   vars_files:
     - secrets/coturn.yml
     - secrets/ssl-certificates.yml
     - secrets/oci-logging.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
+    - secrets/nomad.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
@@ -73,11 +81,14 @@
       ansible.builtin.set_fact:
         ansible_ec2_public_ipv4: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
         ansible_ec2_local_ipv4: "{{ (vnic_details_result.stdout | from_json).data['private-ip'] }}"
+        cloud_public_ip: "{{ (vnic_details_result.stdout | from_json).data['public-ip'] }}"
       tags: setup
 
   roles:
 # TODO IPv6 is not yet supported by oracle
     - { role: "iptables-coturn", tags: "iptables-coturn"}
+    - { role: "iptables-serf", tags: "iptables-serf", when: coturn_enable_nomad }
+    - { role: "iptables-nomad", tags: "iptables-nomad", when: coturn_enable_nomad }
 #    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
     - { role: "common", tags: "common"}
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
@@ -101,5 +112,10 @@
           region: "{{ oracle_to_aws_region_map[oracle_region] }}"
           oracle_region: "{{ oracle_region }}"
           cloud: "oracle"
-# CloudWatch alarms are no longer used, we don't enable them for Oracle
-    - { role: "coturn", tags: "coturn", coturn_cloudwatch_flag: false, coturn_install_flag: false, coturn_ipv6_ddns: true, ipv6_enabled: false}
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: coturn_enable_nomad}
+    - { role: "docker", tags: "docker", when: coturn_enable_nomad }
+    - { role: "nomad-jitsi", tags: "nomad-jitsi", when: coturn_enable_nomad }
+    - { role: "nomad", tags: "nomad", when: coturn_enable_nomad }
+
+    - { role: "coturn", tags: "coturn", when: not coturn_enable_nomad,
+        coturn_cloudwatch_flag: false, coturn_install_flag: false, coturn_ipv6_ddns: true, ipv6_enabled: false }
