@@ -20,7 +20,7 @@ fi
 
 echo "## updating live config with $UPDATE_MAP"
 
-while IFS= read -r line; do
+while IFS='' read -r line || [ -n "$line" ]; do
     echo "attempting to update with: $UPDATE_MAP $line"
     echo "set map $UPDATE_MAP $line" | socat /var/run/haproxy/admin.sock stdio
-done <<< "$UPDATE_MAP"
+done < "${UPDATE_MAP}"
