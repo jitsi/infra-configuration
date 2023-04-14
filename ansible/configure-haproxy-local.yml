@@ -21,18 +21,18 @@
         cmd: "DRAFT_CONFIG=/tmp/haproxy.cfg.test /usr/local/bin/check-install-haproxycfg.sh"
         perms: 0640
         backup: false
-      - name: "up.map.template.test"
+      - name: "up.map.template"
         dest: "{{ haproxy_health_up_map_path }}"
         cmd: "UPDATE_MAP={{ haproxy_health_up_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
-      - name: "live.map.template.test"
-        dest: "{{ haproxy_release_live_map_path }}"
+      - name: "live.map.template"
+        dest: "{{ haproxy_release_live_map_path }}.test"
         cmd: "UPDATE_MAP={{ haproxy_release_live_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
-      - name: "tenant.map.template.test"
-        dest: "{{ haproxy_release_tenant_map_path }}"
+      - name: "tenant.map.template"
+        dest: "{{ haproxy_release_tenant_map_path }}.test"
         cmd: "UPDATE_MAP={{ haproxy_release_tenant_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
