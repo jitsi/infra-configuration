@@ -17,17 +17,17 @@
     consul_template_templates:
       - name: "haproxy.cfg.template"
         dest: "/tmp/haproxy.cfg.nomad"
-        cmd: "DRAFT_CONFIG=/tmp/haproxy.cfg.test /usr/local/bin/check-install-haproxycfg.sh"
+        cmd: "/usr/local/bin/check-install-haproxycfg.sh /tmp/haproxy.cfg.test"
         perms: 0640
         backup: false
       - name: "live.map.template"
         dest: "{{ haproxy_release_live_map_path }}"
-        #cmd: "UPDATE_MAP={{ haproxy_release_live_map_path }} /usr/local/bin/update-haproxy-map.sh"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_release_live_map_path }}"
         perms: 0640
         backup: false
       - name: "tenant.map.template"
         dest: "{{ haproxy_release_tenant_map_path }}"
-        #cmd: "UPDATE_MAP={{ haproxy_release_tenant_map_path }} /usr/local/bin/update-haproxy-map.sh"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_release_tenant_map_path }}"
         perms: 0640
         backup: false
     consul_template_template_files:
