@@ -405,8 +405,8 @@
 - name: install haproxy config checker script
   ansible.builtin.copy:
     mode: 0744
-    src: check-install-haproxycfg.sh
-    dest: /usr/local/bin/check-install-haproxycfg.sh
+    src: check-haproxy-config.sh
+    dest: /usr/local/bin/check-haproxy-config.sh
   when:
     - haproxy_enable_consul_template
 
