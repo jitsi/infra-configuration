@@ -19,12 +19,12 @@ if [ ! -f "$DRAFT_CONFIG" ]; then
 fi
 
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
-if [ $? ne 0]; then
+if [ $? -ne 0]; then
     echo "## check_install_haproxycfg.sh: new haproxy config failed, exiting..."
     exit 1
 fi
 
 echo "## validated $DRAFT_CONFIG; copying to haproxy.cfg and restarting haproxy"
 
-cp $"DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
+cp $DRAFT_CONFIG /etc/haproxy/haproxy.cfg
 service haproxy restart
