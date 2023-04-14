@@ -36,6 +36,10 @@
         cmd: "UPDATE_MAP={{ haproxy_release_tenant_map_path }} /usr/local/bin/update-haproxy-from-map.sh"
         perms: 0640
         backup: false
+    consul_template_template_files:
+      - src: roles/hcv-haproxy-configure/files/up.map.template
+      - src: roles/hcv-haproxy-configure/files/live.map.template
+      - src: roles/hcv-haproxy-configure/files/tenant.map.template
     consul_template_template_templates:
       - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
