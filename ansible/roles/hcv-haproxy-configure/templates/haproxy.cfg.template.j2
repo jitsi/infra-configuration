@@ -98,13 +98,11 @@ frontend www-http
 {% if haproxy_corp_headers_enabled %}
    http-request set-var(txn.referer) req.fhdr(referer),lower
 {% endif %}
-
 {% if haproxy_enable_https_redirect %}
    http-request add-header X-Forwarded-Proto http
    http-request add-header X-Proxy-Region {{ haproxy_region }}
    http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
-   default_backend {{ haproxy_backend_name }}
-{% else %}
+   default_backend {{ haproxy_backend_name }}{% else %}
    # detect if we're a health check, if so do not put it in access log
    acl is_healthcheck url /about/health
    http-request set-log-level silent if is_healthcheck
@@ -348,7 +346,7 @@ backend release-{{ $release }}
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
   stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag if stick_token
 {% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
+  server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }}{{ if ne $index 0 }} backup{{end }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if ne $shard.ServiceMeta.release_number $release }}
-  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.Port }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
+  server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.Port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.Port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ end }}{% endraw %}
