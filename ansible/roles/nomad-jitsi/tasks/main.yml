@@ -19,6 +19,13 @@
     name: s3fs
     state: present
 
+- name: Check loki bucket mount # no-qa ignore-errors
+  ansible.builtin.shell: |
+    set -o pipefail
+    mount | grep -q {{ nomad_loki_mount_point }}
+  register: loki_mount_results
+  ignore_errors: true
+
 - name: Mount loki bucket
   ansible.posix.mount:
     src: "s3fs#{{ nomad_loki_bucket }}"
@@ -26,6 +33,7 @@
     opts: "{{ nomad_loki_s3fs_options }}"
     fstype: "fuse"
     state: mounted
+  when: loki_mount_results.rc == 1
 
 - name: ECR credentials dependency
   ansible.builtin.apt:
