@@ -72,7 +72,7 @@ else
     --accept-host-key \
     -C "$GIT_BRANCH" \
     --tags "$DEPLOY_TAGS" \
-    --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
+    --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT cloud_provider=oracle environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
     -e "{environment_type: $ENVIRONMENT_TYPE}" \
     -e "{oracle_region: $ORACLE_REGION}" \
     -e "{release_branch: $GIT_BRANCH}" \
