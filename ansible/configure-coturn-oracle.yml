@@ -19,6 +19,7 @@
     - secrets/ssl-certificates.yml
     - secrets/oci-logging.yml
     - roles/jitsi-repo/defaults/main.yml
+    - secrets/consul.yml
     - secrets/repo.yml
     - secrets/nomad.yml
     - config/vars.yml
