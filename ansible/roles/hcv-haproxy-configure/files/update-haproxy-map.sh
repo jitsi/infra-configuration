@@ -32,5 +32,4 @@ while IFS='' read -r line || [ -n "$line" ]; do
     echo "add map @$PREPARE_VERSION $UPDATE_MAP $line" | socat /var/run/haproxy/admin.sock stdio
 done < "${UPDATE_MAP}"
 
-echo "commit map @$PREPARE_VERSION $UPDATE_MAP"
 echo "commit map @$PREPARE_VERSION $UPDATE_MAP" | socat /var/run/haproxy/admin.sock stdio
