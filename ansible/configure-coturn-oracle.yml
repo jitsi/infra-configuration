@@ -119,3 +119,16 @@
 
     - { role: "coturn", tags: "coturn", when: not coturn_enable_nomad,
         coturn_cloudwatch_flag: false, coturn_install_flag: false, coturn_ipv6_ddns: true, ipv6_enabled: false }
+  tasks:
+    - name: Consul service enablement
+      ansible.builtin.systemd:
+        name: consul
+        state: started
+        enabled: true
+      when: coturn_enable_nomad
+    - name: Start nomad
+      ansible.builtin.service:
+        name: nomad
+        state: started
+        enabled: true
+      when: coturn_enable_nomad
