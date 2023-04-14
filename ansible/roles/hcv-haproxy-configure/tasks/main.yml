@@ -261,13 +261,14 @@
   ignore_errors: true
   register: release_live_result
   when:
-    - release_live.stat.exists
     - not haproxy_enable_consul_template
+    - release_live.stat.exists
 
 - name: Set haproxy_release_live
   ansible.builtin.set_fact:
     haproxy_release_live: "{{ release_live_result.stdout }}"
   when:
+    - not haproxy_enable_consul_template
     - release_live.stat.exists
     - not release_live_result.failed
 
@@ -276,23 +277,23 @@
   ansible.builtin.fail:
     msg: "haproxy_facts.live_release is empty"
   when:
+    - not haproxy_enable_consul_template
     - haproxy_facts.live_release is not defined or not haproxy_facts.live_release
     - not release_live.stat.exists
-    - not haproxy_enable_consul_template
 
 - name: Set haproxy_release_live from facts if no existing map file
   ansible.builtin.set_fact:
     haproxy_release_live: "{{ haproxy_facts.live_release }}"
   when:
-    - not release_live.stat.exists
     - not haproxy_enable_consul_template
+    - not release_live.stat.exists
 
 - name: Fail when no live release is found
   ansible.builtin.fail:
     msg: "no live release was found"
   when:
-    - not haproxy_release_live
     - not haproxy_enable_consul_template
+    - not haproxy_release_live
 
 - name: Write live map file
   ansible.builtin.copy:
@@ -390,8 +391,8 @@
     - Reload haproxy systemd
   when:
     - not haproxy_build_ami
-    - haproxy_cfg_test_result.rc == 0
     - not haproxy_enable_consul_template
+    - haproxy_cfg_test_result.rc == 0
 
 - name: install haproxy update from map script
   ansible.builtin.copy:
