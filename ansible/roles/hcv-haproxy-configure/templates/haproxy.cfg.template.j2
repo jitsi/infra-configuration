@@ -265,6 +265,7 @@ backend {{ haproxy_backend_name }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
@@ -322,6 +323,7 @@ backend release-{{ $release }}
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
+  acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
 {%- if haproxy_enable_https_redirect %}
