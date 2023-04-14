@@ -8,6 +8,11 @@
     shard_role: coturn
     cloud_provider: oracle
     nomad_node_role: client
+    coturn_ssl_cert_name: "star_jitsi_net-2023-08-19"
+    coturn_ssl_crt_dest_path: "{{ coturn_ssl_dest }}/{{ coturn_ssl_cert_name }}.crt"
+    coturn_ssl_dest: "/etc/ssl"
+    coturn_ssl_key_dest_path: "{{ coturn_ssl_dest }}/{{ coturn_ssl_cert_name }}.key"
+    coturn_ssl_key_name: "{{ coturn_ssl_cert_name }}"
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
@@ -25,6 +30,22 @@
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
+    - name: Set Nomad Mounts
+      ansible.builtin.set_fact:
+        nomad_host_volumes:
+          - name: "docker-sock-ro"
+            path: "/var/run/docker.sock"
+            read_only: true
+            create: false
+          - name: "root-ro"
+            path: "/"
+            read_only: true
+            create: false
+          - name: "ssl"
+            path: "/etc/ssl"
+            read_only: true
+            create: false
+
     - name: Remove old jitsi repo
       ansible.builtin.apt_repository:
         repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
@@ -122,6 +143,18 @@
     - { role: "coturn", tags: "coturn", when: not coturn_enable_nomad,
         coturn_cloudwatch_flag: false, coturn_install_flag: false, coturn_ipv6_ddns: true, ipv6_enabled: false }
   tasks:
+    - name: Copy ssl cert to the ssl folder
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
+        dest: "{{ coturn_ssl_crt_dest_path }}"
+      when: coturn_enable_nomad
+    - name: Copy ssl key to the ssl folder
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ jitsi_net_ssl_key_name }}"
+        dest: "{{ coturn_ssl_key_dest_path }}"
+      when: coturn_enable_nomad
     - name: Consul service enablement
       ansible.builtin.systemd:
         name: consul
