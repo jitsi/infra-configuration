@@ -345,7 +345,7 @@ backend release-{{ $release }}
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag if stick_token
+  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
 {% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release }}
   server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{{ if ne $index 0 }} backup{{ end }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{{ end }}
 {{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ if ne $shard.ServiceMeta.release_number $release }}

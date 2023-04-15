@@ -19,7 +19,7 @@ if [ ! -f "$DRAFT_CONFIG" ]; then
 fi
 
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
     echo "## cihc: new haproxy config failed, exiting..."
     exit 1
 fi
