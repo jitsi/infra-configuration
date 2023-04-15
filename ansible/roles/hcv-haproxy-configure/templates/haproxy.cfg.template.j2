@@ -216,9 +216,9 @@ frontend www-http
    use_backend {{ haproxy_backend_name }} if not_web
    default_backend web
 {% else %}
-{% for item in haproxy_facts.backends %}
-   use_backend {{ item['shard'] }} if { path_beg /{{ item['shard'] }}/ }
-{% endfor %}
+{% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{{ end }}{{ range $shard := scratch.Get "shards" }}
+  use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ }
+{{ end }}{% endraw %}
    # use release override or tenant pin if there are servers for it
    use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
    use_backend %[var(req.live_backend)]
