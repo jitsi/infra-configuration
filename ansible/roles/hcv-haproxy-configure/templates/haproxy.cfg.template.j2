@@ -82,146 +82,147 @@ frontend health
 
 frontend www-http
 {% if haproxy_ssl_certificates %}
-   bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
+  bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
 
 {% endif %}
 {% for i in range(haproxy_frontend_count) %}
-   bind *:{{ 80 + i }}
+  bind *:{{ 80 + i }}
 {% endfor %}
-   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
-   http-request deny if bad_guy_wordpress
+  acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
+  http-request deny if bad_guy_wordpress
 
 {% if haproxy_domain_blacklist_enabled %}
-   acl match_referer_blacklist hdr(referer) -i -m dom {{ haproxy_domain_blacklist }}
-   http-request deny deny_status 429 if match_referer_blacklist
+  acl match_referer_blacklist hdr(referer) -i -m dom {{ haproxy_domain_blacklist }}
+  http-request deny deny_status 429 if match_referer_blacklist
 {% endif %}
 {% if haproxy_corp_headers_enabled %}
-   http-request set-var(txn.referer) req.fhdr(referer),lower
+  http-request set-var(txn.referer) req.fhdr(referer),lower
 {% endif %}
 {% if haproxy_enable_https_redirect %}
-   http-request add-header X-Forwarded-Proto http
-   http-request add-header X-Proxy-Region {{ haproxy_region }}
-   http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
-   default_backend {{ haproxy_backend_name }}{% else %}
-   # detect if we're a health check, if so do not put it in access log
-   acl is_healthcheck url /about/health
-   http-request set-log-level silent if is_healthcheck
+  http-request add-header X-Forwarded-Proto http
+  http-request add-header X-Proxy-Region {{ haproxy_region }}
+  http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
+  default_backend {{ haproxy_backend_name }}{% else %}
+  # detect if we're a health check, if so do not put it in access log
+  acl is_healthcheck url /about/health
+  http-request set-log-level silent if is_healthcheck
 
-   # detect if we find the room name in the URL
-   acl url_room url_reg [?&]room=
+  # detect if we find the room name in the URL
+  acl url_room url_reg [?&]room=
 
-   # detect if path contains anything from our whitelist, if so then it's NOT a room path
-   acl not_room path_end config.js interface_config.js favicon.ico http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock pwa-worker.js manifest.json
-   acl not_room path_beg /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
-   acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
-   acl not_room path_beg /about/health
-   # whitelist includes any paths which start with a group but still contain our whitelist string
-   acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
-   acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|conference-request|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|pwa-worker.js|manifest.json)$
-   acl not_room path /
+  # detect if path contains anything from our whitelist, if so then it's NOT a room path
+  acl not_room path_end config.js interface_config.js favicon.ico http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock pwa-worker.js manifest.json
+  acl not_room path_beg /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
+  acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
+  acl not_room path_beg /about/health
+  # whitelist includes any paths which start with a group but still contain our whitelist string
+  acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
+  acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|conference-request|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|pwa-worker.js|manifest.json)$
+  acl not_room path /
 
-   # if the path should go to a shard
-   acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password /_unlock
-   acl not_web hdr_beg(host) -i signal-api-
-   acl not_web path_beg /about/health
+  # if the path should go to a shard
+  acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password /_unlock
+  acl not_web hdr_beg(host) -i signal-api-
+  acl not_web path_beg /about/health
 
-   # if the path has at least one subdirectory, we assume it's a group
-   acl has_group path_reg ^/([^/]+)/(.*)
+  # if the path has at least one subdirectory, we assume it's a group
+  acl has_group path_reg ^/([^/]+)/(.*)
 
-   # if the path contains our whitelist of subdirectories, it is not a group
-   acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
+  # if the path contains our whitelist of subdirectories, it is not a group
+  acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
 
-   # if the path is about/health it is not a group
-   acl not_group path_beg /about/health
+  # if the path is about/health it is not a group
+  acl not_group path_beg /about/health
 
-   # we assume the path is a room if we have all renderable characters
-   acl is_room path_reg ^/([[:graph:]]+)$
+  # we assume the path is a room if we have all renderable characters
+  acl is_room path_reg ^/([[:graph:]]+)$
 {% if haproxy_corp_headers_enabled %}
-   http-request set-var(txn.is_room) always_true if is_room
+  http-request set-var(txn.is_room) always_true if is_room
 {% endif %}
 
-   acl not_web url_reg [?&]stick=true if is_room !not_room
+  acl not_web url_reg [?&]stick=true if is_room !not_room
 
-   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
-   http-request deny if bad_guy_wordpress
+  acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
+  http-request deny if bad_guy_wordpress
 
 {% if haproxy_bad_room_list | length > 0 %}
-   acl bad_room path {% for r in haproxy_bad_room_list %}/{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
-   
-   acl bad_room_param urlp(room) {% for r in haproxy_bad_room_list %}{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
+  acl bad_room path {% for r in haproxy_bad_room_list %}/{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
+  acl bad_room_param urlp(room) {% for r in haproxy_bad_room_list %}{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
 {% endif %}
 
-   http-request deny if bad_room_param
-   http-request redirect location / if bad_room
+  http-request deny if bad_room_param
+  http-request redirect location / if bad_room
 
-   # first check URL for a room parameter, if it's provided then skip any room detection and use it
-   http-request set-header X-Room %[url_param(room),lower] if url_room
+  # first check URL for a room parameter, if it's provided then skip any room detection and use it
+  http-request set-header X-Room %[url_param(room),lower] if url_room
 
-   # if we found a group (subdirectory) value, set the path as the starting point
-   http-request set-header X-Group %[path,lower] if has_group !not_group
-   http-request replace-header X-Group /([^/]+/)(.*) \1 if has_group !not_group
+  # if we found a group (subdirectory) value, set the path as the starting point
+  http-request set-header X-Group %[path,lower] if has_group !not_group
+  http-request replace-header X-Group /([^/]+/)(.*) \1 if has_group !not_group
 
-   # use the path as the starting point to find the room name, if no URL param was found
-   http-request set-header X-Room %[path,lower] if is_room !url_room !not_room
+  # use the path as the starting point to find the room name, if no URL param was found
+  http-request set-header X-Room %[path,lower] if is_room !url_room !not_room
 
-   # now extract the room name from the URL (path part following the final /) if we think the URL has a room in it
-   http-request replace-header X-Room .*/([^/]+)$ \1  if is_room !url_room !not_room
+  # now extract the room name from the URL (path part following the final /) if we think the URL has a room in it
+  http-request replace-header X-Room .*/([^/]+)$ \1  if is_room !url_room !not_room
 
-   # check if we have already found a room and set our header
-   acl room_set hdr_reg(X-Room) .+
+  # check if we have already found a room and set our header
+  acl room_set hdr_reg(X-Room) .+
 
-   # set stick token header with stick token; may be set to blank if group and room are blank
-   http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
-   http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
+  # set stick token header with stick token; may be set to blank if group and room are blank
+  http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
+  http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
 
-   http-request add-header X-Forwarded-Proto https
-   http-request add-header X-Proxy-Region {{ haproxy_region }}
-   # find the default live release (GA)
-   http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_backend_name }})
-   # if release set in querystring, use this as an override of the live backend and tenant pin
-   acl url_release urlp_reg(release) .+
-   http-request set-header X-StickTokenFlag true if url_release room_set
-   http-request set-var(req.tenant_pin) url_param(release),lower if url_release
-   # check to see if there's a tenant pin and use this if there is no override
-   http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
-   http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
+  http-request add-header X-Forwarded-Proto https
+  http-request add-header X-Proxy-Region {{ haproxy_region }}
+  # find the default live release (GA)
+  http-request set-var(req.live_backend) str(live),map({{ haproxy_release_live_map_path }},{{ haproxy_backend_name }})
+  # if release set in querystring, use this as an override of the live backend and tenant pin
+  acl url_release urlp_reg(release) .+
+  http-request set-header X-StickTokenFlag true if url_release room_set
+  http-request set-var(req.tenant_pin) url_param(release),lower if url_release
+  # check to see if there's a tenant pin and use this if there is no override
+  http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
+  http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
 
-   # check if tenant is set
-   http-request set-var(req.ban_tenant) var(req.tenant),lower,map({{ haproxy_ban_tenants_map_path }}) if has_group !not_group
-   # ban if ban map value 'ban' is set for room
-   acl banned_tenant var(req.ban_tenant) -m str ban
-   # redirect to homepage if initial page request
-   http-request redirect location / if banned_tenant !url_room
-   # 403 if a bosh/websocket or other
-   http-request deny if banned_tenant url_room
+  # check if tenant is set
+  http-request set-var(req.ban_tenant) var(req.tenant),lower,map({{ haproxy_ban_tenants_map_path }}) if has_group !not_group
+  # ban if ban map value 'ban' is set for room
+  acl banned_tenant var(req.ban_tenant) -m str ban
+  # redirect to homepage if initial page request
+  http-request redirect location / if banned_tenant !url_room
+  # 403 if a bosh/websocket or other
+  http-request deny if banned_tenant url_room
 
-   # check if room exists in ban map
-   http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_rooms_map_path }})
-   # ban if ban map value 'ban' is set for room
-   acl banned_room var(req.ban_room) -m str ban
-   # redirect to homepage if initial page request
-   http-request redirect location / if banned_room !url_room
-   # 403 if a bosh/websocket or other
-   http-request deny if banned_room url_room
+  # check if room exists in ban map
+  http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_rooms_map_path }})
+  # ban if ban map value 'ban' is set for room
+  acl banned_room var(req.ban_room) -m str ban
+  # redirect to homepage if initial page request
+  http-request redirect location / if banned_room !url_room
+  # 403 if a bosh/websocket or other
+  http-request deny if banned_room url_room
 
-   http-response add-header X-Proxy-Region {{ haproxy_region }}
-   http-response add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
-   tcp-request inspect-delay 5s
+  http-response add-header X-Proxy-Region {{ haproxy_region }}
+  http-response add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
+  tcp-request inspect-delay 5s
 {% if haproxy_jvb_colibri_proxy_enabled %}
-   acl jvb_path path_beg /colibri-ws/
-   acl jvb_path path_beg /colibri-relay-ws/
-   use_backend jvb-colibri-proxy if jvb_path
+  acl jvb_path path_beg /colibri-ws/
+  acl jvb_path path_beg /colibri-relay-ws/
+  use_backend jvb-colibri-proxy if jvb_path
 {% endif %}
 {% if haproxy_web_backend_enabled %}
-   use_backend {{ haproxy_backend_name }} if not_web
-   default_backend web
+  use_backend {{ haproxy_backend_name }} if not_web
+  default_backend web
 {% else %}
-{% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{{ end }}{{ range $shard := scratch.Get "shards" }}
+  # shard-specific backends
+{% raw %}{{ range $index, $dc := datacenters }}{{ $dc_shards := print "signal@" $dc }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{{ end }}{{ range $shard := scratch.Get "shards" -}}
   use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ }
 {{ end }}{% endraw %}
-   # use release override or tenant pin if there are servers for it
-   use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
-   use_backend %[var(req.live_backend)]
+
+  # use tenant pin if there are servers, otherwise use the GA (live) backend
+  use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
+  use_backend %[var(req.live_backend)]
 
 {% endif -%}
 {% endif -%}
@@ -233,27 +234,27 @@ backend jvb-colibri-proxy
 {% endif %}
 {% if haproxy_web_backend_enabled %}
 backend web
-   # set the Host header to the one the ingress expects
-   http-request set-header Host {{ haproxy_web_backend }}
+  # set the Host header to the one the ingress expects
+  http-request set-header Host {{ haproxy_web_backend }}
 {% if haproxy_corp_headers_enabled %}
-   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
-   acl corp_path capture.req.uri -i -m end /static/[^/]+$
-   acl corp_room var(txn.is_room) -m bool always_true
-   http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_path
-   http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_room
-   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
-   http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
+  acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
+  acl corp_path capture.req.uri -i -m end /static/[^/]+$
+  acl corp_room var(txn.is_room) -m bool always_true
+  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_path
+  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_room
+  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
+  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
 {% endif %}
 {% if haproxy_enable_https_redirect %}
-   redirect scheme https if !{ ssl_fc }
+  redirect scheme https if !{ ssl_fc }
 {% endif %}
-   option forwardfor
+  option forwardfor
 
-   server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
+  server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
 
 {% endif %}
 backend local_health
-   server local 127.0.0.1:8080
+  server local 127.0.0.1:8080
 
 backend {{ haproxy_backend_name }}
 {% if haproxy_corp_headers_enabled %}
