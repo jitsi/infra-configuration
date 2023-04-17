@@ -13,7 +13,8 @@ local timer = require "util.timer";
 local split_jid = require "util.jid".split;
 
 local is_healthcheck_room = module:require "util".is_healthcheck_room;
-local get_room_from_jid = module:require "util".get_room_from_jid
+local get_room_from_jid = module:require "util".get_room_from_jid;
+local internal_room_jid_match_rewrite = module:require "util".internal_room_jid_match_rewrite;
 
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
@@ -338,7 +339,7 @@ function handle_occupant_access(event, event_type)
                 end
             end
             local rec_payload = {}
-            rec_payload.conference = util.room_jid_match_rewrite_from_internal(room.jid);
+            rec_payload.conference = internal_room_jid_match_rewrite(room.jid);
             participant_access_event["data"] = rec_payload
         end
 
@@ -489,7 +490,7 @@ function handle_room_event(event, event_type)
         module:log("debug", "Will send room event for %s", room.jid);
         local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
         local payload = {};
-        payload.conference = util.room_jid_match_rewrite_from_internal(main_room.jid);
+        payload.conference = internal_room_jid_match_rewrite(main_room.jid);
 
         payload.isBreakout = is_breakout;
         payload.breakoutRoomId = breakout_room_id;
