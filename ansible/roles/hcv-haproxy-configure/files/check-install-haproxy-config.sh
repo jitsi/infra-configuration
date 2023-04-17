@@ -21,6 +21,7 @@ fi
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -ne 0 ]; then
     echo "## cihc: new haproxy config failed, exiting..."
+    echo -n "jitsi.haproxy.reconfig_failed_count:1" | nc -4u -w1 localhost 8125
     exit 1
 fi
 
@@ -28,3 +29,5 @@ echo "## cihc: validated $DRAFT_CONFIG; copying to haproxy.cfg and restarting ha
 
 cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
 service haproxy restart
+
+echo -n "jitsi.haproxy.reconfig_count:1" | nc -4u -w1 localhost 8125
