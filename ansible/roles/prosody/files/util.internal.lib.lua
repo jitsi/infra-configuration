@@ -104,25 +104,6 @@ function Util.shallow_copy(t)
     return t2
 end
 
--- Utility function to check and convert a room JID from real [foo]room1@muc.example.com to virtual room1@muc.foo.example.com
-function Util.room_jid_match_rewrite_from_internal(room_jid)
-    local node, host, resource = jid.split(room_jid);
-    if host ~= muc_domain or not node then
-        module:log("debug", "No need to rewrite %s (not from the MUC host)", room_jid);
-        return room_jid;
-    end
-    local target_subdomain, target_node = node:match("^%[([^%]]+)%](.+)$");
-    if not (target_node and target_subdomain) then
-        module:log("debug", "Not rewriting... unexpected node format: %s", node);
-        return room_jid;
-    end
-    -- Ok, rewrite room_jid address to pretty format
-    local new_node, new_host, new_resource = target_node, muc_domain_prefix .. "." .. target_subdomain .. "." .. muc_domain_base, resource;
-    room_jid = jid.join(new_node, new_host, new_resource);
-    module:log("debug", "Rewrote to %s", room_jid);
-    return room_jid
-end
-
 function Util.get_fqn_and_customer_id(room_jid)
     local node = jid.split(room_jid);
     local tenant, conference_name = node:match("^%[([^%]]+)%](.+)$");

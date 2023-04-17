@@ -9,6 +9,7 @@ local inspect = require "inspect";
 
 local util = module:require "util";
 local room_jid_match_rewrite = util.room_jid_match_rewrite;
+local internal_room_jid_match_rewrite = util.internal_room_jid_match_rewrite;
 local is_healthcheck_room = util.is_healthcheck_room;
 local starts_with = util.starts_with;
 local is_vpaas = module:require "util.internal".is_vpaas;
@@ -80,26 +81,6 @@ local http_headers = {
 if conferenceInfoURL == "" then
     module:log("warn", "No 'muc_conference_info_url' option set, disabling preset passwords");
     return
-end
-
--- Utility function to check and convert a room JID from real [foo]room1@muc.example.com to virtual room1@muc.foo.example.com
-local function room_jid_match_rewrite_from_internal(room_jid)
-    local node, host, resource = jid.split(room_jid);
-    if host ~= muc_domain or not node then
-        module:log("debug", "No need to rewrite %s (not from the MUC host)", room_jid);
-
-        return room_jid;
-    end
-    local target_subdomain, target_node = node:match("^%[([^%]]+)%](.+)$");
-    if not (target_node and target_subdomain) then
-        module:log("debug", "Not rewriting... unexpected node format: %s", node);
-        return room_jid;
-    end
-    -- Ok, rewrite room_jid address to pretty format
-    local new_node, new_host, new_resource = target_node, muc_domain_prefix..".".. target_subdomain.."."..muc_domain_base, resource;
-    room_jid = jid.join(new_node, new_host, new_resource);
-    module:log("debug", "Rewrote to %s", room_jid);
-    return room_jid
 end
 
 --- Verifies room name, domain name with the values in the token
@@ -255,7 +236,7 @@ end
 -- in case of no response or slow response we let participants through
 -- without requiring a password
 local function queryForPassword(room)
-    local room_address = room_jid_match_rewrite_from_internal(room.jid);
+    local room_address = internal_room_jid_match_rewrite(room.jid);
     local pURL = conferenceInfoURL .."?conferenceFullName="..room_address;
 
     module:log("info","Querying for password to %s", pURL);
