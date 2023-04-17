@@ -19,5 +19,15 @@
     action: insert
     rule_num: 7
     comment: Added via ansible post-launch configuration script
+- name: Open TCP port 9641 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: 9641
+    jump: ACCEPT
+    action: insert
+    rule_num: 6
+    comment: Added via ansible post-launch configuration script
 - name: Save newly added iptable rules
   ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
