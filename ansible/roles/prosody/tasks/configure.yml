@@ -342,12 +342,6 @@
     dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
-- name: Copy over the plugin for muc jitsi auth
-  ansible.builtin.copy:
-    src: "mod_muc_auth_ban.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
 - name: Copy over the plugin for muc moderators
   ansible.builtin.copy:
     src: "mod_muc_moderators.lua"

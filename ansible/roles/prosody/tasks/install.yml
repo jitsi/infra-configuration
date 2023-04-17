@@ -277,12 +277,6 @@
     dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
-- name: Copy over the plugin for muc jitsi auth
-  ansible.builtin.copy:
-    src: "mod_muc_auth_ban.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
 - name: Delete old turn credentials module
   ansible.builtin.file:
     path: "/usr/lib/prosody/modules/mod_turncredentials"
