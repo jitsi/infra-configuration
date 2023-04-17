@@ -190,6 +190,7 @@ prosody_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd
 # with file version we must set it via variable
 # with apt we use the shell to detect subversion so leave it blank ''
 prosody_minor_version: "{{ '11' if not prosody_install_from_apt else '' }}"
+prosody_muc_events_api_key: 'pleasereplace'
 prosody_package_version: "{{ prosody_url_version }}-1~{{ ansible_distribution_release }}1_{{ prosody_architecture }}"
 prosody_password_public_key_repo_url: false
 prosody_public_key_repo_url: false

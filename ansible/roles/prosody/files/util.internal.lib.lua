@@ -23,7 +23,7 @@ local ASAPAudience = module:get_option_string("asap_audience", 'jitsi');
 local ASAPTTL_THRESHOLD = module:get_option_number("asap_ttl_threshold", 600);
 local ASAPTTL = module:get_option_number("asap_ttl", 3600);
 local ASAPIssuer = module:get_option_string("asap_issuer", 'jitsi');
-local eventAPIKey = module:get_option_string("muc_events_api_key", 'J16i68cytq5bo2NgjAcv19dExugZovAL6GizlXia');
+local eventAPIKey = module:get_option_string("muc_events_api_key", 'replaceme');
 local ASAPKeyId = module:get_option_string("asap_key_id", 'jitsi');
 
 local jwtKeyCacheSize = module:get_option_number("jwt_pubkey_cache_size", 128);

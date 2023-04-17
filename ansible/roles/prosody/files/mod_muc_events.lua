@@ -83,7 +83,7 @@ local transcriptionsURL
     = module:get_option_string("muc_transcriptions_url");
 
 local eventAPIKey
-    = module:get_option_string("muc_events_api_key", 'J16i68cytq5bo2NgjAcv19dExugZovAL6GizlXia');
+    = module:get_option_string("muc_events_api_key", 'replaceme');
 
 local muc_domain_prefix
     = module:get_option_string("muc_mapper_domain_prefix", "conference");
