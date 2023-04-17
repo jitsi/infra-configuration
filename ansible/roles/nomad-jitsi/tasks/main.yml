@@ -1,10 +1,20 @@
 ---
+- name: Check loki bucket mount # no-qa ignore-errors
+  ansible.builtin.shell: |
+    set -o pipefail
+    mount | grep -q {{ nomad_loki_mount_point }}
+  args:
+    executable: /bin/bash
+  register: loki_mount_results
+  ignore_errors: true
+
 - name: Create loki mount point
   ansible.builtin.file:
     path: "{{ nomad_loki_mount_point }}"
     state: directory
     mode: 0755
     recurse: true
+  when: loki_mount_results.rc == 1
 
 - name: Create nomad s3fs passwd
   ansible.builtin.copy:
@@ -26,6 +36,7 @@
     opts: "{{ nomad_loki_s3fs_options }}"
     fstype: "fuse"
     state: mounted
+  when: loki_mount_results.rc == 1
 
 - name: ECR credentials dependency
   ansible.builtin.apt:

@@ -135,3 +135,12 @@
   when:
     - common_install_pip3_flag
     - (ansible_distribution_major_version | int) >= 20
+
+# script to configure the secondary VNIC
+- name: Upload configure secondary vnic oracle
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/secondary_vnic_all_configure_oracle.sh"
+    src: "secondary_vnic_all_configure_oracle.sh"
+    mode: 0755
+    owner: root
+  when: common_cloud_provider == "oracle"
