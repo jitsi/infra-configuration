@@ -1,10 +1,13 @@
 local json_safe = require "cjson.safe";
 local jwt = require "luajwtjitsi";
 local basexx = require "basexx";
-local util = module:require "util.internal";
+
 local st = require "util.stanza";
-local is_healthcheck_room = module:require "util".is_healthcheck_room;
 local timer = require "util.timer";
+
+local util = module:require "util";
+local is_healthcheck_room = util.is_healthcheck_room;
+local starts_with = util.starts_with;
 
 local log = module._log;
 local host = module.host;
@@ -58,7 +61,7 @@ local function process_vpaas_token(session)
         if kid == nil then
             return { res = false, error = "not-allowed", reason = "'kid' claim is missing" };
         end
-        if not util.starts_with(kid, VPAAS_PREFIX) then
+        if not starts_with(kid, VPAAS_PREFIX) then
             module.log("debug", "Not a VPAAS user for pre validation");
             return nil
         end
@@ -103,7 +106,7 @@ local function validate_vpaas_token(session)
         return nil
     end
 
-    if util.starts_with(kid, VPAAS_PREFIX) then
+    if starts_with(kid, VPAAS_PREFIX) then
         module:log("debug", "Post validate VPAAS token");
         if kid == nil then
             return { res = false, error = "not-allowed", reason = "'kid' is missing from session" };
@@ -123,7 +126,7 @@ local function validate_vpaas_token(session)
         end
     else
         module:log("debug", "Not a VPAAS user for post validation");
-        if tenant ~= nil and util.starts_with(tenant, VPAAS_PREFIX) then
+        if tenant ~= nil and starts_with(tenant, VPAAS_PREFIX) then
             -- VO/standalone customer with VPAAS tenant on SUB claim
             return { res = false, error = "not-allowed", reason = "vo customer with vpaas tenant" };
         end
@@ -159,7 +162,7 @@ local function deny_access(origin, stanza, room_disabled_access, room_jid, occup
             return true;
         end
 
-        if token ~= nil and not util.starts_with(tenant, VPAAS_PREFIX) then
+        if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
             log("warn", "VPASS room %s is disabled for tenant %s", room_jid, tenant);
             origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPASS room disabled for 8x8 users"));
             return true;

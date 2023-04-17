@@ -1,4 +1,4 @@
-local is_healthcheck_room = module:require "util".is_healthcheck_room;
+
 local util = module:require "util.internal";
 local uuid_gen = require "util.uuid".generate;
 local inspect = require('inspect');
@@ -7,11 +7,14 @@ local http = require "net.http";
 local json = require "cjson";
 local jid_bare = require 'util.jid'.bare;
 local jid_split = require 'util.jid'.split;
-local get_room_from_jid = module:require "util".get_room_from_jid
 local um_is_admin = require "core.usermanager".is_admin;
 local st = require 'util.stanza';
 local timer = require "util.timer";
 local split_jid = require "util.jid".split;
+
+local is_healthcheck_room = module:require "util".is_healthcheck_room;
+local get_room_from_jid = module:require "util".get_room_from_jid
+
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
 local SETTINGS_PROVISIONING_CHECK_AFTER_SECONDS = 1;
@@ -108,10 +111,6 @@ local function cb(content_, code_, response_, request_)
             body = response_.body;
         },cb_retry);
     end
-end
-
-local function starts_with(str, start)
-    return str:sub(1, #start) == start
 end
 
 -- whether this module is loaded for the breakout room muc component
