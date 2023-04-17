@@ -409,10 +409,3 @@
     dest: /usr/local/bin/check-install-haproxy-config.sh
   when:
     - haproxy_enable_consul_template
-
-- name: make sure consul-template is boostraped
-  ansible.builtin.service:
-    name: consul-template
-    state: restarted
-  when:
-    - haproxy_enable_consul_template
