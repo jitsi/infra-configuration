@@ -360,12 +360,6 @@
     dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
-- name: Copy over the plugin for jigasi invite
-  ansible.builtin.copy:
-    src: "mod_muc_jigasi_invite.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
 - name: Copy over the util internal lib
   ansible.builtin.copy:
     src: "util.internal.lib.lua"
