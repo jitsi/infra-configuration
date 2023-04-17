@@ -265,12 +265,6 @@
     mode: 0644
     force: true
 
-- name: Copy over the plugin for rate-limiting joining MUCs
-  ansible.builtin.copy:
-    src: "mod_rate_limit.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
     src: "mod_muc_events.lua"
