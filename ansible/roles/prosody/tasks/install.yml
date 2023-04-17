@@ -295,12 +295,6 @@
     dest: "/usr/share/jitsi-meet/prosody-plugins/"
     mode: 0644
 
-- name: Copy over the plugin for kick endpoint
-  ansible.builtin.copy:
-    src: "mod_muc_kick_endpoint.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
 # The previous one creates the folder, we can just touch the file
 - name: Adds a file to indicate we are running prosody 0.12 and mod_smacks needs to be dropped from jitsi-meet
   ansible.builtin.file:
