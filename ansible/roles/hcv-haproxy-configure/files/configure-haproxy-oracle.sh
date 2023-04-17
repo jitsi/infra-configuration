@@ -30,7 +30,7 @@ set -x
 . /usr/local/bin/oracle_cache.sh
 
 #unless specified, run all tags
-DEPLOY_TAGS=${ANSIBLE_TAGS-"common,hcv-haproxy-configure"}
+DEPLOY_TAGS=${ANSIBLE_TAGS-"common,consul-template,hcv-haproxy-configure"}
 
 PLAYBOOK="configure-haproxy-local.yml"
 
