@@ -27,7 +27,7 @@ export AWS_DEFAULT_REGION=$CURRENT_EC2_REGION
 chmod 400 /root/.ssh/id_rsa
 
 #unless specified, run all tags
-DEPLOY_TAGS=${ANSIBLE_TAGS-"ec2_facts,common,hcv-haproxy-configure,consul-template"}
+DEPLOY_TAGS=${ANSIBLE_TAGS-"ec2_facts,common,consul-template,hcv-haproxy-configure"}
 
 #do all the heavy lifting
 ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
