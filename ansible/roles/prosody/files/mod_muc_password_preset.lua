@@ -4,13 +4,14 @@ local json = require "util.json";
 local async_handler_wrapper = module:require "util".async_handler_wrapper;
 local jid = require "util.jid";
 local timer = require "util.timer";
-
-local room_jid_match_rewrite = module:require "util".room_jid_match_rewrite;
-local is_healthcheck_room = module:require "util".is_healthcheck_room;
-local is_vpaas = module:require "util.internal".is_vpaas;
 local http = require "net.http";
-
 local inspect = require "inspect";
+
+local util = module:require "util";
+local room_jid_match_rewrite = util.room_jid_match_rewrite;
+local is_healthcheck_room = util.is_healthcheck_room;
+local starts_with = util.starts_with;
+local is_vpaas = module:require "util.internal".is_vpaas;
 
 local tostring = tostring;
 local neturl = require "net.url";
@@ -137,9 +138,6 @@ function verify_token(token, room_address)
     return true;
 end
 
-local function starts_with(str, start)
-    return str:sub(1, #start) == start
-end
 --- Handles request for retrieving the room participants details
 -- @param event the http event, holds the request query
 -- @return GET response, containing a json with participants details

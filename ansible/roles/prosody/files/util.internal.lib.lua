@@ -104,10 +104,6 @@ function Util.shallow_copy(t)
     return t2
 end
 
-function Util.starts_with(str, start)
-    return str:sub(1, #start) == start
-end
-
 -- Utility function to check and convert a room JID from real [foo]room1@muc.example.com to virtual room1@muc.foo.example.com
 function Util.room_jid_match_rewrite_from_internal(room_jid)
     local node, host, resource = jid.split(room_jid);
