@@ -330,12 +330,6 @@
     masked: false
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
-- name: Copy over the plugin for filtering internal muc access
-  ansible.builtin.copy:
-    src: "mod_muc_filter_access.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
     src: "mod_muc_events.lua"
