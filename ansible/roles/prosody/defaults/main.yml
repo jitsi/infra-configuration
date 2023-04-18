@@ -114,6 +114,8 @@ prosody_jvb_configure_flag: true
 prosody_jvb_domain_name: "jvb.{{ prosody_domain_name }}"
 prosody_jvb_mod_log_ringbuffer_size: 1024*1024*4
 prosody_jvb_muc_name: "muc.{{ prosody_jvb_domain_name }}"
+prosody_limit_messages: false
+prosody_limit_messages_check_token: false
 prosody_log_level: info
 prosody_log_syslog_enabled: false
 prosody_log_syslog_hostname: localhost
