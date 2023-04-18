@@ -4,7 +4,8 @@
     mode: 0644
     src: "haproxy.json.j2"
     dest: "/etc/consul.d/haproxy.json"
-  register: haproxy_json
+  notify:
+    - Restart consul
 
 - name: Make sure consul service is running
   ansible.builtin.systemd:
@@ -12,12 +13,3 @@
     state: started
     enabled: true
   ignore_errors: true
-  when: not haproxy_json.changed
-
-- name: Restart consul if service file changed
-  ansible.builtin.systemd:
-    name: consul
-    state: restarted
-    enabled: true
-  ignore_errors: true
-  when: haproxy_json.changed

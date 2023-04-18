@@ -1,0 +1,7 @@
+---
+- name: Restart consul
+  ansible.builtin.systemd:
+    name: consul
+    state: restarted
+    enabled: true
+  ignore_errors: true
