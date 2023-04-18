@@ -127,6 +127,11 @@ s2s_connect_overrides = {
     ["visitors.{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 };
 }
 
+{% if prosody_limit_messages %}
+muc_limit_messages_count = {{ prosody_limit_messages }};
+muc_limit_messages_check_token = {{ prosody_limit_messages_check_token }};
+{% endif %}
+
 plugin_paths = { '/usr/share/jitsi-meet/prosody-plugins/' }
 
 ----------- Virtual hosts -----------
