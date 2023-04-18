@@ -269,13 +269,6 @@
     path: "/usr/lib/prosody/modules/mod_turncredentials"
     state: "absent"
 
-- name: Copy over the plugin for turn credential support
-  ansible.builtin.copy:
-    src: "mod_turncredentials_http.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-
 - name: Copy over the plugin for preset passwords on mucs
   ansible.builtin.copy:
     src: "mod_muc_password_preset.lua"
