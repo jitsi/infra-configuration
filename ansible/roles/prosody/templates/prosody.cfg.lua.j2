@@ -330,6 +330,10 @@ s2s_whitelist = {
 };
 {% endif %}
 
+{% if prosody_limit_messages %}
+muc_limit_messages_count = {{ prosody_limit_messages }};
+muc_limit_messages_check_token = {{ prosody_limit_messages_check_token }};
+{% endif %}
 
 plugin_paths = { "/usr/share/jitsi-meet/prosody-plugins/" }
 
@@ -539,6 +543,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_polls_enabled %}
         "polls";
 {% endif %}
+{% if prosody_limit_messages %}
+        "muc_limit_messages";
+{% endif %}
     }
 
 {% if prosody_enable_rate_limit %}
@@ -677,6 +684,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% endif %}
 {% if prosody_meet_webhooks_enabled %}
         "muc_webhooks";
+{% endif %}
+{% if prosody_limit_messages %}
+        "muc_limit_messages";
 {% endif %}
     }
     {% endif %}
