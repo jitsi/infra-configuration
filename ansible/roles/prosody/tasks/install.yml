@@ -258,13 +258,6 @@
     mode: 0644
     force: true
 
-- name: Enable the plugin for hiding all MUCs
-  ansible.builtin.copy:
-    src: "mod_muc_hide_all.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-    force: true
-
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
     src: "mod_muc_events.lua"
