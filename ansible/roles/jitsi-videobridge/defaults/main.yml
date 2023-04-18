@@ -55,6 +55,7 @@ jvb_enable_pcap: false
 jvb_enable_route_loudest_logs: false
 # This needs to be kept in sync with jicofo_enable_sctp
 jvb_enable_sctp: false
+jvb_enable_sctp_debug_logs: false
 jvb_enable_silence_detection: false
 jvb_enable_stats_cron: true
 jvb_enable_stats_filter: true

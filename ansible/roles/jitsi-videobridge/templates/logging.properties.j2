@@ -7,6 +7,13 @@ org.jitsi.utils.logging2.JitsiLogFormatter.programname=JVB
 
 .level=INFO
 
+{% if jvb_enable_sctp_debug_logs %}
+org.jitsi.videobridge.sctp.level=ALL
+{% endif %}
+# This is intentionally always enabled, it's not noisy and includes
+# logging assert failures from usrsctp
+org.jitsi_modified.sctp4j.SctpJni.level=ALL
+
 {% if jvb_enable_message_transport_logs %}
 org.jitsi.videobridge.EndpointMessageTransport.level=ALL
 org.jitsi.videobridge.relay.RelayMessageTransport.level=ALL
