@@ -24,13 +24,12 @@ function checkout_repos() {
   cd -
 }
 
-
 set -x
 #load the basics like $ENVIRONMENT, $SHARD_ROLE and $SHARD (if set)
 . /usr/local/bin/oracle_cache.sh
 
 #unless specified, run all tags
-DEPLOY_TAGS=${ANSIBLE_TAGS-"common,hcv-haproxy-configure"}
+DEPLOY_TAGS=${ANSIBLE_TAGS-"common,hcv-haproxy-configure,consul-haproxy,consul-template"}
 
 PLAYBOOK="configure-haproxy-local.yml"
 

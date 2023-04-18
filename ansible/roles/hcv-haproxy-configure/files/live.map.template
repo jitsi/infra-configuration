@@ -1,0 +1,1 @@
+{{ $live_release_key := print "releases/" (env "ENVIRONMENT") "/live" }}live {{ key $live_release_key }}
