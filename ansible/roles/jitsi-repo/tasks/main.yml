@@ -17,7 +17,7 @@
 
 - name: Configure jitsi repo auth
   ansible.builtin.template:
-    dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+    dest: "/etc/apt/auth.conf.d/{{ jitsi_repo_host }}.conf"
     src: "jitsi-repo.conf.j2"
     owner: root
     mode: 0600
@@ -27,7 +27,7 @@
     repo: "deb [trusted=yes] {{ jitsi_repo_url }} unstable/"
     state: present
     update_cache: true
-  when: (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version >= '18') or (ansible_distribution == 'Debian' and ansible_distribution_major_version >= '11')
+  when: (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version >= '18') or (ansible_distribution == 'Debian' and ansible_distribution_major_version >= '11') # noqa yaml[line-length]
 
 - name: Configure jitsi repo source (older ubuntu)
   ansible.builtin.apt_repository:

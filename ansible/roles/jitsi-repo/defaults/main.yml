@@ -1,5 +1,5 @@
 ---
-jitsi_repo_host: internal-repo.jitsi.net
+jitsi_repo_host: ops-repo.jitsi.net
 jitsi_repo_password: "default"
 jitsi_repo_url: "https://{{ jitsi_repo_host }}/debian"
 jitsi_auth_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian"
