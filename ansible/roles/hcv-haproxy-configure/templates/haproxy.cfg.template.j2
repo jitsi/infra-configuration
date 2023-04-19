@@ -91,10 +91,8 @@ frontend www-http
   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
   http-request deny if bad_guy_wordpress
 
-{% if haproxy_domain_blacklist_enabled %}
-  acl match_referer_blacklist hdr(referer) -i -m dom {{ haproxy_domain_blacklist }}
+  acl match_referer_blacklist hdr(referer) -i -m dom map({{ haproxy_ban_domain_path }})
   http-request deny deny_status 429 if match_referer_blacklist
-{% endif %}
 {% if haproxy_corp_headers_enabled %}
   http-request set-var(txn.referer) req.fhdr(referer),lower
 {% endif %}
@@ -186,14 +184,11 @@ frontend www-http
   http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
   http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
 
-  # BAN MAPS
-  {{ haproxy_band_domain_map_path }}
-  {{ haproxy_band_exact_map_path }}
-  {{ haproxy_band_prefix_map_path }}
-  {{ haproxy_band_substr_map_path }}
+  # check if if there is a match to ban lists
+  http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_exact_path }})
+  http-request set-var(req.ban_room) hdr_beg(X-Room),lower,map({{ haproxy_ban_prefix_path }})
+  http-request set-var(req.ban_room) hdr_sub(X-StickToken),lower,map({{ haproxy_ban_substr_path }})
 
-  # check if room exists in ban map
-  http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_rooms_map_path }})
   # ban if ban map value 'ban' is set for room
   acl banned_room var(req.ban_room) -m str ban
   # redirect to homepage if initial page request
