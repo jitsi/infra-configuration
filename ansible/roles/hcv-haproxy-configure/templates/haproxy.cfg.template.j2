@@ -188,8 +188,8 @@ frontend www-http
 
   # check if if there is a match to ban lists
   http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_exact_map_path }})
-  http-request set-var(req.ban_room) hdr_beg(X-Room),lower,map({{ haproxy_ban_prefix_map_path }})
-  http-request set-var(req.ban_room) hdr_sub(X-StickToken),lower,map({{ haproxy_ban_substr_map_path }})
+  http-request set-var(req.ban_room) hdr(X-Room),lower,map_beg({{ haproxy_ban_prefix_map_path }})
+  http-request set-var(req.ban_room) hdr(X-StickToken),lower,map_sub({{ haproxy_ban_substr_map_path }})
   # ban if ban map value 'ban' is set for room
   acl banned_room var(req.ban_room) -m str ban
   # redirect to homepage if initial page request
