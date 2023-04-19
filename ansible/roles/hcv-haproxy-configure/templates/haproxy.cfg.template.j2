@@ -91,8 +91,10 @@ frontend www-http
   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
   http-request deny if bad_guy_wordpress
 
-  acl match_referer_blacklist hdr(referer) -i -m dom map({{ haproxy_ban_domain_path }})
-  http-request deny deny_status 429 if match_referer_blacklist
+  http-request set-var(req.ban_domain) hdr(referer),lower,map({{ haproxy_ban_domain_path }})
+  acl banned_domain var(req.ban_domain) -m str ban
+  http-request deny deny_status 429 if banned_domain
+
 {% if haproxy_corp_headers_enabled %}
   http-request set-var(txn.referer) req.fhdr(referer),lower
 {% endif %}
@@ -188,7 +190,6 @@ frontend www-http
   http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_exact_path }})
   http-request set-var(req.ban_room) hdr_beg(X-Room),lower,map({{ haproxy_ban_prefix_path }})
   http-request set-var(req.ban_room) hdr_sub(X-StickToken),lower,map({{ haproxy_ban_substr_path }})
-
   # ban if ban map value 'ban' is set for room
   acl banned_room var(req.ban_room) -m str ban
   # redirect to homepage if initial page request
