@@ -1,6 +1,6 @@
 ---
-jitsi_repo_host: ops-repo.jitsi.net
-jitsi_repo_host_old: internal-repo.jitsi.net
+jitsi_repo_host: repo.example.com
+jitsi_repo_host_old: old-repo.example.com
 jitsi_repo_password: "default"
 jitsi_repo_url: "https://{{ jitsi_repo_host }}/debian"
 jitsi_repo_url_old: "https://{{ jitsi_repo_host_old }}/debian"
