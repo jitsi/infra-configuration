@@ -30,9 +30,33 @@
         cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_release_tenant_map_path }}"
         perms: 0640
         backup: false
+      - name: "ban-domain.map.template"
+        dest: "{{ haproxy_ban_domain_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_domain_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-exact.map.template"
+        dest: "{{ haproxy_ban_exact_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_exact_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-prefix.map.template"
+        dest: "{{ haproxy_ban_prefix_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_prefix_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-substr.map.template"
+        dest: "{{ haproxy_ban_substr_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_substr_map_path }}"
+        perms: 0640
+        backup: false
     consul_template_template_files:
       - src: roles/hcv-haproxy-configure/files/live.map.template
       - src: roles/hcv-haproxy-configure/files/tenant.map.template
+      - src: roles/hcv-haproxy-configure/files/ban-domain.map.template
+      - src: roles/hcv-haproxy-configure/files/ban-exact.map.template
+      - src: roles/hcv-haproxy-configure/files/ban-prefix.map.template
+      - src: roles/hcv-haproxy-configure/files/ban-substr.map.template
     consul_template_template_templates:
       - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"

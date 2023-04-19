@@ -186,14 +186,11 @@ frontend www-http
   http-request set-var(req.tenant) req.hdr(x-group),regsub(\/,) if has_group !not_group !url_release
   http-request set-var(req.tenant_pin) var(req.tenant),lower,map({{ haproxy_release_tenant_map_path }}) if !url_release
 
-  # check if tenant is set
-  http-request set-var(req.ban_tenant) var(req.tenant),lower,map({{ haproxy_ban_tenants_map_path }}) if has_group !not_group
-  # ban if ban map value 'ban' is set for room
-  acl banned_tenant var(req.ban_tenant) -m str ban
-  # redirect to homepage if initial page request
-  http-request redirect location / if banned_tenant !url_room
-  # 403 if a bosh/websocket or other
-  http-request deny if banned_tenant url_room
+  # BAN MAPS
+  {{ haproxy_band_domain_map_path }}
+  {{ haproxy_band_exact_map_path }}
+  {{ haproxy_band_prefix_map_path }}
+  {{ haproxy_band_substr_map_path }}
 
   # check if room exists in ban map
   http-request set-var(req.ban_room) hdr(X-Room),lower,map({{ haproxy_ban_rooms_map_path }})
