@@ -64,6 +64,12 @@
         update_cache: false
       tags: setup
 
+    - name: Remove deprecated old repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_repo_url_old }} unstable/"
+        state: absent
+      tags: setup
+
     - name: Fail when shard number is not set
       ansible.builtin.fail:
         msg: "Fail when shard_number is not correctly set"
