@@ -8,6 +8,7 @@ global
   group haproxy
   maxconn 2000000
   daemon
+  # test
 
 {% if haproxy_enable_multithreading %}
 {% if haproxy_installed_version is version('2.5','<') %}
