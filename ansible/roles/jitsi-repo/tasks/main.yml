@@ -35,3 +35,22 @@
     state: present
     update_cache: true
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version < '18'
+
+- name: Remove deprecated old repo
+  ansible.builtin.apt_repository:
+    repo: "deb [trusted=yes] {{ jitsi_repo_url_old }} unstable/"
+    state: absent
+
+- name: Remove old jitsi repo host auth
+  ansible.builtin.template:
+    dest: "/etc/apt/auth.conf.d/{{ jitsi_repo_host_old }}.conf"
+    src: "jitsi-repo.conf.j2"
+    owner: root
+    mode: 0600
+
+- name: Remove old jitsi repo auth file
+  ansible.builtin.template:
+    dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+    src: "jitsi-repo.conf.j2"
+    owner: root
+    mode: 0600
