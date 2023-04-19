@@ -76,6 +76,11 @@
         state: present
         update_cache: false
       tags: setup
+    - name: Remove deprecated old repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_repo_url_old }} unstable/"
+        state: absent
+      tags: setup
     - name: Remove td-agent deb repository
       ansible.builtin.apt_repository:
         repo: "deb https://packages.treasuredata.com/4/{{ adl }}/{{ adrl }}/ {{ adrl }} contrib"

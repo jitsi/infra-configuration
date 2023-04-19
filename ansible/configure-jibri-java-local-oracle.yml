@@ -85,6 +85,11 @@
         owner: root
         mode: 0600
       tags: setup
+    - name: Remove deprecated old repo
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] {{ jitsi_repo_url_old }} unstable/"
+        state: absent
+      tags: setup
     - name: Remove NodeSource deb repository
       ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
