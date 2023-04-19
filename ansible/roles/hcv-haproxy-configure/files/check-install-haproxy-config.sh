@@ -28,6 +28,6 @@ fi
 echo "## cihc: validated $DRAFT_CONFIG; copying to haproxy.cfg and restarting haproxy"
 
 cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
-service haproxy restart
+service haproxy reload
 
 echo -n "jitsi.haproxy.reconfig_count:1" | nc -4u -w1 localhost 8125
