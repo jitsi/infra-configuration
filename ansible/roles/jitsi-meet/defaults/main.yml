@@ -103,6 +103,7 @@ jitsi_meet_content_security_policy_on_root: false
 jitsi_meet_cors_avatar_urls: false
 jitsi_meet_deb_pkg_name: "jitsi-meet-web"
 jitsi_meet_deb_pkg_version: "*"
+jitsi_meet_disable_iframe_api: false
 jitsi_meet_disable_reactions: false
 jitsi_meet_disable_reactions_moderation: false
 jitsi_meet_disable_record_audio_notification: false
