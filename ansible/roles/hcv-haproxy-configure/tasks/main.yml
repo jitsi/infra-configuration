@@ -324,24 +324,32 @@
   ansible.builtin.stat:
     path: "{{ haproxy_ban_rooms_map_path }}"
   register: ban_rooms_map_file
+  when:
+    - not haproxy_enable_consul_template
 
 - name: Create empty ban rooms map # noqa args[module]
   ansible.builtin.file:
     mode: 0644
     path: "{{ haproxy_ban_rooms_map_path }}"
     state: "{{ 'file' if ban_rooms_map_file.stat.exists else 'touch' }}"
+  when:
+    - not haproxy_enable_consul_template
 
 # ensure existence of tenant ban map file
 - name: Check for existence of ban tenants map file
   ansible.builtin.stat:
     path: "{{ haproxy_ban_tenants_map_path }}"
   register: ban_tenants_map_file
+  when:
+    - not haproxy_enable_consul_template
 
 - name: Create empty ban tenants map # noqa args[module]
   ansible.builtin.file:
     mode: 0644
     path: "{{ haproxy_ban_tenants_map_path }}"
     state: "{{ 'file' if ban_tenants_map_file.stat.exists else 'touch' }}"
+  when:
+    - not haproxy_enable_consul_template
 
 - name: Change haproxy default config
   ansible.builtin.template:

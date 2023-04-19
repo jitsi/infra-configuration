@@ -1,0 +1,2 @@
+{{ $ban_substr_path := print "banlists/" (env "ENVIRONMENT") "/substr" }}{{ range ls $ban_substr_path }}{{ .Key }} {{ .Value }}
+{{ end -}}

@@ -1,0 +1,2 @@
+{{ $ban_exact_path := print "banlists/" (env "ENVIRONMENT") "/exact" }}{{ range ls $ban_exact_path }}{{ .Key }} {{ .Value }}
+{{ end -}}

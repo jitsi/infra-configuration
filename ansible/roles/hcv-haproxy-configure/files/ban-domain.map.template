@@ -1,0 +1,2 @@
+{{ $ban_domain_path := print "banlists/" (env "ENVIRONMENT") "/domain" }}{{ range ls $ban_domain_path }}{{ .Key }} {{ .Value }}
+{{ end -}}
