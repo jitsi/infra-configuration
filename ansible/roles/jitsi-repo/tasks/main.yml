@@ -42,15 +42,11 @@
     state: absent
 
 - name: Remove old jitsi repo host auth
-  ansible.builtin.template:
-    dest: "/etc/apt/auth.conf.d/{{ jitsi_repo_host_old }}.conf"
-    src: "jitsi-repo.conf.j2"
-    owner: root
-    mode: 0600
+  ansible.builtin.file:
+    path: "/etc/apt/auth.conf.d/{{ jitsi_repo_host_old }}.conf"
+    state: absent
 
 - name: Remove old jitsi repo auth file
-  ansible.builtin.template:
-    dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
-    src: "jitsi-repo.conf.j2"
-    owner: root
-    mode: 0600
+  ansible.builtin.file:
+    path: "/etc/apt/auth.conf.d/jitsi-repo.conf"
+    state: absent
