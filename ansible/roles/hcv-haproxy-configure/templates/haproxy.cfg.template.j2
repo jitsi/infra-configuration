@@ -91,7 +91,7 @@ frontend www-http
   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
   http-request deny if bad_guy_wordpress
 
-  http-request set-var(req.ban_domain) hdr(referer),lower,map({{ haproxy_ban_domain_path }})
+  http-request set-var(req.ban_domain) hdr(referer),lower,map({{ haproxy_ban_domain_map_path }})
   acl banned_domain var(req.ban_domain) -m str ban
   http-request deny deny_status 429 if banned_domain
 
