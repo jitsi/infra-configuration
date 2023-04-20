@@ -192,7 +192,7 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_visitors_muc_max_occupants %}
         'muc_max_occupants';
 {% endif %}
-{% if prosody_limit_messages %}
+{% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
 {% endif %}
     }

@@ -543,7 +543,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_polls_enabled %}
         "polls";
 {% endif %}
-{% if prosody_limit_messages %}
+{% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
 {% endif %}
     }
@@ -685,7 +685,7 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% if prosody_meet_webhooks_enabled %}
         "muc_webhooks";
 {% endif %}
-{% if prosody_limit_messages %}
+{% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
 {% endif %}
     }
