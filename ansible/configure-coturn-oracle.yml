@@ -152,8 +152,8 @@
     - name: Disable native telegraf in nomad case
       ansible.builtin.systemd:
         name: telegraf
-        state: started
-        enabled: true
+        state: stopped
+        enabled: false
       when: coturn_enable_nomad
     - name: Copy ssl cert to the ssl folder
       ansible.builtin.copy:
