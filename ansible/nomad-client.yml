@@ -16,6 +16,7 @@
     cloud_provider: oracle
     shard_role: nomad-pool
     nomad_node_role: client
+    nomad_node_class: "{{ nomad_pool_type }}"
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
