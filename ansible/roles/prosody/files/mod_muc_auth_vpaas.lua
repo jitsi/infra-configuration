@@ -5,6 +5,7 @@ local basexx = require "basexx";
 local st = require "util.stanza";
 local timer = require "util.timer";
 
+local util_internal = module:require "util.internal";
 local util = module:require "util";
 local is_healthcheck_room = util.is_healthcheck_room;
 local starts_with = util.starts_with;
@@ -138,19 +139,19 @@ end
 local function deny_access(origin, stanza, room_disabled_access, room_jid, occupant)
     local token = origin.auth_token;
     local tenant = origin.jitsi_meet_domain;
-    if not is_healthcheck_room(room_jid) and not util.is_blacklisted(occupant) then
+    if not is_healthcheck_room(room_jid) and not util_internal.is_blacklisted(occupant) then
         local initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
         if initiator then
             module:log("debug", "Let Jigasi pass throw");
             return nil;
         end
 
-        if util.is_sip_jibri_join(stanza) then
+        if util_internal.is_sip_jibri_join(stanza) then
             module:log("info", "Let Sip Jibri pass through %s", occupant);
             return nil;
         end
 
-        if room_jid == nil or not util.is_vpaas(room_jid) then
+        if room_jid == nil or not util_internal.is_vpaas(room_jid) then
             module:log("debug", "Skip VPAAS related verifications for non VPAAS room %s", room_jid);
             return nil;
         end
