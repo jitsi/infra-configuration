@@ -149,6 +149,12 @@
     - { role: "coturn", tags: "coturn", when: not coturn_enable_nomad,
         coturn_cloudwatch_flag: false, coturn_install_flag: false, coturn_ipv6_ddns: true, ipv6_enabled: false }
   tasks:
+    - name: Disable native telegraf in nomad case
+      ansible.builtin.systemd:
+        name: telegraf
+        state: started
+        enabled: true
+      when: coturn_enable_nomad
     - name: Copy ssl cert to the ssl folder
       ansible.builtin.copy:
         mode: 0644
