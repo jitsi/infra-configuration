@@ -22,6 +22,16 @@
     - java_from_apt
     - java_install_flag
 
+
+- name: Install java 11 debug
+  ansible.builtin.apt:
+    name: openjdk-11-dbg
+    state: present
+    update_cache: true
+  when:
+    - java_from_apt
+    - java_install_flag
+
 - name: Download java packages from URL
   ansible.builtin.get_url:
     mode: 0644
