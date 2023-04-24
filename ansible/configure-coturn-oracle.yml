@@ -8,6 +8,7 @@
     shard_role: coturn
     cloud_provider: oracle
     nomad_node_role: client
+    nomad_node_class: "coturn"
     coturn_ssl_cert_name: "star_jitsi_net-2023-08-19"
     coturn_ssl_crt_dest_path: "{{ coturn_ssl_dest }}/{{ coturn_ssl_cert_name }}.crt"
     coturn_ssl_dest: "/etc/ssl"
