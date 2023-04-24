@@ -2,9 +2,9 @@
 #
 # check a draft haproxy config and install if it's valid
 
-logit(msg) {
-  echo "## $MSG"
-  logger -p local0.notice -t ${0##*/}[$$] "$MSG"
+function logit() {
+  echo "## $1"
+  logger -p local0.notice -t ${0##*/}[$$] "$1"
 }
 
 logit "starting check-install-haproxy-config.sh"

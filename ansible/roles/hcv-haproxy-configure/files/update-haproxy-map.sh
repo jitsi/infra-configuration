@@ -6,6 +6,7 @@ function logit() {
   echo "## $1"
   logger -p local0.notice -t ${0##*/}[$$] "$1"
 }
+logit "starting update-haproxy-map.sh"
 
 if [ -n "$1" ]; then
     UPDATE_MAP=$1
@@ -17,7 +18,7 @@ if [ -z "$UPDATE_MAP" ]; then
 fi
 
 if [ ! -f "$UPDATE_MAP" ]; then
-    logit "update-haproxy-map: map file $UPDATE_MAP does not exist"
+    logit "map file $UPDATE_MAP does not exist"
     exit 1
 fi
 
