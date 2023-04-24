@@ -2,9 +2,7 @@
 default_jibri_environments: []
 environment_domain_name: ""
 java_jibri_nick: "jibri-{{ jibri_component_id }}"
-# By default we're not overriding the all_muted_timeout.  If an env wants to override it, they should re-assign
-# this variable to the overridden value
-jibri_all_muted_timeout_override: false
+jibri_all_muted_timeout_override: "30 minutes"
 jibri_asap_audience: "jibri-queue"
 jibri_asap_issuer: "jibri"
 jibri_asap_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
