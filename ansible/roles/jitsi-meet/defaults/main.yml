@@ -117,6 +117,7 @@ jitsi_meet_enable_calendar: false
 jitsi_meet_enable_callstats: false
 jitsi_meet_enable_colibri_websockets: false
 jitsi_meet_enable_conference_request_http: false
+jitsi_meet_enable_dtx: false
 jitsi_meet_enable_email_in_stats: false
 jitsi_meet_enable_event_proxy: true
 jitsi_meet_enable_face_landmarks_enable_centering: false

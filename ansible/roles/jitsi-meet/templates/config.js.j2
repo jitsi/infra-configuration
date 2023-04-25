@@ -177,7 +177,8 @@ var config = {
 {% endif %}
     disableAudioLevels: false,
     audioQuality {
-        stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %}
+        stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
+        enableOpusDtx: {% if jitsi_meet_enable_dtx %}true{% else %}false{% endif %}
     },
 {% if jitsi_meet_force_jvb121_ratio %}
     forceJVB121Ratio:  {{ jitsi_meet_force_jvb121_ratio }},
