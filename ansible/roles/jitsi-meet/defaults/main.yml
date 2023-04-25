@@ -108,6 +108,7 @@ jitsi_meet_disable_reactions: false
 jitsi_meet_disable_reactions_moderation: false
 jitsi_meet_disable_record_audio_notification: false
 jitsi_meet_disable_speaker_stats_search: false
+jitsi_meet_disable_stage_filmstrip: false
 jitsi_meet_domain_name: "{{ prosody_domain_name }}"
 jitsi_meet_download_apps_url: false
 jitsi_meet_dropbox_app_key: false
@@ -123,14 +124,10 @@ jitsi_meet_enable_face_landmarks_detect_expressions: false
 jitsi_meet_enable_face_landmarks_display_expressions: false
 jitsi_meet_enable_face_landmarks_enable_rtc_stats: false
 jitsi_meet_enable_local_recording: false
-jitsi_meet_local_recording_notify_all: true
 jitsi_meet_enable_file_recordings: false
 jitsi_meet_enable_file_recordings_service: false
 jitsi_meet_enable_file_recordings_sharing: false
 jitsi_meet_enable_forced_client_reload: false
-jitsi_meet_enable_userdirs: false
-jitsi_meet_giphy_enabled: false
-jitsi_meet_giphy_sdk_key: ''
 jitsi_meet_enable_gzip: false
 jitsi_meet_enable_insecure_room_name_warning: false
 jitsi_meet_enable_livestreaming: false
@@ -148,10 +145,10 @@ jitsi_meet_enable_send_multiple_streams: false
 jitsi_meet_enable_simulcast: true
 jitsi_meet_enable_source_name_signaling: false
 jitsi_meet_enable_ssrc_rewriting: false
-jitsi_meet_disable_stage_filmstrip: false
 jitsi_meet_enable_stereo: false
 jitsi_meet_enable_transcription: false
 jitsi_meet_enable_turn_udp_jvb: false
+jitsi_meet_enable_userdirs: false
 jitsi_meet_enable_unsafe_room_warning: false
 jitsi_meet_enable_user_roles_based_on_token: false
 jitsi_meet_enable_welcome_page: true
@@ -164,6 +161,8 @@ jitsi_meet_feedback_percentage: 100
 # returns a value in [0, 1) uniformly distributed, so, the default "-1" means
 # that no call should be moved to the JVB after a successful P2P.
 jitsi_meet_force_jvb121_ratio: -1
+jitsi_meet_giphy_enabled: false
+jitsi_meet_giphy_sdk_key: ''
 jitsi_meet_google_analytics_flag: false
 jitsi_meet_google_analytics_hep_flag: false
 jitsi_meet_google_analytics_hep_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
@@ -183,6 +182,7 @@ jitsi_meet_install_flag: true
 jitsi_meet_jvb_disabled_codec: "H264"
 jitsi_meet_load_test_enabled: false
 jitsi_meet_load_test_repo: https://github.com/jitsi/jitsi-meet-load-test.git
+jitsi_meet_local_recording_notify_all: true
 jitsi_meet_microsoft_api_app_client_id: false
 jitsi_meet_min_height_quality_level: false
 jitsi_meet_mobile_xmpp_ws_threshold: false
