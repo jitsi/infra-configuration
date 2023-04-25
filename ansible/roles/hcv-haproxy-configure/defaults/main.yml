@@ -1,6 +1,5 @@
 ---
 ansible_ec2_placement_region:
-consul_template_download_url: https://github.com/sawall/consul-template/releases/download/v0.1.0/consul-template_linux_amd64.zip
 haproxy_agent_check: true
 haproxy_agent_check_port: 6060
 haproxy_bad_room_list: "{{ bad_room_list | default([]) }}"
