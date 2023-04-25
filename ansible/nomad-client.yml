@@ -44,10 +44,24 @@
         url: http://169.254.169.254/opc/v1/instance/
       register: instance_result
       tags: setup
-    - name: Set JVB shape variable
+    - name: Set nomad shape variable
       ansible.builtin.set_fact:
-        jvb_shape: "{{ instance_result.json.shape }}"
+        nomad_shape: "{{ instance_result.json.shape }}"
       tags: setup
+    - name: Calculate nomad cpu_total_compute
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo $(( $(dmidecode -t 4 | grep 'Current Speed:' | awk '{print $3}') * $(cat /proc/cpuinfo | grep 'processor' | wc -l) ))
+      args:
+        executable: /bin/bash
+      register: cpu_total_compute_result
+      tags: setup
+      when: nomad_shape == "VM.Standard.A1.Flex"
+    - name: Set nomad cpu_total_compute fact
+      ansible.builtin.set_fact:
+        cpu_total_compute: "{{ cpu_total_compute_result.stdout }}"
+      tags: setup
+      when: nomad_shape == "VM.Standard.A1.Flex"
     - name: Get instance's Public IP from VNIC
       ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
       register: vnic_details_result
