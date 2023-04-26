@@ -3,12 +3,13 @@
   hosts: all
   gather_facts: true
   become_user: root
-  become: yes
+  become: true
   strategy: free
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/oci-logging.yml
+    - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
@@ -20,17 +21,17 @@
         update_cache: true
 
   roles:
-     - { role: "common", tags: "common" }
-     - { role: "sshusers", tags: "ssh" }
-     - { role: "fail2ban", tags: "fail2ban" }
-     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
-     - { role: "ntp", tags: "ntp"}
-     - { role: "logrotate", tags: "logrotate"}
-     - { role: "journald", tags: "journald"}
-     - { role: "rsyslog", tags: "rsyslog"}
-     - { role: "nginx", tags: "nginx"}
-     - { role: "docker", tags: "docker"}
-     - { role: "iptables-firezone", tags: "iptables"}
-     - { role: "firezone", tags: "firezone"}
-     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: firezone_enable_fluentd }
-     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+    - { role: "common", tags: "common" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "fail2ban", tags: "fail2ban" }
+    - { role: "unattended-upgrades", tags: "unattended-upgrades"}
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "nginx", tags: "nginx"}
+    - { role: "docker", tags: "docker"}
+    - { role: "iptables-firezone", tags: "iptables"}
+    - { role: "firezone", tags: "firezone"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: firezone_enable_fluentd }
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
