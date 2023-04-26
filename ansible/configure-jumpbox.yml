@@ -8,6 +8,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/oci-logging.yml
+    - secrets/carbon-black.yml
     - config/vars.yml
     - "sites/{{ hcv_environment }}/vars.yml"
   vars:

@@ -12,6 +12,7 @@
     - config/vars.yml
     - secrets/oci-logging.yml
     - secrets/repo.yml
+    - secrets/carbon-black.yml
     - sites/{{hcv_environment}}/vars.yml
   vars:
     cloud_provider: oracle

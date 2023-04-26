@@ -53,6 +53,7 @@
     - secrets/prosody-egress-aws.yml
     - secrets/oci-logging.yml
     - secrets/repo.yml
+    - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
 
@@ -223,6 +224,7 @@
   roles:
   # initial system pre-requisites
     - { role: "common", tags: "common" }
+    - { role: "carbon-black", tags: "carbon-black" }
     - { role: "openjdk-java", tags: "openjdk" }
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "sshusers", tags: "ssh" }

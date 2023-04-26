@@ -10,6 +10,7 @@
     - secrets/consul.yml
     - secrets/nomad.yml
     - secrets/oci-logging.yml
+    - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
@@ -70,7 +71,7 @@
     - { role: "docker", tags: "docker" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
-#    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
     - name: Consul service enablement
       ansible.builtin.systemd:
