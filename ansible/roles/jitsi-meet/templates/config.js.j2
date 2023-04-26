@@ -176,7 +176,7 @@ var config = {
     },
 {% endif %}
     disableAudioLevels: false,
-    audioQuality {
+    audioQuality: {
         stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
         enableOpusDtx: {% if jitsi_meet_enable_dtx %}true{% else %}false{% endif %}
     },
