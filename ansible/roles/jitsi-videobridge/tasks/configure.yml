@@ -355,6 +355,13 @@
     - not jvb_image_build_flag and ansible_service_mgr == "systemd"
     - jvb_cloud_provider == "aws"
 
+- name: Never restart to avoid disruption during dump and terminate
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/{{ jvb_systemd_service_name }}.service
+    regexp: '^Restart='
+    line: 'Restart=no'
+  when: not jvb_image_build_flag and ansible_service_mgr == "systemd"
+
 # Enable and run service if we are not building an AMI
 - name: Enable JVB systemd service
   ansible.builtin.systemd:
