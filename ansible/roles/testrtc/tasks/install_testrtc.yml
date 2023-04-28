@@ -16,6 +16,8 @@
     mode: 0755
 
 - name: TestRTC | Pull source files from GIT # noqa latest[git]
+  become: true
+  become_user: ubuntu
   ansible.builtin.git:
     repo: "{{ testrtc_git_repository }}"
     dest: "{{ testrtc_base_path }}"
