@@ -25,6 +25,10 @@ network_settings = {
 }
 {% endif %}
 
+{% if prosody_amplitude_api_key %}
+amplitude_api_key = "{{ prosody_amplitude_api_key }}"
+{% endif %}
+
 debug_traceback_filename = "traceback.txt"
 
 -- This is the list of modules Prosody will load on startup.
@@ -546,6 +550,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
 {% endif %}
+{% if prosody_enable_mod_measure_message_count %}
+        "measure_message_count";
+{% endif %}
     }
 
 {% if prosody_enable_rate_limit %}
@@ -687,6 +694,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% endif %}
 {% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
+{% endif %}
+{% if prosody_enable_mod_measure_message_count %}
+        "measure_message_count";
 {% endif %}
     }
     {% endif %}

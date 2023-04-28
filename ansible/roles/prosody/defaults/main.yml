@@ -10,6 +10,7 @@ moderator_auth_domain_path: "/var/lib/prosody/{{ prosody_auth_domain_name | rege
 moderator_auth_password: "replaceme"
 moderator_auth_user: "moderator"
 prosody_admins: "{{ prosody_focus_admins | list }}"
+prosody_amplitude_api_key: false
 prosody_apt_base_name: prosody
 prosody_asap_accepted_audiences:
   - jitsi
@@ -69,6 +70,8 @@ prosody_enable_log_filter: false
 # plugin to write logs on slow event processing
 prosody_enable_log_slow_events: true
 prosody_enable_mod_turncredentials: false
+# Send "conference_ended" events with duration and message count. Requires amplitude_api_key to be set, inactive without it.
+prosody_enable_mod_measure_message_count: false
 prosody_enable_muc_census: true
 prosody_enable_muc_domain_mapper: false
 # call flow configuration
