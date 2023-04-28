@@ -140,7 +140,9 @@ frontend www-http
   http-request set-var(txn.is_room) always_true if is_room
 {% endif %}
 
-  acl not_web url_reg [?&]stick=true
+  acl stick_true url_reg [?&]stick=true
+  http-request set-var(txn.not_web) always_true if stick_true is_room !not_room
+  acl not_web var(txn.not_web) -m bool always_true
 
   acl bad_guy_wordpress hdr_sub(User-Agent) -i wordpress
   http-request deny if bad_guy_wordpress
