@@ -25,6 +25,10 @@ network_settings = {
 }
 {% endif %}
 
+{% if prosody_amplitude_api_key %}
+amplitude_api_key = "{{ prosody_amplitude_api_key }}"
+{% endif %}
+
 debug_traceback_filename = "traceback.txt"
 
 -- This is the list of modules Prosody will load on startup.
@@ -45,6 +49,9 @@ modules_enabled = {
     -- Admin interfaces
       "admin_adhoc"; -- Allows administration via an XMPP client that supports ad-hoc commands
       "admin_telnet"; -- Opens telnet console interface on localhost port 5582
+      {% if prosody_enable_mod_measure_message_count %}
+      "measure_message_count";
+      {% endif %}
 
     -- jitsi
       "adhoc";
