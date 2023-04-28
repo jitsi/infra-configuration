@@ -71,7 +71,7 @@ prosody_enable_log_filter: false
 prosody_enable_log_slow_events: true
 prosody_enable_mod_turncredentials: false
 # Send "conference_ended" events with duration and message count. Requires amplitude_api_key to be set, inactive without it.
-prosody_enable_mod_measure_message_count: true
+prosody_enable_mod_measure_message_count: false
 prosody_enable_muc_census: true
 prosody_enable_muc_domain_mapper: false
 # call flow configuration
