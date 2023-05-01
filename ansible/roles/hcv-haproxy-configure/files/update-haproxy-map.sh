@@ -35,10 +35,12 @@ while IFS='' read -r line || [ -n "$line" ]; do
 done < "${UPDATE_MAP}"
 
 echo "commit map @$PREPARE_VERSION $UPDATE_MAP" | socat /var/run/haproxy/admin.sock stdio
-if [ $? -ne 0 ]; then
+if [ $? -gt 0 ]; then
     echo "#### uhm: commit map failed for $UPDATE_MAP" >> $TEMPLATE_LOGFILE
     echo -n "jitsi.haproxy.map_update_failed:1|c" | nc -4u -w1 localhost 8125
     exit 1
+else
+    echo -n "jitsi.haproxy.map_update_failed:1|0" | nc -4u -w1 localhost 8125
 fi
 
 echo -n "jitsi.haproxy.map_update:1|c" | nc -4u -w1 localhost 8125
