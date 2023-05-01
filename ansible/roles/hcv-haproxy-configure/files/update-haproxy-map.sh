@@ -6,7 +6,7 @@
 [ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/template.log"
 
 if [ ! -f "$TEMPLATE_LOGDIR" ]; then
-  touch $TEMPLATE_LOGDIR
+  mkdir $TEMPLATE_LOGDIR
 fi
 
 if [ ! -f "$TEMPLATE_LOGFILE" ]; then
