@@ -5,7 +5,7 @@
 [ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/tmp/ct-logs"
 [ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/template.log"
 
-if [ ! -f "$TEMPLATE_LOGDIR" ]; then
+if [ ! -d "$TEMPLATE_LOGDIR" ]; then
   mkdir $TEMPLATE_LOGDIR
 fi
 
