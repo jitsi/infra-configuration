@@ -46,7 +46,6 @@ if [ $? -gt 0 ]; then
     exit 1
 else
     echo -n "jitsi.haproxy.map_update_failed:1|0" | nc -4u -w1 localhost 8125
-    echo "#### uhm: failed to update map $UPDATE_MAP" >> $TEMPLATE_LOGFILE
 fi
 
 echo -n "jitsi.haproxy.map_update:1|c" | nc -4u -w1 localhost 8125
