@@ -24,7 +24,7 @@ if [ ! -f "$UPDATE_MAP" ]; then
     exit 1
 fi
 
-echo "#### uhm: updating live config with $UPDATE_MAP" >> $TEMPLATE_LOGFILE
+echo "#### uhm: updating live config of $UPDATE_MAP" >> $TEMPLATE_LOGFILE
 
 PREPARE_VERSION=$(echo "prepare map $UPDATE_MAP" | socat /var/run/haproxy/admin.sock stdio | cut -d ':' -f2 | xargs)
 
