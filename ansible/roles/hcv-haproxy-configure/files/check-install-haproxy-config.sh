@@ -33,7 +33,7 @@ else
     echo -n "jitsi.haproxy.reconfig_failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
-echo "$(date --utc +%Y%m%d_%H%M%SZ) cihc: validated $DRAFT_CONFIG; copying to haproxy.cfg and restarting haproxy" >> $TEMPLATE_LOGFILE
+echo "#### cihc: validated $DRAFT_CONFIG; copying to haproxy.cfg and restarting haproxy" >> $TEMPLATE_LOGFILE
 
 cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
 service haproxy reload
