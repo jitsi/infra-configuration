@@ -2,7 +2,7 @@
 #
 # read a haproxy map file and uses haproxy admin socket to update the live configuration
 
-[ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/tmp/consul-template"
+[ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/tmp/ct-logs"
 [ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/template.log"
 
 if [ ! -f "$TEMPLATE_LOGDIR" ]; then
