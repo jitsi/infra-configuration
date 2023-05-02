@@ -20,9 +20,3 @@
     owner: root
     mode: 0644
   when: upload_integrations_configure_flag
-
-- name: Install jitsi-upload-integrations package
-  ansible.builtin.apt:
-    name: "{{ uploader_pkg_name }}"
-    state: present
-  when: upload_integrations_install_flag
