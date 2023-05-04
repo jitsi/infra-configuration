@@ -289,7 +289,7 @@ backend {{ haproxy_backend_name }}
 {% for dc in haproxy_facts.datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }}
-{% endraw %}{% endfor %}{% if haproxy_corp_headers_enabled %}
+{% endraw %}{% if haproxy_corp_headers_enabled %}
   acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
   acl corp_path capture.req.uri -i -m end /static/[^/]+$
   acl corp_room var(txn.is_room) -m bool always_true
