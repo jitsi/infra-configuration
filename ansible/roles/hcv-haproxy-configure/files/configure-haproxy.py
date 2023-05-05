@@ -404,7 +404,7 @@ def fetch_instances(region):
         return []
 
 
-def build_haproxy_variables(backends, peers, local_instance, live_release=None):
+def build_haproxy_variables(backends, peers, datacenters, local_instance={}, live_release=None):
     """ Build local variables for Ansible
     :return: Json to the standard output
     """
@@ -418,6 +418,7 @@ def build_haproxy_variables(backends, peers, local_instance, live_release=None):
         'backends': backends,
         'peers': peers,
         'releases': list(releases),
+        'datacenters': datacenters,
         'live_release': live_release,
     }
 
@@ -528,11 +529,11 @@ def main():
 
         consul_data = fetch_consul_data(consul_urls, local_environment, local_datacenters, ordered_datacenters, include_standalone)
 
-        build_haproxy_variables(backends=consul_data['backends'], peers=consul_data['peers'], local_instance={}, live_release=consul_data['live_release'])
+        build_haproxy_variables(backends=consul_data['backends'], peers=consul_data['peers'], datacenters=ordered_datacenters, live_release=consul_data['live_release'])
 
     else:
         aws_data = fetch_aws_data()
-        build_haproxy_variables(backends = aws_data['backends'], peers = aws_data['peers'], local_instance = fetch_instances)
+        build_haproxy_variables(backends = aws_data['backends'], peers = aws_data['peers'], datacenters=ordered_datacenters, local_instance = fetch_instances)
 
     #now read the server states from haproxy
     # server_states = read_haproxy_server_states()
