@@ -417,28 +417,3 @@
     dest: /usr/local/bin/check-install-haproxy-config.sh
   when:
     - haproxy_enable_consul_template
-
-- name: wait 30 seconds mesh to form before setting healthy
-  ansible.builtin.pause:
-    seconds: 30
-  when:
-    - haproxy_enable_consul_template
-    - haproxy_boot_flag
-
-- name: debugging
-  ansible.builtin.debug:
-    var: haproxy_boot_flag
-
-- name: make sure haproxy.cfg is installed from /tmp once
-  ansible.builtin.shell:
-    cmd: "/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test"
-  when:
-    - haproxy_boot_flag
-
-- name: Write health map file as up or persist existing value
-  ansible.builtin.copy:
-    mode: 0644
-    dest: "{{ haproxy_health_up_map_path }}"
-    content: "up {{ haproxy_health_up_map_value | to_json }}"
-  when:
-    - haproxy_enable_consul_template
