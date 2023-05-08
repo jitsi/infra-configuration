@@ -218,10 +218,11 @@
     - name: print up.map to console
       debug:
         msg: "{{command_output.stdout}}"
-    - name: write health map file as up or persist existing value
+    - name: write health map file as up on boot
       ansible.builtin.copy:
         mode: 0644
         dest: "{{ haproxy_health_up_map_path }}"
-        content: "up {{ haproxy_health_up_map_value | to_json }}"
+        content: "up true"
       when:
         - haproxy_enable_consul_template
+        - haproxy_boot_flag
