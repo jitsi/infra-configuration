@@ -68,6 +68,9 @@ if [ $FINAL_EXIT -eq 0 ]; then
     fi
 fi
 
+# clean config directory
+find $TEMPLATE_LOGDIR -type f -mtime +14 -name '*.cfg' -execdir rm -- '{}' \;
+
 if [ $FINAL_EXIT -gt 0 ]; then
     echo -n "jitsi.haproxy.reconfig_failed:1|c" | nc -4u -w1 localhost 8125
 else
