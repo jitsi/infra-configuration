@@ -212,12 +212,6 @@
         seconds: 15
       when:
         - haproxy_boot_flag
-    - name: display up.map contents
-      command: cat /etc/haproxy/maps/up.map
-      register: command_output
-    - name: print up.map to console
-      debug:
-        msg: "{{command_output.stdout}}"
     - name: write health map file as up on boot
       ansible.builtin.copy:
         mode: 0644
