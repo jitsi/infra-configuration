@@ -62,6 +62,7 @@
     - { role: "consul-install", tags: "consul-install"}
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false }
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: true, jicofo_configure_flag: false }
+    - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: true, jicofo_rtcstats_push_configure_flag: false }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: true, jitsi_meet_configure_flag: false}
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: true, signal_sidecar_configure_flag: false }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}

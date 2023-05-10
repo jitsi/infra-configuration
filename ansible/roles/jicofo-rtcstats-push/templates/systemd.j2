@@ -1,0 +1,20 @@
+[Unit]
+Description=Jicofo RTC Stats Pusher
+After=network.target
+
+[Service]
+User={{ jicofo_rtcstats_push_username }}
+Group={{ jicofo_rtcstats_push_groupname }}
+EnvironmentFile={{ jicofo_rtcstats_push_config_path }}
+WorkingDirectory={{ jicofo_rtcstats_push_base_path }}
+ExecStart=/usr/bin/node app.js
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier={{ jicofo_rtcstats_push_service_name }}
+
+[Install]
+WantedBy=multi-user.target

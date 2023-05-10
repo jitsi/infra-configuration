@@ -1,0 +1,20 @@
+---
+jicofo_rtcstats_enabled: false
+jicofo_rtcstats_push_base_path: /opt/jitsi/jicofo-rtcstats-push
+jicofo_rtcstats_push_config_dir: /etc/jitsi/jicofo-rtcstats-push
+jicofo_rtcstats_push_config_path: /etc/jitsi/jicofo-rtcstats-push/service.env
+jicofo_rtcstats_push_configure_flag: true
+jicofo_rtcstats_push_git_repo: https://github.com/jitsi/jicofo-rtcstats-push.git
+jicofo_rtcstats_push_groupname: jitsi
+jicofo_rtcstats_push_install_flag: true
+jicofo_rtcstats_push_jicofo_address: http://localhost:8888
+jicofo_rtcstats_push_log_dir: /var/log/jitsi/jicofo-rtcstats-push
+jicofo_rtcstats_push_rtcstats_server: false
+jicofo_rtcstats_push_service_name: jicofo-rtcstats-push
+jicofo_rtcstats_push_username: jicofortcstatspush
+jicofo_rtcstats_user:
+  groups: ["adm", "{{ jicofo_rtcstats_push_groupname }}"]
+  homedir: "/home/{{ jicofo_rtcstats_push_username }}"
+  real_name: jicofo RTC stats pusher user
+  state: present
+  username: "{{ jicofo_rtcstats_push_username }}"
