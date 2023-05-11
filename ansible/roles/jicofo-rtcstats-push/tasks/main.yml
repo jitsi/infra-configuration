@@ -1,0 +1,8 @@
+---
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
+  when: jicofo_rtcstats_push_install_flag
+
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
+  when: jicofo_rtcstats_push_configure_flag

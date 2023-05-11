@@ -1,0 +1,59 @@
+---
+- name: Install list of packages
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: User creation
+  ansible.builtin.user:
+    name: "{{ jicofo_rtcstats_user.username }}"
+    groups: "{{ jicofo_rtcstats_user.groups | join(',') }}"
+    shell: /bin/bash
+    comment: "{{ jicofo_rtcstats_user.real_name }}"
+    home: "{{ jicofo_rtcstats_user.homedir }}"
+    createhome: true
+    state: present
+
+- name: Code Directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jicofo_rtcstats_push_base_path }}"
+    state: directory
+    owner: "{{ jicofo_rtcstats_push_username }}"
+    group: "{{ jicofo_rtcstats_push_groupname }}"
+    recurse: true
+
+- name: Check out codebase # noqa latest[git]
+  become: true
+  become_user: "{{ jicofo_rtcstats_push_username }}"
+  ansible.builtin.git:
+    repo: "{{ jicofo_rtcstats_push_git_repo }}"
+    dest: "{{ jicofo_rtcstats_push_base_path }}"
+    update: true
+    force: true
+    accept_hostkey: true
+
+- name: Install npm Requirements # noqa no-changed-when
+  ansible.builtin.command: npm install
+  become: true
+  become_user: "{{ jicofo_rtcstats_push_username }}"
+  args:
+    chdir: "{{ jicofo_rtcstats_push_base_path }}"
+
+- name: Application configuration directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jicofo_rtcstats_push_config_dir }}"
+    state: directory
+
+- name: Application log directory
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ jicofo_rtcstats_push_log_dir }}"
+    state: directory
+
+- name: Create rsyslog configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: rsyslog.config.j2
+    dest: /etc/rsyslog.d/27-jicofo-rtcstats-push.conf
