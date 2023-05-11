@@ -127,7 +127,7 @@
           jibri_version: "{{ jibri_version.stdout }}"
 
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
-        upload_integrations_configure_flag: true}
+        upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
         upload_customizations_install_flag: false, upload_customizations_configure_flag: true }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
