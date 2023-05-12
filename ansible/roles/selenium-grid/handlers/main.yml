@@ -11,10 +11,6 @@
   service: name={{ selenium_grid_node_service_name }} state=restarted
   when: selenium_grid_role=='node' and selenium_grid_configure_flag and not selenium_grid_extras_configure_flag
 
-- name: restart datadog agent
-  service: name=datadog-agent state=restarted
-  when: selenium_grid_role=='node' and selenium_grid_configure_flag
-
 - name: restart rsyslog
   service: name=rsyslog state=restarted
   when: selenium_grid_role=='node' and selenium_grid_configure_flag
