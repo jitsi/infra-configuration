@@ -245,10 +245,10 @@
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: true, signal_sidecar_configure_flag: false }
 
-  # configure phase of jitsi components (temporarily enable the install flag until all images are updated)
+  # configure phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true}
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true }
-    - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: true, jicofo_rtcstats_push_configure_flag: true }
+    - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: false, jicofo_rtcstats_push_configure_flag: true }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true, jitsi_meet_redirect_to_ssl: true}
     - { role: jitsi-videobridge, tags: "jitsi-videobridge",
         jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true,
