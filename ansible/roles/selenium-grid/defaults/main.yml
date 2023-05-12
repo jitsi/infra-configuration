@@ -13,6 +13,7 @@ selenium_grid_consul_server_types:
   prod: prod
   stage: prod
 selenium_grid_consul_server_url: "https://{{ selenium_grid_consul_server }}"
+selenium_grid_datadog_enabled: false
 selenium_grid_enable_consul: "{{ true if selenium_grid_cloud_provider == 'oracle' else false }}"
 selenium_grid_enable_update_check_cron: true
 selenium_grid_environment_type: "{{ jitsi_meet_environment_type|default('prod') }}"
