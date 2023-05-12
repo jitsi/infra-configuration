@@ -205,8 +205,8 @@ prosody_rate_limit_cache_size: 10000
 prosody_rate_limit_login_rate: 3
 prosody_rate_limit_session_rate: 2000
 prosody_rate_limit_timeout: 60
-# whitelist localhost, internal network and specific NAT gateways (us-phoenix-1-jitsi-net, eu-frankfurt-1-jitsi-net)
-prosody_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8", "132.226.27.76", "193.122.10.119"]
+# whitelist localhost, internal network and specific NAT gateways (us-phoenix-1-jitsi-net, eu-frankfurt-1-jitsi-net, us-phoenix-1-torture-test)
+prosody_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8", "132.226.27.76", "193.122.10.119", "129.146.19.163"]
 prosody_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
 prosody_server_public_key_repo_url: false
