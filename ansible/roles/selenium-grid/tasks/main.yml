@@ -206,21 +206,6 @@
   copy: src="selenium-grid.rsyslogd.conf" dest="/etc/rsyslog.d/23-selenium-grid.conf"
   notify: restart rsyslog
 
-- name: Configure grid metrics check in datadog
-  copy: src="selenium-grid.datadog.py" dest="/etc/datadog-agent/checks.d/selenium_grid.py"
-  when:
-    - selenium_grid_role == 'node'
-    - selenium_grid_datadog_enabled
-  notify: restart datadog agent
-
-- name: Configure grid metrics configuration in datadog
-  copy: src="selenium-grid.datadog.conf" dest="/etc/datadog-agent/conf.d/selenium_grid.yaml"
-  when:
-    - selenium_grid_role == 'node'
-    - selenium_grid_datadog_enabled
-  notify: restart datadog agent
-
-
 - name: Start up selenium grid hub service
   service: name="{{ selenium_grid_hub_service_name }}" state=started enabled=true
   when: selenium_grid_configure_flag and selenium_grid_role == 'hub' and not selenium_grid_extras_configure_flag

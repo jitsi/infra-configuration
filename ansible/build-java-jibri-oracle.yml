@@ -35,7 +35,7 @@
       tags: "telegraf"
       wavefront_install_collector: true
       datadog_extensions: "true"
-      when: jibri_telegraf_enabled and not jibri_datadog_enabled
+      when: jibri_telegraf_enabled
       vars:
         telegraf_tags:
           role: "jibri"
