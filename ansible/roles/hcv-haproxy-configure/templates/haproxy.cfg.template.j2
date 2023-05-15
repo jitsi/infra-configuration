@@ -61,7 +61,7 @@ defaults
 
 {% set ns = namespace(ordered_haproxy_dcs=[]) %}
 {% for aws_region in haproxy_regions_by_region.haproxy_region %}
-  {% do ns.ordered_haproxy_dcs.append(hcv_environment + '-' + aws_to_oracle_region_map[aws_region]) %}
+  {% set _ = ns.ordered_haproxy_dcs.append(hcv_environment + '-' + aws_to_oracle_region_map[aws_region]) %}
 {% endfor %}
 
 peers mypeers
