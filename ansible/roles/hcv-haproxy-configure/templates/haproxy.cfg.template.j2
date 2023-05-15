@@ -59,8 +59,13 @@ defaults
   errorfile 503 /etc/haproxy/errors/503.http
   errorfile 504 /etc/haproxy/errors/504.http
 
+{% set ns = namespace(ordered_haproxy_dcs=[]) %}
+{% for aws_region in haproxy_regions_by_region.haproxy_region %}
+  {% ns.ordered_haproxy_dcs.append(hcv_environment + '-' + aws_to_oracle_region_map[aws_region]) %}
+{% endfor %}
+
 peers mypeers
-{% for dc in haproxy_facts.datacenters %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
+{% for dc in ns.ordered_haproxy_regions %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
   peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}
 {% endraw %}{% endfor %}
 
