@@ -60,11 +60,15 @@ defaults
   errorfile 504 /etc/haproxy/errors/504.http
 
 {% set ns = namespace(ordered_haproxy_dcs=[]) %}
-{% for aws_region in haproxy_regions %}
+{% for aws_region in haproxy_regions.split() %}
   {{ aws_region }}
+  {% set _ = ns.ordered_haproxy_dcs.append(hcv_environment + '-' + aws_to_oracle_region_map[aws_region]) %}
 {% endfor %}
 
-##
+peers mypeers
+{% for dc in ns.ordered_haproxy_regions %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
+  peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}
+{% endraw %}{% endfor %}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
 listen admin
