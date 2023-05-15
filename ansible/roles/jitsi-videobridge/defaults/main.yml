@@ -11,7 +11,7 @@ jvb_auth_user: "jvb"
 jvb_average_participant_stress: "{{ jvb_average_participant_stress_by_shape[jvb_shape]
   if jvb_shape in jvb_average_participant_stress_by_shape else jvb_average_participant_stress_by_shape['default'] }}"
 jvb_average_participant_stress_by_shape:
-  "VM.Standard.A1.Flex": 0.005
+  "VM.Standard.A1.Flex": 0.006
   "VM.Standard.E3.Flex": 0.005
   "VM.Standard.E4.Flex": 0.005
   "default": 0.01
@@ -83,7 +83,7 @@ jvb_iq_handler_mode: "sync"
 jvb_last_n_limits: false
 jvb_load_threshold: "{{ jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default'] }}"
 jvb_load_threshold_by_shape:
-  "VM.Standard.A1.Flex": 81250
+  "VM.Standard.A1.Flex": 65000
   "VM.Standard.E3.Flex": 81250
   "VM.Standard.E4.Flex": 81250
   "default": 50000
