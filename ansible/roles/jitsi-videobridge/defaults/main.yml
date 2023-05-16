@@ -13,7 +13,7 @@ jvb_average_participant_stress: "{{ jvb_average_participant_stress_by_shape[jvb_
 jvb_average_participant_stress_by_shape:
   "VM.Standard.A1.Flex": 0.006
   "VM.Standard.E3.Flex": 0.005
-  "VM.Standard.E4.Flex": 0.005
+  "VM.Standard.E4.Flex": 0.004
   "default": 0.01
 jvb_brewery_muc: "JvbBrewery@{{ jvb_internal_muc_prefix }}.{{ prosody_domain_name }}"
 jvb_cloud_provider: "{{ cloud_provider | default('aws') }}"
@@ -85,7 +85,7 @@ jvb_load_threshold: "{{ jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in j
 jvb_load_threshold_by_shape:
   "VM.Standard.A1.Flex": 65000
   "VM.Standard.E3.Flex": 81250
-  "VM.Standard.E4.Flex": 81250
+  "VM.Standard.E4.Flex": 100000
   "default": 50000
 jvb_log_series_path: "/tmp/jvb-series.log"
 jvb_log_series_file_size_limit: 20000000
