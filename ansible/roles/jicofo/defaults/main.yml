@@ -13,7 +13,7 @@ jicofo_deb_pkg_name: "jicofo"
 jicofo_deb_pkg_version: "*"
 jicofo_disable_auto_owner: false
 jicofo_enable_colibri2: true
-jicofo_enable_h264: false
+jicofo_enable_h264: true
 jicofo_enable_octo: true
 jicofo_enable_opus_red: false
 # This needs to be kept in sync with jvb_enable_sctp
