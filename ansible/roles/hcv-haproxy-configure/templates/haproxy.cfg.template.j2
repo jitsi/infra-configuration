@@ -61,7 +61,9 @@ defaults
 
 {% set ns = namespace(haproxy_datacenters=[]) -%}
 {% for region in haproxy_regions.split() -%}
-  {%- set _ = ns.haproxy_datacenters.append(hcv_environment + '-' + region) -%}
+  {% if region in consul_wan_regions_oracle %}
+    {%- set _ = ns.haproxy_datacenters.append(hcv_environment + '-' + region) -%}
+  {% endif -%}
 {% endfor -%}
 peers mypeers
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
