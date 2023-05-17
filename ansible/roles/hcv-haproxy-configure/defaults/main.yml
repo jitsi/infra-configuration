@@ -22,7 +22,6 @@ haproxy_check_interval: 10s
 # check health against same port as backend by default, also works against 80
 haproxy_check_port: "{{ haproxy_backend_port }}"
 haproxy_cloud_provider: "{{ cloud_provider | default('aws') }}"
-haproxy_cloud_region: "{{ cloud_region | default('default') }}"
 haproxy_consul_datacenter: "{{ cloud_name | default('dc1') }}"
 haproxy_consul_enabled: false
 haproxy_consul_extra_urls: []
@@ -63,7 +62,7 @@ haproxy_reconfigure_run: false
 haproxy_release_live: false
 haproxy_release_live_map_path: /etc/haproxy/maps/live.map
 haproxy_release_tenant_map_path: /etc/haproxy/maps/tenant.map
-haproxy_region: "{{ oracle_to_aws_region_map[haproxy_cloud_region] if haproxy_cloud_provider == 'oracle' else haproxy_cloud_region | default('default') }}"
+haproxy_region: "{{ cloud_region | default('default') }}"
 haproxy_regions: "{{ haproxy_regions_by_region[haproxy_region] | default(default_regions) }}"
 # required due to changes in configuration scripts which check for specific haproxy version
 haproxy_rest_check: true
