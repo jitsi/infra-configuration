@@ -172,6 +172,7 @@
     src: "configure-haproxy.py"
     mode: 0755
     owner: root
+  when: not haproxy_enable_consul_template
 
 - name: Build custom fact environment file
   ansible.builtin.template:
@@ -179,20 +180,27 @@
     src: "environment.json.j2"
     mode: 0755
     owner: root
+  when: not haproxy_enable_consul_template
 
 - name: Run custom facts to build cache
   ansible.builtin.command: /usr/local/bin/configure-haproxy.py
-  when: not haproxy_build_ami
+  when:
+    - not haproxy_build_ami
+    - not haproxy_enable_consul_template
 
 - name: Load custom facts from file
   ansible.builtin.command: cat /tmp/haproxy-facts.json
   register: facts_result
-  when: not haproxy_build_ami
+  when:
+    - not haproxy_build_ami
+    - not haproxy_enable_consul_template
 
 - name: Set haproxy facts
   ansible.builtin.set_fact:
     haproxy_facts: "{{ facts_result.stdout | from_json }}"
-  when: not haproxy_build_ami
+  when:
+    - not haproxy_build_ami
+    - not haproxy_enable_consul_template
 
 - name: Check CPU count
   ansible.builtin.shell: |
