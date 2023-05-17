@@ -59,16 +59,14 @@ defaults
   errorfile 503 /etc/haproxy/errors/503.http
   errorfile 504 /etc/haproxy/errors/504.http
 
-{% set ns = namespace(ordered_haproxy_dcs=[]) %}
-{% for aws_region in haproxy_regions.split() %}
-  {{ aws_region }}
-  {% set _ = ns.ordered_haproxy_dcs.append(hcv_environment + '-' + aws_to_oracle_region_map[aws_region]) %}
-{% endfor %}
-
+{% set ns = namespace(haproxy_datacenters=[]) -%}
+{% for region in haproxy_regions.split() -%}
+  {%- set _ = ns.haproxy_datacenters.append(hcv_environment + '-' + region) -%}
+{% endfor -%}
 peers mypeers
-{% for dc in ns.ordered_haproxy_regions %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
   peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}
-{% endraw %}{% endfor %}
+{% endraw %}{% endfor -%}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
 listen admin
@@ -213,7 +211,7 @@ frontend www-http
 {% else %}
 
   # shard-specific backends
-{% for dc in haproxy_facts.datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
   use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ }{{ end }}{% endraw %}
 
   # use tenant pin if there are servers, otherwise use the GA (live) backend
@@ -291,7 +289,7 @@ backend {{ haproxy_backend_name }}
   option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
 {%- endif %}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
-{% for dc in haproxy_facts.datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}{% if haproxy_corp_headers_enabled %}
@@ -343,8 +341,8 @@ backend release-{{ $release }}
   hash-balance-factor 150
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
   stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
-{% for dc in haproxy_facts.datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release }}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release }}
   server {{ $release }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{% endraw %}{% if loop.index != 1 %}{% raw %} backup{% endraw %}{% endif %}{% raw %}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{% endraw %}{% endfor %}
-{% for dc in haproxy_facts.datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if ne $shard.ServiceMeta.release_number $release }}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if ne $shard.ServiceMeta.release_number $release }}
   server {{ $release }}-fallback-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }} backup{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{% endraw %}{% endfor %}{% raw %}
 {{ end }}{% endraw %}
