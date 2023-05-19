@@ -10,6 +10,7 @@
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/jvb.yml
+    - secrets/consul.yml
     - secrets/jvb-ddns.yml
     - secrets/jvb-ddns-aws.yml
     - secrets/asap-keys.yml
