@@ -2,9 +2,8 @@
 {% if jibri_enable_consul %}
   "datacenters":{{ jibri_datacenters|to_json }},
   "local_environment":"{{ hcv_environment }}",
-  "consul_extra_urls":{{ jibri_consul_extra_urls|to_json }},
+  "consul_urls":{{ jibri_consul_urls|to_json }},
   "local_domain":"{{ jibri_local_domain }}",
-  "consul_server":"{{ jibri_consul_server }}",
 {% endif %}
   "jid_username":"{{ jibri_xmpp_username }}",
   "brewery_muc_room":"{{ jibri_xmpp_room_name }}",

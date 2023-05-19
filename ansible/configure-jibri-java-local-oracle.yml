@@ -133,8 +133,8 @@
         autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
         autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
-    - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: jibri_enable_consul_template}
-    - { role: "consul-server-start", tags: "consul-server-start", when: jibri_enable_consul_template}
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    - { role: "consul-server-start", tags: "consul-server-start"}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
     - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template }

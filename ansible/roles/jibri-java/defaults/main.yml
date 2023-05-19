@@ -23,8 +23,7 @@ jibri_configure_flag: true
 jibri_configure_only_flag: false
 jibri_consul_cross_datacenter: false
 jibri_consul_datacenter: "{{ cloud_name | default('dc1') }}"
-jibri_consul_extra_urls: []
-jibri_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
+jibri_consul_urls: ['http://localhost:8500']
 jibri_datacenters: "{{ [jibri_consul_datacenter] if cloud_name == jibri_consul_datacenter or not jibri_consul_cross_datacenter
   else [jibri_consul_datacenter, cloud_name] }}"
 jibri_deb_pkg_name: "jibri"
