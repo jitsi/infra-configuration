@@ -216,6 +216,8 @@
             TOTAL_CFG_REMOTE_PEERS=$(( $(grep "peer " /etc/haproxy/haproxy.cfg | wc -l) - 1))
             TOTAL_MESHED_REMOTE_PEERS=$(echo "show peers" | sudo -u haproxy socat stdio /var/run/haproxy/admin.sock | grep addr | grep haproxy | grep "remote,active" | wc -l)
           done'
+      args:
+        executable: /bin/bash
       when:
         - haproxy_enable_consul_template
         - haproxy_boot_flag
