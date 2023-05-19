@@ -23,14 +23,8 @@ jvb_configure_flag: true
 jvb_configure_from_template_flag: true
 jvb_consul_datacenter: "{{ cloud_name | default('dc1') }}"
 jvb_consul_datacenters: []
-jvb_consul_extra_urls: []
+jvb_consul_urls: ['http://localhost:8500']
 jvb_consul_local_datacenters: ["{{ jvb_consul_datacenter }}"]
-jvb_consul_server: "{{ hcv_environment }}-{{ oracle_region }}-consul.jitsi.net"
-jvb_consul_server_type: "{{ jvb_consul_server_types[jitsi_meet_environment_type] | default('prod') }}"
-jvb_consul_server_types:
-  dev: dev
-  prod: prod
-  stage: prod
 jvb_custom_region: "{{ oracle_region | default('default') }}"
 jvb_data_channel_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
 jvb_data_channel_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"

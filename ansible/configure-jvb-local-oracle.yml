@@ -201,8 +201,8 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "JVB", autoscaler_install_flag: false, autoscaler_configure_flag: true,
         jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jvb_flag }}", jvb_ddns_cleanup_flag: true}
-    - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: jvb_enable_consul_template}
-    - { role: "consul-server-start", tags: "consul-server-start", when: jibri_enable_consul_template}
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    - { role: "consul-server-start", tags: "consul-server-start"}
     - { role: "jvb-ssl", "tags": "jvb-ssl", when: jvb_nginx_ssl_enabled }
     - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns",
         jvb_ddns_install_flag: false, jvb_ddns_configure_flag: true, jvb_ddns_cleanup_flag: true, ipv6_enabled: false }
