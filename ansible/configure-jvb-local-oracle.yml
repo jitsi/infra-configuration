@@ -162,6 +162,7 @@
 # TODO IPv6 is not yet supported by oracle
 #    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
     - { role: "iptables", tags: "iptables"}
+    - { role: "iptables-consul", tags: "iptables-consul"}
     # enable java 11 if set for the environment
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jvb_java_11 }}", java_install_flag: false }
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true}

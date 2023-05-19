@@ -104,6 +104,7 @@
         name: rsyslog
         state: restarted
   roles:
+    - { role: "iptables-consul", tags: "iptables"}
     - { role: "fluentd-jitsi", tags: "fluentd",
         fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true,
         fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
