@@ -208,17 +208,20 @@
       when:
         - haproxy_boot_flag
         - haproxy_enable_consul_template
-    - name: Wait 15 seconds for mesh to form before setting healthy
-      ansible.builtin.pause:
-        seconds: 15
+    - name: Wait up to 5 minutes for remote peers to mesh
+      ansible.builtin.shell: |
+        set -o pipefail
+        timeout 5m bash -c '
+          until [ $TOTAL_CFG_REMOTE_PEERS == $TOTAL_MESHED_REMOTE_PEERS ]; do
+            TOTAL_CFG_REMOTE_PEERS=$(( $(grep "peer " /etc/haproxy/haproxy.cfg | wc -l) - 1))
+            TOTAL_MESHED_REMOTE_PEERS=$(echo "show peers" | sudo -u haproxy socat stdio /var/run/haproxy/admin.sock | grep addr | grep haproxy | grep "remote,active" | wc -l)
+          done'
       when:
         - haproxy_enable_consul_template
         - haproxy_boot_flag
-    - name: Write health map file as up on boot
-      ansible.builtin.copy:
-        mode: 0644
-        dest: "{{ haproxy_health_up_map_path }}"
-        content: "up true"
+    - name: Wait 30 seconds for stick tables to converge
+      ansible.builtin.pause:
+        seconds: 30
       when:
         - haproxy_enable_consul_template
         - haproxy_boot_flag
