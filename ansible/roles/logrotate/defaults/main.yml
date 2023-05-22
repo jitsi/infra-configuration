@@ -6,7 +6,7 @@ logrotate_rules:
       - size 100M
       - rotate 12
       - missingok
-      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
       - notifempty
       - compress
       - delaycompress
@@ -49,7 +49,7 @@ logrotate_rules:
       - size 100M
       - rotate 12
       - missingok
-      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
       - notifempty
       - compress
       - delaycompress
@@ -93,7 +93,7 @@ logrotate_rules:
       - missingok
       - notifempty
       - compress
-      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
       - delaycompress
     path:
       - /var/log/local/*log
@@ -173,7 +173,7 @@ logrotate_rules_core:
       - rotate 7
       - missingok
       - notifempty
-      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
       - compress
       - delaycompress
     path:
@@ -204,7 +204,7 @@ logrotate_rules_haproxy:
       - notifempty
       - compress
       - delaycompress
-      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
     path:
       - /var/log/haproxy.log
 logrotate_rules_haproxy_enabled: false
@@ -268,7 +268,7 @@ logrotate_rules_sip_jibri_selector:
       - missingok
       - notifempty
       - compress
-      - "postrotate\n\tservice rsyslog rotate > /dev/null\n  endscript"
+      - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
       - delaycompress
     path:
       - /var/log/jitsi/sip-jibri-selector/*log
