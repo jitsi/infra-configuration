@@ -187,15 +187,20 @@ def main():
         local_data['regions'] = []
     local_data['regions'] = [_f for _f in local_data['regions'] if _f]
 
+    consul_urls = []
+    if 'consul_urls' in local_data and local_data['consul_urls']:
+        consul_urls = local_data['consul_urls']
+
     if 'consul_server' in local_data and local_data['consul_server']:
         consul_urls= ['https://%s'%local_data['consul_server']]
 
-        if 'consul_extra_urls' in local_data:
-            consul_urls.extend(local_data['consul_extra_urls'])
+    if 'consul_extra_urls' in local_data:
+        consul_urls.extend(local_data['consul_extra_urls'])
 
-        if 'XMPP_HOST_PUBLIC_IP_ADDRESS' in os.environ:
-            default_address = os.environ.get('XMPP_HOST_PUBLIC_IP_ADDRESS')
+    if 'XMPP_HOST_PUBLIC_IP_ADDRESS' in os.environ:
+        default_address = os.environ.get('XMPP_HOST_PUBLIC_IP_ADDRESS')
 
+    if len(consul_urls) > 0:
         datacenters = []
         local_datacenters = []
         for consul_url in consul_urls:

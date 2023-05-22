@@ -11,14 +11,14 @@ function checkout_repos() {
   git clone $INFRA_CONFIGURATION_REPO $BOOTSTRAP_DIRECTORY/infra-configuration
   git clone $INFRA_CUSTOMIZATIONS_REPO $BOOTSTRAP_DIRECTORY/infra-customizations
   cd $BOOTSTRAP_DIRECTORY/infra-configuration
-  git checkout $GIT_BRANCH
+  git checkout $GIT_BRANCH || echo "Failed to check out configuration branch $GIT_BRANCH, failing back to main"
   git submodule update --init --recursive
-  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
+  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH || git show-ref heads/main
   cd -
   cd $BOOTSTRAP_DIRECTORY/infra-customizations
-  git checkout $GIT_BRANCH
+  git checkout $GIT_BRANCH || echo "Failed to check out customization branch $GIT_BRANCH, failing back to main"
   git submodule update --init --recursive
-  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
+  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH || git show-ref heads/main
   cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
   cd -
 }

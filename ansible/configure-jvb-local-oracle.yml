@@ -10,6 +10,7 @@
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/jvb.yml
+    - secrets/consul.yml
     - secrets/jvb-ddns.yml
     - secrets/jvb-ddns-aws.yml
     - secrets/asap-keys.yml
@@ -23,9 +24,6 @@
     shard_role: JVB
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
-    consul_template_consul_ssl_enabled: true
-    consul_template_consul_server: "{{ hcv_environment }}-{{ cloud_region }}-consul.{{ dns_zone_name }}"
-    consul_template_consul_port: "443"
     consul_template_env:
       JVB_USERNAME: "{{ jvb_auth_user }}"
       JVB_PASSWORD: "{{ jvb_auth_password }}"
@@ -165,6 +163,7 @@
 # TODO IPv6 is not yet supported by oracle
 #    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
     - { role: "iptables", tags: "iptables"}
+    - { role: "iptables-consul", tags: "iptables-consul"}
     # enable java 11 if set for the environment
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jvb_java_11 }}", java_install_flag: false }
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true}
@@ -202,6 +201,8 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "JVB", autoscaler_install_flag: false, autoscaler_configure_flag: true,
         jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jvb_flag }}", jvb_ddns_cleanup_flag: true}
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "jvb-ssl", "tags": "jvb-ssl", when: jvb_nginx_ssl_enabled }
     - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns",
         jvb_ddns_install_flag: false, jvb_ddns_configure_flag: true, jvb_ddns_cleanup_flag: true, ipv6_enabled: false }

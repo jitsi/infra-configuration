@@ -207,17 +207,22 @@ def main():
         exit(1)
 
 
+    consul_urls = []
+    if 'consul_urls' in local_data and local_data['consul_urls']:
+        consul_urls = local_data['consul_urls']
+
     if 'consul_server' in local_data and local_data['consul_server']:
         consul_urls= ['https://%s'%local_data['consul_server']]
 
-        if 'consul_extra_urls' in local_data:
-            consul_urls.extend(local_data['consul_extra_urls'])
+    if 'consul_extra_urls' in local_data:
+        consul_urls.extend(local_data['consul_extra_urls'])
 
-        if 'enable_cross_region' in local_data:
-            enable_cross_region=local_data['enable_cross_region']
-        else:
-            enable_cross_region=False
+    if 'enable_cross_region' in local_data:
+        enable_cross_region=local_data['enable_cross_region']
+    else:
+        enable_cross_region=False
 
+    if len(consul_urls) > 0:
         local_environment = local_data['local_environment']
         local_domain = local_data['local_domain']
 #        datacenters = local_data['datacenters']

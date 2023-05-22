@@ -48,7 +48,7 @@
     - { role: "consul-server", tags: "consul-server"}
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
-    - { role: "consul-server-start", tags: "consul-server-start"}
+    - { role: "consul-service-start", tags: "consul-service-start"}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

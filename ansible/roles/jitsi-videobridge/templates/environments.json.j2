@@ -7,8 +7,7 @@
   "domain": "{{ jvb_domain_name }}",
   "shard": "{{ shard_name }}",
   "release_number": "{{ jitsi_release_number }}",
-  "consul_server": "{{ jvb_consul_server }}",
-  "consul_extra_urls": {{ jvb_consul_extra_urls | to_json }},
+  "consul_urls":{{ jvb_consul_urls|to_json }},
 {% endif %}
   "enable_cross_region": {{ jvb_enable_cross_region|to_json }},
   "regions":{{ jvb_regions|to_json }}

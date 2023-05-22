@@ -165,6 +165,9 @@ EOM
                   $CLEANUP_ROUTE53_DNS
               fi
 
+              # shutdown consul service if it is running
+              service consul stop
+
               sudo /usr/local/bin/terminate_instance.sh
             fi
           done

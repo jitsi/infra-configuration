@@ -19,5 +19,7 @@ if [ "$PRESERVE_BOOT_VOLUME_IF_NEEDED" == "true" ]; then
   fi
 fi
 
+service consul stop
+
 # now terminate our instance; we enable debug to have more details in case of oci cli failures
 $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume "$PRESERVE_BOOT_VOLUME" --auth instance_principal --force
