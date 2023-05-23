@@ -235,3 +235,9 @@
       when:
         - haproxy_enable_consul_template
         - haproxy_boot_flag
+    - name: Write live health map value # noqa no-changed-when
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo "set map {{ haproxy_health_up_map_path }} up true" | socat /var/run/haproxy/admin.sock stdio
+      args:
+        executable: /bin/bash
