@@ -698,6 +698,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_mod_measure_message_count %}
         "measure_message_count";
 {% endif %}
+{% if muc_meeting_id_exists.stat.exists %}
+        "muc_meeting_id";
+{% endif %}
     }
     {% endif %}
 {% endif %}
