@@ -49,24 +49,24 @@
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
     - { role: "consul-service-start", tags: "consul-service-start"}
-    # - role: "wavefront"
-    #   tags: "telegraf"
-    #   wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
-    #   wavefront_install_collector: true
-    #   datadog_extensions: "true"
-    #   when: telegraf_enabled
-    #   vars:
-    #     telegraf_inputs:
-    #       procstat:
-    #         - systemd_unit: "consul.service"
-    #           cmdline_tag: false
-    #           pid_tag: false
-    #     telegraf_tags:
-    #       shard-role: "consul"
-    #       role: "consul"
-    #       environment: "{{ hcv_environment }}"
-    #       region: "{{ cloud_region }}"
-    #       cloud_provider: "{{ cloud_provider }}"
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled
+      vars:
+        telegraf_inputs:
+          procstat:
+            - systemd_unit: "consul.service"
+              cmdline_tag: false
+              pid_tag: false
+        telegraf_tags:
+          shard-role: "consul"
+          role: "consul"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud_provider: "{{ cloud_provider }}"
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: consul_enable_fluentd }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:

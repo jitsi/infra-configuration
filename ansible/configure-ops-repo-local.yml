@@ -32,22 +32,22 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: haproxy_enable_fluentd }
-    # - role: "wavefront"
-    #   tags: "telegraf"
-    #   wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
-    #   wavefront_install_collector: true
-    #   datadog_extensions: "true"
-    #   when: telegraf_enabled
-    #   vars:
-    #     telegraf_inputs:
-    #       nginx:
-    #         urls: ["http://localhost:888/nginx_status/"]
-    #       nstat:
-    #         fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
-    #     telegraf_tags:
-    #       role: "repo"
-    #       environment: "{{ hcv_environment }}"
-    #       region: "{{ cloud_region }}"
-    #       cloud: "{{ cloud_provider }}"
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      when: telegraf_enabled
+      vars:
+        telegraf_inputs:
+          nginx:
+            urls: ["http://localhost:888/nginx_status/"]
+          nstat:
+            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+        telegraf_tags:
+          role: "repo"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud: "{{ cloud_provider }}"
 
     - { role: "ops-repo", tags: "ops-repo"}
