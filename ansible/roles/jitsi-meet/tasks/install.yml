@@ -18,73 +18,6 @@
     state: present
     allow-downgrade: true
 
-# detect currently running prosody (finds either prosody-trunk or prosody))
-- name: Register installed prosody package
-  ansible.builtin.shell: |
-    set -o pipefail
-    dpkg -l | awk '/^\Si  prosody/ {print $2}'
-  args:
-    executable: /bin/bash
-  register: jitsi_meet_prosody_package_shell
-
-- name: Set prosody installed version variables
-  ansible.builtin.set_fact:
-    jitsi_meet_prosody_installed_package: "{{ jitsi_meet_prosody_package_shell.stdout }}"
-
-- name: Create temp dir for jitsi-meet-prosody download
-  ansible.builtin.tempfile:
-    state: directory
-    suffix: jitsi-meet-prosody
-  register: jitsi_meet_prosody_tempdir
-
-- name: Download jitsi-meet-prosody .deb # noqa command-instead-of-module
-  ansible.builtin.command: apt-get download {{ jitsi_meet_prosody_deb_pkg_name }}={{ jitsi_meet_prosody_deb_pkg_version }}
-  args:
-    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
-
-- name: Unpack jitsi-meet-prosody .deb
-  ansible.builtin.shell: dpkg -x {{ jitsi_meet_prosody_deb_pkg_name }}*.deb .
-  args:
-    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
-
-- name: Run prosody 0.11 hook global patch
-  ansible.builtin.replace:
-    regexp: "module:hook\\("
-    replace: "module:hook_global("
-    path: "{{ jitsi_meet_prosody_tempdir.path }}/usr/share/jitsi-meet/prosody-plugins/mod_auth_token.lua"
-
-- name: Copy jitsi-meet-prosody plugins to appropriate location
-  ansible.builtin.command: cp -a ./usr/share/jitsi-meet/prosody-plugins /usr/share/jitsi-meet
-  args:
-    chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
-
-- name: Check do we need to drop mod_smacks
-  ansible.builtin.stat:
-    path: /usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua
-  register: need_to_drop_mod_smacks
-
-- name: Remove mod_smacks as we are running prosody that has that module
-  ansible.builtin.file:
-    path: "/usr/share/jitsi-meet/prosody-plugins/mod_smacks.lua"
-    state: absent
-  when: need_to_drop_mod_smacks.stat.exists
-
-- name: Check do we need to drop mod_external_services
-  ansible.builtin.stat:
-    path: /usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua
-  register: need_to_drop_mod_external_services
-
-- name: Remove mod_external_services as we are running prosody that has that module
-  ansible.builtin.file:
-    path: "/usr/share/jitsi-meet/prosody-plugins/mod_external_services.lua"
-    state: absent
-  when: need_to_drop_mod_external_services.stat.exists
-
-- name: Remove jitsi-meet-prosody tempdir
-  ansible.builtin.file:
-    path: "{{ jitsi_meet_prosody_tempdir.path }}"
-    state: absent
-
 - name: Mark hold on jitsi-meet package version
   ansible.builtin.command: apt-mark hold {{ jitsi_meet_deb_pkg_name }}
 
@@ -127,17 +60,3 @@
   ansible.builtin.file:
     path: /etc/nginx/sites-available/default
     state: absent
-
-- name: Copy over the external events lib
-  ansible.builtin.copy:
-    src: "ext_events.lib.lua"
-    dest: "/usr/share/jitsi-meet/prosody-plugins/"
-    mode: 0644
-  notify: Reload prosody plugins
-
-- name: Copy over the asap lib
-  ansible.builtin.copy:
-    src: "asap.lib.lua"
-    dest: "/usr/share/jitsi-meet/prosody-plugins/"
-    mode: 0644
-  notify: Reload prosody plugins
