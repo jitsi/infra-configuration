@@ -1,0 +1,5 @@
+---
+- name: Reload prosody plugins
+  ansible.builtin.service:
+    name: prosody
+    state: restarted

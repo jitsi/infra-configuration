@@ -238,6 +238,7 @@
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
+    - { role: "jitsi-meet-prosody", tags: "jitsi-meet-prosody" }
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: true, jicofo_configure_flag: false }
     - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: true, jicofo_rtcstats_push_configure_flag: false }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: true, jitsi_meet_configure_flag: false}
