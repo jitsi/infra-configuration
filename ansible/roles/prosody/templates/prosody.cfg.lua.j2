@@ -101,7 +101,7 @@ modules_enabled = {
 {% if prosody_visitors_enabled %}
       "s2s_bidi";
       "certs_s2soutinjection";
-      "s2soutinjection";
+      "s2sout_override";
       "s2s_whitelist";
 {% endif %}
 };
@@ -321,10 +321,10 @@ trusted_proxies = {
 bosh_max_inactivity = {{ prosody_bosh_max_inactivity }};
 
 {% if prosody_visitors_enabled %}
-s2s_connect_overrides = {
+s2sout_override = {
 {% for i in range(prosody_visitors_count|int) %}
-        ["conference.v{{ i }}.meet.jitsi"] = { "127.0.0.1", {{ 52690+i }} };
-        ["v{{ i }}.meet.jitsi"] = { "127.0.0.1", {{ 52690+i }} };
+        ["conference.v{{ i }}.meet.jitsi"] = "tcp://127.0.0.1:{{ 52690+i }}";
+        ["v{{ i }}.meet.jitsi"] = "tcp://127.0.0.1:{{ 52690+i }}"";
 {% endfor %}
 };
 s2s_whitelist = {
