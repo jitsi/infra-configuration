@@ -79,3 +79,25 @@
     dest: "/usr/share/jitsi-meet/prosody-plugins/"
     mode: 0644
   notify: Reload prosody plugins
+
+- name: Apply stanza_router_no-log.patch
+  ansible.posix.patch:
+    basedir: /usr/share/lua/5.1/prosody/
+    src: "/usr/share/jitsi-meet/prosody-plugins/stanza_router_no-log.patch"
+    remote_src: true
+  when:
+    - ((prosody_minor_version | int) == 12
+- name: Apply s2sout_override1.patch
+  ansible.posix.patch:
+    basedir: /usr/share/lua/5.1/prosody/
+    src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override1.patch"
+    remote_src: true
+  when:
+    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
+- name: Apply s2sout_override2.patch
+  ansible.posix.patch:
+    basedir: /usr/lib/prosody/modules/
+    src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override2.patch"
+    remote_src: true
+  when:
+    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)

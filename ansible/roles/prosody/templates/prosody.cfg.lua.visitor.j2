@@ -31,7 +31,7 @@ modules_enabled = {
       'bosh';
       's2s_bidi';
       's2s_whitelist';
-      's2soutinjection';
+      's2sout_override';
       'certs_s2soutinjection';
 {% if prosody_enable_firewall and prosody_disable_messaging %}
       "firewall";
@@ -122,10 +122,10 @@ trusted_proxies = {
 }
 
 -- this is added to make certs_s2soutinjection work
-s2s_connect_overrides = {
-    ["conference.{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 }; -- needed for visitors to send messages to main room
-    ["{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 };
-    ["visitors.{{ prosody_domain_name }}"] = { "127.0.0.1", 5269 };
+s2sout_override = {
+    ["conference.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269"; -- needed for visitors to send messages to main room
+    ["{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
+    ["visitors.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
 }
 
 {% if prosody_limit_messages %}
@@ -189,7 +189,6 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
         "rate_limit";
 {% endif %}
         'fmuc';
-        's2soutinjection';
 {% if prosody_visitors_muc_max_occupants %}
         'muc_max_occupants';
 {% endif %}
