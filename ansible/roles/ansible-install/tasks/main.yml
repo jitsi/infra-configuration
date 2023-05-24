@@ -21,7 +21,7 @@
 - name: Install ansible client install via pip
   ansible.builtin.pip:
     name: ansible
-    version: 6.6.0
+    version: 6.7.0
     state: present
   when: ansible_install_from_pip
 
