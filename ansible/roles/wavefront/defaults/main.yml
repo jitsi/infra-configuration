@@ -46,7 +46,7 @@ wavefront_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'a
 wavefront_telegraf_deb_file: "telegraf_1.22.4-1_{{ wavefront_architecture }}.deb"
 wavefront_telegraf_deb_path: "/tmp/{{ wavefront_telegraf_deb_file }}"
 wavefront_telegraf_deb_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/{{ wavefront_telegraf_deb_file }}"
-wavefront_telegraf_from_apt: false
+wavefront_telegraf_from_apt: true
 wavefront_telegraf_pkg_url: "{{ wavefront_telegraf_pkg_url_influx if wavefront_telegraf_use_influx else wavefront_telegraf_pkg_url_pcloud }}"
 wavefront_telegraf_pkg_url_influx: 'https://repos.influxdata.com'
 wavefront_telegraf_pkg_url_pcloud: 'https://packagecloud.io/wavefront/telegraf'
