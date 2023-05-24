@@ -68,6 +68,8 @@ lsof >> $TMP_DIR/lsof_dump.log
 echo "---------HOST: $JHOST LSOF -u $JAVA_USER OUTPUT $JSTAMP---------" > $TMP_DIR/jvb_lsof_dump.log
 lsof -u $JAVA_USER >> $TMP_DIR/jvb_lsof_dump.log
 
+echo "---------HOST: $JHOST dpkg -l OUTPUT $JSTAMP---------" > $TMP_DIR/dpkg_dump.log
+dpkg -l >> $TMP_DIR/dpkg_dump.log
 
 tar zcf $ARCH_PATH -C $TMP_DIR . && echo "Created $ARCH_PATH" >> /tmp/jvb_dump.log
 

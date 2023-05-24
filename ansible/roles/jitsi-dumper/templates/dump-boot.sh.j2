@@ -49,6 +49,9 @@ top -n 1 -b >> $TMP_DIR/top_dump.log
 echo "---------HOST: $JHOST LSOF OUTPUT $JSTAMP---------" > $TMP_DIR/lsof_dump.log
 lsof >> $TMP_DIR/lsof_dump.log
 
+echo "---------HOST: $JHOST dpkg -l OUTPUT $JSTAMP---------" > $TMP_DIR/dpkg_dump.log
+dpkg -l >> $TMP_DIR/dpkg_dump.log
+
 tar zcf $ARCH_PATH -C $TMP_DIR . && echo "Created $ARCH_PATH" >> /tmp/boot_dump.log
 
 [ -d $TMP_DIR ] && rm -r $TMP_DIR
