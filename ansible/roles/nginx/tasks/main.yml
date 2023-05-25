@@ -12,7 +12,7 @@
     update_cache: true
 
 - name: Mark unhold on nginx package version # noqa no-changed-when
-  ansible.builtin.command: apt-mark unhold {{ nginx_package }} nginx-extras
+  ansible.builtin.command: apt-mark unhold {{ nginx_package }}
 
 - name: Install nginx
   ansible.builtin.apt:
@@ -25,7 +25,7 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Mark hold on nginx package version # noqa no-changed-when
-  ansible.builtin.command: apt-mark hold {{ nginx_package }} nginx-extras
+  ansible.builtin.command: apt-mark hold {{ nginx_package }}
 
 # main nginx configuration tweaks
 - name: Configure nginx
