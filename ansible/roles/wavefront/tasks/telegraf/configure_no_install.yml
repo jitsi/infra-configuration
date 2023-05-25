@@ -1,17 +1,4 @@
 ---
-- name: Fail_Fast if collector agent's proxy port is not open # noqa no-changed-when
-  ansible.builtin.command: "telnet {{ wavefront_proxy_address }} {{ wavefront_proxy_port }}"
-  register: telnet_result
-  failed_when: "'Connection refused' in telnet_result.stderr"
-  tags:
-    - install
-    - check
-    - failfast
-    - collector
-    - redhat
-    - debian
-    - configure
-
 - name: Write telegraf.conf file with WF config
   ansible.builtin.template:
     src: telegraf.conf.wfcopy.j2

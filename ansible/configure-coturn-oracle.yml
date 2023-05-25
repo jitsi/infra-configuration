@@ -129,7 +129,8 @@
       tags: "telegraf"
       when: not coturn_enable_nomad
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
-      wavefront_install_collector: true
+      wavefront_configure_collector: true
+      wavefront_install_collector: false
       datadog_extensions: "true"
       vars:
         telegraf_inputs:
