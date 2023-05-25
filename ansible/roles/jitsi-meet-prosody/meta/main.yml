@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: jitsi_meet_prosody
+  author: Aaron van Meerten
+  description: configure jitsi-meet-prosody package and patches
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
+dependencies:
+  - { role: jitsi-repo }
