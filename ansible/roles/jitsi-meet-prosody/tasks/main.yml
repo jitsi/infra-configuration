@@ -88,6 +88,7 @@
   ansible.posix.patch:
     basedir: /usr/share/lua/5.1/prosody/
     src: "/usr/share/jitsi-meet/prosody-plugins/stanza_router_no-log.patch"
+    strip: 1
     remote_src: true
   when:
     - (prosody_minor_version | int) == 12
@@ -101,6 +102,7 @@
   ansible.posix.patch:
     basedir: /usr/share/lua/5.1/prosody/
     src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override1.patch"
+    strip: 1
     remote_src: true
   when:
     - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
@@ -114,6 +116,7 @@
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules/
     src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override2.patch"
+    strip: 1
     remote_src: true
   when:
     - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
