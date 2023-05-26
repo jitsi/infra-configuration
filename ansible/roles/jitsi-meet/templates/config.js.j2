@@ -223,17 +223,21 @@ var config = {
     longTasksStatsInterval: 10000,
 {% endif %}
 
-    transcribingEnabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %},
-    liveStreamingEnabled: {% if jitsi_meet_enable_livestreaming %}true{% else %}false{% endif %},
-    fileRecordingsEnabled: {% if jitsi_meet_enable_file_recordings %}true{% else %}false{% endif %},
-    fileRecordingsServiceEnabled: {% if jitsi_meet_enable_file_recordings_service %}true{% else %}false{% endif %},
-    fileRecordingsServiceSharingEnabled: {% if jitsi_meet_enable_file_recordings_sharing %}true{% else %}false{% endif %},
+    transcription: {
+        enabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %}
+    },
+    liveStreaming: {
+        enabled: {% if jitsi_meet_enable_livestreaming %}true{% else %}false{% endif %}
+    },
+    recordingService: {
+        enabled: {% if jitsi_meet_enable_file_recordings %}true{% else %}false{% endif %},
+        sharingEnabled: {% if jitsi_meet_enable_file_recordings_sharing %}true{% else %}false{% endif %}
+    },
     localRecording: {
         disable: {% if jitsi_meet_enable_local_recording %}false{% else %}true{% endif %},
         notifyAllParticipants: {% if jitsi_meet_local_recording_notify_all %}true{% else %}false{% endif %}
     },
     requireDisplayName: {% if jitsi_meet_require_displayname %}true{% else %}false{% endif %},
-    enableWelcomePage: {% if jitsi_meet_enable_welcome_page %}true{% else %}false{% endif %},
     welcomePage: {
     {% if jitsi_meet_custom_landing_page_url %}
         customUrl: "{{ jitsi_meet_custom_landing_page_url }}",
@@ -375,9 +379,9 @@ var config = {
 {% if jitsi_meet_polls_disabled %}
     disablePolls: true,
 {% endif %}
-{% if jitsi_meet_disable_speaker_stats_search %}
-    disableSpeakerStatsSearch: true,
-{% endif %}
+    speakerStats: {
+        disableSearch: {% if jitsi_meet_disable_speaker_stats_search %}true{% else %}false{% endif %}
+    },
     enableInsecureRoomNameWarning: {% if jitsi_meet_enable_unsafe_room_warning %}true{% else %}false{% endif %},
 {% if jitsi_meet_disable_reactions %}
     disableReactions: true,
