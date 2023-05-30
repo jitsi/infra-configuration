@@ -20,6 +20,8 @@ hostname $MY_HOSTNAME
 
 grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
 
+echo "$MY_HOSTNAME" > /etc/hostname
+
 export DEPLOY_TAGS="all"
 
 /usr/local/bin/configure-jigasi-local.sh >> /var/log/postinstall-ansible.log 2>&1

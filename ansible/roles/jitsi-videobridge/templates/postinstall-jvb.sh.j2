@@ -24,6 +24,8 @@ hostname $MY_HOSTNAME
 #make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
 grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
 
+echo "$MY_HOSTNAME" > /etc/hostname
+
 #set AWS Name tag from shard and component ID
 aws ec2 create-tags --resources $EC2_INSTANCE_ID --tags Key=Name,Value="$MY_HOSTNAME"
 

@@ -49,6 +49,8 @@ aws ec2 create-tags --resources $EC2_INSTANCE_ID --tags Key=Name,Value="$MY_HOST
 #make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
 grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
 
+echo "$MY_HOSTNAME" > /etc/hostname
+
 /usr/local/bin/aws s3 cp s3://$S3_BUCKET/vault-password /root/.vault-password
 /usr/local/bin/aws s3 cp s3://$S3_BUCKET/id_rsa_jitsi_deployment /root/.ssh/id_rsa
 chmod 400 /root/.ssh/id_rsa

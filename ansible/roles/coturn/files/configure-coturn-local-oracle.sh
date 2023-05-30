@@ -10,6 +10,7 @@ function checkout_repos() {
 
   if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null; fi
 
+  mkdir -p "$BOOTSTRAP_DIRECTORY"
   if [ -d "$LOCAL_REPO_DIRECTORY" ]; then
     echo "Found local repo copies in $LOCAL_REPO_DIRECTORY, using instead of clone"
     cp -a $LOCAL_REPO_DIRECTORY/infra-configuration $BOOTSTRAP_DIRECTORY
