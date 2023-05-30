@@ -189,6 +189,9 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
         "rate_limit";
 {% endif %}
         'fmuc';
+        's2s_bidi';
+        's2s_whitelist';
+        's2sout_override';
 {% if prosody_visitors_muc_max_occupants %}
         'muc_max_occupants';
 {% endif %}
