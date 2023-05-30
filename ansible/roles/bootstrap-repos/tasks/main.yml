@@ -5,17 +5,41 @@
     state: directory
     path: "{{ bootstrap_repo_dir }}"
 
+- name: Write configuration deploy key
+  ansible.builtin.copy:
+    mode: 0600
+    dest: /root/.ssh/id_rsa_configuration
+    content: "{{ bootstrap_repo_configuration_deploy_key }}"
+
+- name: Write customizations deploy key
+  ansible.builtin.copy:
+    mode: 0600
+    dest: "/root/.ssh/id_rsa_customizations"
+    content: "{{ bootstrap_repo_customizations_deploy_key }}"
+
 - name: Checkout configuration repo
   ansible.builtin.git:
+    key_file: /root/.ssh/id_rsa_configuration
     repo: "{{ bootstrap_repo_configuration_repo }}"
     dest: "{{ bootstrap_repo_dir }}/infra-configuration"
     recursive: true
     accept_hostkey: true
     version: main
 
-- name: Checkout configuration repo
+- name: Checkout customizations repo
   ansible.builtin.git:
+    key_file: /root/.ssh/id_rsa_customizations
     repo: "{{ bootstrap_repo_customizations_repo }}"
     dest: "{{ bootstrap_repo_dir }}/infra-customizations"
     accept_hostkey: true
     version: main
+
+- name: Remove configuration deploy key
+  ansible.builtin.file:
+    path: /root/.ssh/id_rsa_configuration
+    state: absent
+
+- name: Remove customizations deploy key
+  ansible.builtin.file:
+    path: /root/.ssh/id_rsa_customizations
+    state: absent

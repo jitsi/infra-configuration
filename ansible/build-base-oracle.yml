@@ -6,6 +6,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/repo.yml
+    - secrets/github-deploy.yml
     - config/vars.yml
   vars:
     cloud_provider: oracle

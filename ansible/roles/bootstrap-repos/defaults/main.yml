@@ -2,3 +2,5 @@
 bootstrap_repo_dir: "/opt/jitsi/bootstrap"
 bootstrap_repo_configuration_repo: "{{ infra_configuration_repo | default('git@github.com:jitsi/infra-configuration.git') }}"
 bootstrap_repo_customizations_repo: "{{ infra_customizations_repo | default('git@github.com:jitsi/infra-customizations.git') }}"
+bootstrap_repo_configuration_deploy_key: "{{ infra_configuration_deploy_key | default('replaceme') }}"
+bootstrap_repo_customizations_deploy_key: "{{ infra_customizations_deploy_key | default('replaceme') }}"
