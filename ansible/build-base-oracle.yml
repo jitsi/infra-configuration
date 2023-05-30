@@ -56,7 +56,7 @@
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }
-    - { role: "nomad", tags: "nomad" }
+    - { role: "nomad", tags: "nomad", nomad_enabled_on_boot: false }
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false}
     - role: "wavefront"
       tags: "telegraf"
