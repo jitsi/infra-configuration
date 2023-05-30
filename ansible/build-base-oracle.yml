@@ -33,6 +33,11 @@
         state: latest
 
   post_tasks:
+    - name: Cleanup nomad data directory
+      ansible.builtin.file:
+        path: /var/nomad
+        state: absent
+
     - name: Remove td-agent deb repository
       ansible.builtin.apt_repository:
         repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution |
