@@ -50,6 +50,7 @@
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }
+    - { role: "nomad", tags: "nomad" }
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false}
     - role: "wavefront"
       tags: "telegraf"
@@ -59,4 +60,5 @@
         telegraf_tags:
           role: "base"
           cloud: "oracle"
+    - { role: "bootstrap-repos", tags: "bootstrap-repos"}
     - { role: "clean-system", tags: "clean-system, build" }

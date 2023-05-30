@@ -1,0 +1,21 @@
+---
+- name: Create bootstrap repos directory
+  ansible.builtin.file:
+    mode: 0750
+    state: directory
+    path: "{{ bootstrap_repo_dir }}"
+
+- name: Checkout configuration repo
+  ansible.builtin.git:
+    repo: "{{ bootstrap_repo_configuration_repo }}"
+    dest: "{{ bootstrap_repo_dir }}/infra-configuration"
+    recursive: true
+    accept_hostkey: true
+    version: main
+
+- name: Checkout configuration repo
+  ansible.builtin.git:
+    repo: "{{ bootstrap_repo_customizations_repo }}"
+    dest: "{{ bootstrap_repo_dir }}/infra-customizations"
+    accept_hostkey: true
+    version: main
