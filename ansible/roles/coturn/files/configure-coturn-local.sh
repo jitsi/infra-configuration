@@ -2,6 +2,7 @@
 
 
 export BOOTSTRAP_DIRECTORY="/tmp/bootstrap"
+export LOCAL_REPO_DIRECTORY="/opt/jitsi/bootstrap"
 
 function checkout_repos() {
   [ -d $BOOTSTRAP_DIRECTORY/infra-configuration ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-configuration
