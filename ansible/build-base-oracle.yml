@@ -6,6 +6,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/repo.yml
+    - secrets/github-deploy.yml
     - config/vars.yml
   vars:
     cloud_provider: oracle
@@ -32,6 +33,11 @@
         state: latest
 
   post_tasks:
+    - name: Cleanup nomad data directory
+      ansible.builtin.file:
+        path: /var/nomad
+        state: absent
+
     - name: Remove td-agent deb repository
       ansible.builtin.apt_repository:
         repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution |
@@ -50,6 +56,7 @@
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }
+    - { role: "nomad", tags: "nomad" }
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false}
     - role: "wavefront"
       tags: "telegraf"
@@ -59,4 +66,5 @@
         telegraf_tags:
           role: "base"
           cloud: "oracle"
+    - { role: "bootstrap-repos", tags: "bootstrap-repos"}
     - { role: "clean-system", tags: "clean-system, build" }

@@ -32,6 +32,8 @@ hostname $MY_HOSTNAME
 #make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
 grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
 
+echo "$MY_HOSTNAME" > /etc/hostname
+
 #set Name tag from shard and component ID by getting current freeform-tags/defined-tags and appending the name tag
 #do not fail immediately for this part, as we want to do one retry for tags update
 set +e

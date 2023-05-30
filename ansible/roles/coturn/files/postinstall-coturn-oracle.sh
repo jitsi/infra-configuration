@@ -26,6 +26,7 @@ hostname $MY_HOSTNAME
 
 #make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
 grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
+echo "$MY_HOSTNAME" > /etc/hostname
 
 #set Name tag by getting current freeform-tags/defined-tags and appending the name tag
 DEFINED_TAGS_NAMESPACE="jitsi"
