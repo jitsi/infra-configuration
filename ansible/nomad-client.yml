@@ -98,7 +98,6 @@
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "docker", tags: "docker" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
-    - { role: "nomad", tags: "nomad" }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
     - name: Consul service enablement
