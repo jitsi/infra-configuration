@@ -1,4 +1,10 @@
 ---
+- name: Create jitsi base directory
+  ansible.builtin.file:
+    mode: 0755
+    state: directory
+    path: "{{ bootstrap_base_dir }}"
+
 - name: Create bootstrap repos directory
   ansible.builtin.file:
     mode: 0750
