@@ -11,6 +11,7 @@
     - secrets/jibri.yml
     - secrets/repo.yml
     - secrets/prosody-egress-aws.yml
+    - secrets/github-deploy.yml
     - config/vars.yml
   pre_tasks:
     # pause 10 seconds before updating, to ensure that everything is ready to roll
@@ -54,6 +55,7 @@
 
   roles:
     - { role: "common", tags: "common" }
+    - { role: "bootstrap-repos", tags: "bootstrap-repos"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true }
