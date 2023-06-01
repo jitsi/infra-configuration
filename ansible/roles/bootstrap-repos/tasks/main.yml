@@ -31,6 +31,8 @@
     recursive: true
     accept_hostkey: true
     version: main
+    update: true
+    force: true
 
 - name: Checkout customizations repo
   ansible.builtin.git:
@@ -39,6 +41,8 @@
     dest: "{{ bootstrap_repo_dir }}/infra-customizations"
     accept_hostkey: true
     version: main
+    update: true
+    force: true
 
 - name: Remove configuration deploy key
   ansible.builtin.file:

@@ -54,6 +54,7 @@
     - secrets/oci-logging.yml
     - secrets/repo.yml
     - secrets/carbon-black.yml
+    - secrets/github-deploy.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
 
@@ -224,6 +225,7 @@
   roles:
   # initial system pre-requisites
     - { role: "common", tags: "common" }
+    - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     - { role: "carbon-black", tags: "carbon-black" }
     - { role: "openjdk-java", tags: "openjdk" }
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
