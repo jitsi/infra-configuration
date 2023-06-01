@@ -41,6 +41,8 @@ MY_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 #make sure we have an entry in /etc/hosts for this IP/hostname combination, add it if missing
 grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
 
+echo "$MY_HOSTNAME" > /etc/hostname
+
 chmod +x /etc/init.d/prosody
 /etc/init.d/prosody restart
 chmod +x /etc/init.d/nginx
