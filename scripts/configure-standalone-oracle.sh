@@ -26,6 +26,16 @@ if [ -z "$ORACLE_REGION" ]; then
   exit 203
 fi
 
+if [ -z "$INFRA_CONFIGURATION_REPO" ]; then
+  echo "No INFRA_CONFIGURATION_REPO set, exiting..."
+  exit 203
+fi
+
+if [ -z "$INFRA_CUSTOMIZATIONS_REPO" ]; then
+  echo "No INFRA_CUSTOMIZATIONS_REPO set, exiting..."
+  exit 203
+fi
+
 if [  -z "$1" ]
 then
     ANSIBLE_SSH_USER=$(whoami)
@@ -130,6 +140,8 @@ $([ -n "$PROSODY_PACKAGE_NAME" ] && echo "-e prosody_package_name=$PROSODY_PACKA
 $([ -n "$PROSODY_ENABLE_TOKENS" ] && echo "-e prosody_enable_tokens=$PROSODY_ENABLE_TOKENS") \
 $([ -n "$JITSI_MEET_PROSODY_VERSION" ] && echo "-e jitsi_meet_prosody_deb_pkg_version=$JITSI_MEET_PROSODY_VERSION") \
 $([ -n "$ORACLE_REGION" ] && echo "-e oracle_region=$ORACLE_REGION") \
+-e "infra_configuration_repo=$INFRA_CONFIGURATION_REPO" \
+-e "infra_customizations_repo=$INFRA_CUSTOMIZATIONS_REPO" \
 -e "test_id=$UNIQUE_ID" \
 -e "unique_id=$UNIQUE_ID" \
 -e "ansible_ssh_user=$ANSIBLE_SSH_USER" \
