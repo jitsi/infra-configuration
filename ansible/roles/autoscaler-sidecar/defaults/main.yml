@@ -80,7 +80,7 @@ autoscaler_status_url: "https://{{ autoscaler_server_host }}/sidecar/status"
 autoscaler_terminate_script: '/usr/local/bin/terminate_instance.sh'
 autoscaler_use_default_terminate_script: false
 autoscaler_user:
-  groups: ["adm"]
+  groups: ["adm", "jitsi"]
   homedir: "/home/{{ autoscaler_username }}"
   real_name: jitsi autoscaler sidecar user
   state: present
