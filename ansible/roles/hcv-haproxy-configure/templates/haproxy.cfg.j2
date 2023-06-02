@@ -157,9 +157,19 @@ frontend www-http
    http-request deny if bad_guy_wordpress
 
 {% if haproxy_bad_room_list | length > 0 %}
-   acl bad_room path {% for r in haproxy_bad_room_list %}/{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
+{% for idx in range(0, (haproxy_bad_room_list | length)) %}
+{% if (idx % 60) == 0 %}
+
+   acl bad_room path {% endif %}{{ haproxy_bad_room_list[idx] }}{% if not loop.last %}{% if (idx+1 % 60) == 0 %}
+
+{% else %} {% endif %}{% endif %}{% endfor %}
+
+{% for idx in range(0, (haproxy_bad_room_list | length)) %}
+{% if (idx % 60) == 0 %}
    
-   acl bad_room_param urlp(room) {% for r in haproxy_bad_room_list %}{{ r }}{% if not loop.last %} {% endif %}{% endfor %}
+   acl bad_room_param urlp(room) {% endif %}{{ haproxy_bad_room_list[idx] }}{% if not loop.last %}{% if (idx+1 % 60) == 0 %}
+
+{% else %} {% endif %}{% endif %}{% endfor %}
 {% endif %}
 
    http-request deny if bad_room_param
