@@ -66,5 +66,5 @@
         telegraf_tags:
           role: "base"
           cloud: "oracle"
-    - { role: "bootstrap-repos", tags: "bootstrap-repos"}
+    # - { role: "bootstrap-repos", tags: "bootstrap-repos"}
     - { role: "clean-system", tags: "clean-system, build" }
