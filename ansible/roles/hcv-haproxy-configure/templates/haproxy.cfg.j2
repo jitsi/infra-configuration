@@ -160,20 +160,21 @@ frontend www-http
 {% for idx in range(0, (haproxy_bad_room_list | length)) %}
 {% if (idx % 60) == 0 %}
 
-   acl bad_room path {% endif %}{{ haproxy_bad_room_list[idx] }}{% if not loop.last %}{% if (idx+1 % 60) == 0 %}
+   acl bad_room{{ (idx % 60 | int) }} path {% endif %}{{ haproxy_bad_room_list[idx] }}{% if not loop.last %}{% if (idx+1 % 60) == 0 %}
 
 {% else %} {% endif %}{% endif %}{% endfor %}
-
+   acl bad_room /badroomnamegoeshere
+   acl bad_room_param urlp(room) badroomnamegoeshere
 {% for idx in range(0, (haproxy_bad_room_list | length)) %}
 {% if (idx % 60) == 0 %}
    
-   acl bad_room_param urlp(room) {% endif %}{{ haproxy_bad_room_list[idx] }}{% if not loop.last %}{% if (idx+1 % 60) == 0 %}
+   acl bad_room_param{{ (idx % 60 | int) }} urlp(room) {% endif %}{{ haproxy_bad_room_list[idx] }}{% if not loop.last %}{% if (idx+1 % 60) == 0 %}
 
 {% else %} {% endif %}{% endif %}{% endfor %}
 {% endif %}
 
-   http-request deny if bad_room_param
-   http-request redirect location / if bad_room
+   http-request deny if {% for idx in range(0, (haproxy_bad_room_list | length)) %}{% if (idx % 60) == 0 %}bad_room_param{{ (idx % 60 | int) }} or {% endif %}{% endfor %}bad_room_param
+   http-request redirect location / if {% for idx in range(0, (haproxy_bad_room_list | length)) %}{% if (idx % 60) == 0 %}bad_room{{ (idx % 60 | int) }} or {% endif %}{% endfor %}bad_room
 
    # first check URL for a room parameter, if it's provided then skip any room detection and use it
    http-request set-header X-Room %[url_param(room),lower] if url_room
