@@ -55,7 +55,7 @@
 
   roles:
     - { role: "common", tags: "common" }
-    - { role: "bootstrap-repos", tags: "bootstrap-repos"}
+    # - { role: "bootstrap-repos", tags: "bootstrap-repos"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true }

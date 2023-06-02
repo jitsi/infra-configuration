@@ -225,7 +225,7 @@
   roles:
   # initial system pre-requisites
     - { role: "common", tags: "common" }
-    - { role: "bootstrap-repos", tags: "bootstrap-repos" }
+    # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     - { role: "carbon-black", tags: "carbon-black" }
     - { role: "openjdk-java", tags: "openjdk" }
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
