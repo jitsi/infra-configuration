@@ -157,7 +157,7 @@ frontend www-http
    http-request deny if bad_guy_wordpress
 
 {% if haproxy_bad_room_list | length > 0 %}
-   acl bad_room /badroomnamegoeshere
+   acl bad_room path /badroomnamegoeshere
 {% for idx in range(0, (haproxy_bad_room_list | length)) %}
 {% if (idx % 60) == 0 %}
 
