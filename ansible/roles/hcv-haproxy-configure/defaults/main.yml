@@ -1,5 +1,6 @@
 ---
 ansible_ec2_placement_region:
+haproxy_acl_max_length: 60
 haproxy_agent_check: true
 haproxy_agent_check_port: 6060
 haproxy_bad_room_list: "{{ bad_room_list | default([]) }}"
