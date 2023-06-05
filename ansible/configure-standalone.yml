@@ -226,7 +226,7 @@
   # initial system pre-requisites
     - { role: "common", tags: "common" }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
-    - { role: "carbon-black", tags: "carbon-black" }
+    # - { role: "carbon-black", tags: "carbon-black" }
     - { role: "openjdk-java", tags: "openjdk" }
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "sshusers", tags: "ssh" }
@@ -268,7 +268,7 @@
     - { role: jibri-auth, tags: "jibri-auth"}
     - { role: "jigasi-auth", tags: "jigasi-auth"}
     - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}
-    # - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true, testrtc_configure_flag: true }
+    - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true, testrtc_configure_flag: true }
     - { role: "consul-standalone", tags: "consul" }
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "prosody-egress", tags: "prosody-egress" }

@@ -30,17 +30,6 @@
   args:
     chdir: "{{ testrtc_base_path }}"
 
-- name: TestRTC | Install grunt and bower
-  community.general.npm:
-    path: "{{ testrtc_base_path }}"
-    name: "{{ item }}"
-    global: true
-    production: true
-    state: present
-  with_items:
-    - grunt
-    - bower
-
 - name: TestRTC | Build testrtc # noqa no-changed-when
   ansible.builtin.command: "{{ item }}"
   become: true
@@ -48,9 +37,9 @@
   args:
     chdir: "{{ testrtc_base_path }}"
   with_items:
-    - bower update
-    - grunt
-    - grunt build
+    - npx bower update
+    - npx grunt
+    - npx grunt build
 
 - name: TestRTC | Deploy testrtc
   ansible.builtin.command: cp -a {{ testrtc_base_path }}/out/src {{ testrtc_web_root_path }}
@@ -76,11 +65,11 @@
   args:
     chdir: "{{ testrtc_base_path }}"
   with_items:
-    - grunt clean
+    - npx grunt clean
 
 - name: TestRTC | Clean testrtc again # noqa no-changed-when
   ansible.builtin.command: "{{ item }}"
   args:
     chdir: "{{ testrtc_base_path }}"
   with_items:
-    - grunt clean
+    - npx grunt clean
