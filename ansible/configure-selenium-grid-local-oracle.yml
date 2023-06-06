@@ -11,6 +11,7 @@
     - secrets/selenium.yml
     - secrets/consul.yml
     - secrets/ssh-users.yml
+    - secrets/repo.yml
     - secrets/github.yml
     - secrets/oci-logging.yml
     - config/vars.yml
@@ -34,6 +35,20 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: selenium_grid_enable_fluentd }
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_configure_collector: true
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      vars:
+        telegraf_tags:
+          role: "grid"
+          grid_role: "{{ selenium_grid_role }}"
+          grid: "{{ selenium_grid_name }}"
+          environment: "{{ hcv_environment }}"
+          oracle_region: "{{ oracle_region }}"
+          cloud: "oracle"
     # configure and start selenium grid components
     - { role: "selenium-grid", tags: "selenium-grid", selenium_grid_install_flag: false, selenium_grid_extras_install_flag: false}
     - { role: "consul-selenium-grid-hub", tags: "consul", when: selenium_grid_role == 'hub'}
