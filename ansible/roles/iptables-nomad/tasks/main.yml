@@ -53,6 +53,24 @@
     jump: ACCEPT
     action: insert
     comment: Added via ansible post-launch configuration script
+- name: Open nomad ephemeral UDP ports 20000:32000 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "20000:32000"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open statsd port via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "8125"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
 - name: Open consul http TCP port 8500 via iptables
   ansible.builtin.iptables:
     chain: INPUT
