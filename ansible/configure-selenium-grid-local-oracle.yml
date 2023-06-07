@@ -7,6 +7,10 @@
   vars:
     cloud_provider: oracle
     shard_role: selenium-grid
+    # increase buffer size
+    udp_buffer_max_backlog: 100000
+    udp_buffer_size: 104857600
+
   vars_files:
     - secrets/selenium.yml
     - secrets/consul.yml
@@ -25,6 +29,22 @@
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
       tags: setup
+    - name: UDP buffer size maximum
+      ansible.posix.sysctl:
+        name: net.core.rmem_max
+        value: "{{ udp_buffer_size }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      when: selenium_grid_role == 'node'
+    - name: UDP buffer size count
+      ansible.posix.sysctl:
+        name: net.core.netdev_max_backlog
+        value: "{{ udp_buffer_max_backlog }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      when: selenium_grid_role == 'node'
   roles:
     - { role: "common", tags: "common"}
     - { role: "sshusers", tags: "ssh" }
