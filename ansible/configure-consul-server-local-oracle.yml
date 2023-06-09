@@ -32,6 +32,11 @@
       ansible.builtin.set_fact:
         nomad_node_role: server
       tags: setup
+    - name: Remove nomad client configuration
+      ansible.builtin.file:
+        path: /etc/nomad.d/client.hcl
+        state: absent
+      tags: setup
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
