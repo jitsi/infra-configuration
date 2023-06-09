@@ -126,7 +126,6 @@ jitsi_meet_enable_face_landmarks_display_expressions: false
 jitsi_meet_enable_face_landmarks_enable_rtc_stats: false
 jitsi_meet_enable_local_recording: false
 jitsi_meet_enable_file_recordings: false
-jitsi_meet_enable_file_recordings_service: false
 jitsi_meet_enable_file_recordings_sharing: false
 jitsi_meet_enable_forced_client_reload: false
 jitsi_meet_enable_gzip: false
