@@ -12,3 +12,5 @@ nomad_loki_s3_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
 nomad_loki_s3fs_options: "_netdev,passwd_file={{ nomad_s3fs_credentials_path }},\
 url=https://{{ nomad_loki_s3_namespace }}.compat.objectstorage.{{ nomad_loki_region }}.oraclecloud.com,\
 nomultipart,use_path_request_style,endpoint={{ nomad_loki_region }},allow_other,umask=000"
+nomad_jibri_preserve_boot_volume_if_needed: "{{ jibri_preserve_boot_volume_if_needed | default(false) }}"
+nomad_jibri_recording_dir: /opt/jibri/recordings
