@@ -484,7 +484,7 @@ server {
 
     }
     location ~ ^/([^/?&:'"]+)/conference-request/v1(\/.*)?$ {
-            rewrite ^/(.*)$ /conference-request/v1$1;
+            rewrite ^/([^/?&:'"]+)/conference-request/v1(\/.*)?$ /conference-request/v1$2;
     }
 {% endif %}
 
