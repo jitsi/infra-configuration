@@ -1,4 +1,3 @@
-
 local util = module:require "util.internal";
 local uuid_gen = require "util.uuid".generate;
 local inspect = require('inspect');
@@ -29,7 +28,9 @@ local EGRESS_URL = module:get_option_string("muc_prosody_egress_url", "http://12
 local EGRESS_FALLBACK_URL = module:get_option_string("muc_prosody_egress_fallback_url");
 local USAGE = "USAGE";
 local PARTICIPANT_JOINED = "PARTICIPANT_JOINED";
+local PARTICIPANT_JOINED_LOBBY = "PARTICIPANT_JOINED_LOBBY";
 local PARTICIPANT_LEFT = "PARTICIPANT_LEFT";
+local PARTICIPANT_LEFT_LOBBY = "PARTICIPANT_LEFT_LOBBY";
 local ROOM_CREATED = "ROOM_CREATED";
 local ROOM_DESTROYED = "ROOM_DESTROYED";
 local LIVE_STREAM_STARTED = "LIVE_STREAM_STARTED";
@@ -69,6 +70,7 @@ local NICK_NS = "http://jabber.org/protocol/nick";
 local JIGASI_CALL_DIRECTION_ATTR_NAME = "JigasiCallDirection";
 local TRANSCRIBER_PREFIX = 'transcriber@recorder.';
 local RECORDER_PREFIX = 'recorder@recorder.';
+local LOBBY_PREFIX = 'lobby.';
 
 local event_count = module:measure("muc_webhooks_rate", "rate")
 local event_count_failed = module:measure("muc_webhooks_failed", "rate")
@@ -101,7 +103,7 @@ local function cb(content_, code_, response_, request_)
 
         -- for failed requests the response object is actually the request
         -- and the request is nil
-        local headers  = {};
+        local headers = {};
         headers["User-Agent"] = util.http_headers_no_auth["User-Agent"]
         headers["Content-Type"] = util.http_headers_no_auth["Content-Type"]
         headers["Authorization"] = util.generateToken();
@@ -110,7 +112,7 @@ local function cb(content_, code_, response_, request_)
             headers = headers,
             method = "POST",
             body = response_.body;
-        },cb_retry);
+        }, cb_retry);
     end
 end
 
@@ -225,6 +227,11 @@ function handle_occupant_access(event, event_type)
     if is_breakout then
         main_room = get_main_room(room);
         breakout_room_id = jid_split(room.jid);
+    end
+
+    local is_lobby = util.has_prefix(select(2, jid_split(room.jid)), LOBBY_PREFIX);
+    if is_lobby then
+        main_room = room.main_room;
     end
 
     local occupant = event.occupant;
@@ -377,7 +384,8 @@ function handle_occupant_access(event, event_type)
             elseif sip_address and not is_new_sip_participant then
                 module:log("debug", "Ignoring the sip participant %s presence update for room %s", occupant.jid, room.jid)
                 final_event_type = SIP_PARTICIPANT_ALREADY_JOINED;
-            else -- no sip_address
+            else
+                -- no sip_address
                 module:log("debug", "Ignoring the sip participant %s presence for room %s, as it has no sip address", occupant.jid, room.jid)
                 final_event_type = SIP_PARTICIPANT_NOT_JOINED_YET;
                 room._data.sip_participants_events[occupant.jid] = SIP_PARTICIPANT_NOT_JOINED_YET;
@@ -411,6 +419,15 @@ function handle_occupant_access(event, event_type)
             return
         end
 
+        -- lobby events
+        if final_event_type == PARTICIPANT_JOINED and is_lobby then
+            module:log("debug", "Participant occupant %s joined lobby room %s", occupant.jid, room.jid);
+            participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
+        elseif final_event_type == PARTICIPANT_LEFT and is_lobby then
+            module:log("debug", "Participant occupant %s left lobby room %s", occupant.jid, room.jid);
+            participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
+        end
+
         -- add reason for participant left
         if final_event_type == PARTICIPANT_LEFT or final_event_type == DIAL_OUT_ENDED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED then
             local _, _, resource = split_jid(occupant.nick);
@@ -431,7 +448,7 @@ function handle_occupant_access(event, event_type)
             end
         end
 
-        module:log("debug","Participant event %s",inspect(participant_access_event))
+        module:log("debug", "Participant event %s", inspect(participant_access_event))
 
         event_count();
         http.request(EGRESS_URL, {
@@ -744,13 +761,13 @@ local function occupant_affiliation_changed(event)
             ["data"] = eventData
         }
 
-         module:log("debug", "Role change event: %s", inspect(role_change_event))
-         event_count();
-         http.request(EGRESS_URL, {
-           headers = util.http_headers_no_auth,
-           method = "POST",
-           body = json.encode(role_change_event);
-       }, cb);
+        module:log("debug", "Role change event: %s", inspect(role_change_event))
+        event_count();
+        http.request(EGRESS_URL, {
+            headers = util.http_headers_no_auth,
+            method = "POST",
+            body = json.encode(role_change_event);
+        }, cb);
     end
 end
 

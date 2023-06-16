@@ -221,23 +221,23 @@ function Util.has_prefix(str, prefix)
     return str:sub(1, #prefix) == prefix
 end
 
-local function extract_field_text(o,field,ns)
+local function extract_field_text(o, field, ns)
     if o ~= nil then
-        local t = o:get_child(field,ns);
+        local t = o:get_child(field, ns);
         if t then
             local extractedText = t:get_text();
             if extractedText ~= "userdata: (nil)" then
                 return extractedText;
             end
-        else 
+        else
             return ""
         end
-    end  
-    return "";   
+    end
+    return "";
 end
 
 local function extract_object(o, objectName)
-    if o ~= nil then 
+    if o ~= nil then
         return o:get_child(objectName);
     end
     return nil;
@@ -246,11 +246,11 @@ end
 function Util.extract_occupant_identity_user(occupant)
     local r;
 
-    local occupant_jid =  occupant.jid;
+    local occupant_jid = occupant.jid;
     r = r or {};
     r['jid'] = occupant.jid;
     r['bare_jid'] = occupant.bare_jid;
-    
+
     local presence = occupant:get_presence();
     if presence then
         local identity = extract_object(presence, 'identity');
@@ -259,10 +259,21 @@ function Util.extract_occupant_identity_user(occupant)
             r['email'] = extract_field_text(user, 'email');
             r['id'] = extract_field_text(user, 'id');
             r['name'] = extract_field_text(user, 'name');
-        end 
+        end
     end
     return r;
 end
 
+function Util.table_contains(tbl, x)
+    found = false
+    key = nil;
+    for k, v in pairs(tbl) do
+        if v == x then
+            found = true;
+            key = k;
+        end
+    end
+    return found, key;
+end
 
 return Util;
