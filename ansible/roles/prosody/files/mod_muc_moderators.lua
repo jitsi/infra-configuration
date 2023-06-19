@@ -111,7 +111,7 @@ local function handle_occupant_join(event)
     local promote_to_moderator_identity = joining_moderator_participants[occupant.bare_jid];
 
     if promote_to_moderator_identity == nil then
-        return ;
+        return;
     end
 
     -- clear it
@@ -361,7 +361,7 @@ function filter_stanza(stanza)
         return stanza;
     end
 
-    local muc_x = stanza:get_child('x', MUC_NS .. '#user');
+    local muc_x = stanza:get_child('x', MUC_NS..'#user');
     if not muc_x then
         return stanza;
     end

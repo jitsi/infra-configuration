@@ -420,12 +420,14 @@ function handle_occupant_access(event, event_type)
         end
 
         -- lobby events
-        if final_event_type == PARTICIPANT_JOINED and is_lobby then
-            module:log("debug", "Participant occupant %s joined lobby room %s", occupant.jid, room.jid);
-            participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
-        elseif final_event_type == PARTICIPANT_LEFT and is_lobby then
-            module:log("debug", "Participant occupant %s left lobby room %s", occupant.jid, room.jid);
-            participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
+        if is_lobby then
+            if final_event_type == PARTICIPANT_JOINED then
+                module:log("debug", "Participant occupant %s joined lobby room %s", occupant.jid, room.jid);
+                participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
+            elseif final_event_type == PARTICIPANT_LEFT then
+                module:log("debug", "Participant occupant %s left lobby room %s", occupant.jid, room.jid);
+                participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
+            end
         end
 
         -- add reason for participant left
