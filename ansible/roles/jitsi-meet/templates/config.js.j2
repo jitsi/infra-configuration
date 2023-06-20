@@ -481,5 +481,8 @@ whiteboard: {
     {% if jitsi_meet_no_auto_local_audio %}
         noAutoLocalAudio: true,
     {% endif %}
+    {% if jitsi_meet_disable_firefox_p2p %}
+        enableFirefoxP2p: false,
+    {% endif %}
     }
 };
