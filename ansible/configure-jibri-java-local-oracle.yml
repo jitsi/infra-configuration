@@ -13,6 +13,7 @@
     - secrets/consul.yml
     - secrets/oci-logging.yml
     - secrets/voximplant.yml
+    - secrets/nomad.yml
     - config/vars.yml
     - secrets/aws-cloudwatch.yml
     - sites/{{ hcv_environment }}/vars.yml
@@ -21,6 +22,13 @@
     fluentd_jitsi_region: us-west-2
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
+    nomad_node_role: client
+    nomad_node_class: "jibri"
+    nomad_meta:
+      environment: "{{ hcv_environment }}"
+      cloud_name: "{{ cloud_name }}"
+      cloud_region: "{{ oracle_region }}"
+      pool_type: "jibri"
     consul_template_env:
       JIBRI_USERNAME: "{{ jibri_xmpp_username }}"
       JIBRI_PASSWORD: "{{ jibri_xmpp_password }}"
@@ -41,6 +49,17 @@
         backup: false
 
   pre_tasks:
+    - name: Set Nomad Mounts
+      ansible.builtin.set_fact:
+        nomad_host_volumes:
+          - name: "docker-sock-ro"
+            path: "/var/run/docker.sock"
+            read_only: true
+            create: false
+          - name: "root-ro"
+            path: "/"
+            read_only: true
+            create: false
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
         cloud_provider: oracle
@@ -104,8 +123,19 @@
       ansible.builtin.service:
         name: rsyslog
         state: restarted
+
+    - name: Start nomad
+      ansible.builtin.service:
+        name: nomad
+        state: started
+        enabled: true
+      when: jibri_enable_nomad
+
   roles:
     - { role: "iptables-consul", tags: "iptables"}
+    - { role: "iptables-serf", tags: "iptables-serf", when: jibri_enable_nomad }
+    - { role: "iptables-nomad", tags: "iptables-nomad", when: jibri_enable_nomad }
+
     - { role: "fluentd-jitsi", tags: "fluentd",
         fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true,
         fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
@@ -126,16 +156,23 @@
           jibri_version: "{{ jibri_version.stdout }}"
 
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
-        upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
+        upload_integrations_install_flag: false, upload_integrations_configure_flag: true, when: not jibri_enable_nomad}
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
-        upload_customizations_install_flag: false, upload_customizations_configure_flag: true }
+        upload_customizations_install_flag: false, upload_customizations_configure_flag: true, when: not jibri_enable_nomad }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
+        autoscaler_instance_type: "{{ 'nomad' if jibri_enable_nomad else 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
         autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
-    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
+    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false, when: not jibri_enable_nomad }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
-    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
-    - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
-    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template }
-    - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}
+    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: not jibri_enable_nomad }
+    - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true,
+        when: jibri_pjsua_fla and not jibri_enable_nomad}
+    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template and not jibri_enable_nomad }
+    - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar",
+        sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag and not jibri_enable_nomad}
+
+    - { role: "docker", tags: "docker", when: jibri_enable_nomad }
+    - { role: "nomad-jitsi", tags: "nomad-jitsi", when: jibri_enable_nomad }
+    - { role: "nomad", tags: "nomad", when: jibri_enable_nomad }
+
