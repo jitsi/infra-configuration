@@ -69,6 +69,9 @@ mvn test \
 {% if jitsi_torture_tenant_jwt is defined %}
  -Dorg.jitsi.moderated.room.token="{{ jitsi_torture_tenant_jwt }}" \
 {% endif %}
+{% if jitsi_torture_jwt is defined %}
+ -Dorg.jitsi.token="{{ jitsi_torture_jwt }}" \
+{% endif %}
 {% if jitsi_torture_auth0_jwts is defined %}
  -Dorg.jitsi.misc.single.tenant_name="${TENANT1}" \
  -Dorg.jitsi.misc.single.moderator.room_name="${TENANT1_PARTICIPANT1_ROOM}" \
