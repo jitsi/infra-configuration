@@ -701,18 +701,25 @@ end
 
 local function attachMachinUid(event)
     module:log("debug","attach machine uid %s",event)
-    local stanza = event.stanza;
+    local stanza, session = event.stanza, event.origin;
+    -- the sending iq to jicofo method for retrieving the machine_uid is deprecated as we will be moving away from it
+    -- where the initial conference iq will be sent over http
     if stanza.name == "iq" then
         local conference = stanza:get_child('conference', 'http://jitsi.org/protocol/focus');
         if conference then
             local machine_uid = conference.attr['machine-uid'];
             if machine_uid then
                 module:log("debug", "found machine_uid %s", machine_uid)
-                local session = event.origin;
                 if session ~= nil then
                     session.machine_uid = machine_uid;
                 end
             end
+        end
+    elseif session and not session.machine_uid and stanza.name == 'presence' then
+        local join = stanza:get_child('x', MUC_NS);
+        if join then
+            session.machine_uid = join:get_child_text('billingid', MUC_NS);
+            module:log('debug', 'found machine_uid %s', session.machine_uid)
         end
     end
 end
@@ -849,6 +856,7 @@ function module.add_host(host_module)
 
     host_module:hook("pre-iq/full",attachJibriSessionId);
     host_module:hook("pre-iq/host", attachMachinUid);
+    host_module:hook('muc-occupant-pre-join', handleOccupantJoined, 1000);
 
     host_module:hook("muc-occupant-left", handleOccupantLeft);
     host_module:hook("muc-occupant-joined", handleOccupantJoined);
