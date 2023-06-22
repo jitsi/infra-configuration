@@ -11,6 +11,7 @@
     - secrets/asap-keys.yml
     - secrets/nomad.yml
     - secrets/oci-logging.yml
+    - secrets/oci-certificates.yml
     - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
