@@ -68,7 +68,7 @@
         path: "{{ asap_key_dir }}"
         state: directory
         recurse: true
-        mode: 0750
+        mode: 0755
       tags: setup
     - name: Copy asap dev key to the asap folder
       ansible.builtin.copy:
@@ -87,6 +87,20 @@
         mode: 0644
         content: "{{ asap_key_prod.key }}"
         dest: "{{ asap_key_dir }}/prod.key"
+      tags: setup
+# OCI credentials
+    - name: Create oci cert dir
+      ansible.builtin.file:
+        path: "/opt/jitsi/certs"
+        state: directory
+        recurse: true
+        mode: 0755
+      tags: setup
+    - name: Copy OCI cert
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ oci_api_key_pem }}"
+        dest: "/opt/jitsi/certs/oci_api_key.pem"
       tags: setup
 
   roles:
