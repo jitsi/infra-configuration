@@ -6,7 +6,7 @@ export OCI_BIN="/usr/local/bin/oci"
 INSTANCE_METADATA=$(curl -s http://169.254.169.254/opc/v1/instance/)
 INSTANCE_ID=$(echo "$INSTANCE_METADATA" | jq .id -r)
 JIBRI_RECORDINGS_DIR="{{ nomad_jibri_recording_dir }}"
-PRESERVE_BOOT_VOLUME_IF_NEEDED="{{ jibri_preserve_boot_volume_if_needed | bool | lower }}"
+PRESERVE_BOOT_VOLUME_IF_NEEDED="{{ nomad_jibri_preserve_boot_volume_if_needed | bool | lower }}"
 
 # this script is run from different users, e.g. jsidecar, root, and should not use sudo commands
 
