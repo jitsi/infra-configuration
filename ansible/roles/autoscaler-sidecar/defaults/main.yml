@@ -66,6 +66,7 @@ autoscaler_sidecar_instance_version_command_by_type:
   'jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
   'jigasi': "dpkg -s jigasi | grep Version | awk '{print $2}' | sed 's/..$//'"
   'sip-jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
+  'nomad': "nomad --version | head -1 | cut -d' ' -f2 | tr -d 'v'"
 autoscaler_sidecar_private_ip: "{{ ansible_default_ipv4.address }}"
 autoscaler_sidecar_public_ip: "{{ ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false }}"
 autoscaler_sidecar_service_name: jitsi-autoscaler-sidecar
