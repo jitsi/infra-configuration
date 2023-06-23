@@ -113,9 +113,9 @@
     - { role: "journald", tags: "journald"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: true, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
+        autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
-    - { role: "docker", tags: "docker" }
+    # - { role: "docker", tags: "docker" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
