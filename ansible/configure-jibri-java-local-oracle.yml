@@ -77,6 +77,13 @@
         enabled: false
       ignore_errors: true
       when: not jibri_enable_fluentd
+    - name: Stop telegraf for nomad clients # noqa ignore-errors
+      ansible.builtin.service:
+        name: telegraf
+        state: stopped
+        enabled: false
+      ignore_errors: true
+      when: jibri_enable_nomad
     - name: Register installed jibri package
       ansible.builtin.shell: |
         set -o pipefail
