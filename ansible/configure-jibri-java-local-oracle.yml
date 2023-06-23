@@ -146,7 +146,7 @@
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"
-      when: jibri_telegraf_enabled
+      when: jibri_telegraf_enabled and not jibri_enable_nomad
       vars:
         telegraf_tags:
           role: "{{ shard_role }}"
