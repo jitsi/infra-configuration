@@ -13,7 +13,6 @@
     - secrets/consul.yml
     - secrets/oci-logging.yml
     - secrets/voximplant.yml
-    - secrets/nomad.yml
     - config/vars.yml
     - secrets/aws-cloudwatch.yml
     - sites/{{ hcv_environment }}/vars.yml
@@ -22,13 +21,6 @@
     fluentd_jitsi_region: us-west-2
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
-    nomad_node_role: client
-    nomad_node_class: "jibri"
-    nomad_meta:
-      environment: "{{ hcv_environment }}"
-      cloud_name: "{{ cloud_name }}"
-      cloud_region: "{{ oracle_region }}"
-      pool_type: "jibri"
     consul_template_env:
       JIBRI_USERNAME: "{{ jibri_xmpp_username }}"
       JIBRI_PASSWORD: "{{ jibri_xmpp_password }}"
