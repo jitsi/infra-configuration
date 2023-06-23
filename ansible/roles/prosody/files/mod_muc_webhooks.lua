@@ -234,7 +234,7 @@ function handle_occupant_access(event, event_type)
         breakout_room_id = jid_split(room.jid);
     end
     if is_lobby then
-        main_room = room.main_room
+        main_room = room.main_room;
     end
 
     local occupant = event.occupant;
