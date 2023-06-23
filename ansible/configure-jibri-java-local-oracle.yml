@@ -98,12 +98,12 @@
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
+
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
         name: rsyslog
         state: restarted
-
   roles:
     - { role: "iptables-consul", tags: "iptables"}
     - { role: "fluentd-jitsi", tags: "fluentd",
@@ -137,5 +137,5 @@
     - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
-    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template}
+    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template }
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}
