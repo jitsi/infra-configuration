@@ -162,7 +162,7 @@
         upload_customizations_install_flag: false, upload_customizations_configure_flag: true, when: not jibri_enable_nomad }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "{{ 'nomad' if jibri_enable_nomad else 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
-        autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
+        autoscaler_install_flag: "{{ jibri_enable_nomad }}", autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false, when: not jibri_enable_nomad }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
