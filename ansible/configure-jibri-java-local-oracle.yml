@@ -127,7 +127,32 @@
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
-
+# ASAP keys
+    - name: Create asap key dir
+      ansible.builtin.file:
+        path: "{{ asap_key_dir }}"
+        state: directory
+        recurse: true
+        mode: 0755
+      tags: setup
+    - name: Copy asap dev key to the asap folder
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ asap_key_dev.key }}"
+        dest: "{{ asap_key_dir }}/dev.key"
+      tags: setup
+    - name: Copy asap stage key to the asap folder
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ asap_key_stage.key }}"
+        dest: "{{ asap_key_dir }}/stage.key"
+      tags: setup
+    - name: Copy asap prod key to the asap folder
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ asap_key_prod.key }}"
+        dest: "{{ asap_key_dir }}/prod.key"
+      tags: setup
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
