@@ -13,6 +13,7 @@
     - secrets/oci-logging.yml
     - secrets/oci-certificates.yml
     - secrets/carbon-black.yml
+    - secrets/repo.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
