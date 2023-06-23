@@ -60,6 +60,8 @@
             path: "/"
             read_only: true
             create: false
+        autoscaler_server_host: "{{ hcv_environment }}-{{ oracle_region }}-autoscaler.{{ dns_zone_name }}"
+      when: jibri_enable_nomad
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
         cloud_provider: oracle
