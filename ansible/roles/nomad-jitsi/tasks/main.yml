@@ -89,3 +89,15 @@
       Domains=~consul
     dest: /etc/systemd/resolved.conf.d/consul.conf
   notify: Restart systemd-resolved
+
+- name: Install graceful shutdown script
+  ansible.builtin.copy:
+    mode: 0755
+    dest: /usr/local/bin/nomad_graceful_shutdown.sh
+    src: nomad_graceful_shutdown.sh
+
+- name: Install terminate script
+  ansible.builtin.template:
+    mode: 0755
+    dest: /usr/local/bin/nomad_terminate_instance_oracle.sh
+    src: nomad_terminate_instance_oracle.sh.j2

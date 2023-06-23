@@ -15,6 +15,7 @@ autoscaler_force_shutdown_command_by_type:
   'jibri': 'service jibri stop'
   'jigasi': 'service jigasi stop'
   'sip-jibri': 'service jibri stop'
+  'nomad': 'nomad node drain -self -enable -force -detach -yes'
 autoscaler_git_repo: https://github.com/jitsi/jitsi-autoscaler-sidecar.git
 autoscaler_graceful_shutdown_script: "{{
   autoscaler_graceful_shutdown_scripts[autoscaler_instance_type]
@@ -24,6 +25,7 @@ autoscaler_graceful_shutdown_scripts:
   'jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
   'jigasi': /usr/share/jigasi/graceful_shutdown.sh
   'sip-jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
+  'nomad': /usr/local/bin/nomad_graceful_shutdown.sh
 autoscaler_graceful_shutdown_wrapper: /usr/local/bin/graceful_shutdown_wrapper.sh
 autoscaler_group: "default"
 autoscaler_groupname: jsidecar
@@ -64,6 +66,7 @@ autoscaler_sidecar_instance_version_command_by_type:
   'jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
   'jigasi': "dpkg -s jigasi | grep Version | awk '{print $2}' | sed 's/..$//'"
   'sip-jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
+  'nomad': "nomad --version | head -1 | cut -d' ' -f2 | tr -d 'v'"
 autoscaler_sidecar_private_ip: "{{ ansible_default_ipv4.address }}"
 autoscaler_sidecar_public_ip: "{{ ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false }}"
 autoscaler_sidecar_service_name: jitsi-autoscaler-sidecar
@@ -72,6 +75,7 @@ autoscaler_stats_retrieve_url: "{{
   autoscaler_stats_retrieve_urls[autoscaler_instance_type]
   if autoscaler_stats_retrieve_urls[autoscaler_instance_type] is defined else '' }}"
 autoscaler_stats_retrieve_urls:
+  'nomad': http://localhost:4646/v1/metrics
   'JVB': http://localhost:8080/colibri/stats
   'jibri': http://localhost:2222/jibri/api/v1.0/health
   'jigasi': http://localhost:8788/about/stats
