@@ -128,17 +128,14 @@
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
         upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
-        upload_customizations_install_flag: false, upload_customizations_configure_flag: true}
+        upload_customizations_install_flag: false, upload_customizations_configure_flag: true }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
         autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
-    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false}
+    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
-    - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true,
-        when: jibri_pjsua_flag}
+    - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
     - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template}
-    - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar",
-        sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}
-
+    - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}
