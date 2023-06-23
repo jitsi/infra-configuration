@@ -83,6 +83,7 @@
         executable: /bin/bash
       register: jibri_version
       changed_when: jibri_version.rc != 0
+      when: not jibri_enable_nomad
     - name: Remove old jitsi repo
       ansible.builtin.apt_repository:
         repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
