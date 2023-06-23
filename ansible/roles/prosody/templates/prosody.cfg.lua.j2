@@ -672,6 +672,9 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
     {% if prosody_enable_muc_rate_limit %}
     modules_enabled = {
         "muc_rate_limit";
+{% if prosody_meet_webhooks_enabled %}
+        "muc_webhooks";
+{% endif %}
     }
     {% endif %}
 {% endif %}

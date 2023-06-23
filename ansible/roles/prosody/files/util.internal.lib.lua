@@ -266,7 +266,7 @@ end
 
 function Util.table_contains(tbl, x)
     found = false;
-    key = nil;
+    key = -1;
     for k, v in pairs(tbl) do
         if v == x then
             found = true;

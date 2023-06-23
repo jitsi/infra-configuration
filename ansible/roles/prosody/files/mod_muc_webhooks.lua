@@ -70,7 +70,6 @@ local NICK_NS = "http://jabber.org/protocol/nick";
 local JIGASI_CALL_DIRECTION_ATTR_NAME = "JigasiCallDirection";
 local TRANSCRIBER_PREFIX = 'transcriber@recorder.';
 local RECORDER_PREFIX = 'recorder@recorder.';
-local LOBBY_PREFIX = 'lobby.';
 
 local event_count = module:measure("muc_webhooks_rate", "rate")
 local event_count_failed = module:measure("muc_webhooks_failed", "rate")
@@ -80,6 +79,10 @@ local event_count_retried_failed = module:measure("muc_webhooks_retried_failed",
 
 local KICKED_PARTICIPANTS_NICK = {}
 local DISCONNECTED_PARTICIPANTS_JID = {}
+
+-- List of the bare_jids of all moderator occupants (owners in main room) present in the lobby room.
+-- Will be removed as they leave.
+local moderator_occupants_in_lobby = {};
 
 local function cb_retry(content_, code_, _, request_)
     if code_ == 200 or code_ == 204 then
@@ -119,6 +122,8 @@ end
 -- whether this module is loaded for the breakout room muc component
 -- we will mark all events that this is so, and will include the breakout room id (name)
 local is_breakout = starts_with(module.host, 'breakout.');
+
+local is_lobby = starts_with(module.host, 'lobby.');
 
 -- Searches all rooms in the main muc component that holds a breakout room
 -- caches it if found so we don't search it again
@@ -228,10 +233,8 @@ function handle_occupant_access(event, event_type)
         main_room = get_main_room(room);
         breakout_room_id = jid_split(room.jid);
     end
-
-    local is_lobby = util.has_prefix(select(2, jid_split(room.jid)), LOBBY_PREFIX);
     if is_lobby then
-        main_room = room.main_room;
+        main_room = room.main_room
     end
 
     local occupant = event.occupant;
@@ -307,8 +310,10 @@ function handle_occupant_access(event, event_type)
             end
         end
 
-        payload.isBreakout = is_breakout;
-        payload.breakoutRoomId = breakout_room_id;
+        if not is_lobby then
+            payload.isBreakout = is_breakout;
+            payload.breakoutRoomId = breakout_room_id;
+        end
 
         local participant_access_event = {
             ["idempotencyKey"] = uuid_gen(),
@@ -422,10 +427,19 @@ function handle_occupant_access(event, event_type)
         -- lobby events
         if is_lobby then
             if final_event_type == PARTICIPANT_JOINED then
-                module:log("debug", "Participant occupant %s joined lobby room %s", occupant.jid, room.jid);
+                module:log("debug", "Occupant %s joined lobby room %s", occupant.jid, room.jid);
+                if main_room:get_affiliation(occupant.bare_jid) == 'owner' or occupant.role == "moderator" then
+                    table.insert(moderator_occupants_in_lobby, occupant.bare_jid);
+                    return;
+                end
                 participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
             elseif final_event_type == PARTICIPANT_LEFT then
-                module:log("debug", "Participant occupant %s left lobby room %s", occupant.jid, room.jid);
+                module:log("debug", "Occupant %s left lobby room %s", occupant.jid, room.jid);
+                found, key = util.table_contains(moderator_occupants_in_lobby, occupant.bare_jid);
+                if found then
+                    table.remove(moderator_occupants_in_lobby, key);
+                    return;
+                end
                 participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
             end
         end

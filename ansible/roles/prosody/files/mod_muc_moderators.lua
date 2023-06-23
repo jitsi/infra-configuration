@@ -28,10 +28,6 @@ local lobby_muc_service;
 -- have length of 1, because of the single-threaded prosody.
 local joining_moderator_participants = {};
 
--- List of the bare_jids of all moderator occupants (owners in main room) present in the lobby room. Will be removed as
--- they leave.
-local moderator_occupants_in_lobby = {};
-
 -- Set affiliation as owner and role
 -- as moderator for a participant
 local function make_occupant_moderator(event, single_moderator, user_id)
@@ -166,7 +162,7 @@ module:hook("muc-occupant-pre-join", function(event)
         module:log("debug", "Set moderator on occupant-pre-join because meeting starts with lobby");
         handle_occupant_join(event);
     end
-end, 2);
+end,2);
 
 module:hook("muc-occupant-joined", function(event)
     local room, occupant = event.room, event.occupant;
@@ -181,7 +177,7 @@ module:hook("muc-occupant-joined", function(event)
         module:log("debug", "Set moderator on muc-occupant-joined because meeting starts without lobby enabled");
         handle_occupant_join(event);
     end
-end, 2);
+end,2);
 
 module:hook("muc-occupant-left", function(event)
     local room = event.room;
@@ -276,15 +272,6 @@ function process_lobby_muc_loaded(lobby_muc, host_module)
         local main_room = lobby_room.main_room;
         local has_persistent_lobby = main_room._data.starts_with_lobby;
         module:log("debug", "Occupant %s joined lobby room", event.occupant.jid);
-        -- moderators from main room will also join the lobby room when created
-        -- this makes sure to not forward the event to webhooks
-        -- updates the moderator_occupants_in_lobby list
-        if main_room:get_affiliation(event.occupant.bare_jid) == 'owner' or event.occupant.role == "moderator" then
-            table.insert(moderator_occupants_in_lobby, event.occupant.bare_jid);
-        else
-            module:log("debug", "Trigger join lobby room webhook for occupant %s", event.occupant.jid);
-            module:fire_event("muc-occupant-joined", event);
-        end
 
         if has_persistent_lobby then
             module:log("debug", "Make room %s persistent", main_room.jid);
@@ -300,16 +287,6 @@ function process_lobby_muc_loaded(lobby_muc, host_module)
         local lobby_room = event.room
         local main_room = lobby_room.main_room;
         local has_persistent_lobby = main_room._data.starts_with_lobby;
-        -- moderators from main room will also leave the lobby room when leaving main room
-        -- this makes sure to not forward the event to webhooks
-        -- updates the moderator_occupants_in_lobby list
-        found, key = util.table_contains(moderator_occupants_in_lobby, event.occupant.bare_jid);
-        if found then
-            table.remove(moderator_occupants_in_lobby, key);
-        else
-            module:log("debug", "Trigger left lobby room webhook for occupant %s", event.occupant.jid);
-            module:fire_event("muc-occupant-left", event);
-        end
 
         if has_persistent_lobby and not lobby_room:has_occupant() and main_room ~= nil and not main_room:has_occupant() then
             if event.room._data.room_destroyed_triggered == nil then
