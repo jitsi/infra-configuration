@@ -339,6 +339,8 @@ muc_limit_messages_count = {{ prosody_limit_messages }};
 muc_limit_messages_check_token = {{ prosody_limit_messages_check_token }};
 {% endif %}
 
+token_verification_allowlist = { "recorder.{{ prosody_domain_name }}" }
+
 plugin_paths = { "/usr/share/jitsi-meet/prosody-plugins/" }
 
 ----------- Virtual hosts -----------
