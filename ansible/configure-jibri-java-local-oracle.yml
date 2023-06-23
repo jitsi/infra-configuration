@@ -49,19 +49,6 @@
         backup: false
 
   pre_tasks:
-    - name: Set Nomad Mounts
-      ansible.builtin.set_fact:
-        nomad_host_volumes:
-          - name: "docker-sock-ro"
-            path: "/var/run/docker.sock"
-            read_only: true
-            create: false
-          - name: "root-ro"
-            path: "/"
-            read_only: true
-            create: false
-        autoscaler_server_host: "{{ hcv_environment }}-{{ oracle_region }}-autoscaler.{{ dns_zone_name }}"
-      when: jibri_enable_nomad
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
         cloud_provider: oracle
@@ -77,13 +64,6 @@
         enabled: false
       ignore_errors: true
       when: not jibri_enable_fluentd
-    - name: Stop telegraf for nomad clients # noqa ignore-errors
-      ansible.builtin.service:
-        name: telegraf
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: jibri_enable_nomad
     - name: Register installed jibri package
       ansible.builtin.shell: |
         set -o pipefail
@@ -92,7 +72,6 @@
         executable: /bin/bash
       register: jibri_version
       changed_when: jibri_version.rc != 0
-      when: not jibri_enable_nomad
     - name: Remove old jitsi repo
       ansible.builtin.apt_repository:
         repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
@@ -127,54 +106,14 @@
         repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
         state: absent
         update_cache: false
-# ASAP keys
-    - name: Create asap key dir
-      ansible.builtin.file:
-        path: "{{ asap_key_dir }}"
-        state: directory
-        recurse: true
-        mode: 0755
-      tags: setup
-      when: jibri_enable_nomad
-    - name: Copy asap dev key to the asap folder
-      ansible.builtin.copy:
-        mode: 0644
-        content: "{{ asap_key_dev.key }}"
-        dest: "{{ asap_key_dir }}/dev.key"
-      tags: setup
-      when: jibri_enable_nomad
-    - name: Copy asap stage key to the asap folder
-      ansible.builtin.copy:
-        mode: 0644
-        content: "{{ asap_key_stage.key }}"
-        dest: "{{ asap_key_dir }}/stage.key"
-      tags: setup
-      when: jibri_enable_nomad
-    - name: Copy asap prod key to the asap folder
-      ansible.builtin.copy:
-        mode: 0644
-        content: "{{ asap_key_prod.key }}"
-        dest: "{{ asap_key_dir }}/prod.key"
-      tags: setup
-      when: jibri_enable_nomad
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
         name: rsyslog
         state: restarted
 
-    - name: Start nomad
-      ansible.builtin.service:
-        name: nomad
-        state: started
-        enabled: true
-      when: jibri_enable_nomad
-
   roles:
     - { role: "iptables-consul", tags: "iptables"}
-    - { role: "iptables-serf", tags: "iptables-serf", when: jibri_enable_nomad }
-    - { role: "iptables-nomad", tags: "iptables-nomad", when: jibri_enable_nomad }
-
     - { role: "fluentd-jitsi", tags: "fluentd",
         fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true,
         fluentd_jitsi_jibri_enabled: "{{ jibri_enable_fluentd }}", when: jibri_enable_fluentd}
@@ -184,7 +123,7 @@
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"
-      when: jibri_telegraf_enabled and not jibri_enable_nomad
+      when: jibri_telegraf_enabled
       vars:
         telegraf_tags:
           role: "{{ shard_role }}"
@@ -195,23 +134,19 @@
           jibri_version: "{{ jibri_version.stdout }}"
 
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
-        upload_integrations_install_flag: false, upload_integrations_configure_flag: true, when: not jibri_enable_nomad}
+        upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
-        upload_customizations_install_flag: false, upload_customizations_configure_flag: true, when: not jibri_enable_nomad }
+        upload_customizations_install_flag: false, upload_customizations_configure_flag: true}
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "{{ 'nomad' if jibri_enable_nomad else 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
-        autoscaler_install_flag: "{{ jibri_enable_nomad }}", autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
-    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false, when: not jibri_enable_nomad }
+        autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
+        autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
+    - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
-    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: not jibri_enable_nomad }
+    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true,
-        when: jibri_pjsua_flag and not jibri_enable_nomad}
-    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template and not jibri_enable_nomad }
+        when: jibri_pjsua_flag}
+    - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template}
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar",
-        sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag and not jibri_enable_nomad}
-
-    - { role: "docker", tags: "docker", when: jibri_enable_nomad }
-    - { role: "nomad-jitsi", tags: "nomad-jitsi", when: jibri_enable_nomad }
-    - { role: "nomad", tags: "nomad", when: jibri_enable_nomad }
+        sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}
 
