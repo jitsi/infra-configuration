@@ -11,4 +11,4 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - { role: nodejs, when: autoscaler_install_flag and jitsi_autoscaler_sidecar }
+  - { role: nodejs, when: autoscaler_install_flag }
