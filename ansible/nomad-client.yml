@@ -64,7 +64,6 @@
     - name: Update apt-cache
       ansible.builtin.apt:
         update_cache: true
-        cache_valid_time: 86400
 # ASAP keys
     - name: Create asap key dir
       ansible.builtin.file:
