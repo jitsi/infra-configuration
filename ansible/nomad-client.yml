@@ -11,10 +11,13 @@
     - secrets/asap-keys.yml
     - secrets/nomad.yml
     - secrets/oci-logging.yml
+    - secrets/oci-certificates.yml
     - secrets/carbon-black.yml
+    - secrets/repo.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
+    nomad_enable_jitsi_autoscaler: false
     cloud_provider: oracle
     shard_role: nomad-pool
     nomad_node_role: client
@@ -61,14 +64,13 @@
     - name: Update apt-cache
       ansible.builtin.apt:
         update_cache: true
-        cache_valid_time: 86400
 # ASAP keys
     - name: Create asap key dir
       ansible.builtin.file:
         path: "{{ asap_key_dir }}"
         state: directory
         recurse: true
-        mode: 0750
+        mode: 0755
       tags: setup
     - name: Copy asap dev key to the asap folder
       ansible.builtin.copy:
@@ -88,6 +90,20 @@
         content: "{{ asap_key_prod.key }}"
         dest: "{{ asap_key_dir }}/prod.key"
       tags: setup
+# OCI credentials
+    - name: Create oci cert dir
+      ansible.builtin.file:
+        path: "/opt/jitsi/certs"
+        state: directory
+        recurse: true
+        mode: 0755
+      tags: setup
+    - name: Copy OCI cert
+      ansible.builtin.copy:
+        mode: 0644
+        content: "{{ oci_api_key_pem }}"
+        dest: "/opt/jitsi/certs/oci_api_key.pem"
+      tags: setup
 
   roles:
     - { role: "iptables-serf", tags: "iptables-serf"}
@@ -95,8 +111,10 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
-    - { role: "docker", tags: "docker" }
+    # - { role: "docker", tags: "docker" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}

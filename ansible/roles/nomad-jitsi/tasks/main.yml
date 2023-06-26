@@ -99,5 +99,5 @@
 - name: Install terminate script
   ansible.builtin.template:
     mode: 0755
-    dest: /usr/local/bin/nomad_terminate_instance_oracle.sh
+    dest: /usr/local/bin/terminate_instance.sh
     src: nomad_terminate_instance_oracle.sh.j2
