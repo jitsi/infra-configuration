@@ -264,17 +264,4 @@ function Util.extract_occupant_identity_user(occupant)
     return r;
 end
 
-function Util.table_contains(tbl, x)
-    found = false;
-    key = -1;
-    for k, v in pairs(tbl) do
-        if v == x then
-            found = true;
-            key = k;
-            break;
-        end
-    end
-    return found, key;
-end
-
 return Util;

@@ -429,15 +429,15 @@ function handle_occupant_access(event, event_type)
             if final_event_type == PARTICIPANT_JOINED then
                 module:log("debug", "Occupant %s joined lobby room %s", occupant.jid, room.jid);
                 if main_room:get_affiliation(occupant.bare_jid) == 'owner' or occupant.role == "moderator" then
-                    table.insert(moderator_occupants_in_lobby, occupant.bare_jid);
+                    moderator_occupants_in_lobby[occupant.bare_jid] = 'owner';
                     return;
                 end
                 participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
             elseif final_event_type == PARTICIPANT_LEFT then
                 module:log("debug", "Occupant %s left lobby room %s", occupant.jid, room.jid);
-                found, key = util.table_contains(moderator_occupants_in_lobby, occupant.bare_jid);
-                if found then
-                    table.remove(moderator_occupants_in_lobby, key);
+                if moderator_occupants_in_lobby[occupant.bare_jid] ~= nil then
+                    -- clear from list
+                    moderator_occupants_in_lobby[occupant.bare_jid] = nil;
                     return;
                 end
                 participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
