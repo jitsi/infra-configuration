@@ -1,4 +1,3 @@
-
 local util = module:require "util.internal";
 local uuid_gen = require "util.uuid".generate;
 local inspect = require('inspect');
@@ -29,7 +28,9 @@ local EGRESS_URL = module:get_option_string("muc_prosody_egress_url", "http://12
 local EGRESS_FALLBACK_URL = module:get_option_string("muc_prosody_egress_fallback_url");
 local USAGE = "USAGE";
 local PARTICIPANT_JOINED = "PARTICIPANT_JOINED";
+local PARTICIPANT_JOINED_LOBBY = "PARTICIPANT_JOINED_LOBBY";
 local PARTICIPANT_LEFT = "PARTICIPANT_LEFT";
+local PARTICIPANT_LEFT_LOBBY = "PARTICIPANT_LEFT_LOBBY";
 local ROOM_CREATED = "ROOM_CREATED";
 local ROOM_DESTROYED = "ROOM_DESTROYED";
 local LIVE_STREAM_STARTED = "LIVE_STREAM_STARTED";
@@ -79,6 +80,10 @@ local event_count_retried_failed = module:measure("muc_webhooks_retried_failed",
 local KICKED_PARTICIPANTS_NICK = {}
 local DISCONNECTED_PARTICIPANTS_JID = {}
 
+-- List of the bare_jids of all moderator occupants (owners in main room) present in the lobby room.
+-- Will be removed as they leave.
+local moderator_occupants_in_lobby = {};
+
 local function cb_retry(content_, code_, _, request_)
     if code_ == 200 or code_ == 204 then
         event_count_retried_sent()
@@ -101,7 +106,7 @@ local function cb(content_, code_, response_, request_)
 
         -- for failed requests the response object is actually the request
         -- and the request is nil
-        local headers  = {};
+        local headers = {};
         headers["User-Agent"] = util.http_headers_no_auth["User-Agent"]
         headers["Content-Type"] = util.http_headers_no_auth["Content-Type"]
         headers["Authorization"] = util.generateToken();
@@ -110,13 +115,15 @@ local function cb(content_, code_, response_, request_)
             headers = headers,
             method = "POST",
             body = response_.body;
-        },cb_retry);
+        }, cb_retry);
     end
 end
 
 -- whether this module is loaded for the breakout room muc component
 -- we will mark all events that this is so, and will include the breakout room id (name)
 local is_breakout = starts_with(module.host, 'breakout.');
+
+local is_lobby = starts_with(module.host, 'lobby.');
 
 -- Searches all rooms in the main muc component that holds a breakout room
 -- caches it if found so we don't search it again
@@ -226,6 +233,9 @@ function handle_occupant_access(event, event_type)
         main_room = get_main_room(room);
         breakout_room_id = jid_split(room.jid);
     end
+    if is_lobby then
+        main_room = room.main_room;
+    end
 
     local occupant = event.occupant;
     local stanza = event.stanza;
@@ -300,8 +310,10 @@ function handle_occupant_access(event, event_type)
             end
         end
 
-        payload.isBreakout = is_breakout;
-        payload.breakoutRoomId = breakout_room_id;
+        if not is_lobby then
+            payload.isBreakout = is_breakout;
+            payload.breakoutRoomId = breakout_room_id;
+        end
 
         local participant_access_event = {
             ["idempotencyKey"] = uuid_gen(),
@@ -377,7 +389,8 @@ function handle_occupant_access(event, event_type)
             elseif sip_address and not is_new_sip_participant then
                 module:log("debug", "Ignoring the sip participant %s presence update for room %s", occupant.jid, room.jid)
                 final_event_type = SIP_PARTICIPANT_ALREADY_JOINED;
-            else -- no sip_address
+            else
+                -- no sip_address
                 module:log("debug", "Ignoring the sip participant %s presence for room %s, as it has no sip address", occupant.jid, room.jid)
                 final_event_type = SIP_PARTICIPANT_NOT_JOINED_YET;
                 room._data.sip_participants_events[occupant.jid] = SIP_PARTICIPANT_NOT_JOINED_YET;
@@ -411,6 +424,26 @@ function handle_occupant_access(event, event_type)
             return
         end
 
+        -- lobby events
+        if is_lobby then
+            if final_event_type == PARTICIPANT_JOINED then
+                module:log("debug", "Occupant %s joined lobby room %s", occupant.jid, room.jid);
+                if main_room:get_affiliation(occupant.bare_jid) == 'owner' or occupant.role == "moderator" then
+                    moderator_occupants_in_lobby[occupant.bare_jid] = 'owner';
+                    return;
+                end
+                participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
+            elseif final_event_type == PARTICIPANT_LEFT then
+                module:log("debug", "Occupant %s left lobby room %s", occupant.jid, room.jid);
+                if moderator_occupants_in_lobby[occupant.bare_jid] ~= nil then
+                    -- clear from list
+                    moderator_occupants_in_lobby[occupant.bare_jid] = nil;
+                    return;
+                end
+                participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
+            end
+        end
+
         -- add reason for participant left
         if final_event_type == PARTICIPANT_LEFT or final_event_type == DIAL_OUT_ENDED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED then
             local _, _, resource = split_jid(occupant.nick);
@@ -431,7 +464,7 @@ function handle_occupant_access(event, event_type)
             end
         end
 
-        module:log("debug","Participant event %s",inspect(participant_access_event))
+        module:log("debug", "Participant event %s", inspect(participant_access_event))
 
         event_count();
         http.request(EGRESS_URL, {
@@ -744,13 +777,13 @@ local function occupant_affiliation_changed(event)
             ["data"] = eventData
         }
 
-         module:log("debug", "Role change event: %s", inspect(role_change_event))
-         event_count();
-         http.request(EGRESS_URL, {
-           headers = util.http_headers_no_auth,
-           method = "POST",
-           body = json.encode(role_change_event);
-       }, cb);
+        module:log("debug", "Role change event: %s", inspect(role_change_event))
+        event_count();
+        http.request(EGRESS_URL, {
+            headers = util.http_headers_no_auth,
+            method = "POST",
+            body = json.encode(role_change_event);
+        }, cb);
     end
 end
 
