@@ -5,7 +5,7 @@
   gather_facts: true
   any_errors_fatal: true
   vars_files:
-    - environments/all/group_vars/all.yml
+    - config/vars.yml
   vars:
     ec2_build_type: "Base"
     ec2_object_name: "Build{{ ec2_build_type }}"
@@ -81,8 +81,8 @@
   become_user: root
   become: true
   vars_files:
-    - credentials/credentials-ssh.yml
-    - environments/all/group_vars/all.yml
+    - secrets/ssh-users.yml
+    - config/vars.yml
   vars:
     cloud_provider: aws
   pre_tasks:
@@ -135,7 +135,7 @@
   connection: local
   gather_facts: true
   vars_files:
-    - environments/all/group_vars/all.yml
+    - config/vars.yml
   vars:
     ec2_build_type: "Base"
     ec2_object_name: "Build{{ ec2_build_type }}"
