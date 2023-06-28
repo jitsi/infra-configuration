@@ -86,6 +86,7 @@
     - config/vars.yml
   vars:
     cloud_provider: aws
+    wavefront_telegraf_from_apt: true
   pre_tasks:
     # pause 10 seconds before updating, to ensure that everything is ready to roll
     - name: Pause for 10 seconds
