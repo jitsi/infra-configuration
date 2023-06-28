@@ -82,6 +82,7 @@
   become: true
   vars_files:
     - secrets/ssh-users.yml
+    - secrets/repo.yml
     - config/vars.yml
   vars:
     cloud_provider: aws
