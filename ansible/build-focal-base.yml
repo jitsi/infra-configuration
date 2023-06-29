@@ -35,6 +35,7 @@
         image_id: "{{ ec2_image_id }}"
         region: "{{ ec2_region }}"
         exact_count: 1
+        state: running
         security_group: "{{ ec2_security_group_name }}-amibuilder"
         wait: true
         wait_timeout: 500
@@ -49,6 +50,7 @@
           Type: ansible-ami-builder-base
           environment: all
         filters:
+          instance-state-name: running
           tag:Name: "{{ ec2_object_name }}-amibuilder"
           tag:build_id: "{{ build_id }}"
       register: ec2_instance
@@ -150,18 +152,13 @@
       ansible.builtin.command: date +%s
       register: local_date_ts
 
-    - name: "Check for ENA support on instance"
-      delegate_to: localhost
-      ansible.builtin.command: aws ec2 describe-instances --instance-ids {{ ec2_instance.instances.0.id }} --query "Reservations[].Instances[].EnaSupport" | jq ".[]"
-      register: ena_support_r
-
     - name: Set ena_support fact
       ansible.builtin.set_fact:
-        ena_support: "{{ ena_support_r.stdout == 'true' }}"
+        ena_support: "{{ ec2_instance.instances.0.ena_support }}"
 
     - name: "Stop instance via shell"
       delegate_to: localhost
-      ansible.builtin.command: aws ec2 stop-instances --instance-ids {{ ec2_instance.instances.0.id }}
+      ansible.builtin.command: aws ec2 stop-instances --instance-ids {{ ec2_instance.instances.0.instance_id }}
       environment:
         AWS_DEFAULT_REGION: "{{ ec2_region }}"
       when: not ena_support
@@ -172,17 +169,17 @@
         wait: true
         wait_timeout: 500
         region: "{{ ec2_region }}"
-        instance_ids: "{{ ec2_instance.instances.0.id }}"
+        instance_ids: ["{{ ec2_instance.instances.0.instance_id }}"]
       when: not ena_support
 
     - name: "Enable ENA support on instance"
       delegate_to: localhost
-      ansible.builtin.command: aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ ec2_instance.instances.0.id }} --ena-support
+      ansible.builtin.command: aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ ec2_instance.instances.0.instance_id }} --ena-support
       when: not ena_support
 
     - name: "Start instance via shell"
       delegate_to: localhost
-      ansible.builtin.command: aws ec2 start-instances --instance-ids {{ ec2_instance.instances.0.id }}
+      ansible.builtin.command: aws ec2 start-instances --instance-ids {{ ec2_instance.instances.0.instance_id }}
       environment:
         AWS_DEFAULT_REGION: "{{ ec2_region }}"
       when: not ena_support
@@ -193,12 +190,12 @@
         wait: true
         wait_timeout: 500
         region: "{{ ec2_region }}"
-        instance_ids: "{{ ec2_instance.instances.0.id }}"
+        instance_ids: "{{ ec2_instance.instances.0.instance_id }}"
       when: not ena_support
 
     - name: "Build aws ami"
       amazon.aws.ec2_ami:
-        instance_id: "{{ ec2_instance.instances.0.id }}"
+        instance_id: "{{ ec2_instance.instances.0.instance_id }}"
         region: "{{ ec2_region }}"
         state: present
         description: "{{ ec2_build_type }} Image provisioned {{ local_date_time.stdout }}"
@@ -236,7 +233,7 @@
         wait: true
         wait_timeout: 500
         region: "{{ ec2_region }}"
-        instance_ids: "{{ ec2_instance.instances.0.id }}"
+        instance_ids: "{{ ec2_instance.instances.0.instance_id }}"
 
     - name: "Drop ec2 security group"
       amazon.aws.ec2_security_group:
