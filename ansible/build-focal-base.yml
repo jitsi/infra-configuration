@@ -1,0 +1,244 @@
+---
+- name: Build Instance
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  any_errors_fatal: true
+  vars_files:
+    - config/vars.yml
+  vars:
+    ec2_build_type: "Base"
+    ec2_object_name: "Build{{ ec2_build_type }}"
+  tasks:
+    - name: "Provision ec2 security group"
+      amazon.aws.ec2_security_group:
+        name: "{{ ec2_security_group_name }}-amibuilder"
+        description: "VaaS Load test security group for temporary ec2 instance"
+        vpc_id: "{{ ec2_vpc_id }}"
+        region: "{{ ec2_region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: tcp
+            from_port: 1
+            to_port: 65535
+            cidr_ip: 0.0.0.0/0
+
+    - name: "Provision ec2 instance"
+      amazon.aws.ec2_instance:
+        key_name: "{{ ec2_keypair }}"
+        vpc_subnet_id: "{{ ec2_vpc_subnet_id }}"
+        instance_type: "{{ ec2_instance_type }}"
+        image_id: "{{ ec2_image_id }}"
+        region: "{{ ec2_region }}"
+        exact_count: 1
+        state: running
+        security_group: "{{ ec2_security_group_name }}-amibuilder"
+        wait: true
+        wait_timeout: 500
+        tags:
+          Name: "{{ ec2_object_name }}-amibuilder"
+          build_id: "{{ build_id }}"
+          Environment: dev
+          Product: meetings
+          Team: meet@8x8.com
+          Service: jitsi-build
+          Owner: Meetings
+          Type: ansible-ami-builder-base
+          environment: all
+        filters:
+          instance-state-name: running
+          tag:Name: "{{ ec2_object_name }}-amibuilder"
+          tag:build_id: "{{ build_id }}"
+      register: ec2_instance
+
+    - name: Debug output for registered instance
+      ansible.builtin.debug:
+        var: ec2_instance
+
+    - name: Add new instances to host group
+      ansible.builtin.add_host:
+        hostname: "{{ ec2_instance.instances.0.public_ip_address }}"
+        groupname: launched
+
+    - name: Wait for it to come up
+      ansible.builtin.pause:
+        minutes: 1
+
+- name: Python 3 Install
+  hosts: launched
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install python 3
+      ansible.builtin.raw: test -e /usr/bin/python || (apt -y update && DEBIAN_FRONTEND=noninteractive apt install -yq python-is-python3 python-dev-is-python3)
+
+- name: Provisioning
+  hosts: launched
+  any_errors_fatal: true
+  gather_facts: true
+  become_user: root
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/repo.yml
+    - config/vars.yml
+  vars:
+    cloud_provider: aws
+    wavefront_telegraf_from_apt: true
+  pre_tasks:
+    # pause 10 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+    - name: Install aptitude # noqa package-latest
+      ansible.builtin.apt:
+        name: aptitude
+        update_cache: true
+        state: latest
+    - name: Upgrade packages
+      ansible.builtin.apt:
+        upgrade: true
+    - name: Upgrade to the latest kernel image # noqa package-latest
+      ansible.builtin.apt:
+        name: linux-aws
+        state: latest
+  post_tasks:
+    - name: Remove td-agent deb repository
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.treasuredata.com/4/{{ ansible_distribution | lower }}/{{ ansible_distribution_release | lower }}/ {{ ansible_distribution_release | lower }} contrib" # noqa yaml[line-length]
+        state: absent
+        update_cache: false
+
+  roles:
+    - { role: "common", tags: "common" }
+    - { role: "ansible-install", tags: "ansible-install" }
+    - { role: "sshusers", tags: "ssh" }
+    - { role: "ntp", tags: "ntp"}
+    - { role: "logrotate", tags: "logrotate"}
+    - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "openjdk-java", tags: "openjdk-java" }
+    - { role: "jitsi-dumper", tags: "jitsi-dumper"}
+    - { role: "consul-install", tags: "consul-install"}
+    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: true, fluentd_configure_flag: false}
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_install_collector: true
+      datadog_extensions: "true"
+      vars:
+        telegraf_tags:
+          role: "base"
+          cloud: "aws"
+    - { role: "clean-system", tags: "clean-system, build" }
+
+- name: Build AMI
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars_files:
+    - config/vars.yml
+  vars:
+    ec2_build_type: "Base"
+    ec2_object_name: "Build{{ ec2_build_type }}"
+  tasks:
+    - name: "Get local datetime"
+      ansible.builtin.command: date
+      register: local_date_time
+
+    - name: "Get local timestamp"
+      ansible.builtin.command: date +%s
+      register: local_date_ts
+
+    - name: Set ena_support fact
+      ansible.builtin.set_fact:
+        ena_support: "{{ ec2_instance.instances.0.ena_support }}"
+
+    - name: "Stop instance via shell"
+      delegate_to: localhost
+      ansible.builtin.command: aws ec2 stop-instances --instance-ids {{ ec2_instance.instances.0.instance_id }}
+      environment:
+        AWS_DEFAULT_REGION: "{{ ec2_region }}"
+      when: not ena_support
+
+    - name: "Stop temporary instance"
+      amazon.aws.ec2_instance:
+        state: stopped
+        wait: true
+        wait_timeout: 500
+        region: "{{ ec2_region }}"
+        instance_ids: ["{{ ec2_instance.instances.0.instance_id }}"]
+      when: not ena_support
+
+    - name: "Enable ENA support on instance"
+      delegate_to: localhost
+      ansible.builtin.command: aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ ec2_instance.instances.0.instance_id }} --ena-support
+      when: not ena_support
+
+    - name: "Start instance via shell"
+      delegate_to: localhost
+      ansible.builtin.command: aws ec2 start-instances --instance-ids {{ ec2_instance.instances.0.instance_id }}
+      environment:
+        AWS_DEFAULT_REGION: "{{ ec2_region }}"
+      when: not ena_support
+
+    - name: "Start temporary instance"
+      amazon.aws.ec2_instance:
+        state: running
+        wait: true
+        wait_timeout: 500
+        region: "{{ ec2_region }}"
+        instance_ids: "{{ ec2_instance.instances.0.instance_id }}"
+      when: not ena_support
+
+    - name: "Build aws ami"
+      amazon.aws.ec2_ami:
+        instance_id: "{{ ec2_instance.instances.0.instance_id }}"
+        region: "{{ ec2_region }}"
+        state: present
+        description: "{{ ec2_build_type }} Image provisioned {{ local_date_time.stdout }}"
+        name: "{{ ec2_object_name }}-{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}"
+        wait: true
+        tags:
+          Name: "{{ ec2_object_name }}-{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}-{{ local_date_ts.stdout }}"
+          build_id: "{{ build_id }}"
+          TS: "{{ local_date_ts.stdout }}"
+          Type: "{{ ec2_build_type }}"
+          Architecture: "{% for host in groups['launched'] %}{{ hostvars[host]['ansible_architecture'] }}{% endfor %}"
+          Environment: dev
+          Product: meetings
+          Team: meet@8x8.com
+          Owner: Meetings
+          Service: jitsi-base-ami
+      register: amioutput
+
+    - name: "Create vars directory"
+      ansible.builtin.file:
+        path: ./vars
+        state: directory
+        mode: 0755
+
+    - name: "Create vars file with new ami info"
+      ansible.builtin.copy:
+        mode: 0644
+        content: |
+              {{ ec2_build_type | lower }}_ec2_image_id: {{ amioutput.image_id }}
+        dest: "./vars/{{ ec2_build_type | lower }}-settings_{{ ec2_region }}.yml"
+
+    - name: "Terminate temporary instance"
+      amazon.aws.ec2_instance:
+        state: absent
+        wait: true
+        wait_timeout: 500
+        region: "{{ ec2_region }}"
+        instance_ids: "{{ ec2_instance.instances.0.instance_id }}"
+
+    - name: "Drop ec2 security group"
+      amazon.aws.ec2_security_group:
+        name: "{{ ec2_security_group_name }}-amibuilder"
+        description: "VaaS Load test security group for temporary ec2 instance"
+        state: 'absent'
+        region: "{{ ec2_region }}"

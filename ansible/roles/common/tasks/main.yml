@@ -80,6 +80,7 @@
   ansible.builtin.file:
     path: /usr/local/bin/oci
     mode: 0755
+  when: common_cloud_provider == "oracle"
 
 # getaddrinfo configurator
 - name: Configure getaddrinfo

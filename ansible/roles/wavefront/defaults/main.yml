@@ -55,9 +55,9 @@ wavefront_telegraf_repo_branch: "{{ 'stable' if wavefront_telegraf_use_influx el
 wavefront_telegraf_repo_gpgkey: "{{ wavefront_telegraf_repo_gpgkey_influx if wavefront_telegraf_use_influx else wavefront_telegraf_repo_gpgkey_pcloud }}"
 wavefront_telegraf_repo_gpgkey_2: "{{ wavefront_telegraf_repo_gpgkey_influx_2 if wavefront_telegraf_use_influx else false }}"
 # needs to be updated when apt keys change
-wavefront_telegraf_repo_gpgkey_id: 81478B91092AE0FEE5E0FC200B3F63C5769F5903
+wavefront_telegraf_repo_gpgkey_id: D8FF8E1F7DF8B07E
 wavefront_telegraf_repo_gpgkey_id_2: 684A14CF2582E0C5
-wavefront_telegraf_repo_gpgkey_influx: "https://repos.influxdata.com/influxdb.key"
+wavefront_telegraf_repo_gpgkey_influx: "https://repos.influxdata.com/influxdata-archive_compat.key"
 wavefront_telegraf_repo_gpgkey_influx_2: "https://repos.influxdata.com/influxdb2.key"
 wavefront_telegraf_repo_gpgkey_pcloud: "https://packagecloud.io/wavefront/telegraf/gpgkey"
 wavefront_telegraf_use_influx: true
