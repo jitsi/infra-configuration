@@ -699,7 +699,7 @@ local function handleBroadcastMessage(event)
     end
 end
 
-local function attachMachinUid(event)
+local function attachMachineUid(event)
     module:log("debug","attach machine uid %s",event)
     local stanza, session = event.stanza, event.origin;
     -- the sending iq to jicofo method for retrieving the machine_uid is deprecated as we will be moving away from it
@@ -790,6 +790,15 @@ local function attachJibriSessionId(event)
     end
 end
 
+-- Checks for billingid in presence to attach it as machine_uid to the session
+local function handleOccupantPreJoin(event)
+    if is_healthcheck_room(event.room.jid) then
+        return;
+    end
+
+    attachMachineUid(event);
+end
+
 local function handleSpeakerStats(event)
     if speakerStatsURL == nil or speakerStatsURL == "" then
         module:log("debug", "Sending speaker stats is disabled. Not sending speaker stats for %s", event.room.jid);
@@ -855,8 +864,8 @@ function module.add_host(host_module)
                "Loading mod_muc_events for host %s!", host_module.host);
 
     host_module:hook("pre-iq/full",attachJibriSessionId);
-    host_module:hook("pre-iq/host", attachMachinUid);
-    host_module:hook('muc-occupant-pre-join', handleOccupantJoined, 1000);
+    host_module:hook("pre-iq/host", attachMachineUid);
+    host_module:hook('muc-occupant-pre-join', handleOccupantPreJoin, 1000);
 
     host_module:hook("muc-occupant-left", handleOccupantLeft);
     host_module:hook("muc-occupant-joined", handleOccupantJoined);
