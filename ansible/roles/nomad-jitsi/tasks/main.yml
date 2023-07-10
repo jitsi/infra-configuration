@@ -7,6 +7,7 @@
     executable: /bin/bash
   register: loki_mount_results
   ignore_errors: true
+  when: nomad_pool_type == 'general'
 
 - name: Create loki mount point
   ansible.builtin.file:
@@ -14,7 +15,9 @@
     state: directory
     mode: 0755
     recurse: true
-  when: loki_mount_results.rc == 1
+  when:
+    - nomad_pool_type == 'general'
+    - loki_mount_results.rc == 1
 
 - name: Create nomad s3fs passwd
   ansible.builtin.copy:
@@ -23,6 +26,15 @@
     content: "{{ nomad_s3fs_credentials }}"
     dest: "{{ nomad_s3fs_credentials_path }}"
   no_log: true
+  when: nomad_pool_type == 'general'
+
+- name: Create nomad jibri mount point
+  ansible.builtin.file:
+    path: "{{ nomad_jibri_mount_point }}"
+    state: directory
+    mode: 0755
+    recurse: true
+  when: nomad_pool_type == 'jibri'
 
 - name: Install apt pre-requisites
   ansible.builtin.apt:
@@ -36,7 +48,9 @@
     opts: "{{ nomad_loki_s3fs_options }}"
     fstype: "fuse"
     state: mounted
-  when: loki_mount_results.rc == 1
+  when:
+    - nomad_pool_type == 'general'
+    - loki_mount_results.rc == 1
 
 - name: ECR credentials dependency
   ansible.builtin.apt:
