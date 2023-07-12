@@ -722,3 +722,19 @@ Component "visitors.{{ prosody_domain_name }}" "visitors_component"
     auto_allow_visitor_promotion = true
     {% endif %}
 {% endif %}
+
+{% if sip_jibri_shared_secrets[hcv_environment] %}
+VirtualHost "sipjibri.{{ prosody_domain_name }}"
+    modules_enabled = {
+      "ping";
+{% if prosody_xmpp_resume %}
+      "smacks";
+{% endif %}
+    }
+    authentication = "jitsi-shared-secret"
+    shared_secret = "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+{% if prosody_xmpp_resume %}
+    -- this is dropped in 0.12
+    smacks_max_hibernated_sessions = 2000;
+{% endif %}
+{% endif %}
