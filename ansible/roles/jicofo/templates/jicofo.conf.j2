@@ -153,10 +153,16 @@ jicofo {
       password = "{{ jicofo_auth_password }}"
     }
 {% endif %}
+{% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
       # By trusting prosody_domain_name we effectively disable the feature and allow clients to impersonate Jibri. This is
       # intentional until we are able to have SIP Jibris login to one of the authenticated domains (otherwise SIP Jibris will
       # not be recognized by jicofo leading to "mute all" affecting them).
-      trusted-domains = [ "{{ prosody_auth_domain_name }}", "recorder.{{ prosody_domain_name }}", "{{ prosody_domain_name }}" ]
+{% endif %}
+      trusted-domains = [ "{{ prosody_auth_domain_name }}", "recorder.{{ prosody_domain_name }}",
+{% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
+        "{{ prosody_domain_name }}"
+{% endif %}
+    ]
 {% if jicofo_visitors_enabled %}
       visitors {
     {% for i in range(jicofo_visitors_count|int) %}
