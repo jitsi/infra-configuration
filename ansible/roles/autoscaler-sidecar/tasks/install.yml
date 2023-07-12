@@ -1,4 +1,9 @@
 ---
+# stub for jitsi group
+- name: Stub group for jitsi in case it doesn't exist yet
+  ansible.builtin.group:
+    name: jitsi
+
 - name: Install list of packages
   ansible.builtin.apt:
     name: git
@@ -70,6 +75,7 @@
     path: "{{ autoscaler_log_dir }}"
     state: directory
     owner: "{{ autoscaler_username }}"
+    group: "jitsi"
 
 - name: Rsyslog configuration
   ansible.builtin.template:
