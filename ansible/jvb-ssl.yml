@@ -1,0 +1,17 @@
+---
+- name: JVB SSL
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: true
+  force_handlers: true
+  gather_timeout: 180
+  vars_files:
+    - secrets/ssl-certificates.yml
+    - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
+  vars:
+    cloud_provider: oracle
+    shard_role: JVB
+  roles:
+    - { role: "jvb-ssl", "tags": "jvb-ssl"}
