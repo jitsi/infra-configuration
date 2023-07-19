@@ -180,7 +180,8 @@ jitsi_meet_hepop_analytics_urls_by_environment_type:
   stage: https://hepop-pilot.jitsi.net/
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
-jitsi_meet_jvb_disabled_codec: "H264"
+jitsi_meet_jvb_preferred_codecs: null
+jitsi_meet_jvb_preferred_mobile_codecs: null
 jitsi_meet_load_test_enabled: false
 jitsi_meet_load_test_repo: https://github.com/jitsi/jitsi-meet-load-test.git
 jitsi_meet_local_recording_notify_all: true
@@ -206,13 +207,12 @@ jitsi_meet_no_auto_local_audio: false
 jitsi_meet_noisy_mic_detection_enabled: true
 jitsi_meet_opus_red_enabled: false
 jitsi_meet_override_plugin_contents: ""
-jitsi_meet_p2p_disabled_codec: "H264"
-jitsi_meet_p2p_preferred_codec: "VP9"
+jitsi_meet_p2p_preferred_codecs: null
+jitsi_meet_p2p_preferred_mobile_codecs: null
 jitsi_meet_people_search_query_types: "['user','conferenceRooms']"
 jitsi_meet_performance_stats: false
 jitsi_meet_polls_disabled: false
 jitsi_meet_prefer_sctp: false
-jitsi_meet_prefer_vp9_codec_jvb: true
 jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
 jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"
 jitsi_meet_redirect_to_ssl: true
