@@ -86,11 +86,11 @@ var config = {
     // New P2P options
     p2p: {
         enabled: {% if jitsi_meet_enable_p2p %}true{% else %}false{% endif %},
-{% if jitsi_meet_p2p_preferred_codec %}
-        preferredCodec: '{{ jitsi_meet_p2p_preferred_codec }}',
+{% if jitsi_meet_p2p_preferred_codecs %}
+        codecPreferenceOrder: '{{ jitsi_meet_p2p_preferred_codecs }}',
 {% endif %}
-{% if jitsi_meet_p2p_disabled_codec %}
-        disabledCodec: '{{ jitsi_meet_p2p_disabled_codec }}',
+{% if jitsi_meet_p2p_preferred_mobile_codecs %}
+        mobileCodecPreferenceOrder: '{{ jitsi_meet_p2p_preferred_mobile_codecs }}',
 {% endif %}
         useStunTurn: {% if jitsi_meet_enable_p2p_turn %}true{% else %}false{% endif %} // use XEP-0215 to fetch STUN and TURN servers for the P2P connection
     },
@@ -143,35 +143,29 @@ var config = {
     },
 {% if jitsi_meet_video_quality %}
     videoQuality: {
-{% if jitsi_meet_jvb_disabled_codec %}
-        disabledCodec: '{{ jitsi_meet_jvb_disabled_codec }}',
-{% endif %}
-    {% if jitsi_meet_prefer_vp9_codec_jvb %}
-    preferredCodec: 'VP9',
-    maxBitratesVideo: {
-        VP8: {
-            low: 200000,
-            standard: 500000,
-            high: 1500000
-        },
-        VP9: {
-            low: 100000,
-            standard: 300000,
-            high: 1200000
-        }
-    },
-    {% else %}
-    maxBitratesVideo: {
-        low: 200000,
-        standard: 500000,
-        high: 1500000
-    },
+    {% if jitsi_meet_jvb_preferred_codecs %}
+        codecPreferenceOrder: '{{ jitsi_meet_jvb_preferred_codecs }}',
     {% endif %}
+    {% if jitsi_meet_jvb_preferred_mobile_codecs %}
+        mobileCodecPreferenceOrder: '{{ jitsi_meet_jvb_preferred_mobile_codecs }}',
+    {% endif %}
+        maxBitratesVideo: {
+            VP8: {
+                low: 200000,
+                standard: 500000,
+                high: 1500000
+            },
+            VP9: {
+                low: 100000,
+                standard: 300000,
+                high: 1200000
+            }
+        },
     {% if jitsi_meet_min_height_quality_level %}
-    minHeightForQualityLvl: {
-        240: 'standard',
-        540: 'high'
-    }
+        minHeightForQualityLvl: {
+            240: 'standard',
+            540: 'high'
+        }
     {% endif %}
     },
 {% endif %}
