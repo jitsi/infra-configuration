@@ -517,7 +517,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
         "muc_hide_all";
 {% endif %}
 {% if prosody_enable_tokens %}
+    {% if prosody_enable_token_room_verification %}
         "token_verification";
+    {% endif %}
 {% endif %}
 {% if prosody_muc_max_occupants %}
         "muc_max_occupants";
