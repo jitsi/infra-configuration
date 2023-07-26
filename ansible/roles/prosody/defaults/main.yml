@@ -92,6 +92,7 @@ prosody_enable_rate_limit: true
 prosody_enable_tokens: true
 # plugin to check features when requesting a transcription
 prosody_enable_transcription_filter: false
+prosody_enable_wait_for_host: false
 # prosody_log_level: change 'info' to 'debug' for debug logs
 prosody_focus_admins:
   - "focus@{{ prosody_auth_domain_name }}"

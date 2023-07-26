@@ -300,6 +300,10 @@ log = {
   {% else %}
 --	debug = "/var/log/prosody/prosody.fifo";
   {% endif %}
+
+  {% if prosody_enable_wait_for_host %}
+  { to = "file", filename = "/var/log/prosody/prosody.audit.log", levels = { "audit" }  }
+  {% endif %}
 {% if prosody_mod_log_ringbuffer_size %}
     {
         level = "debug",
@@ -422,6 +426,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_visitors_enabled %}
           "visitors";
+{% endif %}
+{% if prosody_enable_wait_for_host %}
+          "persistent_lobby";
 {% endif %}
         }
         shard_name = "{{ shard_name }}"
@@ -564,6 +571,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% endif %}
 {% if prosody_enable_mod_measure_message_count %}
         "measure_message_count";
+{% endif %}
+{% if prosody_enable_wait_for_host %}
+        "muc_wait_for_host";
 {% endif %}
     }
 
