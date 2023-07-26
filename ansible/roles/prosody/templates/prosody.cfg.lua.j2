@@ -302,7 +302,11 @@ log = {
   {% endif %}
 
   {% if prosody_enable_wait_for_host %}
-  { to = "file", filename = "/var/log/prosody/prosody.audit.log", levels = { "audit" }  }
+    {
+        to = "file",
+        filename = "/var/log/prosody/prosody.audit.log",
+        levels = { "audit" }
+    };
   {% endif %}
 {% if prosody_mod_log_ringbuffer_size %}
     {
