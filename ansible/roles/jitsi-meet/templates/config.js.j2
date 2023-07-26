@@ -22,7 +22,7 @@ var config = {
     },
 
 {% if jitsi_meet_token_auth_url %}
-    tokenAuthUrl: '{{jitsi_meet_token_auth_url}}#room={room}&subdir=' + subdir,
+    tokenAuthUrl: '{{jitsi_meet_token_auth_url}}#room={room}&subdir=' + subdomain,
 {% endif %}
 {% if jitsi_meet_token_logout_url %}
     tokenLogoutUrl: '{{jitsi_meet_token_logout_url}}',
