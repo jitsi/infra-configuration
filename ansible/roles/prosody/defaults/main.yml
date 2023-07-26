@@ -30,6 +30,7 @@ prosody_auth_domain_name: "auth.{{ prosody_domain_name }}"
 prosody_bosh_max_inactivity: 60
 prosody_breakout_rooms_enabled: true
 prosody_c2s_stanza_size_limit: '512*1024'
+prosody_cache_keys_url: false
 # enable a jigasi component in prosody
 prosody_cancel_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/cancel"
 prosody_cloud_provider: "{{ cloud_provider | default('oracle') }}"
@@ -38,6 +39,7 @@ prosody_configure_flag: true
 prosody_create_users: "{{ prosody_enable_plain_auth }}"
 prosody_disable_messaging: false
 prosody_disabled_modules: ["pubsub", "register"]
+prosody_disable_required_room_claim: false
 prosody_domain_name: domain.local
 # version vars for url install method
 prosody_dpkg_base_name: prosody

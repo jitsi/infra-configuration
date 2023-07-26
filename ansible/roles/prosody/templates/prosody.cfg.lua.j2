@@ -143,6 +143,10 @@ asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},
 asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{ aud }}"{% endfor %} }
 {% endif %}
 
+{% if prosody_disable_required_room_claim %}
+asap_require_room_claim = false;
+{% endif %}
+
 {% if prosody_enable_muc_events or prosody_enable_call_flow %}
 asap_key_path = "{{ prosody_asap_key_path }}"
 asap_key_id = "{{ asap_key['id'] }}";
@@ -357,6 +361,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_vpaas_public_key_repo_url %}
         vpaas_asap_key_server = "{{ prosody_vpaas_public_key_repo_url }}"
 {% endif %}
+{% if prosody_cache_keys_url %}
+        cache_keys_url = "{{prosody_cache_keys_url}}";
+{% endif %}
 
 {% else %}
   {% if prosody_enable_plain_auth %}
@@ -458,6 +465,9 @@ VirtualHost "{{ prosody_guest_domain_name }}"
           "ping";
         }
         authentication = "anonymous"
+{% if prosody_visitors_enabled %}
+        allow_anonymous_s2s = true
+{% endif %}
 {% endif %}
 
 VirtualHost "{{ prosody_auth_domain_name }}"

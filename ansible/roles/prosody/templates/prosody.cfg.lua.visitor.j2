@@ -45,6 +45,9 @@ s2s_whitelist = {
     'conference.{{ prosody_domain_name }}', -- needed for visitors to send messages to main room
     'visitors.{{ prosody_domain_name }}'; -- needed for sending promotion request to visitors.{{ prosody_domain_name }} component
     '{{ prosody_domain_name }}'; -- unavailable presences back to main room
+{% if prosody_enable_guest_auth %}
+    '{{ prosody_guest_domain_name }}';
+{% endif %}
 };
 
 {% if prosody_enable_mod_turncredentials %}
@@ -126,6 +129,9 @@ s2sout_override = {
     ["conference.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269"; -- needed for visitors to send messages to main room
     ["{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
     ["visitors.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
+{% if prosody_enable_guest_auth %}
+    ["{{ prosody_guest_domain_name }}"] = "tcp://127.0.0.1:5269";
+{% endif %}
 }
 
 {% if prosody_limit_messages %}
@@ -229,5 +235,5 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 	rate_limit_cache_size = {{ prosody_rate_limit_cache_size }};
 {% endif %}
 {% if prosody_enable_muc_rate_limit %}
-    muc_rate_joins = 60;
+    muc_rate_joins = 30;
 {% endif %}

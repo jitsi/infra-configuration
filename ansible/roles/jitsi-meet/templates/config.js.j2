@@ -20,6 +20,14 @@ var config = {
 {% endif %}
         focus: 'focus.{{ jitsi_meet_xmpp_domain_name }}',
     },
+
+{% if jitsi_meet_token_auth_url %}
+    tokenAuthUrl: '{{jitsi_meet_token_auth_url}}#room={room}&subdir=' + subdir,
+{% endif %}
+{% if jitsi_meet_token_logout_url %}
+    tokenLogoutUrl: '{{jitsi_meet_token_logout_url}}',
+{% endif %}
+
     bridgeChannel: {
         preferSctp: {{ jitsi_meet_prefer_sctp | to_json }},
     },
