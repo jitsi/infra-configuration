@@ -161,6 +161,11 @@ var config = {
         mobileCodecPreferenceOrder: '{{ jitsi_meet_jvb_preferred_mobile_codecs }}',
     {% endif %}
         maxBitratesVideo: {
+            H264: {
+                low: 200000,
+                standard: 500000,
+                high: 1500000
+            }
             VP8: {
                 low: 200000,
                 standard: 500000,
