@@ -38,6 +38,9 @@ var config = {
 {% if jitsi_meet_resolution %}
     constraints: {
         video: {
+        {% if jitsi_meet_resolution_force_aspect_ratio %}
+            aspectRatio: 16 / 9,
+        {% endif %}
             height: {
                 ideal: {{ jitsi_meet_resolution }},
                 max: {{ jitsi_meet_resolution }},
