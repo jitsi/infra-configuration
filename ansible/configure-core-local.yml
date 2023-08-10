@@ -6,6 +6,7 @@
   become: true
   force_handlers: true
   vars:
+    exclusive_tenant: ""
     shard_role: core
     cloud_provider: aws
     core_public_ip: "{{ oracle_public_ip | default('') if core_cloud_provider == 'oracle' else ansible_ec2_public_ipv4 | default('') }}"
