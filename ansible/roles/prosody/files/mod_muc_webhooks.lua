@@ -550,7 +550,7 @@ function handle_room_event(event, event_type)
 end
 
 function handle_jibri_event(event)
-    if is_breakout then
+    if is_breakout or is_lobby then
         return
     end
     local stanza = event.stanza;
