@@ -45,21 +45,25 @@
         nomad_block_volume_mounts: "{{ block_volume_mounts.stdout.split(' ') }}"
       tags: setup
       when: block_volume_mounts.stdout
-    - name: Set nomad host volumes extras
+    - name: Set nomad host volumes extras for consul
       set_fact:
-        nomad_host_volumes_extra_by_type:
-          consul: |-
-            [
-              {% for bv in nomad_block_volume_mounts %}
-                {
-                  name: "{{ bv }}",
-                  path: "/mnt/bv/{{ bv }}",
-                  create: false,
-                  read_only: false
-                },
-              {% endfor %}
-            ]
+        nomad_host_volumes_extra_for_consul: |-
+          [
+            {% for bv in nomad_block_volume_mounts %}
+              {
+                name: "{{ bv }}",
+                path: "/mnt/bv/{{ bv }}",
+                create: false,
+                read_only: false
+              },
+            {% endfor %}
+          ]
       when: nomad_block_volume_mounts is defined
+
+    - name: Set nomad host volumes extras for consul
+      set_fact:
+        nomad_host_volumes_extra:
+          consul: "{{ nomad_host_volumes_extra_for_consul | from_yaml }}"
 
     - name: Debug block volume facts
       debug:
@@ -71,7 +75,7 @@
       debug:
         var: nomad_host_volumes_extra_by_type
       tags: setup
-      when: nomad_block_volume_mounts is defined
+      when: nomad_host_volumes_extra_by_type is defined
 
     # - name: Remove nomad client configuration
     #   ansible.builtin.file:
