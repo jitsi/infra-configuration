@@ -15,6 +15,14 @@
   service: name=rsyslog state=restarted
   when: selenium_grid_role=='node' and selenium_grid_configure_flag
 
+- name: Stop docker
+  ansible.builtin.command: service docker stop
+  when: selenium_grid_configure_flag
+
+- name: Delete docker interface
+  ansible.builtin.command: ip link delete docker0
+  when: selenium_grid_configure_flag
+
 - name: restart selenium grid extras node
   service: name={{ selenium_grid_extras_node_service_name }} state=restarted
   when: selenium_grid_role=='node' and selenium_grid_extras_configure_flag
