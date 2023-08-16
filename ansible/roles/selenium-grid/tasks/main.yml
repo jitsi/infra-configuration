@@ -206,6 +206,14 @@
   copy: src="selenium-grid.rsyslogd.conf" dest="/etc/rsyslog.d/23-selenium-grid.conf"
   notify: restart rsyslog
 
+- name: Stop docker
+  ansible.builtin.command: service docker stop
+  when: selenium_grid_extras_configure_flag
+
+- name: Delete docker interface
+  ansible.builtin.command: ip link delete docker0
+  when: selenium_grid_extras_configure_flag
+
 - name: Start up selenium grid hub service
   service: name="{{ selenium_grid_hub_service_name }}" state=started enabled=true
   when: selenium_grid_configure_flag and selenium_grid_role == 'hub' and not selenium_grid_extras_configure_flag
