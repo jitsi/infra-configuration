@@ -56,7 +56,7 @@
                   path: "/mnt/bv/{{ bv }}",
                   create: false,
                   read_only: false
-                }
+                },
               {% endfor %}
             ]
       when: nomad_block_volume_mounts is defined
