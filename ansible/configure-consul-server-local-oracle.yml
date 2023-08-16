@@ -65,17 +65,12 @@
         nomad_host_volumes_extra: "{{ nomad_host_volumes_extra_for_consul | from_yaml }}"
       when: nomad_block_volume_mounts is defined
 
-    - name: Debug block volume facts
-      debug:
-        var: nomad_block_volume_mounts
-      tags: setup
-      when: nomad_block_volume_mounts is defined
-
-    - name: Debug host volumes extras
-      debug:
-        var: nomad_host_volumes_extra
-      tags: setup
-      when: nomad_host_volumes_extra is defined
+    - name: Stop telegraf for nomad clients # noqa ignore-errors
+      ansible.builtin.service:
+        name: telegraf
+        state: stopped
+        enabled: false
+      ignore_errors: true
 
     # - name: Remove nomad client configuration
     #   ansible.builtin.file:
@@ -99,25 +94,26 @@
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
     - { role: "consul-service-start", tags: "consul-service-start"}
-    - role: "wavefront"
-      tags: "telegraf"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
-      wavefront_configure_collector: true
-      wavefront_install_collector: false
-      datadog_extensions: "true"
-      when: telegraf_enabled
-      vars:
-        telegraf_inputs:
-          procstat:
-            - systemd_unit: "consul.service"
-              cmdline_tag: false
-              pid_tag: false
-        telegraf_tags:
-          shard-role: "consul"
-          role: "consul"
-          environment: "{{ hcv_environment }}"
-          region: "{{ cloud_region }}"
-          cloud_provider: "{{ cloud_provider }}"
+    # telegraf now run in nomad system service mode
+    # - role: "wavefront"
+    #   tags: "telegraf"
+    #   wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+    #   wavefront_configure_collector: true
+    #   wavefront_install_collector: false
+    #   datadog_extensions: "true"
+    #   when: telegraf_enabled
+    #   vars:
+    #     telegraf_inputs:
+    #       procstat:
+    #         - systemd_unit: "consul.service"
+    #           cmdline_tag: false
+    #           pid_tag: false
+    #     telegraf_tags:
+    #       shard-role: "consul"
+    #       role: "consul"
+    #       environment: "{{ hcv_environment }}"
+    #       region: "{{ cloud_region }}"
+    #       cloud_provider: "{{ cloud_provider }}"
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: consul_enable_fluentd }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
