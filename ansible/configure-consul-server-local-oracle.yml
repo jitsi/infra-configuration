@@ -15,7 +15,8 @@
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
-    nomad_node_role: server
+    nomad_node_role: both
+    nomad_node_class: "consul"
     nomad_telemetry: true
     nomad_telemetry_prometheus_metrics: true
     shard_role: consul
@@ -32,11 +33,39 @@
       ansible.builtin.set_fact:
         nomad_node_role: server
       tags: setup
-    - name: Remove nomad client configuration
-      ansible.builtin.file:
-        path: /etc/nomad.d/client.hcl
-        state: absent
+    - name: List block volume mounts
+      ansible.builtin.shell: |
+        ls /mnt/bv
+      register: block_volume_mounts
       tags: setup
+      ignore_errors: true
+
+    - name: Set nomad block volume facts
+      set_fact:
+        nomad_block_volume_mounts: "{{ block_volume_mounts.stdout.split(' ') }}"
+      tags: setup
+      when: block_volume_mounts.stdout
+    - name: Set nomad host volumes extras
+      set_fact:
+        nomad_host_volumes_extra_by_type:
+          consul: |-
+            [
+              {% for bv in nomad_block_volume_mounts %}
+                {
+                  name: "{{ bv }}",
+                  path: "/mnt/bv/{{ bv }}",
+                  create: false,
+                  read_only: false
+                }
+              {% endfor %}
+            ]
+      when: nomad_block_volume_mounts is defined
+
+    # - name: Remove nomad client configuration
+    #   ansible.builtin.file:
+    #     path: /etc/nomad.d/client.hcl
+    #     state: absent
+    #   tags: setup
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
