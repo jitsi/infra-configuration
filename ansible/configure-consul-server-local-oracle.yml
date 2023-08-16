@@ -62,8 +62,8 @@
 
     - name: Set nomad host volumes extras for consul
       set_fact:
-        nomad_host_volumes_extra_by_type:
-          consul: "{{ nomad_host_volumes_extra_for_consul | from_yaml }}"
+        nomad_host_volumes_extra: "{{ nomad_host_volumes_extra_for_consul | from_yaml }}"
+      when: nomad_block_volume_mounts is defined
 
     - name: Debug block volume facts
       debug:
@@ -73,9 +73,9 @@
 
     - name: Debug host volumes extras
       debug:
-        var: nomad_host_volumes_extra_by_type
+        var: nomad_host_volumes_extra
       tags: setup
-      when: nomad_host_volumes_extra_by_type is defined
+      when: nomad_host_volumes_extra is defined
 
     # - name: Remove nomad client configuration
     #   ansible.builtin.file:
