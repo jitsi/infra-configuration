@@ -61,6 +61,18 @@
             ]
       when: nomad_block_volume_mounts is defined
 
+    - name: Debug block volume facts
+      debug:
+        var: nomad_block_volume_mounts
+      tags: setup
+      when: nomad_block_volume_mounts is defined
+
+    - name: Debug host volumes extras
+      debug:
+        var: nomad_host_volumes_extra_by_type
+      tags: setup
+      when: nomad_block_volume_mounts is defined
+
     # - name: Remove nomad client configuration
     #   ansible.builtin.file:
     #     path: /etc/nomad.d/client.hcl
