@@ -58,8 +58,8 @@ selenium_grid_node_capabilities:
     seleniumProtocol: WebDriver
     version: beta
 selenium_grid_node_config_file: "{{ selenium_grid_config_path }}/selenium-grid-node.json"
-selenium_grid_node_max_instance_default: 1
-selenium_grid_node_max_session: 1
+selenium_grid_node_max_instance_default: 3
+selenium_grid_node_max_session: 3
 selenium_grid_node_service_name: 'selenium-grid-node'
 selenium_grid_path: '/opt/selenium_grid'
 selenium_grid_private_key_path: "{{ selenium_grid_homedir }}/.ssh/id_rsa"
