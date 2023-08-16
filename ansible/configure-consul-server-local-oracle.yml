@@ -29,9 +29,9 @@
         owner: root
         mode: 0600
       tags: setup
-    - name: Set nomad node role to server
+    - name: Set nomad node role to both
       ansible.builtin.set_fact:
-        nomad_node_role: server
+        nomad_node_role: both
       tags: setup
     - name: List block volume mounts
       ansible.builtin.shell: |
