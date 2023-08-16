@@ -62,7 +62,7 @@
 
     - name: Set nomad host volumes extras for consul
       set_fact:
-        nomad_host_volumes_extra:
+        nomad_host_volumes_extra_by_type:
           consul: "{{ nomad_host_volumes_extra_for_consul | from_yaml }}"
 
     - name: Debug block volume facts
