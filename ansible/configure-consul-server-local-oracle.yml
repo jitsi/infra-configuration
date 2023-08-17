@@ -21,6 +21,13 @@
     nomad_telemetry_prometheus_metrics: true
     shard_role: consul
     cloud_provider: oracle
+    nomad_pool_type: consul
+    nomad_meta:
+      environment: "{{ hcv_environment }}"
+      cloud_name: "{{ cloud_name }}"
+      cloud_region: "{{ oracle_region }}"
+      pool_type: "consul"
+
   pre_tasks:
     - name: Setup new repo template file
       ansible.builtin.template:
