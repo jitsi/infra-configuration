@@ -123,6 +123,13 @@
     mode: "0755"
   when: common_cloud_provider == "oracle"
 
+- name: Install postinstall.sh helper script
+  ansible.builtin.copy:
+    src: "postinstall.sh"
+    dest: "/usr/local/bin/postinstall.sh"
+    mode: "0755"
+  when: common_cloud_provider == "oracle"
+
 - name: Install python-dev from apt
   ansible.builtin.apt:
     name: python-dev
