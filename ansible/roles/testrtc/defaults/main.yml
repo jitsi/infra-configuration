@@ -5,7 +5,7 @@ testrtc_configure_flag: false
 testrtc_creds_dir: /etc/testrtc
 testrtc_creds_path: "{{ testrtc_creds_dir }}/turn_credentials"
 testrtc_domain_name: "test.{{ jitsi_meet_domain_name }}"
-testrtc_git_repository: "https://github.com/aaronkvanmeerten/testrtc.git"
+testrtc_git_repository: "https://github.com/jitsi/testrtc.git"
 testrtc_install_flag: false
 testrtc_port: "8002"
 testrtc_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
