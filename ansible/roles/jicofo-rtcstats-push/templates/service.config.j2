@@ -1,2 +1,5 @@
 JICOFO_ADDRESS={{ jicofo_rtcstats_push_jicofo_address }}
 RTCSTATS_SERVER={{ jicofo_rtcstats_push_rtcstats_server }}
+{% if jicofo_rtcstats_push_jicofo_logs_enabled %}
+JICOFO_LOG_FILE={{ jicofo_rtcstats_push_jicofo_logs_path }}
+{% endif %}
