@@ -69,8 +69,6 @@ jibri_status_cron:
 jibri_username: jibri
 jibri_xmpp_password: "{{ jibri_auth_password }}"
 jibri_xmpp_port: 5222
-# controls whether to connect to shards on public or private address
-jibri_xmpp_public_ip: false
 jibri_xmpp_room_name: "{{ jibri_xmpp_room_name_default if not jibri_pjsua_flag else jibri_xmpp_room_name_sip }}"
 jibri_xmpp_room_name_default: "JibriBrewery"
 jibri_xmpp_room_name_sip: "SipBrewery"

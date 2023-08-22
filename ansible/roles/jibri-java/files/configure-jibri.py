@@ -319,11 +319,9 @@ def main():
             hosts_by_environment_domain[hkey] = json.loads(json.dumps(h))
             hosts_by_environment_domain[hkey]['hosts'] = []
             hosts_by_environment_domain[hkey]['host_addresses'] = []
-            hosts_by_environment_domain[hkey]['host_addresses_public'] = []
 
         hosts_by_environment_domain[hkey]['hosts'].append(h)
         hosts_by_environment_domain[hkey]['host_addresses'].append(h['xmpp_host_private_ip_address'])
-        hosts_by_environment_domain[hkey]['host_addresses_public'].append(h['xmpp_host_public_ip_address'])
 
     print(json.dumps({'hosts_by_environment_domain': hosts_by_environment_domain}))
 
