@@ -74,7 +74,7 @@ jvb_installed_package: "{{ jitsi_videobridge_deb_pkg_name }}"
 jvb_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
 # "sync" or "async". Async mode is currently unsafe for the bridge!
 jvb_iq_handler_mode: "sync"
-jvb_last_n_limits: false
+jvb_last_n_limits: 25
 jvb_load_threshold: "{{ jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default'] }}"
 jvb_load_threshold_by_shape:
   "VM.Standard.A1.Flex": 85000
