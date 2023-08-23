@@ -8,6 +8,9 @@ jicofo_rtcstats_push_git_repo: https://github.com/jitsi/jicofo-rtcstats-push.git
 jicofo_rtcstats_push_groupname: jitsi
 jicofo_rtcstats_push_install_flag: true
 jicofo_rtcstats_push_jicofo_address: http://localhost:8888
+// Enable sending JVB logs to rtcstats
+jicofo_rtcstats_push_jicofo_logs_enabled: false
+jicofo_rtcstats_push_jicofo_logs_path: /var/log/jitsi/jicofo.log
 jicofo_rtcstats_push_log_dir: /var/log/jitsi/jicofo-rtcstats-push
 jicofo_rtcstats_push_rtcstats_server: false
 jicofo_rtcstats_push_service_name: jicofo-rtcstats-push
