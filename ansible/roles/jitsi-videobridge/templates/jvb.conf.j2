@@ -29,7 +29,7 @@ videobridge {
     {% endif %}
 
     {% if jvb_last_n_limits %}
-    jvb-last-n = 25
+    jvb-last-n = {{ jvb_last_n_limits }}
     {% endif %}
 
     {% if jvb_assumed_bandwidth_limit %}
