@@ -55,16 +55,16 @@
         reload: true
       when: selenium_grid_role == 'node'
   roles:
-    - { role: "common", tags: "common"}
-    - { role: "sshusers", tags: "ssh" }
+    - { role: "common", tags: "common", when: selenium_grid_enable_nomad != "true"}
+    - { role: "sshusers", tags: "ssh", when: selenium_grid_enable_nomad != "true" }
+    - { role: "jenkins-sshkey", tags: "jenkins-sshkey", when: selenium_grid_enable_nomad == "true" }
     - { role: "iptables-serf", tags: "iptables-serf", when: selenium_grid_enable_nomad == "true" }
     - { role: "iptables-nomad", tags: "iptables-nomad", when: selenium_grid_enable_nomad == "true" }
-    - { role: "iptables-selenium-grid", tags: "iptables"}
+    - { role: "iptables-selenium-grid", tags: "iptables", when: selenium_grid_enable_nomad != "true" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
-    - { role: "rsyslog", tags: "rsyslog"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: selenium_grid_enable_fluentd }
     - role: "wavefront"
       tags: "telegraf"
@@ -82,7 +82,6 @@
           oracle_region: "{{ oracle_region }}"
           cloud: "oracle"
     - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: selenium_grid_enable_nomad == "true"}
-    - { role: "docker", tags: "docker", when: selenium_grid_enable_nomad == "true" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi", when: selenium_grid_enable_nomad == "true" }
     - { role: "nomad", tags: "nomad", when: selenium_grid_enable_nomad == "true" }
 
@@ -109,3 +108,9 @@
         state: started
         enabled: true
       when: selenium_grid_enable_nomad == "true"
+  post_tasks:
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
+      tags: boot
