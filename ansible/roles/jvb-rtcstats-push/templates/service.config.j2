@@ -1,2 +1,5 @@
 JVB_ADDRESS={{ jvb_rtcstats_push_jvb_address }}
 RTCSTATS_SERVER={{ jvb_rtcstats_push_rtcstats_server }}
+{% if jvb_rtcstats_push_jvb_logs_enabled %}
+JVB_LOG_FILE={{ jvb_rtcstats_push_jvb_logs_path }}
+{% endif %}
