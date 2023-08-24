@@ -6,7 +6,7 @@
 
 var subdomain = "<!--# echo var="subdomain" default="" -->";
 if (subdomain) {
-    subdomain = subdomain.substr(0,subdomain.length-1).split('.').join('_').toLowerCase() + '.';
+    subdomain = subdomain.substr(0,subdomain.length-1).split('.').join('_').toLowerCase();
 }
 var config = {
     hosts: {
@@ -14,7 +14,7 @@ var config = {
 {% if jitsi_meet_anonymousdomain %}        anonymousdomain: '{{ jitsi_meet_anonymousdomain }}',{% endif %}
 
 {% if jitsi_meet_enable_multi_domain %}
-        muc: 'conference.'+subdomain+'{{ jitsi_meet_xmpp_domain_name }}',
+        muc: 'conference.'+subdomain+'.{{ jitsi_meet_xmpp_domain_name }}',
 {% else %}
         muc: 'conference.{{ jitsi_meet_xmpp_domain_name }}',
 {% endif %}
