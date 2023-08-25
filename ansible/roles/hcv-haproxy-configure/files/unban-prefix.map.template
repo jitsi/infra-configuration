@@ -1,0 +1,2 @@
+{{ $unban_prefix_path := print "banlists/" (env "ENVIRONMENT") "/unban_prefix" }}{{ range ls $unban_prefix_path }}{{ .Key }} {{ .Value }}
+{{ end -}}

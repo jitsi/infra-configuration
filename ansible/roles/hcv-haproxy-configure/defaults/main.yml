@@ -14,6 +14,7 @@ haproxy_ban_domain_map_path: /etc/haproxy/maps/banned_domains.map
 haproxy_ban_exact_map_path: /etc/haproxy/maps/banned_exact.map
 haproxy_ban_prefix_map_path: /etc/haproxy/maps/banned_prefix.map
 haproxy_ban_substr_map_path: /etc/haproxy/maps/banned_substring.map
+haproxy_unban_prefix_map_path: /etc/haproxy/maps/unban_prefix.map
 # for tenant-pin-writer
 haproxy_ban_rooms_map_path: /etc/haproxy/maps/banned_rooms.map
 haproxy_ban_tenants_map_path: /etc/haproxy/maps/banned_tenants.map
