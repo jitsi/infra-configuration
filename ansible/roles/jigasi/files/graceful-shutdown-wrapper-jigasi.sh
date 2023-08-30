@@ -11,7 +11,7 @@ fi
 
 . /usr/local/bin/oracle_cache.sh
 JHOST="$(hostname -s)"
-[ -z "$DUMP_BUCKET_NAME" ] && DUMP_BUCKET_NAME="stats-${ENVIRONMENT}"
+DUMP_BUCKET_NAME="dump-logs-${ENVIRONMENT}"
 PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f)"
 for dumpfile in $PATHS; do
     DUMP_PATH="tcpdump-jigasi/jigasi-release-${JIGASI_RELEASE_NUMBER}/${JHOST}/$(basename $dumpfile)"

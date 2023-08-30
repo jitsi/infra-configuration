@@ -1,6 +1,6 @@
 #!/bin/bash
 . /usr/local/bin/oracle_cache.sh
-[ -z "$DUMP_BUCKET_NAME" ] && DUMP_BUCKET_NAME="stats-${ENVIRONMENT}"
+DUMP_BUCKET_NAME="dump-logs-${ENVIRONMENT}"
 JHOST="$(hostname -s)"
 
 PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f -mmin +300)"
