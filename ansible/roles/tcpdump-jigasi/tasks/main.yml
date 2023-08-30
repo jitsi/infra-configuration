@@ -21,9 +21,9 @@
     owner: root
 
 - name: Service definition
-  ansible.builtin.copy:
+  ansible.builtin.template:
     mode: 0644
-    src: tcpdump-jigasi.service
+    src: tcpdump-jigasi.service.j2
     dest: /lib/systemd/system/tcpdump-jigasi.service
 
 - name: Start service and set it enabled
