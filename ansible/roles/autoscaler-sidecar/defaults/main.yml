@@ -23,7 +23,7 @@ autoscaler_graceful_shutdown_script: "{{
 autoscaler_graceful_shutdown_scripts:
   'JVB': /usr/local/bin/graceful-shutdown-wrapper-jvb.sh
   'jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
-  'jigasi': /usr/share/jigasi/graceful_shutdown.sh
+  'jigasi': /usr/local/bin/graceful-shutdown-wrapper-jigasi.sh
   'sip-jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
   'nomad': /usr/local/bin/nomad_graceful_shutdown.sh
 autoscaler_graceful_shutdown_wrapper: /usr/local/bin/graceful_shutdown_wrapper.sh

@@ -303,6 +303,27 @@
     mode: 0755
     owner: root
 
+- name: Copy pre-terminate collection script
+  ansible.builtin.copy:
+    src: "collect-pre-terminate-stats-jigasi.sh"
+    dest: "/usr/local/bin/collect-pre-terminate-stats-jigasi.sh"
+    mode: 0755
+    owner: root
+
+- name: Copy pre-terminate dump script
+  ansible.builtin.copy:
+    src: "dump-pre-terminate-stats-jigasi.sh"
+    dest: "/usr/local/bin/dump-pre-terminate-stats-jigasi.sh"
+    mode: 0755
+    owner: root
+
+- name: Copy Jigasi graceful shutdown wrapper
+  ansible.builtin.copy:
+    src: "graceful-shutdown-wrapper-jigasi.sh"
+    dest: "/usr/local/bin/graceful-shutdown-wrapper-jigasi.sh"
+    mode: 0755
+    owner: root
+
 # Enable and run service if we are not building an AMI
 - name: Enable Jigasi service
   ansible.builtin.service:
