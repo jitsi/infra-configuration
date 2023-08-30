@@ -8,3 +8,12 @@ if [ -x "$PRE_TERMINATE_STATS" ]; then
 fi
 
 /usr/share/jigasi/graceful_shutdown.sh
+
+. /usr/local/bin/oracle_cache.sh
+JHOST="$(hostname -s)"
+[ -z "$DUMP_BUCKET_NAME" ] && DUMP_BUCKET_NAME="stats-${ENVIRONMENT}"
+PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f)"
+for dumpfile in $PATHS; do
+    DUMP_PATH="tcpdump-jigasi/jigasi-release-${JIGASI_RELEASE_NUMBER}/${JHOST}/$(basename $dumpfile)"
+    $OCI_BIN os object put --force -bn "$DUMP_BUCKET_NAME" --name "$DUMP_PATH" --file "$dumpfile" --metadata '{"environment":"'"$ENVIRONMENT"'","jigasi-release-number":"'"$JIGASI_RELEASE_NUMBER"'"}' --region "$ORACLE_REGION" --auth instance_principal
+done
