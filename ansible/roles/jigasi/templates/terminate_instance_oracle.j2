@@ -1,6 +1,7 @@
 #!/bin/bash
-set -x
+. /usr/local/bin/oracle_cache.sh
 
+set -x
 export OCI_BIN="/usr/local/bin/oci"
 
 INSTANCE_METADATA=$(curl -s http://169.254.169.254/opc/v1/instance/)
@@ -8,6 +9,14 @@ INSTANCE_ID=$(echo "$INSTANCE_METADATA" | jq .id -r)
 
 # stop consul gracefully
 service consul stop
+
+[ -z "$DUMP_BUCKET_NAME" ] && DUMP_BUCKET_NAME="stats-${ENVIRONMENT}"
+PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f)"
+for dumpfile in $PATHS; do
+    DUMP_PATH="tcpdump-jigasi/jigasi-release-${JIGASI_RELEASE_NUMBER}/${JHOST}/$(basename $dumpfile)"
+    $OCI_BIN os object put --force -bn "$DUMP_BUCKET_NAME" --name "$DUMP_PATH" --file "$dumpfile" --metadata '{"environment":"'"$ENVIRONMENT"'","jigasi-release-number":"'"$JIGASI_RELEASE_NUMBER"'"}' --region "$ORACLE_REGION" --auth instance_principal
+done
+
 
 # now terminate our instance
 echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
