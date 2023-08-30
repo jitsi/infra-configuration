@@ -23,9 +23,3 @@ if [ ! -f "$COLLECTION_FILENAME" ]; then
 fi
 
 $OCI_BIN os object put -bn "$DUMP_BUCKET_NAME" --name "$DUMP_PATH" --file "$COLLECTION_FILENAME" --metadata '{"environment":"'"$ENVIRONMENT"'","jigasi-release-number":"'"$JIGASI_RELEASE_NUMBER"'"}' --region "$ORACLE_REGION" --auth instance_principal
-
-PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f)"
-for dumpfile in $PATHS; do
-    DUMP_PATH="tcpdump-jigasi/jigasi-release-${JIGASI_RELEASE_NUMBER}/${JHOST}/$(basename $dumpfile)"
-    $OCI_BIN os object put --force -bn "$DUMP_BUCKET_NAME" --name "$DUMP_PATH" --file "$dumpfile" --metadata '{"environment":"'"$ENVIRONMENT"'","jigasi-release-number":"'"$JIGASI_RELEASE_NUMBER"'"}' --region "$ORACLE_REGION" --auth instance_principal
-done
