@@ -2,7 +2,7 @@ jibri.api.xmpp.environments = [
 {% for env_key in jibri_config_hosts %}
     {
         name = "{{ jibri_config_hosts[env_key]['environment'] }}"
-        xmpp-server-hosts = {{ jibri_config_hosts[env_key]['host_addresses'])|to_json }},
+        xmpp-server-hosts = {{ jibri_config_hosts[env_key]['host_addresses']|to_json }},
         xmpp-domain = "{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
         control-login {
             domain = "{{ jibri_jid_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"

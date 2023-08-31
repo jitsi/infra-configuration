@@ -66,7 +66,7 @@ defaults
   {% endif -%}
 {% endfor -%}
 peers mypeers
-{% for dc in ns.haproxy_datacenters %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}" }}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{- range $haproxy := service "haproxy@{% endraw %}{{ dc }}{% raw %}"|any }}
   peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}{% endraw %}{% endfor %}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
@@ -214,7 +214,7 @@ frontend www-http
 {% else %}
 
   # shard-specific backends
-{%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
+{%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}"|any }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
   use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ }{{ end }}{% endraw %}
 
   # use tenant pin if there are servers, otherwise use the GA (live) backend

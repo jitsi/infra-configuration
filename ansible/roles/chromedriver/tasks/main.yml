@@ -6,9 +6,15 @@
   register: chromedriver_version_result
   when: chromedriver_use_latest
 
+- name: Set chromedriver details fact
+  ansible.builtin.set_fact:
+    chromedriver_details: "{{ chromedriver_version_result.content | from_json }}"
+  when: chromedriver_use_latest
+
 - name: Set chromedriver version fact
   ansible.builtin.set_fact:
-    chromedriver_version: "{{ chromedriver_version_result.content | trim }}"
+    chromedriver_version: "{{ chromedriver_details['channels']['Stable']['version'] }}"
+    chromedriver_url: "{{ chromedriver_details | json_query('channels.Stable.downloads.chromedriver[?platform==`linux64`].url') | first }}"
   when: chromedriver_use_latest
 
 - name: Download chromedriver from google
@@ -31,7 +37,7 @@
 
 - name: Copy chromedriver binary into place
   ansible.builtin.copy:
-    src: "{{ chromedriver_tmp_dir }}/chromedriver"
+    src: "{{ chromedriver_tmp_dir }}/chromedriver-linux64/chromedriver"
     dest: "{{ chromedriver_path }}"
     remote_src: true
     mode: 0755
