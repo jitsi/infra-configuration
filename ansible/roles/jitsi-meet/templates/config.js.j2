@@ -167,19 +167,19 @@ var config = {
     {% endif %}
         maxBitratesVideo: {
             H264: {
-                low: 200000,
-                standard: 500000,
-                high: 1500000
+                low: {{ jitsi_meet_video_quality_h264_bitrate_low }},
+                standard: {{ jitsi_meet_video_quality_h264_bitrate_standard }},
+                high: {{ jitsi_meet_video_quality_h264_bitrate_high }}
             },
             VP8: {
-                low: 200000,
-                standard: 500000,
-                high: 1500000
+                low: {{ jitsi_meet_video_quality_vp8_bitrate_low }},
+                standard: {{ jitsi_meet_video_quality_vp8_bitrate_standard }},
+                high: {{ jitsi_meet_video_quality_vp8_bitrate_high }}
             },
             VP9: {
-                low: 100000,
-                standard: 300000,
-                high: 1200000
+                low: {{ jitsi_meet_video_quality_vp9_bitrate_low }},
+                standard: {{ jitsi_meet_video_quality_vp9_bitrate_standard }},
+                high: {{ jitsi_meet_video_quality_vp9_bitrate_high }}
             }
         },
     {% if jitsi_meet_min_height_quality_level %}
