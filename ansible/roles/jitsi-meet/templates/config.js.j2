@@ -66,6 +66,7 @@ var config = {
     analytics: {
     {% if jitsi_meet_amplitude_api_key %}
         amplitudeAPPKey: "{{ jitsi_meet_amplitude_api_key }}",
+        amplitudeIncludeUTM: {% if jitsi_meet_amplitude_include_utm %}true{% else %}false{% endif %},
     {% endif %}
         rtcstatsEnabled: {% if jitsi_meet_rtcstats_enabled %}true{% else %}false{% endif %} ,
         rtcstatsStoreLogs: {% if jitsi_meet_rtcstats_store_logs %}true{% else %}false{% endif %} ,
