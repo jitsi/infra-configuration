@@ -158,6 +158,9 @@ var config = {
         receiveMultipleVideoStreams: true,
         ssrcRewritingEnabled: {% if jitsi_meet_enable_ssrc_rewriting %}true{% else %}false{% endif %},
     },
+{% if jitsi_meet_restrict_HD_tile_view_jvb %}
+    maxFullResolutionParticipants: 1,
+{% endif %}
 {% if jitsi_meet_video_quality %}
     videoQuality: {
     {% if jitsi_meet_jvb_preferred_codecs %}
