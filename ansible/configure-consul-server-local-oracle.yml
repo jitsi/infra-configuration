@@ -88,6 +88,29 @@
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 86400
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set nomad shape variable
+      ansible.builtin.set_fact:
+        nomad_shape: "{{ instance_result.json.shape }}"
+      tags: setup
+    - name: Calculate nomad cpu_total_compute
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo $(( $(dmidecode -t 4 | grep 'Current Speed:' | awk '{print $3}') * $(cat /proc/cpuinfo | grep 'processor' | wc -l) ))
+      args:
+        executable: /bin/bash
+      register: cpu_total_compute_result
+      tags: setup
+      when: nomad_shape == "VM.Standard.A1.Flex"
+    - name: Set nomad cpu_total_compute fact
+      ansible.builtin.set_fact:
+        nomad_cpu_total_compute: "{{ cpu_total_compute_result.stdout }}"
+      tags: setup
+      when: nomad_shape == "VM.Standard.A1.Flex"
   roles:
     - { role: "iptables-consul", tags: "iptables"}
     - { role: "iptables-nomad", tags: "iptables-nomad"}
