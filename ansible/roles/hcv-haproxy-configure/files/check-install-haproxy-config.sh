@@ -34,45 +34,15 @@ fi
 # always emit at least a 0 to metrics
 echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
 
-FINAL_EXIT=0
-haproxy -c -f "$DRAFT_CONFIG" >/dev/null
-if [ $? -gt 0 ]; then
-    echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
-    FINAL_EXIT=1
-fi
-
-if [ $FINAL_EXIT -eq 0 ]; then
-    diff $DRAFT_CONFIG /etc/haproxy/haproxy.cfg
-    if [ $? -gt 0 ]; then
-        echo "#### cihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" >> $TEMPLATE_LOGFILE
-
-        # save a copy of the new config
-        cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
-
-        cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
-        if [ $? -gt 0 ]; then
-            echo "#### chic: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE
-            FINAL_EXIT=1
-        else
-            service haproxy reload
-            if [ $? -gt 0 ]; then
-                echo "#### chic: failed to reload haproxy service" >> $TEMPLATE_LOGFILE
-                FINAL_EXIT=1
-            fi
-        fi
-
-        echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
-        echo "#### chic: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
-    else 
-        echo "#### cihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
-    fi
-fi
+# obtain a consul lock and install the haproxy config
+FINAL_EXIT=consul lock haproxy_reload "/usr/local/bin/haproxy-cfg-install.sh"
 
 # clean config directory
 find $TEMPLATE_LOGDIR -type f -mtime +14 -name '*.cfg' -execdir rm -- '{}' \;
 
 if [ $FINAL_EXIT -gt 0 ]; then
     echo -n "jitsi.haproxy.reconfig_failed:1|c" | nc -4u -w1 localhost 8125
+    exit 1
 else
     echo -n "jitsi.haproxy.reconfig_failed:0|c" | nc -4u -w1 localhost 8125
 fi
