@@ -2,8 +2,6 @@
 
 # add a 15 minute timeout to the whole thing?
 
-echo -n "jitsi.haproxy.reconfig_locked:1|c" | nc -4u -w1 localhost 8125
-
 SECONDS=0
 RELOAD_SECONDS=60
 TEST_CFG_MODIFY_TIME=$(stat -c %Y /tmp/haproxy.cfg.test)
@@ -52,5 +50,3 @@ fi
 
 ## undrain the haproxy from the load balancer
 DRAIN=false /usr/local/bin/oci-lb-backend-drain.sh
-
-echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
