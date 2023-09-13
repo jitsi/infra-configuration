@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 # Enables calling the oci API withing the oracle instance
 export OCI_CLI_AUTH=instance_principal
