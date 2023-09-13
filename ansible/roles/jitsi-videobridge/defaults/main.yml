@@ -95,7 +95,7 @@ jvb_memory_by_shape:
   "default": "3072m"
 jvb_nginx_ssl_enabled: true
 jvb_nomination_strategy: "NominateFirstHostOrReflexiveValid"
-jvb_suppress_private_candidates: true
+jvb_suppress_private_candidates: false
 jvb_open_file_limit: 65536
 jvb_opts: ""
 jvb_package_state: present
