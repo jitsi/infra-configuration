@@ -1,14 +1,15 @@
 #!/bin/bash
 
-RELOAD_TIME="NOW + 1 MINUTE"
+# add a 15 minute timeout to the whole thing?
+
+SECONDS=0
+RELOAD_SECONDS=60
 TEST_CFG_MODIFY_TIME=$(stat -c %Y /tmp/haproxy.cfg.test)
 
-## add a 10 minute timeout for this whole thing?
-
-while time.now < RELOAD_TIME; do
+while [ $SECONDS -lt $RELOAD_SECONDS ]; do
     # wait until the draft config file has been stable for a minute
-    if [ TEST_CFG_MODIFY_TIME = $(stat -c %Y /tmp/haproxy.cfg.test) ] > TEST_CFG_MODIFY_TIME
-        RELOAD_TIME="NOW + 1 MINUTE"
+    if [ TEST_CFG_MODIFY_TIME=$(stat -c %Y /tmp/haproxy.cfg.test) -gt TEST_CFG_MODIFY_TIME ]
+        RELOAD_SECONDS=$(($SECONDS + 60))
     sleep 1
 done
 
