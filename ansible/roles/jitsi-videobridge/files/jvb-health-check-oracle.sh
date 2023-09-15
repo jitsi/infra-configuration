@@ -21,6 +21,9 @@ MINIMUM_IP_COUNT=1
 JVB_USER="jvb"
 LOAD_THRESHOLD=100
 
+# disable extended health check for now
+EXTENDED_HEALTH_CHECK_ENABLED="false"
+
 #maximum number of seconds to wait before unhealthy bridge is terminated
 SLEEP_MAX=$((3600 * 12))
 
@@ -42,13 +45,14 @@ function run_check() {
     BASIC_HEALTH_PASSED=false
   fi
 
-  if [ -e "$IP_FAILED_FILE" ]; then
-    CANDIDATE_IPS=$(cat $IP_FAILED_FILE)
-  else
-    CANDIDATE_IPS=0
-  fi
+  if [[ "$EXTENDED_HEALTH_CHECK_ENABLED" == "true" ]]; then
+    if [ -e "$IP_FAILED_FILE" ]; then
+      CANDIDATE_IPS=$(cat $IP_FAILED_FILE)
+    else
+      CANDIDATE_IPS=0
+    fi
 
-  read -r -d '' SIMPLE_COLIBRI_TO_GET_IPS <<EOM
+    read -r -d '' SIMPLE_COLIBRI_TO_GET_IPS <<EOM
 {
   "create" : true,
   "meeting-id":"`uuidgen`",
@@ -62,31 +66,35 @@ function run_check() {
 }
 EOM
 
-  if [ "$CANDIDATE_IPS" -ge "$MINIMUM_IP_COUNT" ]; then
-    #skip the check since we are passing
-    echo "Skipping candidate IP check, already passing"
-    EXTENDED_HEALTH_PASSED=true
-  else
-    #wait a few seconds before checking the IP addresses the JVB hands out
-    echo "Testing for candidate IPs"
-    CANDIDATE_JSON=$($CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -H"Content-Type: application/json" -d "${SIMPLE_COLIBRI_TO_GET_IPS}" $CONFERENCE_URL 2>/tmp/jvb_candidates_cron_error)
-    CANDIDATE_IPS=$(echo $CANDIDATE_JSON | jq -r '.endpoints[0].transport.transport.candidates[].ip' | sort | uniq)
-
-    #hack to count items by whitespace by making them an array and splitting them
-    VAR=($CANDIDATE_IPS)
-    CANDIDATE_IP_COUNT=${#VAR[@]}
-
-    echo "$CANDIDATE_IP_COUNT" >$IP_FAILED_FILE
-
-    if [ "$CANDIDATE_IP_COUNT" -ge "$MINIMUM_IP_COUNT" ]; then
-      echo "candidate IP check OK"
+    if [ "$CANDIDATE_IPS" -ge "$MINIMUM_IP_COUNT" ]; then
+      #skip the check since we are passing
+      echo "Skipping candidate IP check, already passing"
       EXTENDED_HEALTH_PASSED=true
     else
-      echo "candidate IP check failed: $CANDIDATE_IP_COUNT not greater or equal to $MINIMUM_IP_COUNT"
-      echo "candidate IPS: $CANDIDATE_IPS"
-      echo "candidate JSON: $CANDIDATE_JSON"
-      EXTENDED_HEALTH_PASSED=false
+      #wait a few seconds before checking the IP addresses the JVB hands out
+      echo "Testing for candidate IPs"
+      CANDIDATE_JSON=$($CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -H"Content-Type: application/json" -d "${SIMPLE_COLIBRI_TO_GET_IPS}" $CONFERENCE_URL 2>/tmp/jvb_candidates_cron_error)
+      CANDIDATE_IPS=$(echo $CANDIDATE_JSON | jq -r '.endpoints[0].transport.transport.candidates[].ip' | sort | uniq)
+
+      #hack to count items by whitespace by making them an array and splitting them
+      VAR=($CANDIDATE_IPS)
+      CANDIDATE_IP_COUNT=${#VAR[@]}
+
+      echo "$CANDIDATE_IP_COUNT" >$IP_FAILED_FILE
+
+      if [ "$CANDIDATE_IP_COUNT" -ge "$MINIMUM_IP_COUNT" ]; then
+        echo "candidate IP check OK"
+        EXTENDED_HEALTH_PASSED=true
+      else
+        echo "candidate IP check failed: $CANDIDATE_IP_COUNT not greater or equal to $MINIMUM_IP_COUNT"
+        echo "candidate IPS: $CANDIDATE_IPS"
+        echo "candidate JSON: $CANDIDATE_JSON"
+        EXTENDED_HEALTH_PASSED=false
+      fi
     fi
+  else
+    echo "Extended health check disabled"
+    EXTENDED_HEALTH_PASSED=true
   fi
 
   # check load against threshold with immediate health dump behavior
