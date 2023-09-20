@@ -12,6 +12,10 @@
     name: haproxy
     state: restarted
     daemon_reload: true
+  register: serviceStatus
+  until: serviceStatus.ActiveState == "active"
+  retries: 15
+  delay: 10
   notify: Set shard states
 
 - name: Set shard states
