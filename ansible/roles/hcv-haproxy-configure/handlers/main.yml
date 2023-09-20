@@ -10,12 +10,14 @@
 - name: Restart haproxy systemd
   ansible.builtin.systemd:
     name: haproxy
-    state: restarted
+    state: stopped
+  notify: Start haproxy systemd
+
+- name: Start haproxy systemd
+  ansible.builtin.systemd:
+    name: haproxy
+    state: started
     daemon_reload: true
-  register: serviceStatus
-  until: serviceStatus.ActiveState == "active"
-  retries: 15
-  delay: 10
   notify: Set shard states
 
 - name: Set shard states
