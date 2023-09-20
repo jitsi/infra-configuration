@@ -80,6 +80,10 @@ local http_headers = {
     ["Content-Type"] = "application/json"
 };
 
+-- enables waiting for host, where the conference info service will notify us that a room needs
+-- an authenticated user in order to be created
+local enableWaitingForHost = module:get_option_boolean("enable_waiting_for_host", false);
+
 if conferenceInfoURL == "" then
     module:log("warn", "No 'muc_conference_info_url' option set, disabling preset passwords");
     return
@@ -413,7 +417,9 @@ function process_host(host)
             return true;
         end, 1000); -- make sure we are the first listener
 
-        module:context(host):hook('muc-occupant-pre-join', wait_for_authenticated_user);
+        if enableWaitingForHost then
+            module:context(host):hook('muc-occupant-pre-join', wait_for_authenticated_user);
+        end
     end
 
 end
