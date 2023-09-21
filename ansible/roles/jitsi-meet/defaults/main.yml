@@ -252,6 +252,7 @@ jitsi_meet_title_metadata_override: false
 jitsi_meet_token_auth_url: false
 jitsi_meet_token_auth_url_auto_redirect: false
 jitsi_meet_token_logout_url: false
+jitsi_meet_token_sso: false
 jitsi_meet_toolbar_buttons_filter: []
 jitsi_meet_user_documentation_url: false
 jitsi_meet_video_quality: false
