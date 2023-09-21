@@ -147,6 +147,10 @@ asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences
 asap_require_room_claim = false;
 {% endif %}
 
+{% if prosody_enable_password_waiting_for_host %}
+enable_password_waiting_for_host = true;
+{% endif %}
+
 {% if prosody_enable_muc_events or prosody_enable_call_flow %}
 asap_key_path = "{{ prosody_asap_key_path }}"
 asap_key_id = "{{ asap_key['id'] }}";
@@ -431,7 +435,7 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_visitors_enabled %}
           "visitors";
 {% endif %}
-{% if prosody_enable_wait_for_host %}
+{% if prosody_enable_persistent_lobby %}
           "persistent_lobby";
 {% endif %}
         }

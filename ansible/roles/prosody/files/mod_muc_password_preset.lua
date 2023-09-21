@@ -82,7 +82,7 @@ local http_headers = {
 
 -- enables waiting for host, where the conference info service will notify us that a room needs
 -- an authenticated user in order to be created
-local enableWaitingForHost = module:get_option_boolean("enable_waiting_for_host", false);
+local enableWaitingForHost = module:get_option_boolean("enable_password_waiting_for_host", false);
 
 if conferenceInfoURL == "" then
     module:log("warn", "No 'muc_conference_info_url' option set, disabling preset passwords");
