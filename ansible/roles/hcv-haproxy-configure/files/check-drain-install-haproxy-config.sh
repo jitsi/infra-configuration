@@ -35,6 +35,8 @@ fi
 echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
 
 FINAL_EXIT=0
+UPDATED_CFG=0
+
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
     echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
@@ -47,18 +49,16 @@ if [ -z "$ACTUALLY_RUN" ]; then
 fi
 
 if [ $FINAL_EXIT -eq 0 ]; then
-    ## drain the haproxy from the load balancer
-    /usr/local/bin/oci-lb-backend-drain.sh
-    if [ $? -gt 0 ]; then
-        echo "#### cihc: haproxy failed to drain from the load balancer" >> $TEMPLATE_LOGFILE
-        FINAL_EXIT=1
-    fi
-fi
-
-if [ $FINAL_EXIT -eq 0 ]; then
     diff $DRAFT_CONFIG /etc/haproxy/haproxy.cfg
     if [ $? -gt 0 ]; then
         echo "#### cihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" >> $TEMPLATE_LOGFILE
+
+        /usr/local/bin/oci-lb-backend-drain.sh
+        if [ $? -gt 0 ]; then
+            echo "#### cihc: haproxy failed to drain from the load balancer" >> $TEMPLATE_LOGFILE
+            FINAL_EXIT=1
+            break
+        fi
 
         # save a copy of the new config
         cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
@@ -67,18 +67,22 @@ if [ $FINAL_EXIT -eq 0 ]; then
         if [ $? -gt 0 ]; then
             echo "#### chic: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE
             FINAL_EXIT=1
+            break
         else
             service haproxy reload
             if [ $? -gt 0 ]; then
                 echo "#### chic: failed to reload haproxy service" >> $TEMPLATE_LOGFILE
                 FINAL_EXIT=1
+                break
             fi
+            UPDATED_CFG=1
         fi
 
         echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
         echo "#### chic: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
     else 
         echo "#### cihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
+        UPDATED_CFG=0
     fi
 fi
 
@@ -86,7 +90,7 @@ fi
 find $TEMPLATE_LOGDIR -type f -mtime +14 -name '*.cfg' -execdir rm -- '{}' \;
 
 ## undrain the haproxy from the load balancer
-if [ $FINAL_EXIT -eq 0 ]; then
+if [ $FINAL_EXIT -eq 0 ] && [ $UPDATED_CFG -eq 1 ]; then
     ## undrain the haproxy from the load balancer
     DRAIN=false /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then
