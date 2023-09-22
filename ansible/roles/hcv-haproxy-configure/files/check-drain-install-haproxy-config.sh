@@ -43,7 +43,7 @@ if [ $? -gt 0 ]; then
     FINAL_EXIT=1
 fi
 
-if [ -z -n "$DRY_RUN" ]; then
+if [ -n "$DRY_RUN" ]; then
   echo "#### cdihc: DRY_RUN set, exiting..." >> $TEMPLATE_LOGFILE
   exit 1
 fi
