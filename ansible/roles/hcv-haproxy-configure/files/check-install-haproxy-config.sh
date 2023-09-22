@@ -50,7 +50,7 @@ if [ $FINAL_EXIT -eq 0 ]; then
         cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
 
         # skip if DRY_RUN is set
-        if [ -z -n "$DRY_RUN" ]; then
+        if [ -n "$DRY_RUN" ]; then
             echo "#### chic: in DRY_RUN mode" >> $TEMPLATE_LOGFILE
             return
         fi
