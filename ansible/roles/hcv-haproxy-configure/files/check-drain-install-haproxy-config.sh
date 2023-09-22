@@ -86,11 +86,12 @@ if [ $FINAL_EXIT -eq 0 ]; then
     fi
 fi
 
-# clean config directory
-find $TEMPLATE_LOGDIR -type f -mtime +14 -name '*.cfg' -execdir rm -- '{}' \;
-
 ## undrain the haproxy from the load balancer
 if [ $FINAL_EXIT -eq 0 ] && [ $UPDATED_CFG -eq 1 ]; then
+
+    ## give the haproxy a moment to contemplate its existence
+    sleep 15
+    
     ## undrain the haproxy from the load balancer
     DRAIN=false /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then

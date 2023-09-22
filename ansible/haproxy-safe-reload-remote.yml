@@ -24,3 +24,7 @@ tasks:
         ACTUALLY_RUN=true /usr/local/bin/check-drain-install-haproxy-config.sh /tmp/haproxy.cfg.test
       args:
         executable: /bin/bash
+    - name: Wait a bit for an undrain before doing the next one
+      ansible.builtin.wait_for:
+        timeout: 30
+      delegate_to: localhost
