@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# check a draft haproxy config and install if it's valid
+# check a draft haproxy config and install if it's valid, draining the load balancer while the action is in progress
 
 [ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/tmp/ct-logs"
 [ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/template.log"
