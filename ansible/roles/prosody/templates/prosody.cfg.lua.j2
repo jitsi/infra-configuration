@@ -716,6 +716,7 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
 Component "breakout.{{ prosody_domain_name }}" "muc"
     restrict_room_creation = true
     storage = "memory"
+    muc_room_cache_size = 10000
     muc_room_locking = false
     muc_room_default_public_jids = true
     muc_room_allow_persistent = false
