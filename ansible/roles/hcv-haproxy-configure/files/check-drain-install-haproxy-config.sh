@@ -89,7 +89,6 @@ find $TEMPLATE_LOGDIR -type f -mtime +14 -name '*.cfg' -execdir rm -- '{}' \;
 if [ $FINAL_EXIT -eq 0 ]; then
     ## undrain the haproxy from the load balancer
     DRAIN=false /usr/local/bin/oci-lb-backend-drain.sh
-    /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then
         echo "#### cihc: haproxy failed to undrain from the load balancer" >> $TEMPLATE_LOGFILE
         FINAL_EXIT=1
