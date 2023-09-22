@@ -49,6 +49,12 @@ if [ $FINAL_EXIT -eq 0 ]; then
         # save a copy of the new config
         cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
 
+        # skip if DRY_RUN is set
+        if [ -z -n "$DRY_RUN" ]; then
+            echo "#### chic: in DRY_RUN mode" >> $TEMPLATE_LOGFILE
+            return
+        fi
+
         cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
         if [ $? -gt 0 ]; then
             echo "#### chic: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE

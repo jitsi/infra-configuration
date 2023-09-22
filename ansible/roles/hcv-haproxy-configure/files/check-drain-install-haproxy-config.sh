@@ -22,12 +22,12 @@ if [ -n "$1" ]; then
 fi
 
 if [ -z "$DRAFT_CONFIG" ]; then
-  echo "#### cihc: no DRAFT_CONFIG found, exiting..." >> $TEMPLATE_LOGFILE
+  echo "#### cdihc: no DRAFT_CONFIG found, exiting..." >> $TEMPLATE_LOGFILE
   exit 1
 fi
 
 if [ ! -f "$DRAFT_CONFIG" ]; then
-    echo "#### cihc: draft haproxy config file $DRAFT_CONFIG does not exist" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: draft haproxy config file $DRAFT_CONFIG does not exist" >> $TEMPLATE_LOGFILE
     exit 1
 fi
 
@@ -39,23 +39,30 @@ UPDATED_CFG=0
 
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
-    echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
     FINAL_EXIT=1
 fi
 
-if [ -z "$ACTUALLY_RUN" ]; then
-  echo "#### cihc: ACTUALLY_RUN not set, exiting..." >> $TEMPLATE_LOGFILE
+if [ -z -n "$DRY_RUN" ]; then
+  echo "#### cdihc: DRY_RUN set, exiting..." >> $TEMPLATE_LOGFILE
   exit 1
+fi
+
+# regenerate the haproxy config
+/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test
+if [ $? -gt 0 ]; then
+    echo "#### cdihc: new haproxy config failed to generate properly" >> $TEMPLATE_LOGFILE
+    FINAL_EXIT=1
 fi
 
 if [ $FINAL_EXIT -eq 0 ]; then
     diff $DRAFT_CONFIG /etc/haproxy/haproxy.cfg
     if [ $? -gt 0 ]; then
-        echo "#### cihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" >> $TEMPLATE_LOGFILE
 
         /usr/local/bin/oci-lb-backend-drain.sh
         if [ $? -gt 0 ]; then
-            echo "#### cihc: haproxy failed to drain from the load balancer" >> $TEMPLATE_LOGFILE
+            echo "#### cdihc: haproxy failed to drain from the load balancer" >> $TEMPLATE_LOGFILE
             FINAL_EXIT=1
             break
         fi
@@ -81,7 +88,7 @@ if [ $FINAL_EXIT -eq 0 ]; then
         echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
         echo "#### chic: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
     else 
-        echo "#### cihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
         UPDATED_CFG=0
     fi
 fi
@@ -95,7 +102,7 @@ if [ $FINAL_EXIT -eq 0 ] && [ $UPDATED_CFG -eq 1 ]; then
     ## undrain the haproxy from the load balancer
     DRAIN=false /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then
-        echo "#### cihc: haproxy failed to undrain from the load balancer" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: haproxy failed to undrain from the load balancer" >> $TEMPLATE_LOGFILE
         FINAL_EXIT=1
     fi
 fi
