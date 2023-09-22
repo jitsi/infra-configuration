@@ -1,6 +1,6 @@
 - name: Main
   hosts: tag_shard_role_haproxy
-  serial: 1 
+  serial: 1
   become: true
   become_user: root
   gather_facts: false
@@ -17,7 +17,7 @@
         dest: /usr/local/bin/oci-lb-backend-drain.sh
         src: "roles/hcv-haproxy-configure/files/oci-lb-backend-drain.sh"
 
-tasks:
+  tasks:
     - name: Run safe reload script
       ansible.builtin.shell: |
         set -o pipefail
