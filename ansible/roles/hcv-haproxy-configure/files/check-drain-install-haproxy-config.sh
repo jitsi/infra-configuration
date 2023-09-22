@@ -15,19 +15,19 @@ fi
 
 TIMESTAMP=$(date --utc +%Y-%m-%d_%H:%M:%S.Z)
 
-echo "$TIMESTAMP starting check-install-haproxy-config.sh" >> $TEMPLATE_LOGFILE
+echo "$TIMESTAMP starting check-install-haproxy-config.sh" | tee -a $TEMPLATE_LOGFILE
 
 if [ -n "$1" ]; then
     DRAFT_CONFIG=$1
 fi
 
 if [ -z "$DRAFT_CONFIG" ]; then
-  echo "#### cdihc: no DRAFT_CONFIG found, exiting..." >> $TEMPLATE_LOGFILE
+  echo "#### cdihc: no DRAFT_CONFIG found, exiting..." | tee -a $TEMPLATE_LOGFILE
   exit 1
 fi
 
 if [ ! -f "$DRAFT_CONFIG" ]; then
-    echo "#### cdihc: draft haproxy config file $DRAFT_CONFIG does not exist" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: draft haproxy config file $DRAFT_CONFIG does not exist" | tee -a $TEMPLATE_LOGFILE
     exit 1
 fi
 
@@ -39,22 +39,22 @@ UPDATED_CFG=0
 
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
-    echo "#### cdihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: new haproxy config failed to validate" | tee -a $TEMPLATE_LOGFILE
     FINAL_EXIT=1
 fi
 
 if [ -n "$DRY_RUN" ]; then
-  echo "#### cdihc: DRY_RUN set, exiting..." >> $TEMPLATE_LOGFILE
+  echo "#### cdihc: DRY_RUN set, exiting..." | tee -a $TEMPLATE_LOGFILE
   exit 1
 fi
 
 diff $DRAFT_CONFIG /etc/haproxy/haproxy.cfg
 if [ $? -gt 0 ]; then
-    echo "#### cdihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" | tee -a $TEMPLATE_LOGFILE
 
     /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then
-        echo "#### cdihc: haproxy failed to drain from the load balancer" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: haproxy failed to drain from the load balancer" | tee -a $TEMPLATE_LOGFILE
         FINAL_EXIT=1
         break
     fi
@@ -64,13 +64,13 @@ if [ $? -gt 0 ]; then
 
     cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
     if [ $? -gt 0 ]; then
-        echo "#### cdihc: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: failed to copy the new haproxy config file to /etc/haproxy" | tee -a $TEMPLATE_LOGFILE
         FINAL_EXIT=1
         exit $FINAL_EXIT
     else
         service haproxy reload
         if [ $? -gt 0 ]; then
-            echo "#### cdihc: failed to reload haproxy service" >> $TEMPLATE_LOGFILE
+            echo "#### cdihc: failed to reload haproxy service" | tee -a $TEMPLATE_LOGFILE
             FINAL_EXIT=1
             exit $FINAL_EXIT
         fi
@@ -78,9 +78,9 @@ if [ $? -gt 0 ]; then
     fi
 
     echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
-    echo "#### cdihc: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: succeeded to reload haproxy with new config" | tee -a $TEMPLATE_LOGFILE
 else 
-    echo "#### cdihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: validated $DRAFT_CONFIG; but new is the same as the old" | tee -a $TEMPLATE_LOGFILE
     UPDATED_CFG=0
 fi
 
@@ -93,7 +93,7 @@ if [ $FINAL_EXIT -eq 0 ] && [ $UPDATED_CFG -eq 1 ]; then
     ## undrain the haproxy from the load balancer
     DRAIN_STATE="false" /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then
-        echo "#### cdihc: haproxy failed to undrain from the load balancer" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: haproxy failed to undrain from the load balancer" | tee -a $TEMPLATE_LOGFILE
         FINAL_EXIT=1
     fi
 fi
