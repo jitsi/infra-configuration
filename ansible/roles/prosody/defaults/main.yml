@@ -184,8 +184,6 @@ prosody_muc_password_whitelist_jids:
   - "recorder@recorder.{{ prosody_domain_name }}"
   - "transcriber@recorder.{{ prosody_domain_name }}"
 prosody_muc_require_token_for_moderation: false
-# prosody 0.11 and later use 'memory' for muc_storage_method
-prosody_muc_storage_method: memory
 # prosody 0.11 and later should always use epoll for scalability
 prosody_network_backend: epoll
 # YOLO, reevaluate after the heat dissipates

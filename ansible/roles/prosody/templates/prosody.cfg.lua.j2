@@ -512,7 +512,7 @@ VirtualHost "recorder.{{ prosody_domain_name }}"
 {% endif %}
 
 Component "conference.{{ prosody_domain_name }}" "muc"
-    storage = "{{ prosody_muc_storage_method }}"
+    storage = "memory"
     muc_room_cache_size = 10000
     restrict_room_creation = true
     muc_room_allow_persistent = false
@@ -664,7 +664,7 @@ Component "internal.auth.{{ prosody_domain_name }}" "muc"
       "muc_events";
 {% endif %}
     }
-    storage = "{{ prosody_muc_storage_method }}"
+    storage = "memory"
     muc_room_cache_size = 1000
     muc_filter_whitelist="{{ prosody_auth_domain_name }}"
     muc_room_locking = false
@@ -697,6 +697,7 @@ Component "conferenceduration.{{ prosody_domain_name }}" "conference_duration_co
 {% if prosody_enable_lobby %}
 Component "lobby.{{ prosody_domain_name }}" "muc"
     storage = "memory"
+    muc_room_cache_size = 10000
     restrict_room_creation = true
     muc_room_allow_persistent = false
     muc_room_locking = false
