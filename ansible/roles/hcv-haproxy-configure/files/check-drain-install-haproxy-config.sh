@@ -91,7 +91,7 @@ if [ $FINAL_EXIT -eq 0 ] && [ $UPDATED_CFG -eq 1 ]; then
     sleep 15
     
     ## undrain the haproxy from the load balancer
-    DRAIN=false /usr/local/bin/oci-lb-backend-drain.sh
+    DRAIN_STATE="false" /usr/local/bin/oci-lb-backend-drain.sh
     if [ $? -gt 0 ]; then
         echo "#### cdihc: haproxy failed to undrain from the load balancer" >> $TEMPLATE_LOGFILE
         FINAL_EXIT=1
