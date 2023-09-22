@@ -64,13 +64,13 @@ if [ $? -gt 0 ]; then
 
     cp "$DRAFT_CONFIG" /etc/haproxy/haproxy.cfg
     if [ $? -gt 0 ]; then
-        echo "#### chic: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE
+        echo "#### cdihc: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE
         FINAL_EXIT=1
         exit $FINAL_EXIT
     else
         service haproxy reload
         if [ $? -gt 0 ]; then
-            echo "#### chic: failed to reload haproxy service" >> $TEMPLATE_LOGFILE
+            echo "#### cdihc: failed to reload haproxy service" >> $TEMPLATE_LOGFILE
             FINAL_EXIT=1
             exit $FINAL_EXIT
         fi
@@ -78,7 +78,7 @@ if [ $? -gt 0 ]; then
     fi
 
     echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
-    echo "#### chic: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
+    echo "#### cdihc: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
 else 
     echo "#### cdihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
     UPDATED_CFG=0
