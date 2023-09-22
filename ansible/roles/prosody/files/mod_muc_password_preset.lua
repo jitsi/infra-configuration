@@ -1,11 +1,13 @@
 module:set_global();
 
+local um_is_admin = require 'core.usermanager'.is_admin;
 local json = require "util.json";
 local async_handler_wrapper = module:require "util".async_handler_wrapper;
 local jid = require "util.jid";
 local timer = require "util.timer";
 local http = require "net.http";
 local inspect = require "inspect";
+local it = require "util.iterators";
 
 local util = module:require "util";
 local room_jid_match_rewrite = util.room_jid_match_rewrite;
@@ -78,9 +80,17 @@ local http_headers = {
     ["Content-Type"] = "application/json"
 };
 
+-- enables waiting for host, where the conference info service will notify us that a room needs
+-- an authenticated user in order to be created
+local enableWaitingForHost = module:get_option_boolean("enable_password_waiting_for_host", false);
+
 if conferenceInfoURL == "" then
     module:log("warn", "No 'muc_conference_info_url' option set, disabling preset passwords");
     return
+end
+
+local function is_admin(jid)
+    return um_is_admin(jid);
 end
 
 --- Verifies room name, domain name with the values in the token
@@ -254,6 +264,13 @@ local function queryForPassword(room)
     local function cb(content_, code_, response_, request_)
         module:log("debug","Local room var is %s", room)
 
+        local is_vpaas_room = is_vpaas(room.jid);
+
+        -- we always ignore the waiting for host for any vpass room
+        if is_vpaas_room then
+            room.has_host = true;
+        end
+
         -- create lobby and set moderator
         if code_ == 200 then
             local conference_res = json.decode(content_);
@@ -266,12 +283,17 @@ local function queryForPassword(room)
                 module:log("debug", "Will create %s lobby for room jid = %s", room._data.lobby_type, room.jid);
                 module:fire_event("create-lobby-room", { room = room; });
             end
+            -- if the room will start with lobby and will wait for the moderator
+            -- so let's ignore waiting for host
+            if room._data.starts_with_lobby or not conference_res.authRequired then
+                room.has_host = true;
+            end
         else
             module:log("warn", "External call failed, we do not set lobby and everybody authenticated is moderator")
             room._data.moderator_id = nil;
             room._data.starts_with_lobby = false;
             -- propagate the error to lib-jitsi-meet if is a JaaS meeting
-            if is_vpaas(room.jid) then
+            if is_vpaas_room then
                 local err = json.decode(content_)
                 module:log("debug", "Propagate error %s", inspect(err))
                 local status = err.status
@@ -330,6 +352,51 @@ function check_set_room_password(room)
     queryForPassword(room)
 end
 
+-- TODO: we took most of the logic from mod_muc_wait_for_host, we can merge it at some point
+function wait_for_authenticated_user(event)
+    local room, occupant, session = event.room, event.occupant, event.origin;
+
+    -- we ignore jicofo as we want it to join the room or if the room has already seen its
+    -- authenticated host
+    if is_admin(occupant.bare_jid) or is_healthcheck_room(room.jid) or room.has_host then
+        return;
+    end
+
+    local has_host = false;
+    -- here we check for token available for any of the participants in the meeting
+    for _, o in room:each_occupant() do
+        local ses = prosody.full_sessions[o.jid]
+        if ses and ses.auth_token then
+            room.has_host = true;
+        end
+    end
+
+    if not room.has_host then
+        if session.auth_token then
+            -- the host is here, let's drop the lobby
+            room:set_members_only(false);
+
+            -- let's set the default role of 'participant' for the newly created occupant as it was nil when created
+            -- when the room was still members_only, later if not disabled this participant will become a moderator
+            occupant.role = room:get_default_role(room:get_affiliation(occupant.bare_jid)) or 'participant';
+
+            module:log('info', 'Host %s arrived in %s.', occupant.bare_jid, room.jid);
+            module:fire_event('destroy-lobby-room', {
+                room = room,
+                newjid = room.jid,
+                message = 'Host arrived.',
+            });
+        elseif not room:get_members_only() then
+            -- let's enable lobby
+            prosody.events.fire_event('create-persistent-lobby-room', {
+                room = room;
+                reason = 'waiting-for-host',
+                skip_display_name_check = true;
+            });
+        end
+    end
+end
+
 -- executed on every host added internally in prosody, including components
 function process_host(host)
     if host == muc_domain then -- the conference muc component
@@ -349,6 +416,10 @@ function process_host(host)
             -- in case of success or in case of timeout or error
             return true;
         end, 1000); -- make sure we are the first listener
+
+        if enableWaitingForHost then
+            module:context(host):hook('muc-occupant-pre-join', wait_for_authenticated_user);
+        end
     end
 
 end

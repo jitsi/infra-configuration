@@ -147,6 +147,10 @@ asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences
 asap_require_room_claim = false;
 {% endif %}
 
+{% if prosody_enable_password_waiting_for_host %}
+enable_password_waiting_for_host = true;
+{% endif %}
+
 {% if prosody_enable_muc_events or prosody_enable_call_flow %}
 asap_key_path = "{{ prosody_asap_key_path }}"
 asap_key_id = "{{ asap_key['id'] }}";
@@ -431,7 +435,7 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_visitors_enabled %}
           "visitors";
 {% endif %}
-{% if prosody_enable_wait_for_host %}
+{% if prosody_enable_persistent_lobby %}
           "persistent_lobby";
 {% endif %}
         }
@@ -508,7 +512,7 @@ VirtualHost "recorder.{{ prosody_domain_name }}"
 {% endif %}
 
 Component "conference.{{ prosody_domain_name }}" "muc"
-    storage = "{{ prosody_muc_storage_method }}"
+    storage = "memory"
     muc_room_cache_size = 10000
     restrict_room_creation = true
     muc_room_allow_persistent = false
@@ -660,7 +664,7 @@ Component "internal.auth.{{ prosody_domain_name }}" "muc"
       "muc_events";
 {% endif %}
     }
-    storage = "{{ prosody_muc_storage_method }}"
+    storage = "memory"
     muc_room_cache_size = 1000
     muc_filter_whitelist="{{ prosody_auth_domain_name }}"
     muc_room_locking = false
@@ -693,6 +697,7 @@ Component "conferenceduration.{{ prosody_domain_name }}" "conference_duration_co
 {% if prosody_enable_lobby %}
 Component "lobby.{{ prosody_domain_name }}" "muc"
     storage = "memory"
+    muc_room_cache_size = 10000
     restrict_room_creation = true
     muc_room_allow_persistent = false
     muc_room_locking = false
@@ -711,6 +716,7 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
 Component "breakout.{{ prosody_domain_name }}" "muc"
     restrict_room_creation = true
     storage = "memory"
+    muc_room_cache_size = 10000
     muc_room_locking = false
     muc_room_default_public_jids = true
     muc_room_allow_persistent = false

@@ -365,7 +365,6 @@
     dest: '{{ haproxy_default_conf_path }}/haproxy'
     mode: "0644"
   notify:
-    - Reload haproxy
     - Restart haproxy systemd
   when:
     - not haproxy_build_ami

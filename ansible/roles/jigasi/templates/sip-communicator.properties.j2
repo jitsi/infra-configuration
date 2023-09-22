@@ -56,6 +56,7 @@ net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_DOMAIN_B
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_DOMAIN_TENANT_HEADER_NAME=X-Domain-Tenant
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_AUTH_TOKEN_HEADER_NAME=X-Auth-Token
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_AUTH_USER_ID_HEADER_NAME=X-User-ID-Token
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_ANSWER_EMPTY_INFO=true
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.SERVER_ADDRESS={{ jigasi_sip_server }}
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.USER_ID={{ jigasi_sip_username }}@{{ jigasi_sip_server }}
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.KEEP_ALIVE_INTERVAL=25
@@ -266,6 +267,12 @@ org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.eght
 {% if jigasi_transcriber_filter_silence %}
 org.jitsi.jigasi.transcription.FILTER_SILENCE = true
 {% endif %}
+
+org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl={{ jigasi_transcriber_remote_select }}
+
+org.jitsi.jigasi.transcription.whisper.private_key={{ jigasi_transcriber_whisper_private_key }}
+org.jitsi.jigasi.transcription.whisper.private_key_name={{ jigasi_transcriber_whisper_private_key_name }}
+org.jitsi.jigasi.transcription.whisper.websocket_url={{ jigasi_transcriber_whisper_websocket_url }}
 
 {% else %}
 
