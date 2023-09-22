@@ -126,7 +126,7 @@ Component "{{ prosody_jvb_muc_name }}" "muc"
       "muc_hide_all";
       "muc_filter_access";
     }
-    storage = "{{ prosody_muc_storage_method }}"
+    storage = "memory"
     muc_room_cache_size = 10000
     muc_filter_whitelist="{{ prosody_jvb_auth_domain_name }}"
     muc_room_locking = false
