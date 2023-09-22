@@ -68,6 +68,8 @@ if [ $FINAL_EXIT -eq 0 ]; then
                     echo "#### chic: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
                 fi
             fi
+        else
+            echo "#### cihc: validated $DRAFT_CONFIG; but DRY_RUN is not false, re-run with DRY_RUN=false to apply" >> $TEMPLATE_LOGFILE
         fi
     else 
         echo "#### cihc: validated $DRAFT_CONFIG; but new is the same as the old" >> $TEMPLATE_LOGFILE
