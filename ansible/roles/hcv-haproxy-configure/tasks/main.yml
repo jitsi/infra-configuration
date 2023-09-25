@@ -434,5 +434,17 @@
 - name: Install haproxy config install script
   ansible.builtin.copy:
     mode: 0755
-    src: haproxy-cfg-install.sh
-    dest: /usr/local/bin/haproxy-cfg-install.sh
+    src: check-install-haproxy-config.sh
+    dest: /usr/local/bin/check-install-haproxy-config.sh
+
+- name: Install haproxy configurator
+  ansible.builtin.copy:
+    mode: 0755
+    src: haproxy-configurator.sh
+    dest: /usr/local/bin/haproxy-configurator.sh
+
+- name: Install haproxy configurator payload
+  ansible.builtin.copy:
+    mode: 0755
+    src: haproxy-configurator-payload.sh
+    dest: /usr/local/bin/haproxy-configurator-payload.sh
