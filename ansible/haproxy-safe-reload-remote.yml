@@ -1,0 +1,29 @@
+- name: Main
+  hosts: tag_shard_role_haproxy
+  serial: 1
+  become: true
+  become_user: root
+  gather_facts: false
+  pre_tasks:
+    - name: Copy check-drain-install-haproxy-config.sh
+      ansible.builtin.copy:
+        dest: "/usr/local/bin/check-drain-install-haproxy-config.sh"
+        src: "roles/hcv-haproxy-configure/files/check-drain-install-haproxy-config.sh"
+        mode: 0755
+        owner: root
+    - name: Install oci lb backend drain script
+      ansible.builtin.copy:
+        mode: 0755
+        dest: /usr/local/bin/oci-lb-backend-drain.sh
+        src: "roles/hcv-haproxy-configure/files/oci-lb-backend-drain.sh"
+
+  tasks:
+    - name: Run safe reload script
+      ansible.builtin.shell: |
+        set -o pipefail
+        /usr/local/bin/check-drain-install-haproxy-config.sh /tmp/haproxy.cfg.test
+      args:
+        executable: /bin/bash
+    - name: Wait a bit for an undrain before doing the next one
+      ansible.builtin.wait_for:
+        timeout: 30
