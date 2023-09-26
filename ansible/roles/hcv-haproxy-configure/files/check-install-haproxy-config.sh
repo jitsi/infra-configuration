@@ -26,47 +26,44 @@ if [ -z "$DRAFT_CONFIG" ]; then
   exit 1
 fi
 
+# always emit at least a 0 to metrics
+echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
+
 if [ ! -f "$DRAFT_CONFIG" ]; then
     echo "#### cihc: draft haproxy config file $DRAFT_CONFIG does not exist" >> $TEMPLATE_LOGFILE
     exit 1
 fi
 
-# always emit at least a 0 to metrics
-echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
-
 # validate the draft configuration
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
     echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
-    # TODO ** emit failed metric
+    echo -n "jitsi.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
     exit 1
 else
     echo "#### cihc: validated $DRAFT_CONFIG" >> $TEMPLATE_LOGFILE
+    echo -n "jitsi.haproxy.reconfig.failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
 if [ "$DRY_RUN" == "false" ]; then
     echo "#### chic: in DRY_RUN mode" >> $TEMPLATE_LOGFILE
 fi
 
-FINAL_EXIT=0
 if [ "DRY_RUN" == "false" ]; then
     # log a copy of the new config
     cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
     # save new config as validated
     cp "$DRAFT_CONFIG" "${DRAFT_CONFIG}.validated"
 
-        # if lock file does not exist
+    # if local lock file does not exist
     if [ ! -f "/tmp/haproxy-configurator-lock" ]; then
         LOCK_FILE_NEW="true"
+        # write the local lock file
         touch /tmp/haproxy-configurator-lock
     fi
 
-    if [ $? -gt 0 ]; then
-        echo "#### chic: failed to copy the new haproxy config file to /etc/haproxy" >> $TEMPLATE_LOGFILE
-        FINAL_EXIT=1
-    elif [ "$LOCK_FILE_NEW" -eq "true" ]; then
+    if [ "$LOCK_FILE_NEW" -eq "true" ]; then
         ./haproxy_configurator.sh &
-        ## ** TODO capture FINAL_EXIT from here
         echo "####: chic: haproxy-configurator.sh started" >> $TEMPLATE_LOGFILE
         echo -n "jitsi.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
     else
@@ -74,4 +71,3 @@ if [ "DRY_RUN" == "false" ]; then
         echo -n "jitsi.haproxy.configurator:0|c" | nc -4u -w1 localhost 8125
     fi
 fi
-exit $FINAL_EXIT

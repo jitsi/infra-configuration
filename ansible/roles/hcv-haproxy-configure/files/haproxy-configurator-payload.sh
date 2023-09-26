@@ -33,9 +33,9 @@ fi
 echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
 echo "#### hcp: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
 fi
-# obtain a consul lock and install the haproxy config
-FINAL_EXIT=consul lock haproxy_reload "/usr/local/bin/haproxy-cfg-install.sh"
-echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
+
+# install the haproxy config
+FINAL_EXIT=/usr/local/bin/haproxy-cfg-install.sh
 
 # clean config directory
 find $TEMPLATE_LOGDIR -type f -mtime +14 -name '*.cfg' -execdir rm -- '{}' \;

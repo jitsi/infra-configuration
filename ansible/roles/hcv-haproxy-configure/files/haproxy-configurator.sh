@@ -14,6 +14,7 @@ while true; do
     if [ $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 60 -gt $UNIX_TIME ]; then
         echo "#### hc: validated config file has been stable for 60 seconds, initiating locked reload" >> $TEMPLATE_LOGFILE
         consul lock -timeout=10m haproxy-configurator-payload.sh
+        echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
         ## ** TODO check for timed out request
     else
         sleep 1
