@@ -229,6 +229,9 @@ org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_sip_username }}@{{ jigasi_client_aut
 org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_xmpp_password }}
 org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
+{% if jigasi_shard_role=='jigasi' %}
+org.jitsi.jigasi.xmpp.acc.UNIQUE_USER_ID=true
+{% endif %}
 {% endif %}
 
 # 30 minutes
