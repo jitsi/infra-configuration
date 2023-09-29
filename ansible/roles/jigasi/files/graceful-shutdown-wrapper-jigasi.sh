@@ -12,8 +12,10 @@ fi
 . /usr/local/bin/oracle_cache.sh
 JHOST="$(hostname -s)"
 DUMP_BUCKET_NAME="dump-logs-${ENVIRONMENT}"
-PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f)"
-for dumpfile in $PATHS; do
-    DUMP_PATH="tcpdump-jigasi/jigasi-release-${JIGASI_RELEASE_NUMBER}/${JHOST}/$(basename $dumpfile)"
-    $OCI_BIN os object put --force -bn "$DUMP_BUCKET_NAME" --name "$DUMP_PATH" --file "$dumpfile" --metadata '{"environment":"'"$ENVIRONMENT"'","jigasi-release-number":"'"$JIGASI_RELEASE_NUMBER"'"}' --region "$ORACLE_REGION" --auth instance_principal
-done
+if [ -d "/var/lib/tcpdump-jigasi" ]; then
+  PATHS="$(/usr/bin/find /var/lib/tcpdump-jigasi -type f)"
+  for dumpfile in $PATHS; do
+      DUMP_PATH="tcpdump-jigasi/jigasi-release-${JIGASI_RELEASE_NUMBER}/${JHOST}/$(basename $dumpfile)"
+      $OCI_BIN os object put --force -bn "$DUMP_BUCKET_NAME" --name "$DUMP_PATH" --file "$dumpfile" --metadata '{"environment":"'"$ENVIRONMENT"'","jigasi-release-number":"'"$JIGASI_RELEASE_NUMBER"'"}' --region "$ORACLE_REGION" --auth instance_principal
+  done
+fi
