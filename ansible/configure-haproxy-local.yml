@@ -17,7 +17,7 @@
     consul_template_templates:
       - name: "haproxy.cfg.template"
         dest: "/tmp/haproxy.cfg.test"
-        cmd: "/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test"
+        cmd: "/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false"
         perms: 0640
         backup: false
       - name: "live.map.template"
