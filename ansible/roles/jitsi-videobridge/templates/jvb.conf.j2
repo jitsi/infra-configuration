@@ -12,6 +12,9 @@ videobridge {
     average-participant-stress = {{ jvb_average_participant_stress }}
 
     load-measurements {
+      {% if jvb_use_cpu_for_stres %}
+      load-measurement = "cpu-usage"
+      {% endif %}
       packet-rate {
         # The packet rate at which we'll consider the bridge overloaded
         load-threshold = {{ jvb_load_threshold }}
@@ -19,6 +22,10 @@ videobridge {
         # The packet rate at which we'll consider the bridge 'underloaded' enough
         # to start recovery
         recovery-threshold = {{ jvb_recovery_threshold }}
+      }
+      cpu-usage {
+        load-threshold = {{ jvb_load_threshold_cpu }}
+        recovery-threshold = {{ jvb_recovery_threshold_cpu }}
       }
     }
   }

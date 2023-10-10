@@ -81,6 +81,7 @@ jvb_load_threshold_by_shape:
   "VM.Standard.E3.Flex": 81250
   "VM.Standard.E4.Flex": 100000
   "default": 50000
+jvb_load_threshold_cpu: 0.9
 jvb_log_series_path: "/tmp/jvb-series.log"
 jvb_log_series_file_size_limit: 20000000
 # defines the bitrate bellow which losses are ignore
@@ -111,6 +112,7 @@ jvb_recent_speakers_count: 30
 jvb_reconfigure_on_changes_flag: false
 jvb_recovery_multiplier: 0.8
 jvb_recovery_threshold: "{{ (jvb_load_threshold | int * jvb_recovery_multiplier) | int }}"
+jvb_recovery_threshold_cpu: 0.72
 jvb_red_policy: "NOOP"
 jvb_red_distance: "TWO"
 jvb_red_vad_only: true
