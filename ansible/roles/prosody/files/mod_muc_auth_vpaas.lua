@@ -1,5 +1,5 @@
 local json_safe = require "cjson.safe";
-local jwt = require "luajwtjitsi";
+local jwt = module:require "luajwtjitsi";
 local basexx = require "basexx";
 
 local st = require "util.stanza";

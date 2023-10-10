@@ -1,4 +1,4 @@
-local jwt = require "luajwtjitsi";
+local jwt = module:require "luajwtjitsi";
 local jid = require "util.jid";
 
 local Util = {}
