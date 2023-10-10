@@ -6,7 +6,7 @@ local json = require "cjson";
 local inspect = require('inspect');
 local socket = require "socket";
 local uuid_gen = require "util.uuid".generate;
-local jwt = require "luajwtjitsi";
+local jwt = module:require "luajwtjitsi";
 local util = module:require "util.internal";
 local is_healthcheck_room = module:require "util".is_healthcheck_room;
 
