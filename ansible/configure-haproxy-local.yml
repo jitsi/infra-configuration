@@ -211,17 +211,18 @@
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
   post_tasks:
     - name: Make sure haproxy.cfg is installed from /tmp once
-      ansible.builtin.command: /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test
+      ansible.builtin.command: /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false
       when:
         - haproxy_boot_flag
         - haproxy_enable_consul_template
     - name: Wait up to 5 minutes for remote peers to mesh
       ansible.builtin.shell: |
         set -o pipefail
+        REMOTE_MESH_STABLE=1
         timeout 5m bash -c '
-          until [ $TOTAL_CFG_REMOTE_PEERS == $TOTAL_MESHED_REMOTE_PEERS ]; do
-            TOTAL_CFG_REMOTE_PEERS=$(( $(grep "peer " /etc/haproxy/haproxy.cfg | wc -l) - 1))
-            TOTAL_MESHED_REMOTE_PEERS=$(echo "show peers" | sudo -u haproxy socat stdio /var/run/haproxy/admin.sock | grep addr | grep haproxy | grep "remote,active" | wc -l)
+          until [ $REMOTE_MESH_STABLE == "0" ]; do
+            REMOTE_MESH_STABLE=$(/usr/local/bin/check-peer-mesh.sh /tmp/haproxy-peer-mesh-check.log)
+            sleep 5
           done'
       args:
         executable: /bin/bash
