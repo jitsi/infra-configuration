@@ -220,7 +220,7 @@
         set -o pipefail
         REMOTE_MESH_STABLE=1
         timeout 5m bash -c '
-          until [ $REMOTE_MESH_STABLE == "0" ]; do
+          until [[ $REMOTE_MESH_STABLE -eq 0 ]]; do
             REMOTE_MESH_STABLE=$(/usr/local/bin/check-peer-mesh.sh /tmp/haproxy-peer-mesh-check.log)
             sleep 5
           done'
