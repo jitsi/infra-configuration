@@ -1,15 +1,12 @@
 #!/bin/bash
 . /usr/local/bin/oracle_cache.sh
 set +x
-INSTANCE_POOL="$(curl -s curl http://169.254.169.254/opc/v1/instance | jq -r '.instancePoolId')"
+INSTANCE_JSON="$(curl -s curl http://169.254.169.254/opc/v1/instance
+INSTANCE_POOL="$(echo $INSTANCE_JSON | jq -r '.instancePoolId')"
+ORACLE_REGION="$(echo $INSTANCE_JSON | jq -r '.regionInfo.regionIdentifier')"
 
 if [ -n "$1" ]; then
     LOGFILE=$1
-fi
-
-if [ -z "$ORACLE_REGION" ]; then
-  echo "#### olbd: no oracle region found" >> $LOGFILE
-  exit 1
 fi
 
 if [ -z "$INSTANCE_POOL" ]; then
@@ -17,6 +14,10 @@ if [ -z "$INSTANCE_POOL" ]; then
   exit 1
 fi
 
+if [ -z "$ORACLE_REGION" ]; then
+  echo "#### olbd: no oracle region found" >> $LOGFILE
+  exit 1
+fi
 
 [ -z "$DRAIN_STATE" ] && DRAIN_STATE="true"
 
