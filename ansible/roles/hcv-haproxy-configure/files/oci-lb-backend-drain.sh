@@ -3,14 +3,20 @@
 set +x
 INSTANCE_POOL="$(curl -s curl http://169.254.169.254/opc/v1/instance | jq -r '.instancePoolId')"
 
-if [ -z "$INSTANCE_POOL" ]; then
-  echo "No instance pool found"
-  exit 1
-fi
-
 if [ -n "$1" ]; then
     LOGFILE=$1
 fi
+
+if [ -z "$ORACLE_REGION" ]; then
+  echo "#### olbd: no oracle region found" >> $LOGFILE
+  exit 1
+fi
+
+if [ -z "$INSTANCE_POOL" ]; then
+  echo "#### olbd: no instance pool found" >> $LOGFILE
+  exit 1
+fi
+
 
 [ -z "$DRAIN_STATE" ] && DRAIN_STATE="true"
 
@@ -42,13 +48,13 @@ if [ -z "$BACKEND_SET_NAME" ]; then
 fi
 
 if [ -z "$LB_ID" ]; then
-  echo "No load balancer id found"
+  echo "#### olbd: no load balancer id found" >> $LOGFILE
   exit 1
 fi
 
 MY_IP="$(curl -s curl http://169.254.169.254/opc/v1/vnics/ | jq -r .[0].privateIp)"
 MY_PORT=80
-echo "Setting instance $MY_IP to drain: $DRAIN_STATE in lb $LB_ID backend $BACKEND_SET_NAME"
+echo "#### oldb: Setting instance $MY_IP to drain: $DRAIN_STATE in lb $LB_ID backend $BACKEND_SET_NAME" >> $LOGFILE
 
 # edit the backend set to drain the instance
 WORK_REQUEST="$(oci lb backend update --load-balancer-id $LB_ID --backend-set-name $BACKEND_SET_NAME --backend-name "$MY_IP:$MY_PORT" --drain $DRAIN_STATE --weight 1 --backup false --offline false --auth instance_principal --region $ORACLE_REGION)"
