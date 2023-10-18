@@ -49,7 +49,7 @@ fi
 
 # undrain the haproxy from the load balancer
 echo "#### hcp: undraining load balancer" | tee -a $TEMPLATE_LOGFILE
-DRAIN_STATE="false" /usr/local/bin/oci-lb-backend-drain.sh
+DRAIN_STATE="false" /usr/local/bin/oci-lb-backend-drain.sh $TEMPLATE_LOGFILE
 if [[ $? -gt 0 ]] && [[ "$FINAL_EXIT" -eq 0 ]]; then
     echo "#### hcp: haproxy failed to undrain from the load balancer" | tee -a $TEMPLATE_LOGFILE
     FINAL_EXIT=1

@@ -8,8 +8,14 @@ if [ -z "$INSTANCE_POOL" ]; then
   exit 1
 fi
 
+if [ -n "$1" ]; then
+    LOGFILE=$1
+fi
+
 [ -z "$DRAIN_STATE" ] && DRAIN_STATE="true"
-echo "Instance pool: $INSTANCE_POOL"
+
+echo "#### olbd: instance pool is $INSTANCE_POOL" >> $LOGFILE
+
 # get instance pool details with oci cli
 INSTANCE_POOL_DETAILS="$(oci compute-management instance-pool get --instance-pool-id $INSTANCE_POOL --region $ORACLE_REGION --auth instance_principal)"
 
@@ -31,7 +37,7 @@ BACKEND_SET_NAME="$(echo "$LB_DETAILS" | jq -r '."backend-set-name"')"
 LB_ID="$(echo "$LB_DETAILS" | jq -r '."load-balancer-id"')"
 
 if [ -z "$BACKEND_SET_NAME" ]; then
-  echo "No backend set name found"
+  echo "#### olbd: no backend set name found" >> $LOGFILE
   exit 1
 fi
 
@@ -50,15 +56,15 @@ WORK_REQUEST="$(oci lb backend update --load-balancer-id $LB_ID --backend-set-na
 WORK_REQUEST_TIMEOUT=300
 WAITED=0
 if [ $? -eq 0 ]; then
-    echo "Successfully queued drain operation"
+    echo "#### olbd: successfully queued drain operation" >> $LOGFILE
     WORK_REQUEST_ID="$(echo "$WORK_REQUEST" | jq -r '."opc-work-request-id"')"
     STATE="QUEUED"
     # wait for the work request to complete
     while [[ "$STATE" == "ACCEPTED" || "$STATE" == "QUEUED" || "$STATE" == "IN_PROGRESS" ]]; do
-        echo "Waiting for work request to complete"
+        echo "#### olbd: waiting for work request to complete" >> $LOGFILE
         WAITED=$((WAITED+5))
         if [[ $WAITED -gt $WORK_REQUEST_TIMEOUT ]]; then
-            echo "Work request timed out"
+            echo "#### olbd: work request timed out" >> $LOGFILE
             STATE="TIMEOUT"
         else
             sleep 5
@@ -67,10 +73,9 @@ if [ $? -eq 0 ]; then
         fi
     done
     if [[ "$STATE" == "SUCCEEDED" ]]; then
-        echo "Successfully updated instance state"
+        echo "#### olbd: successfully updated instance state" >> $LOGFILE
     else
-        echo "Failed to update instance state"
-        echo "$STATUS"
+        echo "#### olbd: failed to update instance state: $STATUS" >> $LOGFILE
         exit 1
     fi
 fi
