@@ -221,7 +221,8 @@
         REMOTE_MESH_STABLE=1
         timeout 5m bash -c '
           until [[ $REMOTE_MESH_STABLE -eq 0 ]]; do
-            REMOTE_MESH_STABLE=$(/usr/local/bin/check-peer-mesh.sh /tmp/haproxy-peer-mesh-check.log)
+            /usr/local/bin/check-peer-mesh.sh /tmp/haproxy-peer-mesh-check.log
+            REMOTE_MESH_STABLE=$?
             sleep 5
           done'
       args:
