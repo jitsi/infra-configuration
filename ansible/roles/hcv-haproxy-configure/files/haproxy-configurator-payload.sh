@@ -30,7 +30,7 @@ fi
 cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
 
 echo "#### hcp: draining load balancer" | tee -a $TEMPLATE_LOGFILE
-/usr/local/bin/oci-lb-backend-drain.sh
+/usr/local/bin/oci-lb-backend-drain.sh $TEMPLATE_LOGFILE
 if [ $? -gt 0 ]; then
     echo "#### hcp: haproxy failed to drain from the load balancer" | tee -a $TEMPLATE_LOGFILE
     FINAL_EXIT=1
