@@ -115,3 +115,10 @@
     mode: 0755
     dest: /usr/local/bin/terminate_instance.sh
     src: nomad_terminate_instance_oracle.sh.j2
+
+- name: Install nvidia helper plugin
+  ansible.builtin.unarchive:
+    src: "https://releases.hashicorp.com/nomad-device-nvidia/1.0.0/nomad-device-nvidia_1.0.0_linux_{{ nomad_architecture }}.zip"
+    remote_src: true
+    dest: /var/nomad/plugins/
+    mode: 0644
