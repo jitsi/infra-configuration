@@ -52,7 +52,7 @@ diff $DRAFT_CONFIG /etc/haproxy/haproxy.cfg
 if [ $? -gt 0 ]; then
     echo "#### cdihc: validated $DRAFT_CONFIG; copy to haproxy.cfg and reload haproxy" | tee -a $TEMPLATE_LOGFILE
 
-    /usr/local/bin/oci-lb-backend-drain.sh
+    /usr/local/bin/oci-lb-backend-drain.sh $TEMPLATE_LOGFILE
     if [ $? -gt 0 ]; then
         echo "#### cdihc: haproxy failed to drain from the load balancer" | tee -a $TEMPLATE_LOGFILE
         FINAL_EXIT=1
