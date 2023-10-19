@@ -1,7 +1,7 @@
 #!/bin/bash
 . /usr/local/bin/oracle_cache.sh
 set +x
-INSTANCE_JSON="$(curl -s curl http://169.254.169.254/opc/v1/instance
+INSTANCE_JSON="$(curl -s curl http://169.254.169.254/opc/v1/instance)"
 INSTANCE_POOL="$(echo $INSTANCE_JSON | jq -r '.instancePoolId')"
 ORACLE_REGION="$(echo $INSTANCE_JSON | jq -r '.regionInfo.regionIdentifier')"
 
