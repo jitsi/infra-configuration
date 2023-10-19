@@ -24,6 +24,6 @@
         /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test
       args:
         executable: /bin/bash
-    - name: Wait a bit for an undrain before doing the next one
+    - name: Wait 30s for haproxy to go stabilize before doing the next one
       ansible.builtin.wait_for:
         timeout: 30
