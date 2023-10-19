@@ -1,5 +1,4 @@
 local json_safe = require "cjson.safe";
-local jwt = module:require "luajwtjitsi";
 local basexx = require "basexx";
 
 local st = require "util.stanza";
@@ -80,14 +79,9 @@ local function process_vpaas_token(session)
         end
         session.public_key = public_key;
 
-        local data, msg = jwt.decode(session.auth_token);
-        if data == nil or data.context == nil then
-            return { res = false, error = "not-allowed", reason = "JWT cannot be decoded" };
-        end
-
-        -- save mauP claim from jwt - this customer specific claim, used to determine whether to increase
-        -- their usage in billing-counter
-        session.mau_p = data.context.mauP;
+        -- mark in session that context is required and later when verifying and parsing
+        -- it can detect problems and fire not-allowed
+        session.contextRequired = true;
     end
     return nil;
 end
@@ -185,6 +179,15 @@ end)
 
 prosody.events.add_handler("post-jitsi-authentication", function(session)
     return validate_vpaas_token(session);
+end)
+
+prosody.events.add_handler('jitsi-authentication-token-verified', function(event)
+    local session, claims = event.session, event.claims;
+    -- save mauP claim from jwt - this customer specific claim, used to determine whether to increase
+    -- their usage in billing-counter
+    if claims.context then
+        session.mau_p = claims.context.mauP;
+    end
 end)
 
 module:hook("muc-occupant-pre-join", function(event)
