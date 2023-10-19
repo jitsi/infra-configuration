@@ -21,7 +21,7 @@
     - name: Run safe reload script
       ansible.builtin.shell: |
         set -o pipefail
-        /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test
+        /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false
       args:
         executable: /bin/bash
     - name: Wait 30s for haproxy to go stabilize before doing the next one
