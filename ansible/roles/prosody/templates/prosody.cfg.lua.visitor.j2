@@ -68,6 +68,16 @@ external_services = {
 
 muc_mapper_domain_base = 'v{{ item }}.meet.jitsi';
 main_domain = '{{ prosody_domain_name }}';
+enable_domain_verification = true;
+asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},"{{ iss }}"{% endfor %} }
+asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{ aud }}"{% endfor %} }
+asap_key_id = "{{ asap_key['id'] }}";
+{% if prosody_meet_ban_auth_enabled %}
+muc_prosody_jitsi_access_manager_url = "{{ jitsi_access_manager_url }}";
+{% endif %}
+{% if prosody_jaas_actuator_url %}
+muc_prosody_jaas_actuator_url = "{{ prosody_jaas_actuator_url }}";
+{% endif %}
 
 -- https://prosody.im/doc/modules/mod_smacks
 smacks_max_unacked_stanzas = 5;
@@ -143,7 +153,20 @@ plugin_paths = { '/usr/share/jitsi-meet/prosody-plugins/' }
 
 ----------- Virtual hosts -----------
 VirtualHost 'v{{ item }}.meet.jitsi'
+{% if prosody_enable_tokens %}
+    authentication = "token"
+    app_id = "{{ prosody_token_app_id }}";             -- application identifier
+    app_secret = "{{ prosody_token_app_secret }}";     -- application secret known only to your token
+    allow_empty_token = {% if prosody_token_allow_empty -%}true{% else -%}false{% endif %}     -- tokens are verified only if they are supplied by the client
+{% if prosody_public_key_repo_url %}
+    asap_key_server = "{{ prosody_public_key_repo_url }}"
+{% endif %}
+{% if prosody_vpaas_public_key_repo_url %}
+    vpaas_asap_key_server = "{{ prosody_vpaas_public_key_repo_url }}"
+{% endif %}
+{% else %}
     authentication = 'jitsi-anonymous'
+{% endif %}
     ssl = {
         key = '/etc/prosody/certs/{{ prosody_domain_name }}.key';
         certificate = '/etc/prosody/certs/{{ prosody_domain_name }}.crt';
@@ -182,6 +205,11 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_hide_all_rooms %}
         "muc_hide_all";
 {% endif %}
+{% if prosody_enable_tokens %}
+    {% if prosody_enable_token_room_verification %}
+        "token_verification";
+    {% endif %}
+{% endif %}
 {% if prosody_enable_muc_domain_mapper %}
         "muc_domain_mapper";
 {% endif %}
@@ -203,6 +231,15 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% endif %}
 {% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
+{% endif %}
+{% if prosody_meet_ban_auth_enabled %}
+        "muc_auth_ban";
+{% endif %}
+{% if prosody_meet_auth_vpaas_enabled %}
+        "muc_auth_vpaas";
+{% endif %}
+{% if prosody_meet_permissions_vpaas_enabled %}
+        "muc_permissions_vpaas";
 {% endif %}
     }
     muc_room_default_presence_broadcast = {

@@ -151,7 +151,8 @@ local function deny_access(origin, stanza, room_disabled_access, room_jid, occup
         end
 
         log("debug", "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant);
-        if token == nil then
+        -- we allow participants from the main prosody to connect without token to the visitor one
+        if token == nil and origin.type ~= 's2sin' then
             log("warn", "VPASS room %s does not have a token", room_jid);
             origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPASS room disabled for guests"));
             return true;
