@@ -121,4 +121,4 @@
     src: "https://releases.hashicorp.com/nomad-device-nvidia/1.0.0/nomad-device-nvidia_1.0.0_linux_{{ nomad_architecture }}.zip"
     remote_src: true
     dest: /var/nomad/plugins/
-    mode: 0644
+    mode: 0755
