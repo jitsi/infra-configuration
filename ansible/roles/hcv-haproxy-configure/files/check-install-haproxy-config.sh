@@ -56,10 +56,7 @@ if [ "$DRY_RUN" == "false" ]; then
     DRAFT_CONFIG_VALIDATED="${DRAFT_CONFIG}.validated"
     cp $DRAFT_CONFIG $DRAFT_CONFIG_VALIDATED
 
-    flock -n /tmp/haproxy-configurator-flock -c \
-        /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
-        && return 0 \
-        || return 1
+    flock -n /tmp/haproxy-configurator-flock -c /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
 
     if [[ "$?" -eq 0 ]]; then
         echo "#### chic: haproxy-configurator.sh started" >> $TEMPLATE_LOGFILE
