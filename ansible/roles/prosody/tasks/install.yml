@@ -60,7 +60,6 @@
   args:
     executable: /bin/bash
   with_items:
-    - luajwtjitsi 2.0-0
     - net-url
     - inspect
     - uuid
