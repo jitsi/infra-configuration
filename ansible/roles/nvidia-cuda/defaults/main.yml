@@ -1,0 +1,2 @@
+---
+nvidia_cuda_packages: ['nvidia-driver-535-server', 'nvidia-cuda-toolkit']
