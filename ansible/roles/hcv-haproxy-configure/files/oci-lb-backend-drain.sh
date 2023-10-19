@@ -21,7 +21,7 @@ fi
 
 [ -z "$DRAIN_STATE" ] && DRAIN_STATE="true"
 
-echo "#### olbd: instance pool is $INSTANCE_POOL" >> $LOGFILE
+echo "#### olbd: instance pool is $INSTANCE_POOL in region $ORACLE_REGION" >> $LOGFILE
 
 # get instance pool details with oci cli
 INSTANCE_POOL_DETAILS="$(oci compute-management instance-pool get --instance-pool-id $INSTANCE_POOL --region $ORACLE_REGION --auth instance_principal)"
