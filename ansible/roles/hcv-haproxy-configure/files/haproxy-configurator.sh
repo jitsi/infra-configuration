@@ -28,7 +28,6 @@ fi
 diff $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
 if [ $? -eq 0 ]; then
     echo "#### hc: $DRAFT_CONFIG_VALIDATED is identical to /etc/haproxy/haproxy.cfg, exiting configurator " >> $TEMPLATE_LOGFILE
-    flock -u /tmp/haproxy-configurator-flock
     exit 0
 fi
 
@@ -54,8 +53,5 @@ if [ "$FINAL_EXIT" == "0" ]; then
         fi
     done
 fi
-
-#delete local lock file
-flock -u /tmp/haproxy-configurator-flock
 
 exit $FINAL_EXIT
