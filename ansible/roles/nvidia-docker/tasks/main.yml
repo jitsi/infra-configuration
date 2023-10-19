@@ -14,3 +14,4 @@
     name: 'nvidia-container-toolkit'
     state: present
     update_cache: true
+  notify: Restart docker
