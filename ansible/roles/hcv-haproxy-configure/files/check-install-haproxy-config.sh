@@ -56,15 +56,12 @@ if [ "$DRY_RUN" == "false" ]; then
     DRAFT_CONFIG_VALIDATED="${DRAFT_CONFIG}.validated"
     cp $DRAFT_CONFIG $DRAFT_CONFIG_VALIDATED
 
-    # if local lock file does not exist
-    if [ ! -f "/tmp/haproxy-configurator-lock" ]; then
-        LOCK_FILE_NEW="true"
-        # write the local lock file
-        touch /tmp/haproxy-configurator-lock
+    flock -n /tmp/haproxy-configurator-flock -c \
         /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
-    fi
+        && return 0 \
+        || return 1
 
-    if [ "$LOCK_FILE_NEW" == "true" ]; then
+    if [[ "$?" -eq 0 ]]; then
         echo "#### chic: haproxy-configurator.sh started" >> $TEMPLATE_LOGFILE
         echo -n "jitsi.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
     else
