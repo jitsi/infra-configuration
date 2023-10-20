@@ -79,6 +79,10 @@ muc_prosody_jitsi_access_manager_url = "{{ jitsi_access_manager_url }}";
 muc_prosody_jaas_actuator_url = "{{ prosody_jaas_actuator_url }}";
 {% endif %}
 
+{% if prosody_disable_required_room_claim %}
+asap_require_room_claim = false;
+{% endif %}
+
 -- https://prosody.im/doc/modules/mod_smacks
 smacks_max_unacked_stanzas = 5;
 smacks_hibernation_time = 60;
@@ -163,6 +167,9 @@ VirtualHost 'v{{ item }}.meet.jitsi'
 {% endif %}
 {% if prosody_vpaas_public_key_repo_url %}
     vpaas_asap_key_server = "{{ prosody_vpaas_public_key_repo_url }}"
+{% endif %}
+{% if prosody_cache_keys_url %}
+        cache_keys_url = "{{prosody_cache_keys_url}}";
 {% endif %}
 {% else %}
     authentication = 'jitsi-anonymous'
