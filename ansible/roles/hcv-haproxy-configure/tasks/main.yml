@@ -464,10 +464,3 @@
     dest: /usr/local/bin/check-peer-mesh.sh
   when:
     - haproxy_enable_consul_template
-
-- name: Restart consul-template
-  ansible.builtin.service:
-    name: consul-template
-    state: restarted
-  when:
-    - haproxy_enable_consul_template
