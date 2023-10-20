@@ -53,7 +53,6 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
-    - { role: "nvidia-cuda", tags: "nvidia-cuda" }
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }

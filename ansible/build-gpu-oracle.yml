@@ -1,0 +1,39 @@
+---
+- name: Main
+  hosts: default
+  gather_facts: true
+  become: true
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/repo.yml
+    - secrets/github-deploy.yml
+    - config/vars.yml
+  vars:
+    cloud_provider: oracle
+  pre_tasks:
+    # pause 60 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 60
+      ansible.builtin.pause:
+        seconds: 60
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+    - name: Upgrade packages
+      ansible.builtin.apt:
+        upgrade: true
+    - name: Upgrade to the latest kernel image # noqa package-latest
+      ansible.builtin.apt:
+        name: linux-oracle
+        state: latest
+
+  post_tasks:
+    - name: Cleanup nomad data directory
+      ansible.builtin.file:
+        path: /var/nomad
+        state: absent
+      tags: clean-system
+
+  roles:
+    - { role: "nvidia-cuda", tags: "nvidia-cuda" }
+    - { role: "nvidia-docker", tags: "nvidia-docker" }
+    - { role: "clean-system", tags: "clean-system, build" }
