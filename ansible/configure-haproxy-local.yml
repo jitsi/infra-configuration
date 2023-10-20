@@ -203,8 +203,8 @@
     - { role: "haproxy", tags: "haproxy"}
     - { role: "consul-haproxy", tags: "consul-haproxy",
         consul_haproxy_install_flag: false, consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
-    - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure", haproxy_reconfigure_run: false }
     - { role: "consul-template", tags: "consul-template", when: haproxy_enable_consul_template }
+    - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure", haproxy_reconfigure_run: false }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
     - { role: "haproxy-tenant-pin", tags: "haproxy-tenant-pin", haproxy_tenant_pin_install_flag: true, haproxy_tenant_pin_configure_flag: true,
         when: not haproxy_enable_consul_template }
