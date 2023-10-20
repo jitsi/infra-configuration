@@ -1,0 +1,32 @@
+---
+- name: Save nvidia-docker apt key
+  ansible.builtin.apt_key:
+    url: "{{ nvidia_docker_repo_key_url }}"
+
+- name: Save nvidia-docker apt source list
+  ansible.builtin.get_url:
+    url: "{{ nvidia_docker_repo_list_url }}"
+    dest: /etc/apt/sources.list.d/nvidia-docker.list
+    mode: 0644
+
+- name: Install apt packages
+  ansible.builtin.apt:
+    name: 'nvidia-container-toolkit'
+    state: present
+    update_cache: true
+  notify: Restart docker
+
+- name: Update docker config to use nvidia executor
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    mode: 0644
+    content: |
+      {
+        "runtimes": {
+          "nvidia": {
+            "path": "/usr/bin/nvidia-container-runtime",
+            "runtimeArgs": []
+          }
+        }
+      }
+  notify: Restart docker

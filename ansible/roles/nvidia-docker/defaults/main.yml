@@ -1,0 +1,4 @@
+---
+nvidia_docker_distribution: "ubuntu22.04"
+nvidia_docker_repo_key_url: https://nvidia.github.io/nvidia-docker/gpgkey
+nvidia_docker_repo_list_url: "https://nvidia.github.io/nvidia-docker/{{ nvidia_docker_distribution }}/nvidia-docker.list"

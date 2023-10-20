@@ -1,0 +1,6 @@
+---
+- name: Install nvidia packages
+  ansible.builtin.apt:
+    name: "{{ nvidia_cuda_packages }}"
+    state: present
+    update_cache: true
