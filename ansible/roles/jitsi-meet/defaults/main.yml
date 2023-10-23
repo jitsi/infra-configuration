@@ -158,11 +158,6 @@ jitsi_meet_enable_webhid_feature: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
 jitsi_meet_feedback_percentage: 100
-# "Math.random() < forceJVB121Ratio" determines whether a 1:1 call should be
-# moved to the JVB (after a successful P2P connection). Math.random()
-# returns a value in [0, 1) uniformly distributed, so, the default "-1" means
-# that no call should be moved to the JVB after a successful P2P.
-jitsi_meet_force_jvb121_ratio: -1
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
 jitsi_meet_google_analytics_flag: false
