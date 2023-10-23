@@ -38,7 +38,12 @@ fi
 
 if [[ "$FINAL_EXIT" -eq 0 ]]; then
     echo "#### hcp: reloading haproxy" >> $TEMPLATE_LOGFILE
+
+    # make sure the most recent validated config is being used
+    cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
+
     service haproxy reload
+
     if [[ $? -gt 0 ]]; then
         echo "#### hcp: haproxy failed to reload" | tee -a $TEMPLATE_LOGFILE
         echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
@@ -64,5 +69,9 @@ if [[ $FINAL_EXIT -gt 0 ]]; then
 else
     echo -n "jitsi.haproxy.reconfig_failed:0|c" | nc -4u -w1 localhost 8125
 fi
+
+# copy the live config over test config and kick off consul-template to make sure there are not any new changes
+cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.test
+service consul-template reload
 
 exit $FINAL_EXIT
