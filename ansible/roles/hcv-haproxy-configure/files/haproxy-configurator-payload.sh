@@ -63,15 +63,19 @@ fi
 # log that a reconfigure happened
 echo "#### hcp: succeeded to reload haproxy with new config" >> $TEMPLATE_LOGFILE
 
+# copy the live config over test config and kick off consul-template to make sure there are not any new changes
+diff /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.test
+if [ $? -ne 0 ]; then
+    echo "#### hcp: live config is different than test config; re-running" >> $TEMPLATE_LOGFILE
+    cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.test
+    service consul-template reload
+fi
+
 if [[ $FINAL_EXIT -gt 0 ]]; then
     echo -n "jitsi.haproxy.reconfig_failed:1|c" | nc -4u -w1 localhost 8125
     exit 1
 else
     echo -n "jitsi.haproxy.reconfig_failed:0|c" | nc -4u -w1 localhost 8125
 fi
-
-# copy the live config over test config and kick off consul-template to make sure there are not any new changes
-cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.test
-service consul-template reload
 
 exit $FINAL_EXIT
