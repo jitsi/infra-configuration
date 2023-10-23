@@ -1,0 +1,14 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  gather_timeout: 180
+  become_user: root
+  become: true
+  force_handlers: true
+  vars_files:
+    - secrets/ops-repo.yml
+    - config/vars.yml
+  roles:
+    - role: "gpu-models"
+      tags: "gpu-models"
