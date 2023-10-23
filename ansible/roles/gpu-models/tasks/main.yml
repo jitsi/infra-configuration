@@ -1,4 +1,9 @@
 ---
+- name: Install apt pre-requisites
+  ansible.builtin.apt:
+    name: s3fs
+    state: present
+
 - name: Check models bucket mount # no-qa ignore-errors
   ansible.builtin.shell: |
     set -o pipefail
