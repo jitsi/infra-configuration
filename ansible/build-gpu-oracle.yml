@@ -6,6 +6,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/repo.yml
+    - secrets/ops-repo.yml
     - secrets/github-deploy.yml
     - config/vars.yml
   vars:
@@ -36,4 +37,5 @@
   roles:
     - { role: "nvidia-cuda", tags: "nvidia-cuda" }
     - { role: "nvidia-docker", tags: "nvidia-docker" }
+    - { role: "gpu-models", tags: "gpu-models" }
     - { role: "clean-system", tags: "clean-system, build" }
