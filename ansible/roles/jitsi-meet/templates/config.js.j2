@@ -202,9 +202,6 @@ var config = {
         stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
         enableOpusDtx: {% if jitsi_meet_enable_dtx %}true{% else %}false{% endif %}
     },
-{% if jitsi_meet_force_jvb121_ratio %}
-    forceJVB121Ratio:  {{ jitsi_meet_force_jvb121_ratio }},
-{% endif %}
 {% if jitsi_meet_talk_while_muted_enabled %}
     enableTalkWhileMuted: true,
 {% endif %}
