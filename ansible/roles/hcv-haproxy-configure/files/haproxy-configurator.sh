@@ -37,16 +37,27 @@ if [ "$FINAL_EXIT" == "0" ]; then
         UNIX_TIME_OF_VALIDATED_CONFIG_FILE=$(stat -c %Y $DRAFT_CONFIG_VALIDATED)
         UNIX_TIME=$(date +%s)
         if (( $UNIX_TIME > $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 60 )); then
-            echo "#### hc: validated config file has been stable for 60 seconds, initiating locked reload" >> $TEMPLATE_LOGFILE
-            consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
-            if [ $? -eq 0 ]; then
-                echo "#### hc: haproxy-configurator-payload.sh exited with zero" >> $TEMPLATE_LOGFILE
+            echo "#### hc: validated config file has been stable for 60 seconds, initiating reload" >> $TEMPLATE_LOGFILE
+            grep 'up true' /etc/haproxy/maps/up.map
+            if [ &? -eq 0 ]; then
+                consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
+                if [ $? -eq 0 ]; then
+                    echo "#### hc: haproxy-configurator-payload.sh exited with zero" >> $TEMPLATE_LOGFILE
+                else
+                    echo "#### hc: haproxy-configurator-payload.sh exited with non-zero" >> $TEMPLATE_LOGFILE
+                    echo -n "jitsi.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
+                    FINAL_EXIT=1
+                fi
+                echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
             else
-                echo "#### hc: haproxy-configurator-payload.sh exited with non-zero" >> $TEMPLATE_LOGFILE
-                echo -n "jitsi.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
-                FINAL_EXIT=1
+                echo "#### hc: haproxy is not up, skipping consul lock and immediately reloading" >> $TEMPLATE_LOGFILE
+                cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
+                service haproxy reload
+                if [[ $? -gt 0 ]]; then
+                    echo "#### hc: haproxy failed to reload when down" >> $TEMPLATE_LOGFILE
+                    FINAL_EXIT=1
+                fi
             fi
-            echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
             break
         else
             sleep 1
