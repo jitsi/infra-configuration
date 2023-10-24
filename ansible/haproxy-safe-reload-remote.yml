@@ -10,8 +10,8 @@
   pre_tasks:
     - name: Copy check-drain-install-haproxy-config.sh
       ansible.builtin.copy:
-        dest: "/usr/local/bin/check-drain-install-haproxy-config.sh"
-        src: "roles/hcv-haproxy-configure/files/check-drain-install-haproxy-config.sh"
+        dest: "/usr/local/bin/check-install-haproxy-config.sh"
+        src: "roles/hcv-haproxy-configure/files/check-install-haproxy-config.sh"
         mode: 0755
         owner: root
       when: haproxy_enable_consul_template
@@ -25,11 +25,11 @@
     - name: Run safe reload script
       ansible.builtin.shell: |
         set -o pipefail
-        /usr/local/bin/check-drain-install-haproxy-config.sh /tmp/haproxy.cfg.test
+        /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false
       args:
         executable: /bin/bash
       when: haproxy_enable_consul_template
-    - name: Wait a bit for an undrain before doing the next one
+    - name: Wait 30s for an undrain before doing the next one
       ansible.builtin.wait_for:
         timeout: 30
       when: haproxy_enable_consul_template

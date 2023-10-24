@@ -60,7 +60,6 @@ haproxy_path_to_stats_script: "/usr/local/bin/haproxy-stats.sh"
 haproxy_peer_port: 1024
 haproxy_private_ip: "{{ private_ip | default(ansible_default_ipv4.address) }}"
 haproxy_public_ip: "{{ public_ip | default('') }}"
-haproxy_reconfigure_run: false
 haproxy_release_live: false
 haproxy_release_live_map_path: /etc/haproxy/maps/live.map
 haproxy_release_tenant_map_path: /etc/haproxy/maps/tenant.map
