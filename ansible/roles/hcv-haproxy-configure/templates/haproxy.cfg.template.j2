@@ -130,6 +130,7 @@ frontend www-http
   acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password /_unlock
   acl not_web hdr_beg(host) -i signal-api-
   acl not_web path_beg /about/health
+  acl not_web path_sub conference-request
 
   # if the path has at least one subdirectory, we assume it's a group
   acl has_group path_reg ^/([^/]+)/(.*)
