@@ -215,6 +215,12 @@
       when:
         - haproxy_boot_flag
         - haproxy_enable_consul_template
+    - name: Wait 60 seconds for consul-template to notice new peers
+      ansible.builtin.pause:
+        seconds: 60
+      when:
+        - haproxy_enable_consul_template
+        - haproxy_boot_flag
     - name: Wait up to 5 minutes for remote peers to mesh
       ansible.builtin.shell: |
         set -o pipefail
