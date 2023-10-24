@@ -58,3 +58,11 @@
   ansible.builtin.file:
     path: "{{ gpu_models_s3fs_credentials_path }}"
     state: absent
+
+- name: Docker pull latest skynet
+  ansible.builtin.shell: |
+    set -o pipefail
+    aws ecr get-login-password --region {{ gpu_models_docker_region }} | docker login --username AWS --password-stdin {{ gpu_models_docker_host }}
+    docker pull {{ gpu_models_docker_image }}
+  args:
+    executable: /bin/bash
