@@ -1,5 +1,5 @@
 local cache = require "util.cache"
-local jwt = require "luajwtjitsi"
+local jwt = module:require "luajwtjitsi";
 local uuid = require "uuid"
 
 local A = {}

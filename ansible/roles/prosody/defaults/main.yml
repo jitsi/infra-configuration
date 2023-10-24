@@ -224,6 +224,7 @@ prosody_stats_server: "localhost"
 # with apt we use the shell to detect subversion so leave it blank ''
 prosody_subversion: "{{ prosody_package_subversion if not prosody_install_from_apt else '' }}"
 prosody_token_allow_empty: true
+prosody_visitor_token_allow_empty: true
 prosody_token_app_id: jitsi
 prosody_token_app_secret: replaceme
 # our networks and cloudflare ip-ranges (cloudflare ranges come from https://www.cloudflare.com/en-gb/ips/)

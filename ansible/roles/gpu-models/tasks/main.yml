@@ -1,0 +1,60 @@
+---
+- name: Install apt pre-requisites
+  ansible.builtin.apt:
+    name: s3fs
+    state: present
+
+- name: Check models bucket mount # no-qa ignore-errors
+  ansible.builtin.shell: |
+    set -o pipefail
+    mount | grep -q {{ gpu_models_mount_point }}
+  args:
+    executable: /bin/bash
+  register: gpu_models_mount_results
+  ignore_errors: true
+
+- name: Create models mount point
+  ansible.builtin.file:
+    path: "{{ gpu_models_mount_point }}"
+    state: directory
+    mode: 0755
+    recurse: true
+  when: gpu_models_mount_results.rc == 1
+
+- name: Create models local storage point
+  ansible.builtin.file:
+    path: "{{ gpu_models_local_dir }}"
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: Create gpu models s3fs passwd
+  ansible.builtin.copy:
+    mode: 0600
+    owner: root
+    content: "{{ gpu_models_s3fs_credentials }}"
+    dest: "{{ gpu_models_s3fs_credentials_path }}"
+  no_log: true
+
+
+- name: Mount models bucket
+  ansible.posix.mount:
+    src: "s3fs#{{ gpu_models_bucket }}"
+    path: "{{ gpu_models_mount_point }}"
+    opts: "{{ gpu_models_s3fs_options }}"
+    fstype: "fuse"
+    state: mounted
+  when: gpu_models_mount_results.rc == 1
+
+- name: Copy model bucket contents to local storage point # noqa command-instead-of-module
+  ansible.builtin.command: rsync --size-only -a {{ gpu_models_mount_point }}/models/ {{ gpu_models_local_dir }}
+
+- name: Unmount models bucket
+  ansible.posix.mount:
+    path: "{{ gpu_models_mount_point }}"
+    state: unmounted
+
+- name: Remove s3fs credentials
+  ansible.builtin.file:
+    path: "{{ gpu_models_s3fs_credentials_path }}"
+    state: absent

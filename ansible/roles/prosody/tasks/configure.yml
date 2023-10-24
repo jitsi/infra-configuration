@@ -321,15 +321,6 @@
     creates: /var/lib/prosody-v{{ item }}/auth%2meet%2jitsi/accounts/focus.dat
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
-- name: Start and enable prosody visitors service
-  ansible.builtin.systemd:
-    name: "prosody-v{{ item }}"
-    state: started
-    enabled: true
-    daemon_reload: true
-    masked: false
-  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
-
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
     src: "mod_muc_events.lua"
@@ -432,6 +423,15 @@
     enabled: true
     daemon_reload: true
   when: prosody_enable_log_filter and prosody_jvb_configure_flag
+
+- name: Start and enable prosody visitors service
+  ansible.builtin.systemd:
+    name: "prosody-v{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+    masked: false
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
 - name: Start and enable prosody service
   ansible.builtin.systemd:

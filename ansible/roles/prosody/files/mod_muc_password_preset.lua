@@ -19,7 +19,7 @@ local is_vpaas = module:require "util.internal".is_vpaas;
 local tostring = tostring;
 local neturl = require "net.url";
 local parse = neturl.parseQuery;
-local jwt = require "luajwtjitsi";
+local jwt = module:require "luajwtjitsi";
 
 -- will be initialized once the main virtual host module is initialized
 local token_util;

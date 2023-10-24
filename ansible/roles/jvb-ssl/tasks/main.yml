@@ -6,7 +6,7 @@
     state: directory
 
 - name: Nginx | Generate dhparam # noqa ignore-errors
-  ansible.builtin.command: "openssl dhparam -out {{ jvb_ssl_dest_dir }}/dhparam.pem 2048"
+  ansible.builtin.command: "openssl dhparam -dsaparam -out {{ jvb_ssl_dest_dir }}/dhparam.pem 2048"
   ignore_errors: true
   args:
     creates: "{{ jvb_ssl_dest_dir }}/dhparam.pem"

@@ -13,11 +13,13 @@
     - secrets/oci-logging.yml
     - secrets/oci-certificates.yml
     - secrets/carbon-black.yml
+    - secrets/ops-repo.yml
     - secrets/repo.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     nomad_enable_jitsi_autoscaler: false
+    nvidia_docker_flag: false
     cloud_provider: oracle
     shard_role: nomad-pool
     nomad_node_role: client
@@ -128,7 +130,8 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
-    # - { role: "docker", tags: "docker" }
+    - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
+    - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
