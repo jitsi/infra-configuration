@@ -1,4 +1,12 @@
 ---
+- name: Allow for vm memory overcommit
+  ansible.posix.sysctl:
+    name: vm.overcommit_memory
+    value: 1
+    sysctl_set: true
+    state: present
+    reload: true
+
 - name: Check loki bucket mount # no-qa ignore-errors
   ansible.builtin.shell: |
     set -o pipefail
