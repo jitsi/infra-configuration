@@ -199,7 +199,7 @@ logrotate_rules_haproxy:
     options:
       - su root syslog
       - size 100M
-      - rotate 7
+      - rotate 20
       - missingok
       - notifempty
       - compress
