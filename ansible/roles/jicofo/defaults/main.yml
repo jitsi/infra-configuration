@@ -43,6 +43,7 @@ jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_d
 jicofo_max_audio_senders: 999999
 # Max participants in a single conference on a single bridge.
 jicofo_max_bridge_participants: 80
+jicofo_max_memory: "1536m"
 jicofo_max_video_senders: 999999
 jicofo_opts: ""
 jicofo_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
