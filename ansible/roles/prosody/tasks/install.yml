@@ -209,7 +209,7 @@
     basedir: /usr/lib/prosody/modules
     src: "mod_http_parse_ip.patch"
     strip: 2
-  when: (prosody_minor_version | int) == 12
+  when: (prosody_minor_version | int) == 12 and (prosody_subversion | int) < 5
 
 - name: Apply mod_websocket session IP patch for prosody 0.11
   ansible.posix.patch:
