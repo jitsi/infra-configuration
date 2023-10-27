@@ -6,13 +6,6 @@
     - java_from_apt
     - java_install_flag
 
-- name: Install openjdk-8-jdk
-  ansible.builtin.apt:
-    name: openjdk-8-jdk
-  when:
-    - java_from_apt
-    - java_install_flag
-
 - name: Install java 11
   ansible.builtin.apt:
     name: openjdk-11-jdk
