@@ -1,0 +1,26 @@
+# HG changeset patch
+# User bgrozev
+# Date 1698423451 18000
+#      Fri Oct 27 11:17:31 2023 -0500
+# Node ID bf1f774b6cc7e760570cf7cd73ac930d34759370
+# Parent  7d9e26003b05ea1c8a5f0d09a3638e85abcda84e
+Catch errors when parsing IP from X-Forwarded-For
+
+Rather than throwing an exception when passing nil to match_ip.
+
+diff -r 7d9e26003b05 -r bf1f774b6cc7 plugins/mod_http.lua
+--- a/plugins/mod_http.lua	Sun May 14 19:02:26 2023 +0200
++++ b/plugins/mod_http.lua	Fri Oct 27 11:17:31 2023 -0500
+@@ -301,7 +301,11 @@
+ 	if trusted_proxies[ip] then
+ 		return true;
+ 	end
+-	local parsed_ip = new_ip(ip)
++	local parsed_ip, err = new_ip(ip)
++    if not parsed_ip then
++        module:log("warn", "Error parsing IP, %s: %s", err, ip);
++        return false;
++    end
+ 	for trusted_proxy in trusted_proxies do
+ 		if match_ip(parsed_ip, parse_cidr(trusted_proxy)) then
+ 			return true;
