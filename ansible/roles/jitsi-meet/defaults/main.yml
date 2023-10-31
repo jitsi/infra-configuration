@@ -251,15 +251,6 @@ jitsi_meet_token_sso: false
 jitsi_meet_toolbar_buttons_filter: []
 jitsi_meet_user_documentation_url: false
 jitsi_meet_video_quality: false
-jitsi_meet_video_quality_h264_bitrate_low: 200000
-jitsi_meet_video_quality_h264_bitrate_standard: 500000
-jitsi_meet_video_quality_h264_bitrate_high: 1500000
-jitsi_meet_video_quality_vp8_bitrate_low: 200000
-jitsi_meet_video_quality_vp8_bitrate_standard: 500000
-jitsi_meet_video_quality_vp8_bitrate_high: 1500000
-jitsi_meet_video_quality_vp9_bitrate_low: 100000
-jitsi_meet_video_quality_vp9_bitrate_standard: 300000
-jitsi_meet_video_quality_vp9_bitrate_high: 1200000
 jitsi_meet_visitors_enabled: "{{ visitors_enabled | default(false) }}"
 jitsi_meet_visitors_count: "{{ visitors_count | default(0) }}"
 jitsi_meet_web_version: false

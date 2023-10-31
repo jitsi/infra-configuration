@@ -172,23 +172,6 @@ var config = {
     {% if jitsi_meet_jvb_preferred_mobile_codecs %}
         mobileCodecPreferenceOrder: '{{ jitsi_meet_jvb_preferred_mobile_codecs }}',
     {% endif %}
-        maxBitratesVideo: {
-            H264: {
-                low: {{ jitsi_meet_video_quality_h264_bitrate_low }},
-                standard: {{ jitsi_meet_video_quality_h264_bitrate_standard }},
-                high: {{ jitsi_meet_video_quality_h264_bitrate_high }}
-            },
-            VP8: {
-                low: {{ jitsi_meet_video_quality_vp8_bitrate_low }},
-                standard: {{ jitsi_meet_video_quality_vp8_bitrate_standard }},
-                high: {{ jitsi_meet_video_quality_vp8_bitrate_high }}
-            },
-            VP9: {
-                low: {{ jitsi_meet_video_quality_vp9_bitrate_low }},
-                standard: {{ jitsi_meet_video_quality_vp9_bitrate_standard }},
-                high: {{ jitsi_meet_video_quality_vp9_bitrate_high }}
-            }
-        },
     {% if jitsi_meet_min_height_quality_level %}
         minHeightForQualityLvl: {
             240: 'standard',
