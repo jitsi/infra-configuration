@@ -131,8 +131,8 @@
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
-    - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
+    - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
     - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
   tasks:
