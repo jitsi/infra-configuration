@@ -31,6 +31,7 @@ STACK_ROLE_TAG="stack-role"
 SHARD_TESTED_TAG="shard-tested"
 GRID_TAG="grid"
 GRID_ROLE_TAG="grid-role"
+POOL_TYPE_TAG="pool-type"
 DOMAIN_TAG="domain"
 RELEASE_NUMBER_TAG="release_number"
 CLOUD_PROVIDER_TAG="cloud_provider"
@@ -1754,7 +1755,7 @@ def get_oracle_image_list_by_search(type,version=False,regions=False,config=Fals
 
     return image_list
 
-def get_oracle_instance_list_by_search(role_name, environment_name, shard_name=False, regions=False,release_number=False,config=False,compartment=False,grid=False,grid_role=False):
+def get_oracle_instance_list_by_search(role_name, environment_name, shard_name=False, regions=False,release_number=False,config=False,compartment=False,grid=False,grid_role=False,pool_type=False):
     if not config:
         config = oci.config.from_file()
     if not compartment:
@@ -1789,6 +1790,8 @@ def get_oracle_instance_list_by_search(role_name, environment_name, shard_name=F
             conditions_list.append('(definedTags.key = \'grid\' && definedTags.value = \'%s\')'%grid)
         if grid_role:
             conditions_list.append('(definedTags.key = \'grid-role\' && definedTags.value = \'%s\')'%grid_role)
+        if pool_type:
+            conditions_list.append('(freeformTags.key = \'pool_type\' && freeformTags.value = \'%s\')'%pool_type)
 
         vnic_conditions_str = ' && '.join(conditions_list)
         # only want the primary vnic
@@ -2071,15 +2074,15 @@ def update_instance_tags(instance, new_freeform_tags={}, new_defined_tags={}):
     # print(resp.data)
     return resp
 
-def get_oracle_instances_by_role(role_name, environment_name, shard_name=False,region=False,regions=False,shard_state=False,release_number=False,cloud_provider=False,grid=False,grid_role=False):
+def get_oracle_instances_by_role(role_name, environment_name, shard_name=False,region=False,regions=False,shard_state=False,release_number=False,cloud_provider=False,grid=False,grid_role=False,pool_type=False):
     config = oci.config.from_file()
     vnic = oci.core.VirtualNetworkClient(config)
     compute = oci.core.ComputeClient(config)
     compartment = get_oracle_compartment_by_environment(environment_name)
 
-    return get_oracle_instance_list_by_search(role_name, environment_name=environment_name,shard_name=shard_name,regions=regions,release_number=release_number,config=config,compartment=compartment,grid=grid,grid_role=grid_role)
+    return get_oracle_instance_list_by_search(role_name, environment_name=environment_name,shard_name=shard_name,regions=regions,release_number=release_number,config=config,compartment=compartment,grid=grid,grid_role=grid_role,pool_type=pool_type)
 
-def get_instances_by_role(role_name, environment_name=False,shard_name=False,region=False,regions=False,shard_state=False,release_number=False,cloud_provider=False,grid=False,grid_role=False):
+def get_instances_by_role(role_name, environment_name=False,shard_name=False,region=False,regions=False,shard_state=False,release_number=False,cloud_provider=False,grid=False,grid_role=False,pool_type=False):
     if hcv_debug: print((inspect.currentframe().f_code.co_name))
 
     # when role_name is 'all', just don't filter on role
@@ -2113,6 +2116,8 @@ def get_instances_by_role(role_name, environment_name=False,shard_name=False,reg
         filters.append({'Name':'tag:'+GRID_TAG, 'Values':[grid]})
     if grid_role:
         filters.append({'Name':'tag:'+GRID_ROLE_TAG, 'Values':[grid_role]})
+    if pool_type:
+        filters.append({'Name':'tag:'+POOL_TYPE_TAG, 'Values':[pool_type]})
 
     global AWS_REGIONS
     if not regions:

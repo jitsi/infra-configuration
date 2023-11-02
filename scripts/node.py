@@ -23,6 +23,8 @@ parser.add_argument('--release', action='store',
                    help='Release number of node', default=False)
 parser.add_argument('--grid_role', action='store',
                    help='Grid role for selenium grid nodes', default=False)
+parser.add_argument('--pool_type', action='store',
+                   help='Nomad pool type for nomad pool nodes', default=False)
 parser.add_argument('--grid', action='store',
                    help='Grid name for selenium grid nodes', default=False)
 parser.add_argument('--public', action='store_true',
@@ -68,11 +70,11 @@ if args.region in oracle_regions():
     oracle_only_flag=True
 
 if not oracle_only_flag:
-    nodes = get_instances_by_role(role_name=roles,environment_name=args.environment,shard_name=args.shard,regions=regions,release_number=args.release,grid=args.grid,grid_role=args.grid_role)
+    nodes = get_instances_by_role(role_name=roles,environment_name=args.environment,shard_name=args.shard,regions=regions,release_number=args.release,grid=args.grid,grid_role=args.grid_role,pool_type=args.pool_type)
 if oracle_flag:
     if not oracle_only_flag:
         regions = convert_aws_regions_to_oracle(regions)
-    nodes = nodes + get_oracle_instances_by_role(role_name=roles,environment_name=args.environment,shard_name=args.shard,regions=regions,release_number=args.release,grid=args.grid,grid_role=args.grid_role)
+    nodes = nodes + get_oracle_instances_by_role(role_name=roles,environment_name=args.environment,shard_name=args.shard,regions=regions,release_number=args.release,grid=args.grid,grid_role=args.grid_role,pool_type=args.pool_type)
 
 if args.fix_node_ips:
     fix_oci_ip_tags(args.environment, regions)
