@@ -44,7 +44,7 @@ parser.add_argument('--fix_node_ips', action='store_true',
 args = parser.parse_args()
 
 
-if args.region == 'all':
+if args.region.lower() == 'all':
     if args.oracle_only:
         regions = oracle_regions()
     else:
