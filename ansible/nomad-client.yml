@@ -30,6 +30,7 @@
       cloud_region: "{{ oracle_region }}"
       pool_type: "{{ nomad_pool_type }}"
       public_ip: "{{ cloud_public_ip }}"
+      instance_id: "{{ oracle_instance_id | default('default') }}"
   pre_tasks:
     - name: Stop telegraf for nomad clients # noqa ignore-errors
       ansible.builtin.service:
