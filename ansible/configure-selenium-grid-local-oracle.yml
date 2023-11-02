@@ -18,6 +18,8 @@
       cloud_region: "{{ oracle_region }}"
       pool_type: "selenium-grid"
       selenium_grid_name: "{{ selenium_grid_name }}"
+      availability_domain: "{{ cloud_availability_domain }}"
+      fault_domain: "{{ cloud_fault_domain }}"
 
   vars_files:
     - secrets/selenium.yml
@@ -54,6 +56,17 @@
         state: present
         reload: true
       when: selenium_grid_role == 'node'
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set nomad instance variables
+      ansible.builtin.set_fact:
+        nomad_shape: "{{ instance_result.json.shape }}"
+        cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
+        cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
+      tags: setup
   roles:
     - { role: "common", tags: "common"}
     - { role: "sshusers", tags: "ssh" }

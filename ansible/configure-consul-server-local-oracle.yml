@@ -27,6 +27,8 @@
       cloud_name: "{{ cloud_name }}"
       cloud_region: "{{ oracle_region }}"
       pool_type: "consul"
+      availability_domain: "{{ cloud_availability_domain }}"
+      fault_domain: "{{ cloud_fault_domain }}"
 
   pre_tasks:
     - name: Setup new repo template file
@@ -93,9 +95,11 @@
         url: http://169.254.169.254/opc/v1/instance/
       register: instance_result
       tags: setup
-    - name: Set nomad shape variable
+    - name: Set nomad instance variables
       ansible.builtin.set_fact:
         nomad_shape: "{{ instance_result.json.shape }}"
+        cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
+        cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
       tags: setup
     - name: Calculate nomad cpu_total_compute
       ansible.builtin.shell: |
