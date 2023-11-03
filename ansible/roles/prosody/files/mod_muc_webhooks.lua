@@ -519,34 +519,36 @@ function handle_room_event(event, event_type)
         breakout_room_id = jid_split(room.jid);
     end
 
-    if not is_healthcheck_room(room.jid) then
-        module:log("debug", "Will send room event for %s", room.jid);
-        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
-        local payload = {};
-        payload.conference = internal_room_jid_match_rewrite(main_room.jid);
-
-        payload.isBreakout = is_breakout;
-        payload.breakoutRoomId = breakout_room_id;
-
-        local room_event = {
-            ["idempotencyKey"] = uuid_gen(),
-            ["sessionId"] = main_room._data.meetingId,
-            ["created"] = util.round(socket.gettime() * 1000),
-            ["meetingFqn"] = meeting_fqn,
-            ["eventType"] = event_type,
-            ["data"] = payload
-        }
-        if util.is_vpaas(main_room.jid) then
-            room_event["customerId"] = customer_id
-        end
-
-        event_count();
-        http.request(EGRESS_URL, {
-            headers = util.http_headers_no_auth,
-            method = "POST",
-            body = json.encode(room_event);
-        }, cb);
+    if is_healthcheck_room(room.jid) or not main_room then
+        return;
     end
+
+    module:log("debug", "Will send room event for %s", room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+    local payload = {};
+    payload.conference = internal_room_jid_match_rewrite(main_room.jid);
+
+    payload.isBreakout = is_breakout;
+    payload.breakoutRoomId = breakout_room_id;
+
+    local room_event = {
+        ["idempotencyKey"] = uuid_gen(),
+        ["sessionId"] = main_room._data.meetingId,
+        ["created"] = util.round(socket.gettime() * 1000),
+        ["meetingFqn"] = meeting_fqn,
+        ["eventType"] = event_type,
+        ["data"] = payload
+    }
+    if util.is_vpaas(main_room.jid) then
+        room_event["customerId"] = customer_id
+    end
+
+    event_count();
+    http.request(EGRESS_URL, {
+        headers = util.http_headers_no_auth,
+        method = "POST",
+        body = json.encode(room_event);
+    }, cb);
 end
 
 function handle_jibri_event(event)
