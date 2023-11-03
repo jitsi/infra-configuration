@@ -827,9 +827,9 @@ local function handleSpeakerStats(event)
         if event.room then
             local room = event.room
             local main_room_jid;
-            if room._data and room._data.main_room then
-                -- breakout room
-                main_room_jid = room._data.main_room.jid;
+            if room.main_room then
+                -- breakout room cached by speakerstats module
+                main_room_jid = room.main_room.jid;
             else
                 main_room_jid = room.jid;
             end
