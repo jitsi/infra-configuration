@@ -9,7 +9,7 @@
 # install basic helpful packages
 - name: Install some convenient tools
   ansible.builtin.apt:
-    name: ['atop', 'linux-perf', 'mc', 'htop', 'tmux', 'unzip', 'jq', 'libffi-dev', 'libssl-dev', 'linux-tools-aws', 'acl', 'net-tools', 'sysstat', 'at']
+    name: ['atop', 'mc', 'htop', 'tmux', 'unzip', 'jq', 'libffi-dev', 'libssl-dev', 'linux-tools-aws', 'acl', 'net-tools', 'sysstat', 'at']
     state: present
 
 - name: Install some convenient tools for python configuration
