@@ -804,6 +804,9 @@ local function handleSpeakerStats(event)
         module:log("debug", "Sending speaker stats is disabled. Not sending speaker stats for %s", event.room.jid);
         return;
     end
+    if not event.roomSpeakerStats then
+        return;
+    end
     local requestBody = { sessionId = event.roomSpeakerStats.sessionId; isBreakoutRoom = event.roomSpeakerStats.isBreakout or false; breakoutRoomId = event.roomSpeakerStats.breakoutRoomId; speakerStats = {}; };
     if requestBody.isBreakoutRoom then
         module:log("debug", "Speaker stats is not handled for breakout rooms for now.");
@@ -824,9 +827,9 @@ local function handleSpeakerStats(event)
         if event.room then
             local room = event.room
             local main_room_jid;
-            if room._data and room._data.main_room then
-                -- breakout room
-                main_room_jid = room._data.main_room.jid;
+            if room.main_room then
+                -- breakout room cached by speakerstats module
+                main_room_jid = room.main_room.jid;
             else
                 main_room_jid = room.jid;
             end

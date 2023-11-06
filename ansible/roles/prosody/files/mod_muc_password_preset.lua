@@ -296,9 +296,8 @@ local function queryForPassword(room)
             if is_vpaas_room then
                 local err = json.decode(content_)
                 module:log("debug", "Propagate error %s", inspect(err))
-                local status = err.status
-                local messageKey = err.messageKey
-                if status and status == 400 and messageKey and messageKey == 'settings.provisioning.exception' then
+                if err and err.status and err.status == 400
+                    and err.messageKey and err.messageKey == 'settings.provisioning.exception' then
                     room._data.jaas_err = err.message;
                 end
             end

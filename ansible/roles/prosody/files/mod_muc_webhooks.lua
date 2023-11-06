@@ -127,15 +127,16 @@ local is_lobby = starts_with(module.host, 'lobby.');
 
 -- Searches all rooms in the main muc component that holds a breakout room
 -- caches it if found so we don't search it again
+-- we should not cache objects in _data as this is being serialized when calling room:save()
 local function get_main_room(breakout_room)
-    if breakout_room._data and breakout_room._data.main_room then
-        return breakout_room._data.main_room;
+    if breakout_room.main_room then
+        return breakout_room.main_room;
     end
 
     -- let's search all rooms to find the main room
     for room in main_muc_service.each_room() do
         if room._data and room._data.breakout_rooms_active and room._data.breakout_rooms[breakout_room.jid] then
-            breakout_room._data.main_room = room;
+            breakout_room.main_room = room;
             return room;
         end
     end
@@ -519,34 +520,36 @@ function handle_room_event(event, event_type)
         breakout_room_id = jid_split(room.jid);
     end
 
-    if not is_healthcheck_room(room.jid) then
-        module:log("debug", "Will send room event for %s", room.jid);
-        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
-        local payload = {};
-        payload.conference = internal_room_jid_match_rewrite(main_room.jid);
-
-        payload.isBreakout = is_breakout;
-        payload.breakoutRoomId = breakout_room_id;
-
-        local room_event = {
-            ["idempotencyKey"] = uuid_gen(),
-            ["sessionId"] = main_room._data.meetingId,
-            ["created"] = util.round(socket.gettime() * 1000),
-            ["meetingFqn"] = meeting_fqn,
-            ["eventType"] = event_type,
-            ["data"] = payload
-        }
-        if util.is_vpaas(main_room.jid) then
-            room_event["customerId"] = customer_id
-        end
-
-        event_count();
-        http.request(EGRESS_URL, {
-            headers = util.http_headers_no_auth,
-            method = "POST",
-            body = json.encode(room_event);
-        }, cb);
+    if is_healthcheck_room(room.jid) or not main_room then
+        return;
     end
+
+    module:log("debug", "Will send room event for %s", room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+    local payload = {};
+    payload.conference = internal_room_jid_match_rewrite(main_room.jid);
+
+    payload.isBreakout = is_breakout;
+    payload.breakoutRoomId = breakout_room_id;
+
+    local room_event = {
+        ["idempotencyKey"] = uuid_gen(),
+        ["sessionId"] = main_room._data.meetingId,
+        ["created"] = util.round(socket.gettime() * 1000),
+        ["meetingFqn"] = meeting_fqn,
+        ["eventType"] = event_type,
+        ["data"] = payload
+    }
+    if util.is_vpaas(main_room.jid) then
+        room_event["customerId"] = customer_id
+    end
+
+    event_count();
+    http.request(EGRESS_URL, {
+        headers = util.http_headers_no_auth,
+        method = "POST",
+        body = json.encode(room_event);
+    }, cb);
 end
 
 function handle_jibri_event(event)

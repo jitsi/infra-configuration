@@ -41,7 +41,7 @@ local function make_occupant_moderator(event, single_moderator, user_id)
     module:log("debug", "Set affiliation: %s and role: %s for participant jid = %s from room jid = %s  ", affiliation, role, occupant_jid, room.jid)
     room:set_affiliation(true, jid_bare(occupant_jid), affiliation)
     event.occupant.role = role;
-    event.room:save();
+    event.room:save_occupant(occupant);
 end
 
 -- Check whether an occupant will be promoted to moderator

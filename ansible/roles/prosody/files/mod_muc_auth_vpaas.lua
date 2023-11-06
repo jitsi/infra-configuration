@@ -4,6 +4,8 @@ local basexx = require "basexx";
 local st = require "util.stanza";
 local timer = require "util.timer";
 
+local inspect = require('inspect');
+
 local util_internal = module:require "util.internal";
 local util = module:require "util";
 local is_healthcheck_room = util.is_healthcheck_room;
@@ -60,6 +62,10 @@ local function process_vpaas_token(session)
         local kid = header["kid"];
         if kid == nil then
             return { res = false, error = "not-allowed", reason = "'kid' claim is missing" };
+        end
+        if type(kid) ~= "string" then
+            module:log("warn", "kid in wrong format: %s", inspect(kid));
+            return { res = false, error = "not-allowed", reason = "'kid' claim is in wrong format" };
         end
         if not starts_with(kid, VPAAS_PREFIX) then
             module.log("debug", "Not a VPAAS user for pre validation");
@@ -121,7 +127,9 @@ local function validate_vpaas_token(session)
         end
     else
         module:log("debug", "Not a VPAAS user for post validation");
-        if tenant ~= nil and starts_with(tenant, VPAAS_PREFIX) then
+        if tenant ~= nil and type(tenant) ~= "string" then
+            module:log("warn", "tenant in wrong format: %s", inspect(tenant));
+        elseif tenant ~= nil and starts_with(tenant, VPAAS_PREFIX) then
             -- VO/standalone customer with VPAAS tenant on SUB claim
             return { res = false, error = "not-allowed", reason = "vo customer with vpaas tenant" };
         end
