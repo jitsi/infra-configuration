@@ -1,0 +1,40 @@
+---
+- name: Main
+  hosts: default
+  gather_facts: true
+  become: true
+  become_user: root
+  vars:
+    cloud_provider: oracle
+  vars_files:
+    - config/vars.yml
+  pre_tasks:
+    # pause 10 seconds before updating, to ensure that everything is ready to roll
+    - name: Pause for 10
+      ansible.builtin.pause:
+        seconds: 10
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Register installed Jicofo version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+      register: jicofo_version_shell
+      args:
+        executable: /bin/bash
+      changed_when: jicofo_version_shell.rc != 0
+
+    - name: Register installed Meet version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      register: jitsi_meet_version_shell
+      args:
+        executable: /bin/bash
+      changed_when: jitsi_meet_version_shell.rc != 0
+
+  roles:
+    - { role: "jicofo", tags: "jicofo", jicofo_install_flag: true, jicofo_configure_flag: false }
+    - { role: "clean-system", tags: "clean-system, build" }
