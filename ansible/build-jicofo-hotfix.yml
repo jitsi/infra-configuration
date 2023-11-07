@@ -7,6 +7,7 @@
   vars:
     cloud_provider: oracle
   vars_files:
+    - secrets/repo.yml
     - config/vars.yml
   pre_tasks:
     # pause 10 seconds before updating, to ensure that everything is ready to roll
