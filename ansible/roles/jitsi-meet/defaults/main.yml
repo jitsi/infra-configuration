@@ -256,6 +256,7 @@ jitsi_meet_visitors_count: "{{ visitors_count | default(0) }}"
 jitsi_meet_web_version: false
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
+jitsi_meet_whiteboard_user_limit: 25
 jitsi_meet_ws_host: "{{ prosody_domain_name }}"
 jitsi_meet_ws_path: "xmpp-websocket"
 jitsi_meet_ws_protocol: "wss://"
