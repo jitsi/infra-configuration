@@ -1,7 +1,11 @@
 {{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
 {{ if eq $pool_mode "remote" "global" -}}
+  {{ with node -}}
+  {{ scratch.Set "local_dc" .Node.Datacenter -}}
+  {{ end -}}
+  {{ $local_dc := scratch.Get "local_dc" -}}
   {{ range $dcidx, $dc := datacenters -}}
-    {{ if or (and (eq $pool_mode "remote") (ne $dcidx 0)) (eq $pool_mode "global") -}}
+    {{ if or (and (eq $pool_mode "remote") (ne $dc $local_dc)) (eq $pool_mode "global") -}}
       {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
       {{range $index, $item := service $service -}}
         {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
