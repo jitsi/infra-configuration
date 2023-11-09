@@ -408,7 +408,8 @@ giphy: {
 },
 whiteboard: {
     enabled: {{ jitsi_meet_whiteboard_enabled | to_json }},
-    collabServerBaseUrl: '{{ jitsi_meet_whiteboard_collab_server_base_url }}'
+    collabServerBaseUrl: '{{ jitsi_meet_whiteboard_collab_server_base_url }}',
+    userLimit: {{ jitsi_meet_whiteboard_user_limit }}
 },
 {% if jitsi_meet_disable_reactions_moderation %}
     disableReactionsModeration: true,
