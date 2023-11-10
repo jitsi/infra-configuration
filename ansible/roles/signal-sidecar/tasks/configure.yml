@@ -13,6 +13,13 @@
     line: "CENSUS_POLL={{ 'true' if signal_sidecar_census_enabled else 'false' }}"
   notify: Restart signal-sidecar
 
+- name: Enable signal-sidecar census reports
+  ansible.builtin.lineinfile:
+    dest: /etc/jitsi/signal-sidecar/config
+    regexp: '^CENSUS_REPORTS='
+    line: "CENSUS_REPORTS={{ 'true' if signal_sidecar_census_reports_enabled else 'false' }}"
+  notify: Restart signal-sidecar
+
 - name: Set signal-sidecar census host
   ansible.builtin.lineinfile:
     dest: /etc/jitsi/signal-sidecar/config
