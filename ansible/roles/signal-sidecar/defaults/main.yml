@@ -1,6 +1,7 @@
 ---
 signal_sidecar_configure_flag: true
 signal_sidecar_census_enabled: true
+signal_sidecar_census_reports_enabled: true
 signal_sidecar_consul_status: true
 signal_sidecar_consul_status_key: "shard-states/{{ hcv_environment }}/{{ shard_name }}"
 signal_sidecar_consul_reports: true
