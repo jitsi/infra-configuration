@@ -296,11 +296,8 @@
           nstat:
             fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
           prometheus:
-            urls: ["http://localhost:6000/metrics"]
-            namepass: ["http*", "signal*"]
-          prometheus:
-            urls: ["http://localhost:8888/metrics"]
-            namepass: ["jitsi_jicofo_conference_requests*"]
+            urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics"]
+            namepass: ["http*", "signal*", "jitsi_jicofo_conference_requests*"]
         telegraf_tags:
           shard-role: "all"
           role: "all"
