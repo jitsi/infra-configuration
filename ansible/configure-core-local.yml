@@ -178,6 +178,9 @@
           prometheus:
             urls: ["http://localhost:6000/metrics"]
             namepass: ["http*", "signal*", "prosody*"]
+          prometheus:
+            urls: ["http://localhost:8888/metrics"]
+            namepass: ["jitsi_jicofo_conference_requests*"]
         telegraf_tags:
           shard-role: "core"
           role: "core"
