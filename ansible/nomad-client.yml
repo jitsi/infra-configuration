@@ -23,12 +23,14 @@
     cloud_provider: oracle
     shard_role: nomad-pool
     nomad_node_role: client
+    nomad_gpu_count: 0
     nomad_node_class: "{{ nomad_pool_type }}"
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
       cloud_region: "{{ oracle_region }}"
       pool_type: "{{ nomad_pool_type }}"
+      gpu_count: "{{ nomad_gpu_count }}"
       public_ip: "{{ cloud_public_ip }}"
       availability_domain: "{{ cloud_availability_domain }}"
       fault_domain: "{{ cloud_fault_domain }}"
