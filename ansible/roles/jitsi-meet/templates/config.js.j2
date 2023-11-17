@@ -172,11 +172,16 @@ var config = {
     {% if jitsi_meet_jvb_preferred_mobile_codecs %}
         mobileCodecPreferenceOrder: '{{ jitsi_meet_jvb_preferred_mobile_codecs }}',
     {% endif %}
+    {% if jitsi_meet_disable_vp9_scalability_mode %}
+        vp9: {
+            scalabilityModeEnabled: false
+        },
+    {% endif %}
     {% if jitsi_meet_min_height_quality_level %}
         minHeightForQualityLvl: {
             240: 'standard',
             540: 'high'
-        }
+        },
     {% endif %}
     },
 {% endif %}

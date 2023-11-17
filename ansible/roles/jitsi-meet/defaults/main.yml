@@ -111,6 +111,7 @@ jitsi_meet_disable_reactions_moderation: false
 jitsi_meet_disable_record_audio_notification: false
 jitsi_meet_disable_speaker_stats_search: false
 jitsi_meet_disable_stage_filmstrip: false
+jitsi_meet_disable_vp9_scalability_mode: false
 jitsi_meet_domain_name: "{{ prosody_domain_name }}"
 jitsi_meet_download_apps_url: false
 jitsi_meet_dropbox_app_key: false
