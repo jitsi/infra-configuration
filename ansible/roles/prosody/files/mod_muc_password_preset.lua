@@ -8,6 +8,7 @@ local timer = require "util.timer";
 local http = require "net.http";
 local inspect = require "inspect";
 local it = require "util.iterators";
+local st = require "util.stanza";
 
 local util = module:require "util";
 local room_jid_match_rewrite = util.room_jid_match_rewrite;
@@ -271,6 +272,8 @@ local function queryForPassword(room)
             room.has_host = true;
         end
 
+        local room_config_changed = false;
+
         -- create lobby and set moderator
         if code_ == 200 then
             local conference_res = json.decode(content_);
@@ -278,6 +281,15 @@ local function queryForPassword(room)
             room._data.moderator_id = conference_res.moderatorId;
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
             room._data.max_occupants = conference_res.maxOccupants;
+            if conference_res.participantsSoftLimit ~= nil then
+                room._data.participants_soft_limit = conference_res.participantsSoftLimit;
+                room_config_changed = true;
+            end
+            if conference_res.visitorsEnabled ~= nil then
+                room._data.visitors_enabled = conference_res.visitorsEnabled;
+                room_config_changed = true;
+            end
+
             if room._data.starts_with_lobby then
                 room._data.lobby_type = conference_res.lobbyType or 'WAIT_FOR_APPROVAL'
                 module:log("debug", "Will create %s lobby for room jid = %s", room._data.lobby_type, room.jid);
@@ -322,6 +334,18 @@ local function queryForPassword(room)
         module:log(logLevel,
             "URL Callback Code Content Response: %s %s %s",
             code_, content_, inspect(response_));
+
+        -- If any of the MUC config form fields have changed, send a notification to jicofo to
+        -- make it re-request disco#info and get the new values. We use broacdast_message for
+        -- simplicity, because this executes before any non-jicofo participants are in the room.
+        if room_config_changed then
+            module:log("info", "Room config changed, notifying jicofo.");
+            local msg = st.message({type='groupchat', from=room.jid})
+                :tag('x', {xmlns='http://jabber.org/protocol/muc#user'})
+            msg:tag("status", {code = "104";}):up();
+            msg:up();
+            room:broadcast_message(msg);
+        end
         clearJicofoPending(room)
     end
 
@@ -396,6 +420,29 @@ function wait_for_authenticated_user(event)
     end
 end
 
+-- Create an object to be added to the MUC config form for the "visitors enabled" property. The value is based on the
+-- visitors_enabled flag saved in the room state.
+function createVisitorsEnabledConfig(room)
+    return {
+        name = "muc#roominfo_visitorsEnabled";
+        type = "boolean";
+        label = "Whether visitors are enabled.";
+        value = room._data.visitors_enabled or false;
+    };
+end
+
+-- Create an object to be added to the MUC config form for the  "participants soft limit" property. The value is based
+-- on the visitors_enabled flag saved in the room state.
+function createParticipantsSoftLimitConfig(room)
+    return {
+        name = "muc#roominfo_participantsSoftLimit";
+        type = "text-single";
+        label = "Soft limit for the number of participants.";
+        value = room._data.participants_soft_limit or -1;
+    };
+end
+
+
 -- executed on every host added internally in prosody, including components
 function process_host(host)
     if host == muc_domain then -- the conference muc component
@@ -415,6 +462,22 @@ function process_host(host)
             -- in case of success or in case of timeout or error
             return true;
         end, 1000); -- make sure we are the first listener
+
+        module:log("info","Hook to room muc-disco#info on %s", host);
+        module:context(host):hook("muc-disco#info", function(event)
+            -- Append "visitors enabled" and "participants soft limit" properties
+            -- to the MUC config form.
+            table.insert(event.form, createVisitorsEnabledConfig(event.room));
+            table.insert(event.form, createParticipantsSoftLimitConfig(event.room));
+        end);
+
+        module:context(host):hook("muc-config-form", function(event)
+            -- Append "visitors enabled" and "participants soft limit" properties
+            -- to the MUC config form.
+            table.insert(event.form, createVisitorsEnabledConfig(event.room));
+            table.insert(event.form, createParticipantsSoftLimitConfig(event.room));
+        end);
+
 
         if enableWaitingForHost then
             module:context(host):hook('muc-occupant-pre-join', wait_for_authenticated_user);
