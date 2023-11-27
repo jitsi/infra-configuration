@@ -28,6 +28,7 @@ jitsi_meet_api_guest_dial_out_status_url: false
 jitsi_meet_api_guest_dial_out_url: false
 jitsi_meet_api_jaas_token_url: false
 jitsi_meet_api_jaas_webhook_proxy: false
+jitsi_meet_api_jaas_conference_creator_url: false
 # endpoint used for getting the sharable recording link
 jitsi_meet_api_recoding_sharing_url: false
 jitsi_meet_api_screenshot_history_url: false
