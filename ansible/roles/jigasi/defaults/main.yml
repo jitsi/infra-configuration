@@ -76,7 +76,7 @@ jigasi_health_check_cron:
   job: "{{ jigasi_path_to_health_script }} > /tmp/health-check-cron-output 2>&1"
   minute: "*"
 jigasi_health_check_cron_user: ubuntu
-jigasi_heartbeat_seconds: false
+jigasi_heartbeat_seconds: 180
 jigasi_hole_punch_pkt_count: 6
 jigasi_image_build_flag: false
 jigasi_install_flag: true
