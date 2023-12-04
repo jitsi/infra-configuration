@@ -667,6 +667,10 @@ local function handleBroadcastMessage(event)
                 if transcription["transcript"] == nil then
                     return;
                 end
+                --skip interim messages
+                if transcription["is_interim"] then
+                    return;
+                end
                 local text_message = transcription["transcript"][FIRST_TRANSCRIPT_MESSAGE_POS]["text"];
                 --do not send empty messages
                 if text_message == '' then
