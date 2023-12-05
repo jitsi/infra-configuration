@@ -39,7 +39,7 @@ if [ "$FINAL_EXIT" == "0" ]; then
         if (( $UNIX_TIME > $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 60 )); then
             echo "#### hc: validated config file has been stable for 60 seconds, initiating reload" >> $TEMPLATE_LOGFILE
             grep 'up true' /etc/haproxy/maps/up.map
-            if [ &? -eq 0 ]; then
+            if [ $? -eq 0 ]; then
                 consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
                 if [ $? -eq 0 ]; then
                     echo "#### hc: haproxy-configurator-payload.sh exited with zero" >> $TEMPLATE_LOGFILE
