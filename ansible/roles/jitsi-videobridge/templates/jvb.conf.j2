@@ -150,15 +150,6 @@ videobridge {
     enabled = false
 {% endif %}
   }
-  # For legacy versions
-{% if jvb_enable_octo %}
-  octo {
-    enabled = true
-    bind-port = 4096
-    bind-address = {{ ansible_default_ipv4.address }}
-    region = {{ jvb_region }}
-  }
-{% endif %}
 
   sctp {
     enabled = {{ jvb_enable_sctp }}
