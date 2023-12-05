@@ -179,6 +179,9 @@
       when: telegraf_enabled
       vars:
         telegraf_inputs:
+          prometheus:
+            urls: ["http://localhost:8080/metrics"]
+            namepass: ["jitsi_jvb_healthy", "jitsi_jvb_loss_*"]
           nginx:
             urls: ["http://localhost:888/nginx_status/"]
           nstat:
