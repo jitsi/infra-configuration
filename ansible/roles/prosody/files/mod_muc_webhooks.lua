@@ -19,8 +19,6 @@ local MUC_NS = 'http://jabber.org/protocol/muc';
 
 local SETTINGS_PROVISIONING_CHECK_AFTER_SECONDS = 1;
 
-local FIRST_TRANSCRIPT_MESSAGE_POS = 1;
-
 local function is_admin(jid)
     return um_is_admin(jid, module.host);
 end
@@ -811,7 +809,7 @@ local function handle_transcription_chunk(event)
                 ["messageID"] = transcription["message_id"],
                 ["participant"] = transcription["participant"],
                 ["language"] = transcription["language"],
-                ["final"] = transcription["transcript"][FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
+                ["final"] = transcription["transcript"][util.FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
             }
             local transcription_chunk_received_event = {
                 ["idempotencyKey"] = uuid_gen(),

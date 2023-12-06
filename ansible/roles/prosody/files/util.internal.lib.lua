@@ -5,8 +5,6 @@ local inspect = require('inspect');
 
 local Util = {}
 
-local FIRST_TRANSCRIPT_MESSAGE_POS = 1
-
 -- required parameter for custom muc component prefix,
 -- defaults to "conference"
 local muc_domain_prefix = module:get_option_string("muc_mapper_domain_prefix", "conference");
@@ -49,6 +47,8 @@ end
 
 Util.OUTBOUND_SIP_JIBRI_PREFIX = 'outbound-sip-jibri@';
 Util.INBOUND_SIP_JIBRI_PREFIX = 'inbound-sip-jibri@';
+
+Util.FIRST_TRANSCRIPT_MESSAGE_POS = 1;
 
 Util.http_headers = {
     ["User-Agent"] = "Prosody (" .. prosody.version .. "; " .. prosody.platform .. ")",
@@ -280,7 +280,7 @@ function Util.get_final_transcription(event)
         if transcription["is_interim"] then
             return;
         end
-        local text_message = transcription["transcript"][FIRST_TRANSCRIPT_MESSAGE_POS]["text"];
+        local text_message = transcription["transcript"][Util.FIRST_TRANSCRIPT_MESSAGE_POS]["text"];
         --do not send empty messages
         if text_message == '' then
             return;
