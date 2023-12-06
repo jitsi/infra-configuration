@@ -810,6 +810,8 @@ local function handle_transcription_chunk(event)
             local data = {
                 ["messageID"] = transcription["message_id"],
                 ["participantName"] = transcription["participant"]["name"],
+                ["avatarUrl"] = transcription["participant"]["avatar_url"],
+                ["language"] = transcription["language"],
                 ["final"] = transcription["transcript"][FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
             }
             local transcription_chunk_received_event = {
