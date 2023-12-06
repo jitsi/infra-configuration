@@ -809,8 +809,7 @@ local function handle_transcription_chunk(event)
         if transcription then
             local data = {
                 ["messageID"] = transcription["message_id"],
-                ["participantName"] = transcription["participant"]["name"],
-                ["avatarUrl"] = transcription["participant"]["avatar_url"],
+                ["participant"] = transcription["participant"],
                 ["language"] = transcription["language"],
                 ["final"] = transcription["transcript"][FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
             }
