@@ -19,6 +19,8 @@ local MUC_NS = 'http://jabber.org/protocol/muc';
 
 local SETTINGS_PROVISIONING_CHECK_AFTER_SECONDS = 1;
 
+local FIRST_TRANSCRIPT_MESSAGE_POS = 1;
+
 local function is_admin(jid)
     return um_is_admin(jid, module.host);
 end
@@ -47,6 +49,7 @@ local DIAL_IN_STARTED = "DIAL_IN_STARTED";
 local DIAL_IN_ENDED = "DIAL_IN_ENDED";
 local DIAL_OUT_STARTED = "DIAL_OUT_STARTED";
 local DIAL_OUT_ENDED = "DIAL_OUT_ENDED";
+local TRANSCRIPTION_CHUNK_RECEIVED = "TRANSCRIPTION_CHUNK_RECEIVED";
 local TRANSCRIPTION_STARTED = "TRANSCRIPTION_STARTED";
 local TRANSCRIPTION_ENDED = "TRANSCRIPTION_ENDED";
 local POLL_CREATED = "POLL_CREATED";
@@ -790,6 +793,45 @@ local function occupant_affiliation_changed(event)
     end
 end
 
+local function handle_transcription_chunk(event)
+    local subject = event.stanza:get_child("subject");
+    if subject then
+        return;
+    end
+
+    if event.stanza.attr.type == "groupchat" then
+        local body = event.stanza:get_child("body")
+        if body then
+            return;
+        end
+
+        local transcription = util.get_final_transcription(event)
+        if transcription then
+            local data = {
+                ["messageID"] = transcription["message_id"],
+                ["participantName"] = transcription["participant"]["name"],
+                ["final"] = transcription["transcript"][FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
+            }
+            local transcription_chunk_received_event = {
+                ["idempotencyKey"] = uuid_gen(),
+                ["sessionId"] = transcription["session_id"],
+                ["customerId"] = transcription["customer_id"],
+                ["created"] = util.round(socket.gettime() * 1000),
+                ["meetingFqn"] = transcription["fqn"],
+                ["eventType"] = TRANSCRIPTION_CHUNK_RECEIVED,
+                ["data"] = data
+            }
+            module:log("debug", "Transcription chunk received event: %s", inspect(transcription_chunk_received_event))
+            event_count();
+            http.request(EGRESS_URL, {
+                headers = util.http_headers_no_auth,
+                method = "POST",
+                body = json.encode(transcription_chunk_received_event);
+            }, cb);
+        end
+    end
+end
+
 process_host_module(muc_domain_base, function(host_module, host)
     module:log('info', 'Main component loaded %s', host);
     host_module:hook("pre-iq/full", handle_jibri_event, -2);
@@ -841,3 +883,8 @@ end, -1)
 module:hook("muc-set-affiliation", function(event)
     occupant_affiliation_changed(event);
 end, -1);
+
+module:hook("muc-broadcast-message", function(event)
+    handle_transcription_chunk(event)
+end, 1);
+
