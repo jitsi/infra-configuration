@@ -805,9 +805,15 @@ local function handle_transcription_chunk(event)
 
         local transcription = util.get_final_transcription(event)
         if transcription then
+            local participant = {
+                ["name"] = transcription["participant"]["name"],
+                ["id"] = transcription["participant"]["identity_id"],
+                ["avatarUrl"] = transcription["participant"]["avatar_url"],
+                ["email"] = transcription["participant"]["email"]
+            }
             local data = {
                 ["messageID"] = transcription["message_id"],
-                ["participant"] = transcription["participant"],
+                ["participant"] = participant,
                 ["language"] = transcription["language"],
                 ["final"] = transcription["transcript"][util.FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
             }
