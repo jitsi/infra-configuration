@@ -271,7 +271,7 @@ end
 function Util.get_final_transcription(event)
     local transcription_message = event.stanza:get_child("json-message","http://jitsi.org/jitmeet");
     if transcription_message then
-        module:log("debug","Sending transcriptions for Event: %s room %s: with transcription json: %s",event,event.room.jid,transcription_message:get_text());
+        -- module:log("debug","Sending transcriptions for Event: %s room %s: with transcription json: %s",event,event.room.jid,transcription_message:get_text());
         local transcription = json.decode(transcription_message:get_text());
         if transcription["transcript"] == nil then
             return;
@@ -297,7 +297,7 @@ function Util.get_final_transcription(event)
         local meeting_fqn, customer_id = Util.get_fqn_and_customer_id(room_jid);
         transcription["fqn"] = meeting_fqn;
         transcription["customer_id"] = customer_id;
-        module:log("debug", "Transcription %s", inspect(transcription));
+        -- module:log("debug", "Transcription %s", inspect(transcription));
         return transcription;
     end
 end
