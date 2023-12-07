@@ -90,33 +90,6 @@
     mode: 0755
   when: prosody_cloud_provider == "oracle"
 
-# check for existing installs, uninstall alternates if needed
-- name: Unhold prosody package to replace with prosody-0.11
-  ansible.builtin.dpkg_selections:
-    name: "prosody"
-    selection: deinstall
-  when: prosody_package_name == 'prosody-0.11'
-
-- name: Uninstall prosody package to replace with prosody-0.11
-  ansible.builtin.apt:
-    name: "prosody"
-    state: absent
-  notify: Remove patches
-  when: prosody_package_name == 'prosody-0.11'
-
-- name: Unhold prosody package to replace with prosody-0.11
-  ansible.builtin.dpkg_selections:
-    name: "prosody-0.11"
-    selection: deinstall
-  when: prosody_package_name == 'prosody'
-
-- name: Uninstall prosody-0.11 package to replace with prosody
-  ansible.builtin.apt:
-    name: "prosody-0.11"
-    state: absent
-  notify: Remove patches
-  when: prosody_package_name == 'prosody'
-
 # now install, either from URL or via apt
 - name: Include apt install tasks
   ansible.builtin.include_tasks: install-from-apt.yml
