@@ -141,8 +141,9 @@
       ansible.builtin.apt:
         update_cache: true
       tags: "provision"
-    - name: Clean apt # noqa no-changed-when
-      ansible.builtin.command: apt-get clean
+    - name: Clean apt cache
+      ansible.builtin.apt:
+        clean: true
       tags: "provision"
     - name: Vacuum journalctl # noqa no-changed-when
       ansible.builtin.command: journalctl --vacuum-size=200M
