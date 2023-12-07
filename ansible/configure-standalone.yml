@@ -143,8 +143,6 @@
       tags: "provision"
     - name: Clean apt # noqa no-changed-when
       ansible.builtin.command: apt-get clean
-      args:
-        warn: false
       tags: "provision"
     - name: Vacuum journalctl # noqa no-changed-when
       ansible.builtin.command: journalctl --vacuum-size=200M
