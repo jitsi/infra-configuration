@@ -28,12 +28,6 @@
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
-- name: Run prosody 0.11 hook global patch
-  ansible.builtin.replace:
-    regexp: "module:hook\\("
-    replace: "module:hook_global("
-    path: "{{ jitsi_meet_prosody_tempdir.path }}/usr/share/jitsi-meet/prosody-plugins/mod_auth_token.lua"
-
 - name: Copy jitsi-meet-prosody plugins to appropriate location
   ansible.builtin.command: cp -a ./usr/share/jitsi-meet/prosody-plugins /usr/share/jitsi-meet
   args:
