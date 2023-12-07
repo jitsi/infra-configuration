@@ -1,5 +1,7 @@
 local jwt = module:require "luajwtjitsi";
 local jid = require "util.jid";
+local json = require "cjson";
+local inspect = require('inspect');
 
 local Util = {}
 
@@ -45,6 +47,8 @@ end
 
 Util.OUTBOUND_SIP_JIBRI_PREFIX = 'outbound-sip-jibri@';
 Util.INBOUND_SIP_JIBRI_PREFIX = 'inbound-sip-jibri@';
+
+Util.FIRST_TRANSCRIPT_MESSAGE_POS = 1;
 
 Util.http_headers = {
     ["User-Agent"] = "Prosody (" .. prosody.version .. "; " .. prosody.platform .. ")",
@@ -262,6 +266,40 @@ function Util.extract_occupant_identity_user(occupant)
         end
     end
     return r;
+end
+
+function Util.get_final_transcription(event)
+    local transcription_message = event.stanza:get_child("json-message","http://jitsi.org/jitmeet");
+    if transcription_message then
+        -- module:log("debug","Sending transcriptions for Event: %s room %s: with transcription json: %s",event,event.room.jid,transcription_message:get_text());
+        local transcription = json.decode(transcription_message:get_text());
+        if transcription["transcript"] == nil then
+            return;
+        end
+        --skip interim messages
+        if transcription["is_interim"] then
+            return;
+        end
+        local text_message = transcription["transcript"][Util.FIRST_TRANSCRIPT_MESSAGE_POS]["text"];
+        --do not send empty messages
+        if text_message == '' then
+            return;
+        end
+        --extract user full jid
+        local jid_bare = require "util.jid".bare;
+        local user_id = transcription["participant"].id;
+        local who = event.room:get_occupant_by_nick(jid_bare(event.room.jid) .. "/" .. user_id);
+        local full_jid = who and who["jid"];
+        local room_jid = event.room.jid;
+        transcription["jid"] = full_jid;
+        --extract session id
+        transcription["session_id"] = event.room._data.meetingId;
+        local meeting_fqn, customer_id = Util.get_fqn_and_customer_id(room_jid);
+        transcription["fqn"] = meeting_fqn;
+        transcription["customer_id"] = customer_id;
+        -- module:log("debug", "Transcription %s", inspect(transcription));
+        return transcription;
+    end
 end
 
 return Util;
