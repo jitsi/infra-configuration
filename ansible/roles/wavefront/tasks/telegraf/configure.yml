@@ -33,6 +33,19 @@
     - collector
     - configure
 
+- name: Create Prometheus output plugin config 20-prometheus.conf
+  ansible.builtin.template:
+    src: 20-prometheus.conf.j2
+    dest: "{{ telegraf_prometheus_output_plugin_config }}"
+    mode: 0644
+  notify: Restart telegraf
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
 - name: Ensure telegraf is running
   ansible.builtin.service:
     name: telegraf

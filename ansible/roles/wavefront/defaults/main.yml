@@ -10,6 +10,7 @@ telegraf_http_port: 3878
 telegraf_main_config: "{{ telegraf_config_dir }}/telegraf.conf"
 telegraf_port: 2878
 telegraf_wavefront_output_plugin_config: "{{ telegraf_additional_config_dir }}/10-wavefront.conf"
+telegraf_prometheus_output_plugin_config: "{{ telegraf_additional_config_dir }}/20-prometheus.conf"
 wavefront_agent_config_args:
 wavefront_agent_extra_args:
 wavefront_api_token: 'DUMMY_WF_URL_API_TOKEN'
