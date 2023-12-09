@@ -150,6 +150,7 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "jigasi", autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: true}
     - { role: "consul-jigasi", tags: "consul-jigasi", when: jigasi_shard_role == 'jigasi'}
+    - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "jigasi", tags: "jigasi", jigasi_install_flag: false, jigasi_configure_flag: true}
     - { role: "tcpdump-jigasi", tags: "tcpdump-jigasi", when: jigasi_enable_tcpdump }
     - { role: "jigasi-web", tags: "jigasi-web"}

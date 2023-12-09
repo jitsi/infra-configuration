@@ -5,7 +5,16 @@
   become: true
   strategy: free
   vars_files:
+    - roles/signal-sidecar/defaults/main.yml
     - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  pre_tasks:
+    - name: Enable signal-sidecar census reports
+      ansible.builtin.lineinfile:
+        dest: /etc/jitsi/signal-sidecar/config
+        regexp: '^CENSUS_REPORTS='
+        line: "CENSUS_REPORTS={{ 'true' if signal_sidecar_census_reports_enabled else 'false' }}"
+        state: present
   tasks:
     - name: Update apt cache
       ansible.builtin.apt:

@@ -1,0 +1,20 @@
+{
+  "service": {
+    "name": "telegraf",
+    "meta": {
+        "environment":"{{ hcv_environment }}",
+        "domain":"{{ prosody_domain_name }}"
+    },
+    "tagged_addresses": {
+      "lan": {
+        "address": "{{ consul_telegraf_private_ip }}",
+        "port": 9126
+      },
+      "wan": {
+        "address": "{{ consul_telegraf_private_ip }}",
+        "port": 9126
+      }
+    },
+    "port": 9126
+  }
+}
