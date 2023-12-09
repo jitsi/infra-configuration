@@ -273,6 +273,7 @@
     - { role: "prosody-egress", tags: "prosody-egress" }
     - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb", when: tcpdump_prosody_jvb_enabled }
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: standalone_enable_fluentd}
+    - { role: "consul-telegraf", tags: "consul-telegraf" }
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ prosody_domain_name }}"

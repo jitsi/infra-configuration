@@ -18,6 +18,7 @@ LOCAL_PATH=$(dirname "${BASH_SOURCE[0]}")
 
 [ -z "$UNIQUE_ID" ] && UNIQUE_ID="$TEST_ID"
 [ -z "$UNIQUE_ID" ] && UNIQUE_ID="standalone"
+[ -e "./clouds/all.sh" ] && . ./clouds/all.sh
 [ -e "./clouds/oracle.sh" ] && . ./clouds/oracle.sh
 
 
@@ -26,14 +27,17 @@ if [ -z "$ORACLE_REGION" ]; then
   exit 203
 fi
 
+[ -z "$INFRA_CONFIGURATION_REPO" ] && INFRA_CONFIGURATION_REPO="$PRIVATE_CONFIGURATION_REPO"
+[ -z "$INFRA_CUSTOMIZATIONS_REPO" ] && INFRA_CUSTOMIZATIONS_REPO="$PRIVATE_CUSTOMIZATIONS_REPO"
+
 if [ -z "$INFRA_CONFIGURATION_REPO" ]; then
-  echo "No INFRA_CONFIGURATION_REPO set, exiting..."
-  exit 203
+  echo "No INFRA_CONFIGURATION_REPO set, using default..."
+  INFRA_CONFIGURATION_REPO="https://github.com/jitsi/infra-configuration.git"
 fi
 
 if [ -z "$INFRA_CUSTOMIZATIONS_REPO" ]; then
-  echo "No INFRA_CUSTOMIZATIONS_REPO set, exiting..."
-  exit 203
+  echo "No INFRA_CUSTOMIZATIONS_REPO set, using default..."
+  INFRA_CUSTOMIZATIONS_REPO="https://github.com/jitsi/infra-customizations.git"
 fi
 
 if [  -z "$1" ]

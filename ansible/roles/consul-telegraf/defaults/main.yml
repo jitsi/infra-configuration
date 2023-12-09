@@ -1,0 +1,4 @@
+---
+consul_telegraf_cloud_provider: "{{ cloud_provider | default('aws') }}"
+consul_telegraf_private_ip: "{{ ansible_default_ipv4.address }}"
+consul_telegraf_install_flag: true

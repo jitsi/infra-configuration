@@ -1,0 +1,6 @@
+---
+- name: Restart consul # noqa ignore-errors
+  ansible.builtin.systemd:
+    name: consul
+    state: restarted
+  ignore_errors: true

@@ -1,0 +1,14 @@
+---
+- name: Install consul service file
+  ansible.builtin.template:
+    mode: 0644
+    src: "telegraf.json.j2"
+    dest: "/etc/consul.d/telegraf.json"
+  notify: Restart consul
+
+- name: Install consul service enablement # noqa ignore-errors
+  ansible.builtin.systemd:
+    name: consul
+    state: started
+    enabled: true
+  ignore_errors: true

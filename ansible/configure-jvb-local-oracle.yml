@@ -213,4 +213,5 @@
     - { role: "jitsi-videobridge", tags: "jitsi-videobridge",
         jvb_image_build_flag: false, jvb_install_flag: false, jvb_configure_flag: true, jvb_ddns_cleanup_flag: true }
     - { role: "consul-template", tags: "consul-template", when: jvb_enable_consul_template }
+    - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }

@@ -205,3 +205,4 @@
         consul_signal_public_ip: "{{ core_public_ip }}", consul_cloud_provider: "{{ core_cloud_provider }}" }
     - { role: "prosody-egress", tags: "prosody-egress",
         prosody_egress_install_flag: false, prosody_egress_configure_flag: true, egress_cloud_provider: "{{ core_cloud_provider }}" }
+    - { role: "consul-telegraf", tags: "consul-telegraf" }
