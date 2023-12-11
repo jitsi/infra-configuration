@@ -807,7 +807,8 @@ local function handle_transcription_chunk(event)
         if transcription then
             local participant = {
                 ["name"] = transcription["participant"]["name"],
-                ["id"] = transcription["participant"]["identity_id"],
+                ["userId"] = transcription["participant"]["identity_id"],
+                ["id"] = transcription["participant"]["id"],
                 ["avatarUrl"] = transcription["participant"]["avatar_url"],
                 ["email"] = transcription["participant"]["email"]
             }
@@ -891,5 +892,5 @@ end, -1);
 
 module:hook("muc-broadcast-message", function(event)
     handle_transcription_chunk(event)
-end, 1);
+end, -1);
 
