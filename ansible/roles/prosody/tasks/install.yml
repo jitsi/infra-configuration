@@ -207,29 +207,6 @@
     dest: "/lib/systemd/system/prosody.service"
     force: false
 
-- name: Install mercurial
-  ansible.builtin.apt:
-    name: mercurial
-    state: present
-
-- name: Checkout mercurial prosody-modules repo
-  community.general.hg:
-    repo: https://hg.prosody.im/prosody-modules/
-    dest: /opt/prosody-modules/
-
-- name: Copy extra prosody modules from mercurial repo
-  ansible.builtin.command: cp -r {{ item }} /usr/lib/prosody/modules
-  args:
-    chdir: /opt/prosody-modules/
-    creates: /usr/lib/prosody/modules/{{ item }}
-  with_items:
-    - mod_firewall
-    - mod_log_slow_events
-    - mod_debug_traceback
-    - mod_log_ringbuffer
-    - mod_measure_stanza_counts
-    - mod_secure_interfaces
-
 - name: Install (but do not enable) the mod_firewall rules
   ansible.builtin.copy:
     src: "disable_messaging.pfw"
