@@ -55,6 +55,12 @@
         cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_unban_prefix_map_path }}"
         perms: 0640
         backup: false
+      - name: "colibri-nginx.site.template"
+        dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
+        cmd: "/usr/sbin/service nginx reload"
+        perms: 0644
+        backup: false
+
     consul_template_template_files:
       - src: roles/hcv-haproxy-configure/files/live.map.template
       - src: roles/hcv-haproxy-configure/files/tenant.map.template
@@ -65,6 +71,7 @@
       - src: roles/hcv-haproxy-configure/files/unban-prefix.map.template
     consul_template_template_templates:
       - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
+      - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
     private_ip: "{{ ansible_default_ipv4.address }}"
     host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
@@ -79,6 +86,7 @@
     - secrets/oci-logging.yml
     - secrets/repo.yml
     - roles/hcv-haproxy-configure/defaults/main.yml
+    - roles/jvb-colibri-proxy/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
@@ -204,12 +212,12 @@
     - { role: "consul-haproxy", tags: "consul-haproxy",
         consul_haproxy_install_flag: false, consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
+    - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
     - { role: "consul-template", tags: "consul-template", when: haproxy_enable_consul_template }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
     - { role: "haproxy-tenant-pin", tags: "haproxy-tenant-pin", haproxy_tenant_pin_install_flag: true, haproxy_tenant_pin_configure_flag: true,
         when: not haproxy_enable_consul_template }
-    - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
   post_tasks:
     - name: Make sure haproxy.cfg is installed from /tmp once
       ansible.builtin.command: /usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false
