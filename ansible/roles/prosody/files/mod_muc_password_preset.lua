@@ -423,22 +423,30 @@ end
 -- Create an object to be added to the MUC config form for the "visitors enabled" property. The value is based on the
 -- visitors_enabled flag saved in the room state.
 function createVisitorsEnabledConfig(room)
+    if not room or not room._data or not room._data.visitors_enabled then
+      return nil
+    end
+
     return {
         name = "muc#roominfo_visitorsEnabled";
         type = "boolean";
         label = "Whether visitors are enabled.";
-        value = room._data.visitors_enabled or false;
+        value = room._data.visitors_enabled;
     };
 end
 
 -- Create an object to be added to the MUC config form for the  "participants soft limit" property. The value is based
 -- on the visitors_enabled flag saved in the room state.
 function createParticipantsSoftLimitConfig(room)
+    if not room or not room._data or not room._data.participants_soft_limit then
+      return nil
+    end
+
     return {
         name = "muc#roominfo_participantsSoftLimit";
         type = "text-single";
         label = "Soft limit for the number of participants.";
-        value = room._data.participants_soft_limit or -1;
+        value = room._data.participants_soft_limit;
     };
 end
 
@@ -467,8 +475,15 @@ function process_host(host)
         module:context(host):hook("muc-disco#info", function(event)
             -- Append "visitors enabled" and "participants soft limit" properties
             -- to the MUC config form.
-            table.insert(event.form, createVisitorsEnabledConfig(event.room));
-            table.insert(event.form, createParticipantsSoftLimitConfig(event.room));
+            local visitorsEnabledField = createVisitorsEnabledConfig(event.room);
+            if visitorsEnabledField then
+                table.insert(event.form, visitorsEnabledField);
+            end
+
+            local participantsSoftLimitField = createParticipantsSoftLimitConfig(event.room);
+            if participantsSoftLimitField then
+                table.insert(event.form, participantsSoftLimitField);
+            end
         end);
 
         module:context(host):hook("muc-config-form", function(event)
