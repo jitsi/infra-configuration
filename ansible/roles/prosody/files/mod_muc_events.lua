@@ -94,6 +94,9 @@ local muc_domain_base
 local muc_domain = module:get_option_string(
     "muc_mapper_domain", muc_domain_prefix.."."..muc_domain_base);
 
+-- only the visitor prosody has main_domain setting
+local is_visitor_prosody = module:get_option_string("main_domain") ~= nil;
+
 local escaped_muc_domain_base = muc_domain_base:gsub("%p", "%%%1");
 local escaped_muc_domain_prefix = muc_domain_prefix:gsub("%p", "%%%1");
 -- The pattern used to extract the target subdomain
@@ -519,32 +522,41 @@ local function processEvent(type,event)
 end
 
 local function handleOccupantJoined(event)
-    if not is_healthcheck_room(event.room.jid) then
-        local event_type = "Joined";
-        local session = event.origin;
-        local occupant_jid = event.occupant.jid;
-        if session ~= nil then
-            local identity = type(session.jitsi_meet_context_user) == "table"
-                    and shallow_copy(session.jitsi_meet_context_user) or nil;
-            if identity ~= nil then
-                identity.group = session.jitsi_meet_context_group;
-                local pdetails_string = confCache:get(occupant_jid);
-                local pdetails = pdetails_string ~= nil and json.decode(pdetails_string) or {};
-                pdetails.identity = identity;
-                confCache:set(occupant_jid, json.encode(pdetails));
-            end
-        end
-        processEvent(event_type, event);
+    -- we skip healthcheck rooms and any main participant on a visitor prosody
+    if is_healthcheck_room(event.room.jid) or (is_visitor_prosody and event.occupant.role ~= 'visitor') then
+        return;
     end
+
+    local event_type = "Joined";
+    local session = event.origin;
+    local occupant_jid = event.occupant.jid;
+    if session ~= nil then
+        local identity = type(session.jitsi_meet_context_user) == "table"
+                and shallow_copy(session.jitsi_meet_context_user) or nil;
+        if identity ~= nil then
+            identity.group = session.jitsi_meet_context_group;
+            local pdetails_string = confCache:get(occupant_jid);
+            local pdetails = pdetails_string ~= nil and json.decode(pdetails_string) or {};
+            pdetails.identity = identity;
+            confCache:set(occupant_jid, json.encode(pdetails));
+        end
+    end
+    processEvent(event_type, event);
 end
 
+-- do not check occupant.role as it maybe already reset
 local function handleOccupantLeft(event)
-    if not is_healthcheck_room(event.room.jid) then
-        local event_type = "Left";
-        processEvent(event_type, event);
-        local occupant_jid = event.occupant.jid;
-        remove_from_cache(occupant_jid);
+    local occupant_domain = jid.host(event.occupant.bare_jid);
+
+    -- we skip healthcheck rooms and any main participant on a visitor prosody
+    if is_healthcheck_room(event.room.jid) or (is_visitor_prosody and occupant_domain ~= muc_domain_base) then
+        return;
     end
+
+    local event_type = "Left";
+    processEvent(event_type, event);
+    local occupant_jid = event.occupant.jid;
+    remove_from_cache(occupant_jid);
 end
 
 local function handleBroadcastPresence(event)
@@ -840,14 +852,17 @@ function module.add_host(host_module)
     module:log("info",
                "Loading mod_muc_events for host %s!", host_module.host);
 
-    host_module:hook("pre-iq/full",attachJibriSessionId);
-    host_module:hook("pre-iq/host", attachMachineUid);
+    if not is_visitor_prosody then
+        host_module:hook("pre-iq/full",attachJibriSessionId);
+        host_module:hook("pre-iq/host", attachMachineUid);
+        host_module:hook("muc-broadcast-message", handleBroadcastMessage);
+        host_module:hook("send-speaker-stats", handleSpeakerStats);
+    end
+
     host_module:hook('muc-occupant-pre-join', handleOccupantPreJoin, 1000);
 
     host_module:hook("muc-occupant-left", handleOccupantLeft);
     host_module:hook("muc-occupant-joined", handleOccupantJoined);
     host_module:hook("muc-broadcast-presence", handleBroadcastPresence);
-    host_module:hook("muc-broadcast-message", handleBroadcastMessage);
-    host_module:hook("send-speaker-stats", handleSpeakerStats);
     host_module:hook("muc-room-destroyed", handleRoomDestroyed);
 end
