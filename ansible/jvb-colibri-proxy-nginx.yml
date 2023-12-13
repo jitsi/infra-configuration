@@ -6,10 +6,67 @@
   force_handlers: true
   gather_timeout: 180
   vars_files:
+    - secrets/consul.yml
+    - roles/hcv-haproxy-configure/defaults/main.yml
+    - roles/jvb-colibri-proxy/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
     shard_role: haproxy
+    consul_template_env:
+      CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
+      ENVIRONMENT: "{{ hcv_environment }}"
+      HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
+    consul_template_templates:
+      - name: "haproxy.cfg.template"
+        dest: "/tmp/haproxy.cfg.test"
+        cmd: "/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false"
+        perms: 0640
+        backup: false
+      - name: "live.map.template"
+        dest: "{{ haproxy_release_live_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_release_live_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "tenant.map.template"
+        dest: "{{ haproxy_release_tenant_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_release_tenant_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-domain.map.template"
+        dest: "{{ haproxy_ban_domain_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_domain_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-exact.map.template"
+        dest: "{{ haproxy_ban_exact_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_exact_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-prefix.map.template"
+        dest: "{{ haproxy_ban_prefix_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_prefix_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "ban-substr.map.template"
+        dest: "{{ haproxy_ban_substr_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_ban_substr_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "unban-prefix.map.template"
+        dest: "{{ haproxy_unban_prefix_map_path }}"
+        cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_unban_prefix_map_path }}"
+        perms: 0640
+        backup: false
+      - name: "colibri-nginx.site.template"
+        dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
+        cmd: "/usr/sbin/service nginx reload"
+        perms: 0644
+        backup: false
+
+    consul_template_template_templates:
+      - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
   roles:
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy"}
+    - { role: "consul-template", tags: "consul-template", when: haproxy_enable_consul_template }
