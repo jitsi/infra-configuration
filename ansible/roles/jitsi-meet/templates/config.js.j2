@@ -132,7 +132,7 @@ var config = {
     websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/_unlock',
 {% endif %}
 {% if jitsi_meet_enable_conference_request_http %}
-    conferenceRequestUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_conference_request_host }}" -->{{ jitsi_meet_conference_request_path }}',
+    conferenceRequestUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_conference_request_host }}" -->/{{ jitsi_meet_conference_request_path }}',
 {% endif %}
 {% endif %}
 
