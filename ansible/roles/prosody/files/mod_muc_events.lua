@@ -518,6 +518,12 @@ local function processEvent(type,event)
         end
     end
     module:log("debug", "Room %s Who %s Type %s", room_address, who, type);
+
+    -- for visitor prosody we report only events for visitors
+    if is_visitor_prosody then
+        pdetails["visitor"] = true;
+    end
+
     sendEvent(type,room_address,who.jid,pdetails["group"],pdetails,cdetails);
 end
 
