@@ -521,6 +521,10 @@ function handle_room_event(event, event_type)
         breakout_room_id = jid_split(room.jid);
     end
 
+    if  is_lobby then
+        return;
+    end
+
     if is_healthcheck_room(room.jid) or not main_room then
         return;
     end
