@@ -288,14 +288,13 @@ local function isBlacklisted(occupant)
     return false;
 end
 
-local function countNonBlacklistedOccupants(room)
-    local count  = 0;
+local function hasNonBlacklistedOccupants(room)
     for _, occupant in room:each_occupant() do
         if not isBlacklisted(occupant) then
-            count = count + 1;
+            return true;
         end
     end
-    return count;
+    return false;
 end
 
 local function cb(content_, code_, response_, request_)
@@ -454,12 +453,9 @@ local function loadConferenceSession(type, event)
     local cdetails = loadConferenceDetails(room.jid);
     local session_id = cdetails["session_id"];
 
-    -- do not count "focus" component as an occupant
-    local count = countNonBlacklistedOccupants(room);
-
     if type == "Left" then
         cdetails["session_id"] = room._data.meetingId
-        if count == 0 then
+        if not hasNonBlacklistedOccupants(room) then
             module:log("info", "End of conference session for room %s session_id %s", room.jid, session_id);
             endConference(room);
         end
