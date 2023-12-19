@@ -51,7 +51,7 @@
 
     - name: Set nomad block volume facts
       set_fact:
-        nomad_block_volume_mounts: "{{ block_volume_mounts.stdout.split(' ') }}"
+        nomad_block_volume_mounts: "{{ block_volume_mounts.stdout.split('\t') }}"
       tags: setup
       when: block_volume_mounts.stdout
     - name: Set nomad host volumes extras for consul
