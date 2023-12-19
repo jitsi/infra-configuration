@@ -7,6 +7,7 @@ hcv_environment: all
 jaas_feedback_metadata_url: false
 # URL for branding to redirect users to standalone offering
 jitsi_meet_8x8_video_meetings_url: false
+jitsi_meet_conference_request_global_rate: 50
 jitsi_meet_custom_landing_page_url: false
 jitsi_meet_amplitude_api_key: false
 jitsi_meet_amplitude_include_utm: false

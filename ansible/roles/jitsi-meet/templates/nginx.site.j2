@@ -81,7 +81,7 @@ map $limit $limit_key {
 }
 
 limit_req_zone $limit_key zone=conference-request:10m rate=5r/s;
-limit_req_zone "global" zone=conference-request-global:10m rate=100r/s;
+limit_req_zone "global" zone=conference-request-global:10m rate={{ jitsi_meet_conference_request_global_rate }}r/s;
 {% endif %}
 
 # Set $remote_addr by scanning X-Forwarded-For, while only trusting the defined list of trusted proxies.
