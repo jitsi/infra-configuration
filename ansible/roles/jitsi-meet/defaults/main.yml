@@ -96,7 +96,7 @@ jitsi_meet_colibri_proxy_fourth_octet_regexp: "{{ jvb_colibri_proxy_fourth_octet
 jitsi_meet_conference_info_overwrite: false
 jitsi_meet_conference_info_visible: "[ 'recording', 'local-recording', 'raised-hands-count' ]"
 jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee',
-  'transcribing', 'video-quality', 'insecure-room' ]"
+  'transcribing', 'video-quality', 'visitors-count', 'insecure-room' ]"
 jitsi_meet_conference_request_host: "{{ prosody_domain_name }}"
 jitsi_meet_conference_request_path: "conference-request/v1"
 jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090) }}"
