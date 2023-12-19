@@ -286,3 +286,4 @@ legal_urls:
   helpCentre: 'https://web-cdn.jitsi.net/faq/meet-faq.html'
   privacy: 'https://jitsi.org/meet/privacy'
   terms: 'https://jitsi.org/meet/terms'
+nginx_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8"]
