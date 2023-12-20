@@ -7,6 +7,7 @@ hcv_environment: all
 jaas_feedback_metadata_url: false
 # URL for branding to redirect users to standalone offering
 jitsi_meet_8x8_video_meetings_url: false
+jitsi_meet_conference_request_global_rate: 50
 jitsi_meet_custom_landing_page_url: false
 jitsi_meet_amplitude_api_key: false
 jitsi_meet_amplitude_include_utm: false
@@ -286,3 +287,4 @@ legal_urls:
   helpCentre: 'https://web-cdn.jitsi.net/faq/meet-faq.html'
   privacy: 'https://jitsi.org/meet/privacy'
   terms: 'https://jitsi.org/meet/terms'
+nginx_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8"]

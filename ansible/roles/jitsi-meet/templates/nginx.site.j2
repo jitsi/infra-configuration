@@ -68,7 +68,20 @@ types {
 }
 
 {% if jitsi_meet_enable_conference_request_http %}
-    limit_req_zone $remote_addr zone=conference-request:10m rate=5r/s;
+geo $limit {
+    default 1;
+{% for i in nginx_rate_limit_whitelist %}
+     {{ i }} 0;
+{% endfor %}
+}
+
+map $limit $limit_key {
+    0 "";
+    1 $binary_remote_addr;
+}
+
+limit_req_zone $limit_key zone=conference-request:10m rate=5r/s;
+limit_req_zone "global" zone=conference-request-global:10m rate={{ jitsi_meet_conference_request_global_rate }}r/s;
 {% endif %}
 
 # Set $remote_addr by scanning X-Forwarded-For, while only trusting the defined list of trusted proxies.
@@ -499,7 +512,8 @@ server {
 {% if jitsi_meet_enable_conference_request_http %}
     location ~ ^/conference-request/v1(\/.*)?$ {
         proxy_pass http://127.0.0.1:8888/conference-request/v1$1;
-        limit_req zone=conference-request burst=5;
+        limit_req zone=conference-request burst=100;
+        limit_req zone=conference-request-global burst=2000;
         add_header "Cache-Control" "no-cache, no-store";
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
