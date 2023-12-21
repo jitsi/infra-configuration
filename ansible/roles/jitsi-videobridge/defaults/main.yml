@@ -121,6 +121,7 @@ jvb_region: "{{ oracle_to_aws_region_map[jvb_custom_region] | default('default')
 jvb_regions: "{{ default_regions.split('\n') }}"
 jvb_release_number: "0"
 jvb_release_number_shard: "{{ release_number | default('0') }}"
+jvb_require_stun: true
 jvb_rest_access_allow_rules: ["192.168.0.0/16"]
 jvb_rest_advertise_address: "{{ ansible_default_ipv4.address }}"
 jvb_rest_dh_param_filename: "dhparam_jvb_rest.pem"
