@@ -11,7 +11,6 @@ if (location.hash) {
                 || key === 'interfaceConfig.DEFAULT_LOCAL_DISPLAY_NAME'
                 || key === 'interfaceConfig.DEFAULT_REMOTE_DISPLAY_NAME'
                 || key === 'interfaceConfig.APP_NAME'
-                || key === 'config.callStatsCustomScriptUrl'
                 || key === 'config.analyticsScriptUrls') {
                 return;
             }

@@ -252,19 +252,6 @@ var config = {
         disabled: {% if jitsi_meet_enable_welcome_page %}false{% else %}true{% endif %}
     },
     isBrand: false,
-{% if jitsi_meet_enable_callstats %}
-// To enable sending statistics to callstats.io you should provide Applicaiton ID and Secret.
-{% if jitsi_meet_callstats_app_id %}
-    callStatsID: "{{ jitsi_meet_callstats_app_id }}",//Application ID for callstats.io API
-    callStatsSecret: "{{ jitsi_meet_callstats_app_secret }}",//Secret for callstats.io API
-{% endif %}
-{% if jitsi_meet_callstats_disable_logs %}
-    callStatsApplicationLogsDisabled: true,
-{% endif %}
-{% if jitsi_meet_callstats_customscript_url %}
-    callStatsCustomScriptUrl: "{{ jitsi_meet_callstats_customscript_url }}",
-{% endif %}
-{% endif %}
 {% if jitsi_meet_enable_email_in_stats %}
     enableEmailInStats: true,
 {% endif %}
