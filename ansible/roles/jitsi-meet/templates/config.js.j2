@@ -153,7 +153,6 @@ var config = {
     desktopSharingChromeExtId: '{{ jitsi_meet_chrome_desktop_key }}', // Id of desktop streamer Chrome extension
     desktopSharingChromeSources: ['screen', 'window', 'tab'],
     enableSaveLogs: {% if jitsi_meet_enable_save_logs %}true{% else %}false{% endif %},
-    disableRtx: false, // Enables RTX everywhere
     channelLastN: {{ jitsi_meet_channel_last_n }}, // The default value of the channel attribute last-n.
     flags: {
         sourceNameSignaling: {% if jitsi_meet_enable_source_name_signaling %}true{% else %}false{% endif %},
@@ -486,6 +485,9 @@ whiteboard: {
         }
     },
     testing: {
+    {% if jitsi_meet_enable_av1 %}
+        enableAv1Support: {{ jitsi_meet_enable_av1 | to_json }},
+    {% endif %}
     {% if jitsi_meet_mobile_xmpp_ws_threshold %}
         mobileXmppWsThreshold: {{ jitsi_meet_mobile_xmpp_ws_threshold }},
     {% endif %}
