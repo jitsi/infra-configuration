@@ -1,5 +1,6 @@
 local http = require 'net.http';
 local inspect = require('inspect');
+local jid = require 'util.jid';
 local json = require 'cjson';
 local uuid_gen = require 'util.uuid'.generate;
 local util = module:require 'util.internal';
@@ -25,6 +26,13 @@ local event_count_failed = module:measure('muc_webhooks_failed', 'rate');
 local event_count_sent = module:measure('muc_webhooks_sent', 'rate');
 local event_count_retried_sent = module:measure('muc_webhooks_retried_sent', 'rate');
 local event_count_retried_failed = module:measure('muc_webhooks_retried_failed', 'rate');
+
+-- this is the main virtual host of this vnode
+local local_domain = module:get_option_string('muc_mapper_domain_base');
+if not local_domain then
+    module:log('warn', "No 'muc_mapper_domain_base' option set, disabling visitors webhooks plugin");
+    return;
+end
 
 local function cb_retry(content_, code_, _, request_)
     if code_ == 200 or code_ == 204 then
@@ -113,11 +121,12 @@ end
 
 function handle_occupant_access(event, event_type)
     local occupant, room, stanza = event.occupant, event.room, event.stanza;
+    local occupant_domain = jid.host(occupant.bare_jid);
 
     if is_healthcheck_room(room.jid)
         or is_admin(occupant.bare_jid)
         or not util.is_vpaas(room.jid)
-        or occupant.role ~= 'visitor' then
+        or occupant_domain ~= local_domain then
         return;
     end
 
