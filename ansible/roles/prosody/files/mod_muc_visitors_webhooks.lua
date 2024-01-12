@@ -10,6 +10,7 @@ local NICK_NS = 'http://jabber.org/protocol/nick';
 local PARTICIPANT_JOINED = 'PARTICIPANT_JOINED';
 local PARTICIPANT_LEFT = 'PARTICIPANT_LEFT';
 local ROOM_CREATED = 'ROOM_CREATED';
+local USAGE = "USAGE";
 
 local um_is_admin = require 'core.usermanager'.is_admin;
 local function is_admin(jid)
@@ -70,6 +71,7 @@ local function get_current_event_usage(session, customer_id)
         current_usage_item.userId = session.jitsi_meet_context_user.id;
         current_usage_item.email = session.jitsi_meet_context_user.email;
     end
+    current_usage_item.visitor = true;
     return current_usage_item;
 end
 
