@@ -69,7 +69,7 @@
 
 - name: Set skynet version variable from stdout of previous task
   ansible.builtin.set_fact:
-    gpu_models_skynet_version: "{{ skynet_version_shell.stdout }}"
+    gpu_models_skynet_version: "{{ skynet_version_results.stdout }}"
 
 - name: Grab docker auth config from etc to root
   ansible.builtin.copy:
