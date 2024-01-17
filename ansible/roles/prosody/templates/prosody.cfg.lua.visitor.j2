@@ -262,6 +262,9 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_enable_muc_events %}
         "muc_events";
 {% endif %}
+{% if prosody_meet_webhooks_enabled %}
+        "muc_visitors_webhooks";
+{% endif %}
     }
     muc_room_default_presence_broadcast = {
         visitor = false;
