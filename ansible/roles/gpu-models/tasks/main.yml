@@ -62,6 +62,7 @@
 - name: Grab current skynet version from nomad job definition
   ansible.builtin.shell: |
     set -o pipefail
+    export NOMAD_ADDR=https://{{ hcv_environment }}-{{ gpu_models_region }}-nomad.{{ gpu_models_dns_zone_name }}
     nomad job inspect skynet-{{ gpu_models_region }} | jq -r ".Job.TaskGroups[].Tasks[].Config.image | split(\":\")[1]"
   register: skynet_version_results
   args:

@@ -1,5 +1,6 @@
 ---
 gpu_models_bucket: ops-repo
+gpu_models_dns_zone_name: "{{ dns_zone_name | default('example.com') }}"
 gpu_models_docker_image: "{{ gpu_models_docker_host }}/jitsi-vo/skynet:{{ gpu_models_skynet_version | default('latest') }}"
 gpu_models_docker_region: "us-west-2"
 gpu_models_docker_aws_account_id: replaceme
