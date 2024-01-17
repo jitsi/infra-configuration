@@ -500,15 +500,15 @@ local function processEvent(type,event)
         return;
     end
 
-    -- search room jid for blacklisted prefixes before sending events
-    if isRoomBlacklisted(room_address) then
-        module:log("debug", "processEvent: room is blacklisted %s", room_address);
-        return;
-    end
-
     -- search room jid for tenancy prefixes before sending events
     if isRoomTenantDropped(room_address) then
         module:log("debug", "processEvent: room tenant is droplisted %s", room_address);
+        return;
+    end
+
+    -- search room jid for blacklisted prefixes before sending events
+    if isRoomBlacklisted(room_address) then
+        module:log("debug", "processEvent: room is blacklisted %s", room_address);
         return;
     end
 
@@ -593,15 +593,15 @@ local function handleBroadcastPresence(event)
         return;
     end
 
-    -- search room jid for blacklisted prefixes before sending events
-    if isRoomBlacklisted(room_jid) then
-        module:log("debug", "handleBroadcastPresence: room is blacklisted %s", room_jid);
-        return;
-    end
-
     -- search room jid for tenancy prefixes before sending events
     if isRoomTenantDropped(room_jid) then
         module:log("debug", "handleBroadcastPresence: room tenant is droplisted %s", room_jid);
+        return;
+    end
+
+    -- search room jid for blacklisted prefixes before sending events
+    if isRoomBlacklisted(room_jid) then
+        module:log("debug", "handleBroadcastPresence: room is blacklisted %s", room_jid);
         return;
     end
 
@@ -658,15 +658,15 @@ local function processSubjectUpdate(occupant, room_jid, new_subject)
         return;
     end
 
-    -- search room jid for blacklisted prefixes before sending events
-    if isRoomBlacklisted(room_jid) then
-        module:log("debug", "processSubjectUpdate: room is blacklisted %s", room_jid);
-        return;
-    end
-
     -- search room jid for tenancy prefixes before sending events
     if isRoomTenantDropped(room_jid) then
         module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid);
+        return;
+    end
+
+    -- search room jid for blacklisted prefixes before sending events
+    if isRoomBlacklisted(room_jid) then
+        module:log("debug", "processSubjectUpdate: room is blacklisted %s", room_jid);
         return;
     end
 
