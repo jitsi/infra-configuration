@@ -71,6 +71,9 @@ local roomBlacklistHostPrefixes
 local eventURL
     = module:get_option_string("muc_events_url", 'http://127.0.0.1:9880/');
 
+local dropTenantPrefixes
+    = module:get_option_array("muc_events_drop_tenant_prefixes", {'vpaas-magic-cookie-'});
+
 local voChatHistoryURL
     = module:get_option_string("muc_chat_history_url");
 
@@ -263,6 +266,16 @@ local function extract_occupant_details(occupant)
     end
 
     return r;
+end
+
+local function isRoomTenantDropped(room_jid)
+    local node, host, resource = jid.split(room_jid);
+    for i, tPrefix in ipairs(dropTenantPrefixes) do
+        if string.sub(node,1,string.len(tPrefix)+1) == '['..tPrefix then
+            module:log("debug","Droplist tenant: %s found in %s ", tPrefix, node);
+            return true;
+        end
+    end
 end
 
 local function isRoomBlacklisted(room_jid)
@@ -493,6 +506,12 @@ local function processEvent(type,event)
         return;
     end
 
+    -- search room jid for tenancy prefixes before sending events
+    if isRoomTenantDropped(room_address) then
+        module:log("debug", "processEvent: room tenant is droplisted %s", room_address);
+        return;
+    end
+
     local cdetails = loadConferenceSession(type, event);
 
     local occupant_nick = event.occupant and event.occupant.nick;
@@ -580,6 +599,12 @@ local function handleBroadcastPresence(event)
         return;
     end
 
+    -- search room jid for tenancy prefixes before sending events
+    if isRoomTenantDropped(room_jid) then
+        module:log("debug", "handleBroadcastPresence: room tenant is droplisted %s", room_jid);
+        return;
+    end
+
     module:log("debug", "handleBroadcastPresence Room %s Who %s Type %s", room_jid, occupant_jid, type);
     local nick = presence_field(event.stanza,'nick', NICK_NS);
     local email = presence_field(event.stanza,'email');
@@ -636,6 +661,12 @@ local function processSubjectUpdate(occupant, room_jid, new_subject)
     -- search room jid for blacklisted prefixes before sending events
     if isRoomBlacklisted(room_jid) then
         module:log("debug", "processSubjectUpdate: room is blacklisted %s", room_jid);
+        return;
+    end
+
+    -- search room jid for tenancy prefixes before sending events
+    if isRoomTenantDropped(room_jid) then
+        module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid);
         return;
     end
 
