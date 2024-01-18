@@ -86,4 +86,4 @@
     dest: "/root/.docker/config.json"
 
 - name: Docker pull latest skynet
-  ansible.builtin.command: docker pull {{ gpu_models_docker_image }}
+  ansible.builtin.command: docker --config /root/.docker pull {{ gpu_models_docker_image }}
