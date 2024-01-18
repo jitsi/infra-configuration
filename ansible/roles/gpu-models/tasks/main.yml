@@ -76,7 +76,7 @@
   ansible.builtin.file:
     path: /root/.docker
     state: directory
-    mode: 0755
+    mode: 0700
 
 - name: Grab docker auth config from etc to root
   ansible.builtin.copy:
