@@ -87,6 +87,10 @@
 
 - name: Docker pull latest skynet
   ansible.builtin.command: docker --config /root/.docker pull {{ gpu_models_docker_image }}
+  register: docker_pull_results
+  timeout: 900
+  retries: 5
+  until: docker_pull_results.rc == 0
   environment:
     AWS_ACCESS_KEY_ID: "{{ nomad_aws_access_key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ nomad_aws_secret_access_key }}"
