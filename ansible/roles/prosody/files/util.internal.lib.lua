@@ -197,27 +197,6 @@ function Util.get_sip_jibri_prefix(stanza)
     return get_sip_jibri_email_prefix(email);
 end
 
--- check if the room tenant starts with
--- vpaas-magic-cookie-
-function Util.is_vpaas(room_jid)
-    local node, host = jid.split(room_jid);
-    if host ~= muc_domain or not node then
-        module:log("debug", "Not the same host");
-        return false;
-    end
-    local tenant, conference_name = node:match("^%[([^%]]+)%](.+)$");
-    if not (tenant and conference_name) then
-        module:log("debug", "Not a vpaas room %s", room_jid);
-        return false;
-    end
-    local vpaas_prefix, _ = tenant:match("^(vpaas%-magic%-cookie%-)(.*)$")
-    if vpaas_prefix ~= "vpaas-magic-cookie-" then
-        module:log("debug", "Not a vpaas room %s", room_jid);
-        return false
-    end
-    return true
-end
-
 function Util.has_prefix(str, prefix)
     if not str then
         return false;

@@ -9,6 +9,7 @@ local inspect = require('inspect');
 local util_internal = module:require "util.internal";
 local util = module:require "util";
 local is_healthcheck_room = util.is_healthcheck_room;
+local is_vpaas = util.is_vpaas;
 local starts_with = util.starts_with;
 
 local log = module._log;
@@ -138,7 +139,8 @@ local function validate_vpaas_token(session)
     return nil
 end
 
-local function deny_access(origin, stanza, room_disabled_access, room_jid, occupant)
+local function deny_access(origin, stanza, room_disabled_access, room, occupant)
+    local room_jid = room.jid;
     local token = origin.auth_token;
     local tenant = origin.jitsi_meet_domain;
     if not is_healthcheck_room(room_jid) and not util_internal.is_blacklisted(occupant) then
@@ -153,7 +155,7 @@ local function deny_access(origin, stanza, room_disabled_access, room_jid, occup
             return nil;
         end
 
-        if room_jid == nil or not util_internal.is_vpaas(room_jid) then
+        if not is_vpaas(room) then
             module:log("debug", "Skip VPAAS related verifications for non VPAAS room %s", room_jid);
             return nil;
         end
@@ -203,10 +205,9 @@ module:hook("muc-occupant-pre-join", function(event)
     local room, origin, stanza = event.room, event.origin, event.stanza;
     local occupant_jid = stanza.attr.from;
     local room_disabled_access = room._data.disabled_access;
-    local room_jid = stanza.attr.to;
 
     -- Returning any value other than nil will halt processing of the event, and return that value to the code that fired the event.
     -- https://prosody.im/doc/developers/moduleapi#modulehook_event_name_handler_priority
-    return deny_access(origin, stanza, room_disabled_access, room_jid, occupant_jid);
+    return deny_access(origin, stanza, room_disabled_access, room, occupant_jid);
 end, 15); -- We want this to be executed after token verification (priority 99) and before the other
           -- modules max-occupants (p:10) or rate limiting (p:9)

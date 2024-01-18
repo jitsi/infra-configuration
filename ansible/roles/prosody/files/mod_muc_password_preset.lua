@@ -15,7 +15,7 @@ local room_jid_match_rewrite = util.room_jid_match_rewrite;
 local internal_room_jid_match_rewrite = util.internal_room_jid_match_rewrite;
 local is_healthcheck_room = util.is_healthcheck_room;
 local starts_with = util.starts_with;
-local is_vpaas = module:require "util.internal".is_vpaas;
+local is_vpaas = util.is_vpaas;
 
 local tostring = tostring;
 local neturl = require "net.url";
@@ -265,7 +265,7 @@ local function queryForPassword(room)
     local function cb(content_, code_, response_, request_)
         module:log("debug","Local room var is %s", room)
 
-        local is_vpaas_room = is_vpaas(room.jid);
+        local is_vpaas_room = is_vpaas(room);
 
         -- we always ignore the waiting for host for any vpass room
         if is_vpaas_room then
