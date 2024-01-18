@@ -363,15 +363,16 @@ local function loadConferenceDetails(room_jid)
     return cdetails;
 end
 
-local function sendChatHistory(room_jid)
+local function sendChatHistory(room)
     if not voChatHistoryURL then
         module:log("debug", "No 'muc_chat_history_url' value set");
         return
     end
+    local room_jid = room.jid;
 
     local cdetails = loadConferenceDetails(room_jid);
     local timestamp = round(socket.gettime() * 1000);
-    local meeting_fqn = util.get_fqn_and_customer_id(room_jid);
+    local meeting_fqn = util.get_fqn_and_customer_id(room);
     local body = {
         ["roomAddress"] = room_jid,
         ["meetingFqn"] = meeting_fqn,
@@ -395,7 +396,7 @@ end
 local function endConference(room)
     local room_jid = room.jid;
     module:log("debug", "Cleanup details for room %s", room_jid);
-    sendChatHistory(room_jid);
+    sendChatHistory(room);
     remove_from_cache(getChatHistoryKey(room_jid));
     remove_from_cache(room_jid);
     for _, occupant in room:each_occupant() do
@@ -834,14 +835,14 @@ local function handleSpeakerStats(event)
     if (next(requestBody.speakerStats) ~= nil) then
         if event.room then
             local room = event.room
-            local main_room_jid;
+            local main_room;
             if room.main_room then
                 -- breakout room cached by speakerstats module
-                main_room_jid = room.main_room.jid;
+                main_room = room.main_room;
             else
-                main_room_jid = room.jid;
+                main_room = room;
             end
-            requestBody.meetingFqn = util.get_fqn_and_customer_id(main_room_jid);
+            requestBody.meetingFqn = util.get_fqn_and_customer_id(main_room);
         end
         requestBody.timestamp = round(socket.gettime() * 1000)
         module:log("info", "Sending speaker stats for %s", event.room.jid);

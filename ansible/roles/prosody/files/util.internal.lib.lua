@@ -108,16 +108,25 @@ function Util.shallow_copy(t)
     return t2
 end
 
-function Util.get_fqn_and_customer_id(room_jid)
+function Util.get_fqn_and_customer_id(room)
+    -- we cache fqn and customer_id on room object
+    if room.fqn ~= nil then
+        return room.fqn, room.customer_id;
+    end
+
+    local room_jid = room.jid;
     local node = jid.split(room_jid);
     local tenant, conference_name = node:match("^%[([^%]]+)%](.+)$");
     if not (tenant and conference_name) then
         module:log("debug", "Conference without tenant: %s", node);
+        room.fqn = node;
         return node;
     end
     local _, customer_id = tenant:match("^(vpaas%-magic%-cookie%-)(.*)$")
     local fqn = tenant .. "/" .. conference_name;
     module:log("debug", "Retrieve fqn %s from room %s", fqn, room_jid);
+    room.fqn = fqn;
+    room.customer_id = customer_id;
     return fqn, customer_id
 end
 
@@ -269,11 +278,10 @@ function Util.get_final_transcription(event)
         local user_id = transcription["participant"].id;
         local who = event.room:get_occupant_by_nick(jid_bare(event.room.jid) .. "/" .. user_id);
         local full_jid = who and who["jid"];
-        local room_jid = event.room.jid;
         transcription["jid"] = full_jid;
         --extract session id
         transcription["session_id"] = event.room._data.meetingId;
-        local meeting_fqn, customer_id = Util.get_fqn_and_customer_id(room_jid);
+        local meeting_fqn, customer_id = Util.get_fqn_and_customer_id(event.room);
         transcription["fqn"] = meeting_fqn;
         transcription["customer_id"] = customer_id;
         -- module:log("debug", "Transcription %s", inspect(transcription));

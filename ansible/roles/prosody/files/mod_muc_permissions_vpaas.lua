@@ -48,7 +48,7 @@ module:hook("muc-room-pre-create", function(event)
         end
     end
 
-    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(room);
     local jaas_actuator_customer_details_url = jaas_actuator_base_url .. "/v1/customers/" .. customer_id;
 
     local headers = http_headers or {}

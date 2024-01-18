@@ -248,7 +248,7 @@ function handle_occupant_access(event, event_type)
 
     if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or util.has_prefix(occupant.jid, TRANSCRIBER_PREFIX) or util.has_prefix(occupant.jid, RECORDER_PREFIX)) then
         module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)", occupant.jid, room.jid, is_breakout, main_room.jid);
-        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
         local session = event.origin;
         local payload = {};
         if session and session.auth_token then
@@ -532,7 +532,7 @@ function handle_room_event(event, event_type)
     end
 
     module:log("debug", "Will send room event for %s", room.jid);
-    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
     local payload = {};
     payload.conference = internal_room_jid_match_rewrite(main_room.jid);
 
@@ -615,7 +615,7 @@ function handle_poll_created(pollData)
     end
 
     local sessionId = main_room._data.meetingId;
-    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room.jid);
+    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room);
 
     local who = pollData.room:get_occupant_by_nick(jid_bare(pollData.room.jid) .. "/" .. pollData.poll.senderId);
     local user = util.extract_occupant_identity_user(who)
@@ -661,7 +661,7 @@ function handle_poll_answered(answerData)
     end
 
     local sessionId = main_room._data.meetingId;
-    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room.jid);
+    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room);
 
     local who = answerData.room:get_occupant_by_nick(jid_bare(answerData.room.jid) .. "/" .. answerData.voterId);
     local user = util.extract_occupant_identity_user(who)
@@ -775,7 +775,7 @@ local function occupant_affiliation_changed(event)
         }
 
         local sessionId = room._data.meetingId;
-        local meetingFqn, customerId = util.get_fqn_and_customer_id(room.jid);
+        local meetingFqn, customerId = util.get_fqn_and_customer_id(room);
 
         local role_change_event = {
             ["idempotencyKey"] = uuid_gen(),

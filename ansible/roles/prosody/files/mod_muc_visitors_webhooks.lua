@@ -139,7 +139,7 @@ function handle_occupant_access(event, event_type)
     local final_event_type = event_type;
 
     module:log('debug', 'Will send participant event %s for room %s', occupant.jid, main_room.jid);
-    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
     local session = event.origin;
     local payload = {};
     if session and session.auth_token then
