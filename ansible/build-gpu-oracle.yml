@@ -6,6 +6,7 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/repo.yml
+    - secrets/nomad.yml
     - secrets/ops-repo.yml
     - secrets/github-deploy.yml
     - config/vars.yml
