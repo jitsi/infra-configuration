@@ -61,6 +61,8 @@ haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
     echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
     echo -n "jitsi.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
+    # log a copy of the new config
+    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg.invalid
     exit 1
 else
     echo "#### cihc: validated $DRAFT_CONFIG" >> $TEMPLATE_LOGFILE
