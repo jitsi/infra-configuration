@@ -267,7 +267,7 @@ local function queryForPassword(room)
 
         local is_vpaas_room = is_vpaas(room);
 
-        -- we always ignore the waiting for host for any vpass room
+        -- we always ignore the waiting for host for any vpaas room
         if is_vpaas_room then
             room.has_host = true;
         end

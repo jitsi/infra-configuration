@@ -1,5 +1,6 @@
 local json_safe = require "cjson.safe";
 local basexx = require "basexx";
+local cache = require "util.cache";
 
 local st = require "util.stanza";
 local timer = require "util.timer";
@@ -16,6 +17,8 @@ local log = module._log;
 local host = module.host;
 local VPAAS_PREFIX = "vpaas-magic-cookie";
 local CACHE_EXPIRATION_SECONDS = 3600;
+
+local kid_parse_cache = cache.new(1000);
 
 local parentHostName = string.gmatch(tostring(host), "%w+.(%w.+)")();
 if parentHostName == nil then
@@ -46,6 +49,23 @@ end
 
 timer.add_task(CACHE_EXPIRATION_SECONDS, invalidate_cache)
 
+-- gets or creates an entry in the cache for the specified kid
+-- checks is it vpass and extract the tenant (everything before the /) in the kid
+local function get_kid_kid_parse_cache_obj(kid) then
+    local kid_parse_cache_obj = kid_parse_cache:get(kid);
+    if not kid_parse_cache_obj then
+        kid_parse_cache_obj = {};
+
+        kid_parse_cache_obj.is_vpaas = starts_with(kid, VPAAS_PREFIX);
+
+        local tenant, _ = kid:match("^(.*)%/(.*)$")
+        kid_parse_cache_obj.tenant = tenant;
+
+        kid_parse_cache:set(kid, kid_parse_cache_obj);
+    end
+    return kid_parse_cache_obj;
+end
+
 -- Retrieve the public key from VPAAS bucket
 -- based on the hash of the kid
 local function process_vpaas_token(session)
@@ -68,18 +88,23 @@ local function process_vpaas_token(session)
             module:log("warn", "kid in wrong format: %s", inspect(kid));
             return { res = false, error = "not-allowed", reason = "'kid' claim is in wrong format" };
         end
-        if not starts_with(kid, VPAAS_PREFIX) then
+
+        local kid_parse_cache_obj = get_kid_kid_parse_cache_obj(kid);
+
+        if not kid_parse_cache_obj.is_vpaas then
             module.log("debug", "Not a VPAAS user for pre validation");
-            return nil
+            return nil;
         end
-        local tenant, _ = kid:match("^(.*)%/(.*)$")
-        if tenant == nil then
+
+        if kid_parse_cache_obj.tenant == nil then
             return { res = false, error = "not-allowed", reason = "invalid kid format for vpaas" };
         end
+
         -- save kid on the session for post validation
         session.kid = kid;
+
         -- namespace the public key in order to avoid extra storage
-        token_util:set_asap_key_server(vpaas_asap_key_server .. "/" .. tenant)
+        token_util:set_asap_key_server(vpaas_asap_key_server .. "/" .. kid_parse_cache_obj.tenant)
         local public_key = token_util:get_public_key(kid);
         if public_key == nil then
             return { res = false, error = "not-allowed", reason = "could not obtain public key" };
@@ -108,22 +133,13 @@ local function validate_vpaas_token(session)
         return nil
     end
 
-    if starts_with(kid, VPAAS_PREFIX) then
+    local kid_parse_cache_obj = get_kid_kid_parse_cache_obj(kid);
+    if kid_parse_cache_obj.is_vpaas then
         module:log("debug", "Post validate VPAAS token");
-        if kid == nil then
-            return { res = false, error = "not-allowed", reason = "'kid' is missing from session" };
-        end
         if tenant == nil then
             return { res = false, error = "not-allowed", reason = "'tenant' is missing from session" };
         end
-        -- kid for vpaas will look like vpaas-magic-cookie-ee798cd9-2f54-4fa8-97f6-f99225543d61/ee798cd9-2f54-4fa8-97f6-f99225543d61
-        -- vpaas-magic-cookie is prefix for all vpaas customers
-        -- first uuid is the customer id
-        -- a customer can change the public key so the last uuid after /
-        -- uniquely identifies the key for that customer
-        local _, tenant_uuid_from_kid, _ = kid:match("^(vpaas%-magic%-cookie%-)(.+)(/.+)$");
-        local _, tenant_uuid = tenant:match("^(vpaas%-magic%-cookie%-)(.+)$")
-        if tenant_uuid_from_kid ~= tenant_uuid then
+        if kid_parse_cache_obj.tenant ~= tenant then
             return { res = false, error = "not-allowed", reason = "kid and jwt tenant do not match" };
         end
     else
@@ -163,20 +179,20 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
         log("debug", "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant);
         -- we allow participants from the main prosody to connect without token to the visitor one
         if token == nil and origin.type ~= 's2sin' then
-            log("warn", "VPASS room %s does not have a token", room_jid);
-            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPASS room disabled for guests"));
+            log("warn", "VPAAS room %s does not have a token", room_jid);
+            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for guests"));
             return true;
         end
 
         if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
-            log("warn", "VPASS room %s is disabled for tenant %s", room_jid, tenant);
-            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPASS room disabled for 8x8 users"));
+            log("warn", "VPAAS room %s is disabled for tenant %s", room_jid, tenant);
+            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for 8x8 users"));
             return true;
         end
 
         if room_disabled_access then
-            log("warn", "VPASS room %s has access disabled due to blocked or deleted tenant %s", room_jid, tenant);
-            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPASS room disabled due to blocked or deleted tenant"));
+            log("warn", "VPAAS room %s has access disabled due to blocked or deleted tenant %s", room_jid, tenant);
+            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled due to blocked or deleted tenant"));
             return true;
         end
     end
