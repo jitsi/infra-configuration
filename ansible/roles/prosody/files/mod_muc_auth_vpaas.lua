@@ -22,13 +22,13 @@ local kid_parse_cache = cache.new(1000);
 
 local parentHostName = string.gmatch(tostring(host), "%w+.(%w.+)")();
 if parentHostName == nil then
-    log("error", "Failed to start - unable to get parent hostname");
+    module:log("error", "Failed to start - unable to get parent hostname");
     return;
 end
 
 local parentCtx = module:context(parentHostName);
 if parentCtx == nil then
-    log("error",
+    module:log("error",
         "Failed to start - unable to get parent context for host: %s",
         tostring(parentHostName));
     return;
@@ -36,7 +36,7 @@ end
 
 local vpaas_asap_key_server = parentCtx:get_option_string("vpaas_asap_key_server");
 if vpaas_asap_key_server == nil then
-    log('error', 'vpaas not enabled, missing vpaas_asap_key_server config');
+    module:log('error', 'vpaas not enabled, missing vpaas_asap_key_server config');
     return;
 end
 
@@ -176,22 +176,22 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
             return nil;
         end
 
-        log("debug", "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant);
+        module:log("debug", "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant);
         -- we allow participants from the main prosody to connect without token to the visitor one
         if token == nil and origin.type ~= 's2sin' then
-            log("warn", "VPAAS room %s does not have a token", room_jid);
+            module:log("warn", "VPAAS room %s does not have a token", room_jid);
             origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for guests"));
             return true;
         end
 
         if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
-            log("warn", "VPAAS room %s is disabled for tenant %s", room_jid, tenant);
+            module:log("warn", "VPAAS room %s is disabled for tenant %s", room_jid, tenant);
             origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for 8x8 users"));
             return true;
         end
 
         if room_disabled_access then
-            log("warn", "VPAAS room %s has access disabled due to blocked or deleted tenant %s", room_jid, tenant);
+            module:log("warn", "VPAAS room %s has access disabled due to blocked or deleted tenant %s", room_jid, tenant);
             origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled due to blocked or deleted tenant"));
             return true;
         end
