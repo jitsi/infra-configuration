@@ -51,14 +51,14 @@ timer.add_task(CACHE_EXPIRATION_SECONDS, invalidate_cache)
 
 -- gets or creates an entry in the cache for the specified kid
 -- checks is it vpass and extract the tenant (everything before the /) in the kid
-local function get_kid_kid_parse_cache_obj(kid) then
+local function get_kid_parse_cache_obj(kid) then
     local kid_parse_cache_obj = kid_parse_cache:get(kid);
     if not kid_parse_cache_obj then
         kid_parse_cache_obj = {};
 
         kid_parse_cache_obj.is_vpaas = starts_with(kid, VPAAS_PREFIX);
 
-        local tenant, _ = kid:match("^(.*)%/(.*)$")
+        local tenant = kid:match("^(.*)%/.*$")
         kid_parse_cache_obj.tenant = tenant;
 
         kid_parse_cache:set(kid, kid_parse_cache_obj);
@@ -89,7 +89,7 @@ local function process_vpaas_token(session)
             return { res = false, error = "not-allowed", reason = "'kid' claim is in wrong format" };
         end
 
-        local kid_parse_cache_obj = get_kid_kid_parse_cache_obj(kid);
+        local kid_parse_cache_obj = get_kid_parse_cache_obj(kid);
 
         if not kid_parse_cache_obj.is_vpaas then
             module.log("debug", "Not a VPAAS user for pre validation");
@@ -133,7 +133,7 @@ local function validate_vpaas_token(session)
         return nil
     end
 
-    local kid_parse_cache_obj = get_kid_kid_parse_cache_obj(kid);
+    local kid_parse_cache_obj = get_kid_parse_cache_obj(kid);
     if kid_parse_cache_obj.is_vpaas then
         module:log("debug", "Post validate VPAAS token");
         if tenant == nil then
