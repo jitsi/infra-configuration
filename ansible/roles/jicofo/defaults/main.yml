@@ -49,6 +49,7 @@ jicofo_max_video_senders: 999999
 jicofo_opts: ""
 jicofo_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
+jicofo_require_muc_config_flag: false
 jicofo_separate_jvb_muc: "{{ prosody_jvb_configure_flag }}"
 jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
 # a temp workaround to skip adding main vhost to list of trusted-domains till we migrate all sipjibris to authenticate
