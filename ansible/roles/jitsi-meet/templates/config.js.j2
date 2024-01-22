@@ -498,7 +498,7 @@ whiteboard: {
         enableFirefoxP2p: false,
     {% endif %}
     {% if jitsi_meet_skip_interim_transcriptions %}
-        skipInterimTranscriptions: {{ jitsi_meet_skip_interim_transcriptions }},
+        skipInterimTranscriptions: {{ jitsi_meet_skip_interim_transcriptions | to_json }},
     {% endif %}
     }
 };
