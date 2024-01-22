@@ -7,6 +7,7 @@ local util = module:require "util.internal";
 local oss_util = module:require "util";
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local presence_check_status = oss_util.presence_check_status;
+local is_vpaas = oss_util.is_vpaas;
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
 local lobby_muc_component_config = 'lobby.' .. module:get_option_string("muc_mapper_domain_base");
@@ -73,7 +74,7 @@ local function check_for_moderator_rights(event)
         return ;
     end
     module:log("debug", "Occupant %s has identity = %s", occupant.bare_jid, inspect(identity))
-    if util.is_vpaas(room_jid) then
+    if is_vpaas(event.room) then
         identity.is_vpaas = true;
 
         -- for VPaaS moderation is enabled per user using the moderator claim from jwt

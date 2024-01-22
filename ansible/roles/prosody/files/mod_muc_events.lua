@@ -9,6 +9,7 @@ local uuid_gen = require "util.uuid".generate;
 local jwt = module:require "luajwtjitsi";
 local util = module:require "util.internal";
 local is_healthcheck_room = module:require "util".is_healthcheck_room;
+local is_vpaas = module:require "util".is_vpaas;
 
 local event_count = module:measure("muc_events_rate", "rate")
 local event_count_failed = module:measure("muc_events_failed", "rate")
@@ -70,9 +71,6 @@ local roomBlacklistHostPrefixes
 
 local eventURL
     = module:get_option_string("muc_events_url", 'http://127.0.0.1:9880/');
-
-local dropTenantPrefixes
-    = module:get_option_array("muc_events_drop_tenant_prefixes", {'vpaas-magic-cookie-'});
 
 local voChatHistoryURL
     = module:get_option_string("muc_chat_history_url");
@@ -268,16 +266,6 @@ local function extract_occupant_details(occupant)
     return r;
 end
 
-local function isRoomTenantDropped(room_jid)
-    local node, host, resource = jid.split(room_jid);
-    for i, tPrefix in ipairs(dropTenantPrefixes) do
-        if string.sub(node,1,string.len(tPrefix)+1) == '['..tPrefix then
-            module:log("debug","Droplist tenant: %s found in %s ", tPrefix, node);
-            return true;
-        end
-    end
-end
-
 local function isRoomBlacklisted(room_jid)
     local node, host, resource = jid.split(room_jid);
     for i, bPrefix in ipairs(roomBlacklistHostPrefixes) do
@@ -375,15 +363,16 @@ local function loadConferenceDetails(room_jid)
     return cdetails;
 end
 
-local function sendChatHistory(room_jid)
+local function sendChatHistory(room)
     if not voChatHistoryURL then
         module:log("debug", "No 'muc_chat_history_url' value set");
         return
     end
+    local room_jid = room.jid;
 
     local cdetails = loadConferenceDetails(room_jid);
     local timestamp = round(socket.gettime() * 1000);
-    local meeting_fqn = util.get_fqn_and_customer_id(room_jid);
+    local meeting_fqn = util.get_fqn_and_customer_id(room);
     local body = {
         ["roomAddress"] = room_jid,
         ["meetingFqn"] = meeting_fqn,
@@ -407,7 +396,7 @@ end
 local function endConference(room)
     local room_jid = room.jid;
     module:log("debug", "Cleanup details for room %s", room_jid);
-    sendChatHistory(room_jid);
+    sendChatHistory(room);
     remove_from_cache(getChatHistoryKey(room_jid));
     remove_from_cache(room_jid);
     for _, occupant in room:each_occupant() do
@@ -501,7 +490,7 @@ local function processEvent(type,event)
     end
 
     -- search room jid for tenancy prefixes before sending events
-    if isRoomTenantDropped(room_address) then
+    if is_vpaas(event.room) then
         module:log("debug", "processEvent: room tenant is droplisted %s", room_address);
         return;
     end
@@ -594,7 +583,7 @@ local function handleBroadcastPresence(event)
     end
 
     -- search room jid for tenancy prefixes before sending events
-    if isRoomTenantDropped(room_jid) then
+    if is_vpaas(event.room) then
         module:log("debug", "handleBroadcastPresence: room tenant is droplisted %s", room_jid);
         return;
     end
@@ -637,7 +626,8 @@ local function handleBroadcastPresence(event)
     end
 end
 
-local function processSubjectUpdate(occupant, room_jid, new_subject)
+local function processSubjectUpdate(occupant, room, new_subject)
+    local room_jid = room.jid;
     module:log("debug", "%s keys in confCache", confCache:count());
     module:log("debug", "processSubjectUpdate from_who %s, room_address %s, new_subject %s", occupant, room_jid, new_subject);
     local type = "SubjectUpdate";
@@ -659,7 +649,7 @@ local function processSubjectUpdate(occupant, room_jid, new_subject)
     end
 
     -- search room jid for tenancy prefixes before sending events
-    if isRoomTenantDropped(room_jid) then
+    if is_vpaas(room) then
         module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid);
         return;
     end
@@ -685,7 +675,7 @@ local function handleBroadcastMessage(event)
     if subject then
         module:log("debug", "handleBroadcastMessage Event %s: has subject %s, continue processing", event, subject:get_text());
         local who = event.room:get_occupant_by_nick(event.stanza.attr.from);
-        processSubjectUpdate(who, event.room.jid, subject:get_text());
+        processSubjectUpdate(who, event.room, subject:get_text());
         return;
     end
 
@@ -845,14 +835,14 @@ local function handleSpeakerStats(event)
     if (next(requestBody.speakerStats) ~= nil) then
         if event.room then
             local room = event.room
-            local main_room_jid;
+            local main_room;
             if room.main_room then
                 -- breakout room cached by speakerstats module
-                main_room_jid = room.main_room.jid;
+                main_room = room.main_room;
             else
-                main_room_jid = room.jid;
+                main_room = room;
             end
-            requestBody.meetingFqn = util.get_fqn_and_customer_id(main_room_jid);
+            requestBody.meetingFqn = util.get_fqn_and_customer_id(main_room);
         end
         requestBody.timestamp = round(socket.gettime() * 1000)
         module:log("info", "Sending speaker stats for %s", event.room.jid);

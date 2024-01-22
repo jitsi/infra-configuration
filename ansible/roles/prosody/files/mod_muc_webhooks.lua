@@ -11,9 +11,11 @@ local st = require 'util.stanza';
 local timer = require "util.timer";
 local split_jid = require "util.jid".split;
 
-local is_healthcheck_room = module:require "util".is_healthcheck_room;
-local get_room_from_jid = module:require "util".get_room_from_jid;
-local internal_room_jid_match_rewrite = module:require "util".internal_room_jid_match_rewrite;
+local oss_util = module:require "util";
+local is_healthcheck_room = oss_util.is_healthcheck_room;
+local get_room_from_jid = oss_util.get_room_from_jid;
+local internal_room_jid_match_rewrite = oss_util.internal_room_jid_match_rewrite;
+local is_vpaas = oss_util.is_vpaas;
 
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
@@ -246,7 +248,7 @@ function handle_occupant_access(event, event_type)
 
     if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or util.has_prefix(occupant.jid, TRANSCRIBER_PREFIX) or util.has_prefix(occupant.jid, RECORDER_PREFIX)) then
         module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)", occupant.jid, room.jid, is_breakout, main_room.jid);
-        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
         local session = event.origin;
         local payload = {};
         if session and session.auth_token then
@@ -325,7 +327,7 @@ function handle_occupant_access(event, event_type)
             ["eventType"] = final_event_type,
             ["data"] = payload
         }
-        if util.is_vpaas(main_room.jid) then
+        if is_vpaas(main_room) then
             participant_access_event["customerId"] = customer_id
         else
             -- standalone customer
@@ -418,7 +420,7 @@ function handle_occupant_access(event, event_type)
             return
         end
 
-        if not util.is_blacklisted(occupant) and util.is_vpaas(main_room.jid)
+        if not util.is_blacklisted(occupant) and is_vpaas(main_room)
                 and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT)
                 and event.origin and not event.origin.auth_token then
             module:log("warn", "Occupant %s tried to join a jaas room %s without a token", occupant.jid, room.jid)
@@ -477,7 +479,7 @@ function handle_occupant_access(event, event_type)
 
         -- send MAU usage for normal participants and dial calls only
         -- live stream/recording/sip calls are billed based on duration and not MAU
-        if not util.is_blacklisted(occupant) and util.is_vpaas(main_room.jid) and event_type == PARTICIPANT_JOINED then
+        if not util.is_blacklisted(occupant) and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
             local is_sip_jibri_event = final_event_type == SIP_CALL_IN_STARTED or final_event_type == SIP_CALL_OUT_STARTED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED
             if not is_breakout then
                 if not is_sip_jibri_event then
@@ -530,7 +532,7 @@ function handle_room_event(event, event_type)
     end
 
     module:log("debug", "Will send room event for %s", room.jid);
-    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
     local payload = {};
     payload.conference = internal_room_jid_match_rewrite(main_room.jid);
 
@@ -545,7 +547,7 @@ function handle_room_event(event, event_type)
         ["eventType"] = event_type,
         ["data"] = payload
     }
-    if util.is_vpaas(main_room.jid) then
+    if is_vpaas(main_room) then
         room_event["customerId"] = customer_id
     end
 
@@ -613,7 +615,7 @@ function handle_poll_created(pollData)
     end
 
     local sessionId = main_room._data.meetingId;
-    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room.jid);
+    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room);
 
     local who = pollData.room:get_occupant_by_nick(jid_bare(pollData.room.jid) .. "/" .. pollData.poll.senderId);
     local user = util.extract_occupant_identity_user(who)
@@ -659,7 +661,7 @@ function handle_poll_answered(answerData)
     end
 
     local sessionId = main_room._data.meetingId;
-    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room.jid);
+    local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room);
 
     local who = answerData.room:get_occupant_by_nick(jid_bare(answerData.room.jid) .. "/" .. answerData.voterId);
     local user = util.extract_occupant_identity_user(who)
@@ -706,7 +708,7 @@ module:hook("muc-occupant-joined", function(event)
         return ;
     end
 
-    if util.is_vpaas(main_room.jid) then
+    if is_vpaas(main_room) then
         timer.add_task(SETTINGS_PROVISIONING_CHECK_AFTER_SECONDS, function(_)
             if room._data.jaas_err then
                 local stanza = st.message({ type = 'error', from = room.jid; to = occupant.jid; })
@@ -773,7 +775,7 @@ local function occupant_affiliation_changed(event)
         }
 
         local sessionId = room._data.meetingId;
-        local meetingFqn, customerId = util.get_fqn_and_customer_id(room.jid);
+        local meetingFqn, customerId = util.get_fqn_and_customer_id(room);
 
         local role_change_event = {
             ["idempotencyKey"] = uuid_gen(),

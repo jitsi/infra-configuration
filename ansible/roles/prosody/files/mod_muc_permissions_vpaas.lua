@@ -3,7 +3,9 @@ local json = require "cjson";
 local inspect = require('inspect');
 
 local util = module:require "util.internal";
-local is_healthcheck_room = module:require "util".is_healthcheck_room;
+local oss_util = module:require "util";
+local is_healthcheck_room = oss_util.is_healthcheck_room;
+local is_vpaas = oss_util.is_vpaas;
 
 local ASAPAudience
 = module:get_option_string("asap_audience", 'jitsi');
@@ -24,7 +26,7 @@ module:log("info", "Loading mod_muc_permissions_vpaas!");
 -- Hook to assign disabled features for new rooms
 module:hook("muc-room-pre-create", function(event)
     local room = event.room;
-    if is_healthcheck_room(room.jid) or not util.is_vpaas(room.jid) then
+    if is_healthcheck_room(room.jid) or not is_vpaas(room) then
         return;
     end
 
@@ -46,7 +48,7 @@ module:hook("muc-room-pre-create", function(event)
         end
     end
 
-    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(room);
     local jaas_actuator_customer_details_url = jaas_actuator_base_url .. "/v1/customers/" .. customer_id;
 
     local headers = http_headers or {}
@@ -62,9 +64,8 @@ end);
 module:hook("muc-occupant-pre-join", function(event)
     local room, origin, stanza = event.room, event.origin, event.stanza;
     local occupant_jid = stanza.attr.from;
-    local room_jid = stanza.attr.to;
 
-    if is_healthcheck_room(room_jid) or util.is_blacklisted(occupant_jid) then
+    if is_healthcheck_room(room.jid) or util.is_blacklisted(occupant_jid) then
         return;
     end
 

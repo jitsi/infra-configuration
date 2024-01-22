@@ -4,7 +4,9 @@ local jid = require 'util.jid';
 local json = require 'cjson';
 local uuid_gen = require 'util.uuid'.generate;
 local util = module:require 'util.internal';
-local is_healthcheck_room = module:require 'util'.is_healthcheck_room;
+local oss_util = module:require 'util';
+local is_healthcheck_room = oss_util.is_healthcheck_room;
+local is_vpaas = oss_util.is_vpaas;
 
 local NICK_NS = 'http://jabber.org/protocol/nick';
 
@@ -125,7 +127,7 @@ function handle_occupant_access(event, event_type)
 
     if is_healthcheck_room(room.jid)
         or is_admin(occupant.bare_jid)
-        or not util.is_vpaas(room.jid)
+        or not is_vpaas(room)
         or occupant_domain ~= local_domain then
         return;
     end
@@ -137,7 +139,7 @@ function handle_occupant_access(event, event_type)
     local final_event_type = event_type;
 
     module:log('debug', 'Will send participant event %s for room %s', occupant.jid, main_room.jid);
-    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room.jid);
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
     local session = event.origin;
     local payload = {};
     if session and session.auth_token then
@@ -164,7 +166,7 @@ function handle_occupant_access(event, event_type)
         ['eventType'] = final_event_type,
         ['data'] = payload
     }
-    if util.is_vpaas(main_room.jid) then
+    if is_vpaas(main_room) then
         participant_access_event['customerId'] = customer_id
     else
         -- standalone customer
@@ -173,7 +175,7 @@ function handle_occupant_access(event, event_type)
         end
     end
 
-    if util.is_vpaas(main_room.jid)
+    if is_vpaas(main_room)
             and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT)
             and event.origin and not event.origin.auth_token then
         module:log('warn', 'Occupant %s tried to join a jaas room %s without a token', occupant.jid, room.jid)
