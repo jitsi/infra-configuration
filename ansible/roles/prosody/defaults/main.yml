@@ -151,7 +151,7 @@ prosody_missed_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call
 prosody_mod_kick_endpoint: false
 prosody_mod_jigasi_invite_enabled: false
 prosody_mod_limits_rate: "512kb/s"
-prosody_mod_log_ringbuffer_size: 1024*1024*4
+prosody_mod_log_ringbuffer_size: false
 prosody_mod_measure_stanza_counts: false
 prosody_mod_mucstatechange_notifications_bb_url: git@bitbucket.org:hipchat/prosody-mod_muc_statechange_notifications.git
 prosody_mod_mucstatechange_notifications_bb_version: master
