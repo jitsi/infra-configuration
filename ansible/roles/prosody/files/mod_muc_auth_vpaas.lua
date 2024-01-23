@@ -51,7 +51,7 @@ timer.add_task(CACHE_EXPIRATION_SECONDS, invalidate_cache)
 
 -- gets or creates an entry in the cache for the specified kid
 -- checks is it vpass and extract the tenant (everything before the /) in the kid
-local function get_kid_parse_cache_obj(kid) then
+local function get_kid_parse_cache_obj(kid)
     local kid_parse_cache_obj = kid_parse_cache:get(kid);
     if not kid_parse_cache_obj then
         kid_parse_cache_obj = {};
