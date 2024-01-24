@@ -256,7 +256,7 @@ def main():
         # if the brewery service on the shard is not enabled, use shared brewery service
         if not shard_brewery_enabled:
             consul_service = 'prosody-brewery'
-            search_filter = 'ServiceMeta.environment == "%s"'
+            search_filter = 'ServiceMeta.environment == "%s"'%(local_environment)
 
         pool_state=False
         # only look up pool state from k/v store if in pool mode
@@ -286,8 +286,9 @@ def main():
             if response:
                 for service in response:
                     shard_fact=fact_from_service(service, dc)
-                    if shard_fact['shard'] == local_shard:
+                    if (shard_fact['shard'] == local_shard) or not shard_brewery_enabled:
                         facts['address'] = shard_fact['address']
+                        facts['host_port'] = shard_fact['host_port']
                         facts['xmpp_host_private_ip_address'] = shard_fact['xmpp_host_private_ip_address']
                         facts['xmpp_host_public_ip_address'] = shard_fact['xmpp_host_public_ip_address']
                     consul_shards[shard_fact['shard']]=shard_fact
