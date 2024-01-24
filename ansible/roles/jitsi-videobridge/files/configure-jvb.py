@@ -173,6 +173,8 @@ def fetch_pool_state(consul_url, datacenter, environment, pool):
 def main():
     global urls_by_datacenter
 
+    # we assume a jvb brewery per shard by default
+    shard_brewery_enabled = True
     default_address = 'localhost'
     local_data = {}
     try:
@@ -213,6 +215,9 @@ def main():
         local_environment = local_data['environment']
         local_domain = local_data['domain']
 
+        if 'shard_brewery_enabled' in local_data:
+            shard_brewery_enabled = local_data['shard_brewery_enabled']
+
         if 'shard' in local_data:
             local_shard = local_data['shard']
         else:
@@ -222,7 +227,6 @@ def main():
             local_release_number = local_data['release_number']
         else:
             local_release_number=''
-
 
         pool_mode = 'shard'
         if 'pool_mode' in local_data:
@@ -248,6 +252,11 @@ def main():
 
         consul_service = 'signal'
         consul_shards = {}
+
+        # if the brewery service on the shard is not enabled, use shared brewery service
+        if not shard_brewery_enabled:
+            consul_service = 'prosody-brewery'
+            search_filter = 'ServiceMeta.environment == "%s"'
 
         pool_state=False
         # only look up pool state from k/v store if in pool mode

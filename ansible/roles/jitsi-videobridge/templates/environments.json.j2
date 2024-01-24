@@ -6,6 +6,7 @@
   "environment": "{{ hcv_environment }}",
   "domain": "{{ jvb_domain_name }}",
   "shard": "{{ shard_name }}",
+  "shard_brewery_enabled": {{ jvb_shard_brewery_enabled|to_json }},
   "release_number": "{{ jitsi_release_number }}",
   "consul_urls":{{ jvb_consul_urls|to_json }},
 {% endif %}
