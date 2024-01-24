@@ -82,63 +82,44 @@ fi
 
 PLAYBOOK="configure-jvb-local-oracle.yml"
 
-if [ -n "$INFRA_CONFIGURATION_REPO" ]; then
-    #if there's still no git branch set, assume main
-    [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
-
-  checkout_repos
-
-  cd $BOOTSTRAP_DIRECTORY/infra-configuration
-  ansible-playbook -v \
-    -i "127.0.0.1," \
-    -c local \
-    --vault-password-file=/root/.vault-password \
-    --tags "$DEPLOY_TAGS" \
-    --extra-vars "cloud_name=$CLOUD_NAME cloud_provider=oracle hcv_environment=$ENVIRONMENT prosody_domain_name=$DOMAIN shard_name=$SHARD " \
-    -e "{environment_type: $ENVIRONMENT_TYPE}" \
-    -e "{jvb_custom_region: $ORACLE_REGION}" \
-    -e "{oracle_region: $ORACLE_REGION}" \
-    -e "{jvb_consul_datacenter: $AWS_CLOUD_NAME}" \
-    -e "{jitsi_release_number: $RELEASE_NUMBER}" \
-    -e "{release_number: $RELEASE_NUMBER}" \
-    -e "{jvb_release_number: $JVB_RELEASE_NUMBER}" \
-    -e "{xmpp_host_public_ip_address: $XMPP_HOST_PUBLIC_IP_ADDRESS}" \
-    -e "{jvb_reconfigure_on_changes_flag: $JVB_RECONFIGURE_ON_CHANGES_FLAG}" \
-    -e "{oracle_instance_id: $INSTANCE_ID}" \
-    -e "{autoscaler_group: $CUSTOM_AUTO_SCALE_GROUP}" \
-    -e "{autoscaler_sidecar_jvb_flag: $AUTOSCALER_SIDECAR_JVB_FLAG}" \
-    -e "{jvb_pool_mode: $JVB_POOL_MODE}" \
-    ansible/$PLAYBOOK
-  RET=$?
-  cd -
-else
-    #if there's still no git branch set, assume master
-    [ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
-
-    ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
-    -v \
-    -d /tmp/bootstrap --purge \
-    -i \"127.0.0.1,\" \
-    --vault-password-file=/root/.vault-password \
-    --accept-host-key \
-    -C "$GIT_BRANCH" \
-    --tags "$DEPLOY_TAGS" \
-    --extra-vars "cloud_name=$CLOUD_NAME cloud_provider=oracle hcv_environment=$ENVIRONMENT prosody_domain_name=$DOMAIN shard_name=$SHARD " \
-    -e "{environment_type: $ENVIRONMENT_TYPE}" \
-    -e "{jvb_custom_region: $ORACLE_REGION}" \
-    -e "{oracle_region: $ORACLE_REGION}" \
-    -e "{jvb_consul_datacenter: $AWS_CLOUD_NAME}" \
-    -e "{jitsi_release_number: $RELEASE_NUMBER}" \
-    -e "{release_number: $RELEASE_NUMBER}" \
-    -e "{jvb_release_number: $JVB_RELEASE_NUMBER}" \
-    -e "{xmpp_host_public_ip_address: $XMPP_HOST_PUBLIC_IP_ADDRESS}" \
-    -e "{jvb_reconfigure_on_changes_flag: $JVB_RECONFIGURE_ON_CHANGES_FLAG}" \
-    -e "{oracle_instance_id: $INSTANCE_ID}" \
-    -e "{autoscaler_group: $CUSTOM_AUTO_SCALE_GROUP}" \
-    -e "{autoscaler_sidecar_jvb_flag: $AUTOSCALER_SIDECAR_JVB_FLAG}" \
-    -e "{jvb_pool_mode: $JVB_POOL_MODE}" \
-    ansible/$PLAYBOOK
-    RET=$?
+if [ -z "$INFRA_CONFIGURATION_REPO" ]; then
+  echo "No INFRA_CONFIGURATION_REPO set, using default..."
+  export INFRA_CONFIGURATION_REPO="https://github.com/jitsi/infra-configuration.git"
 fi
+
+if [ -z "$INFRA_CUSTOMIZATIONS_REPO" ]; then
+  echo "No INFRA_CUSTOMIZATIONS_REPO set, using default..."
+  export INFRA_CUSTOMIZATIONS_REPO="https://github.com/jitsi/infra-customizations.git"
+fi
+
+#if there's still no git branch set, assume main
+[ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
+
+checkout_repos
+
+cd $BOOTSTRAP_DIRECTORY/infra-configuration
+ansible-playbook -v \
+  -i "127.0.0.1," \
+  -c local \
+  --vault-password-file=/root/.vault-password \
+  --tags "$DEPLOY_TAGS" \
+  --extra-vars "cloud_name=$CLOUD_NAME cloud_provider=oracle hcv_environment=$ENVIRONMENT prosody_domain_name=$DOMAIN shard_name=$SHARD " \
+  -e "{environment_type: $ENVIRONMENT_TYPE}" \
+  -e "{jvb_custom_region: $ORACLE_REGION}" \
+  -e "{oracle_region: $ORACLE_REGION}" \
+  -e "{jvb_consul_datacenter: $AWS_CLOUD_NAME}" \
+  -e "{jitsi_release_number: $RELEASE_NUMBER}" \
+  -e "{release_number: $RELEASE_NUMBER}" \
+  -e "{jvb_release_number: $JVB_RELEASE_NUMBER}" \
+  -e "{xmpp_host_public_ip_address: $XMPP_HOST_PUBLIC_IP_ADDRESS}" \
+  -e "{jvb_reconfigure_on_changes_flag: $JVB_RECONFIGURE_ON_CHANGES_FLAG}" \
+  -e "{oracle_instance_id: $INSTANCE_ID}" \
+  -e "{autoscaler_group: $CUSTOM_AUTO_SCALE_GROUP}" \
+  -e "{autoscaler_sidecar_jvb_flag: $AUTOSCALER_SIDECAR_JVB_FLAG}" \
+  -e "{jvb_pool_mode: $JVB_POOL_MODE}" \
+  ansible/$PLAYBOOK
+RET=$?
+cd -
+
 
 exit $RET

@@ -9,7 +9,11 @@ jicofo {
 
   bridge {
 {% if jicofo_separate_jvb_muc %}
+{% if prosody_brewery_shard_enabled %}
     brewery-jid = "jvbbrewery@{{ prosody_jvb_muc_name }}"
+{% else %}
+    brewery-jid = "release-{{ jitsi_release_number }}@{{ prosody_jvb_muc_name }}"
+{% endif %}
 {% else %}
     brewery-jid = "{{ jicofo_jvb_brewery_muc }}"
 {% endif %}
@@ -148,8 +152,8 @@ jicofo {
 {% if jicofo_separate_jvb_muc %}
     service {
       enabled = true
-      hostname = "127.0.0.1"
-      port = 6222
+      hostname = "{{ jicofo_prosody_jvb_hostname }}"
+      port = {{ jicofo_prosody_jvb_port }}
       domain = "{{ prosody_jvb_auth_domain_name }}"
       username = "{{ jicofo_auth_user }}"
       password = "{{ jicofo_auth_password }}"

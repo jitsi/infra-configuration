@@ -19,6 +19,22 @@
     regexp: '^exec java'
     line: 'exec java -Xmx4096m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp $LOGGING_CONFIG_PARAM $JAVA_SYS_PROPS -cp $cp $mainClass $@'
 
+- name: Jicofo brewery configuration
+  ansible.builtin.uri:
+    url: http://localhost:8500/v1/catalog/service/prosody-brewery
+    method: GET
+    return_content: true
+    status_code: 200
+    body_format: json
+  register: prosody_brewery_catalog
+  when: prosody_brewery_shard_enabled
+
+- name: Jicofo brewery configuration
+  ansible.builtin.set_fact:
+    jicofo_prosody_jvb_hostname: "{{ prosody_brewery_catalog.json[0].ServiceAddress }}"
+    jicofo_prosody_jvb_port: "{{ prosody_brewery_catalog.json[0].ServicePort }}"
+  when: prosody_brewery_shard_enabled and prosody_brewery_catalog.json is defined
+
 - name: Jicofo configuration file
   ansible.builtin.template:
     src: jicofo.conf.j2
