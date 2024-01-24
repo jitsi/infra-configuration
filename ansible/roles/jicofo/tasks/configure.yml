@@ -27,13 +27,13 @@
     status_code: 200
     body_format: json
   register: prosody_brewery_catalog
-  when: jicofo_prosody_brewery_shard_enabled
+  when: not jicofo_prosody_brewery_shard_enabled
 
 - name: Jicofo brewery configuration
   ansible.builtin.set_fact:
     jicofo_prosody_jvb_hostname: "{{ prosody_brewery_catalog.json[0].ServiceAddress }}"
     jicofo_prosody_jvb_port: "{{ prosody_brewery_catalog.json[0].ServicePort }}"
-  when: jicofo_prosody_brewery_shard_enabled and prosody_brewery_catalog.json is defined
+  when: not jicofo_prosody_brewery_shard_enabled and prosody_brewery_catalog.json is defined
 
 - name: Jicofo configuration file
   ansible.builtin.template:
