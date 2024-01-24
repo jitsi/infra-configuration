@@ -49,6 +49,7 @@ jicofo_max_video_senders: 999999
 jicofo_opts: ""
 jicofo_prosody_jvb_hostname: "127.0.0.1"
 jicofo_prosody_jvb_port: 6222
+jicofo_prosody_brewery_shard_enabled: "{{ prosody_brewery_shard_enabled | default(true) }}"
 jicofo_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
 jicofo_require_muc_config_flag: false

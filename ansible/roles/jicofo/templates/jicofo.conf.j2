@@ -9,7 +9,7 @@ jicofo {
 
   bridge {
 {% if jicofo_separate_jvb_muc %}
-{% if prosody_brewery_shard_enabled %}
+{% if jicofo_prosody_brewery_shard_enabled %}
     brewery-jid = "jvbbrewery@{{ prosody_jvb_muc_name }}"
 {% else %}
     brewery-jid = "release-{{ jitsi_release_number }}@{{ prosody_jvb_muc_name }}"
