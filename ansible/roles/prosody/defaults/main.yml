@@ -28,6 +28,8 @@ prosody_asap_issuer: jitsi
 prosody_asap_key_path: /etc/prosody/certs/asap.key
 prosody_auth_domain_name: "auth.{{ prosody_domain_name }}"
 prosody_bosh_max_inactivity: 60
+# assume shard has local prosody-jvb, otherwise use prosody-brewery shared service
+prosody_brewery_shard_enabled: true
 prosody_breakout_rooms_enabled: true
 prosody_c2s_stanza_size_limit: '512*1024'
 prosody_cache_keys_url: false

@@ -98,6 +98,11 @@
     jvb_host: "{{ jvb_facts.xmpp_host_private_ip_address }}"
   when: jvb_facts.xmpp_host_private_ip_address is defined
 
+- name: Set XMPP hostname from dynamic fact if available
+  ansible.builtin.set_fact:
+    jvb_xmpp_port: "{{ jvb_facts.host_port }}"
+  when: jvb_facts.host_port is defined
+
 - name: Set drain mode if pool state is set to drain
   ansible.builtin.set_fact:
     jvb_initial_drain_mode: true

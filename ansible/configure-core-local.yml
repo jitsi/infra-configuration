@@ -192,6 +192,8 @@
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true }
     # enable java 11 if set for the environment
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jicofo_java_11 }}", java_install_flag: false }
+    - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true }
     # Temporarily enable the install flag until all images are updated
     - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: true, jicofo_rtcstats_push_configure_flag: true }

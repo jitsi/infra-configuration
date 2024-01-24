@@ -190,6 +190,8 @@ jvb_service_name: "jitsi-videobridge2"
 jvb_service_version_shell: "dpkg -s {{ jitsi_videobridge_deb_pkg_name }} | grep Version | awk '{print $2}' | sed 's/..$//'"
 jvb_set_memory: true
 jvb_shape: "{{ ansible_ec2_instance_type if ansible_ec2_instance_type is defined else 'default' }}"
+# assume shard has a jvb-brewery, otherwise lookup prosody-brewery service
+jvb_shard_brewery_enabled: true
 jvb_shards: []
 jvb_single_harvester_port: 10000
 jvb_skip_authentication_for_silence: false

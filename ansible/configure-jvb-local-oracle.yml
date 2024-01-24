@@ -16,6 +16,7 @@
     - secrets/asap-keys.yml
     - secrets/oci-logging.yml
     - roles/jitsi-repo/defaults/main.yml
+    - roles/jitsi-videobridge/defaults/main.yml
     - secrets/repo.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
@@ -32,6 +33,7 @@
       JVB_MUC_NICKNAME: "{{ ansible_hostname }}"
       JVB_POOL_MODE: "{{ jvb_pool_mode }}"
       RELEASE_NUMBER: "{{ jitsi_release_number }}"
+      SHARD_BREWERY_ENABLED: "{{ jvb_shard_brewery_enabled|to_json }}"
     consul_template_template_files:
       - src: roles/jitsi-videobridge/files/shards.json.template
       - src: roles/jitsi-videobridge/files/xmpp.conf.template

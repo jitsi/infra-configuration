@@ -4,7 +4,11 @@ videobridge.apis.xmpp-client.configs {
         PORT={{ jvb_xmpp_port }}
     {% if prosody_jvb_configure_flag %}
         DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
+{% if jvb_shard_brewery_enabled %}
         MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
+{% else %}
+        MUC_JIDS="release-{{ jitsi_release_number }}@{{ jvb_prosody_jvb_muc_name }}"
+{% endif %}
     {% else %}
         DOMAIN={{ jvb_auth_domain }}
         MUC_JIDS="{{ jvb_brewery_muc }}"
@@ -26,7 +30,11 @@ videobridge.apis.xmpp-client.configs {
         PORT={{ jvb_shards[s]['host_port'] if jvb_shards[s]['host_port'] is defined else jvb_xmpp_port }}
 {% if prosody_jvb_configure_flag %}
         DOMAIN={{ jvb_prosody_jvb_auth_domain_name }}
+{% if jvb_shard_brewery_enabled %}
         MUC_JIDS="jvbbrewery@{{ jvb_prosody_jvb_muc_name }}"
+{% else %}
+        MUC_JIDS="release-{{ jitsi_release_number }}@{{ jvb_prosody_jvb_muc_name }}"
+{% endif %}
 {% else %}
         DOMAIN={{ jvb_auth_domain }}
         MUC_JIDS="{{ jvb_brewery_muc }}"

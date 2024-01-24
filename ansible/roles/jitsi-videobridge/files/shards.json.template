@@ -1,6 +1,8 @@
 {
   "shards": {
 {{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
+{{ $shard_brewery_enabled := envOrDefault "SHARD_BREWERY_ENABLED" "true" -}}
+
 {{ with node -}}
 {{ scratch.Set "local_dc" .Node.Datacenter -}}
 {{ end -}}
@@ -8,19 +10,30 @@
 {{ if eq $pool_mode "remote" "global" -}}
   {{ range $dcidx, $dc := datacenters -}}
     {{ if or (and (eq $pool_mode "remote") (ne $dc $local_dc)) (eq $pool_mode "global") -}}
-      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+      {{ if eq $shard_brewery_enabled "false" }}
+        {{ $service := print "prosody-brewery@" $dc -}}
+        {{ scratch.Set "service" $service -}}
+      {{ else -}}
+        {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+        {{ scratch.Set "service" $service -}}
+      {{ end -}}
+      {{ $service := scratch.Get "service" -}}
       {{range $index, $item := service $service -}}
         {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
       {{ end -}}
     {{ end -}}
   {{ end -}}
 {{ else -}}
-  {{ if eq $pool_mode "local" -}}
-    {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
-    {{ scratch.Set "service" $service -}}
+  {{ if eq $shard_brewery_enabled "false" }}
+    {{ scratch.Set "service" "prosody-brewery" -}}
   {{ else -}}
-    {{ $service := print "shard-" (env "SHARD") ".signal" -}}
-    {{ scratch.Set "service" $service -}}
+    {{ if eq $pool_mode "local" -}}
+      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
+      {{ scratch.Set "service" $service -}}
+    {{ else -}}
+      {{ $service := print "shard-" (env "SHARD") ".signal" -}}
+      {{ scratch.Set "service" $service -}}
+    {{ end -}}
   {{ end -}}
   {{ $service := scratch.Get "service" -}}
   {{range $index, $item := service $service -}}
@@ -43,7 +56,11 @@
   "drain_mode":{{ envOrDefault "JVB_INITIAL_DRAIN_MODE" "false" }},
   "port": 6222,
   "domain":"auth.jvb.{{ scratch.Get "domain" }}",
+{{ if eq $shard_brewery_enabled "false" }}
+  "muc_jids":"release-{{ envOrDefault "RELEASE_NUMBER" "0" }}@muc.jvb.{{ scratch.Get "domain" }}",
+{{ else -}}
   "muc_jids":"jvbbrewery@muc.jvb.{{ scratch.Get "domain" }}",
+{{ end -}}
   "username":"{{ envOrDefault "JVB_USERNAME" "jvb" }}",
   "password":"{{ envOrDefault "JVB_PASSWORD" "jvb" }}",
   "muc_nickname":"{{ envOrDefault "JVB_MUC_NICKNAME" "jvb1" }}",
