@@ -57,7 +57,7 @@
   "port": 6222,
   "domain":"auth.jvb.{{ scratch.Get "domain" }}",
 {{ if eq $shard_brewery_enabled "false" }}
-  "muc_jids":"release{{ envOrDefault "RELEASE_NUMBER" "0" }}@muc.jvb.{{ scratch.Get "domain" }}",
+  "muc_jids":"release-{{ envOrDefault "RELEASE_NUMBER" "0" }}@muc.jvb.{{ scratch.Get "domain" }}",
 {{ else -}}
   "muc_jids":"jvbbrewery@muc.jvb.{{ scratch.Get "domain" }}",
 {{ end -}}
