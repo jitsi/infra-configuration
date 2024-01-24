@@ -157,6 +157,9 @@ jicofo {
       domain = "{{ prosody_jvb_auth_domain_name }}"
       username = "{{ jicofo_auth_user }}"
       password = "{{ jicofo_auth_password }}"
+{%- if not jicofo_prosody_brewery_shard_enabled %}
+      disable-certificate-verification = true
+{%- endif %}
     }
 {% endif %}
 {% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
