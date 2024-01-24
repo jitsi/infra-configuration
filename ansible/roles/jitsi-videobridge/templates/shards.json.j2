@@ -4,7 +4,11 @@
   "port": {{ jvb_xmpp_port }},
 {% if prosody_jvb_configure_flag %}
   "domain":"{{ jvb_prosody_jvb_auth_domain_name }}",
+{% if jvb_shard_brewery_enabled %}
   "muc_jids":"jvbbrewery@{{ jvb_prosody_jvb_muc_name }}",
+{% else %}
+  "muc_jids":"release-{{ jitsi_release_number }}@{{ jvb_prosody_jvb_muc_name }}",
+{% endif %}
 {% else %}
   "domain":"{{ jvb_auth_domain }}",
   "muc_jids":"{{ jvb_brewery_muc }}",

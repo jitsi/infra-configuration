@@ -1,4 +1,5 @@
 {{ $pool_mode := envOrDefault "JVB_POOL_MODE" "shard" -}}
+{{ $shard_brewery_enabled := envOrDefault "SHARD_BREWERY_ENABLED" "true" -}}
 {{ if eq $pool_mode "remote" "global" -}}
   {{ with node -}}
   {{ scratch.Set "local_dc" .Node.Datacenter -}}
@@ -6,19 +7,30 @@
   {{ $local_dc := scratch.Get "local_dc" -}}
   {{ range $dcidx, $dc := datacenters -}}
     {{ if or (and (eq $pool_mode "remote") (ne $dc $local_dc)) (eq $pool_mode "global") -}}
-      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+      {{ if eq $shard_brewery_enabled "false" }}
+        {{ $service := print "prosody-brewery@" $dc -}}
+        {{ scratch.Set "service" $service -}}
+      {{ else -}}
+        {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal@" $dc -}}
+        {{ scratch.Set "service" $service -}}
+      {{ end -}}
+      {{ $service := scratch.Get "service" -}}
       {{range $index, $item := service $service -}}
         {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
       {{ end -}}
     {{ end -}}
   {{ end -}}
 {{ else -}}
-  {{ if eq $pool_mode "local" -}}
-    {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
-    {{ scratch.Set "service" $service -}}
+  {{ if eq $shard_brewery_enabled "false" }}
+    {{ scratch.Set "service" "prosody-brewery" -}}
   {{ else -}}
-    {{ $service := print "shard-" (env "SHARD") ".signal" -}}
-    {{ scratch.Set "service" $service -}}
+    {{ if eq $pool_mode "local" -}}
+      {{ $service := print "release-" (envOrDefault "RELEASE_NUMBER" "0") ".signal" -}}
+      {{ scratch.Set "service" $service -}}
+    {{ else -}}
+      {{ $service := print "shard-" (env "SHARD") ".signal" -}}
+      {{ scratch.Set "service" $service -}}
+    {{ end -}}
   {{ end -}}
   {{ $service := scratch.Get "service" -}}
   {{range $index, $item := service $service -}}
@@ -32,7 +44,11 @@ videobridge.apis.xmpp-client.configs {
         HOSTNAME={{ .Address }}
         PORT={{ with .ServiceMeta.prosody_jvb_client_port}}{{.}}{{ else }}6222{{ end }}
         DOMAIN=auth.jvb.{{ .ServiceMeta.domain }}
+{{- if eq $shard_brewery_enabled "false" }}
+        MUC_JIDS="release-{{ envOrDefault "RELEASE_NUMBER" "0" }}@muc.jvb.{{ .ServiceMeta.domain }}"
+{{- else }}
         MUC_JIDS="jvbbrewery@muc.jvb.{{ .ServiceMeta.domain }}"
+{{- end }}
         USERNAME={{ envOrDefault "JVB_USERNAME" "jvb" }}
         PASSWORD={{  envOrDefault "JVB_PASSWORD" "jvb" }}
         MUC_NICKNAME={{ envOrDefault "JVB_MUC_NICKNAME" "jvb1" }}
