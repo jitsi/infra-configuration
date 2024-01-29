@@ -101,9 +101,6 @@ frontend www-http
   acl banned_domain var(req.ban_domain) -m str ban
   http-request deny deny_status 429 if banned_domain
 
-{% if haproxy_corp_headers_enabled %}
-  http-request set-var(txn.referer) req.fhdr(referer),lower
-{% endif %}
 {% if haproxy_enable_https_redirect %}
   http-request add-header X-Forwarded-Proto http
   http-request add-header X-Proxy-Region {{ haproxy_region }}
@@ -142,9 +139,6 @@ frontend www-http
 
   # we assume the path is a room if we have all renderable characters
   acl is_room path_reg ^/([[:graph:]]+)$
-{% if haproxy_corp_headers_enabled %}
-  http-request set-var(txn.is_room) always_true if is_room
-{% endif %}
 
   acl stick_true url_reg [?&]stick=true
   http-request set-var(txn.not_web) always_true if stick_true is_room !not_room
@@ -232,15 +226,6 @@ backend jvb-colibri-proxy
 backend web
   # set the Host header to the one the ingress expects
   http-request set-header Host {{ haproxy_web_backend }}
-{% if haproxy_corp_headers_enabled %}
-  acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
-  acl corp_path capture.req.uri -i -m end /static/[^/]+$
-  acl corp_room var(txn.is_room) -m bool always_true
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_room
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
-{% endif %}
 {% if haproxy_enable_https_redirect %}
   redirect scheme https if !{ ssl_fc }
 {% endif %}
@@ -253,15 +238,6 @@ backend local_health
   server local 127.0.0.1:8080
 
 backend {{ haproxy_backend_name }}
-{% if haproxy_corp_headers_enabled %}
-  acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
-  acl corp_path capture.req.uri -i -m end /static/[^/]+$
-  acl corp_room var(txn.is_room) -m bool always_true
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_room
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
-{% endif %}
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
@@ -295,15 +271,7 @@ backend {{ haproxy_backend_name }}
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }}
-{% endraw %}{% if haproxy_corp_headers_enabled %}
-  acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
-  acl corp_path capture.req.uri -i -m end /static/[^/]+$
-  acl corp_room var(txn.is_room) -m bool always_true
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_room
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
-{% endif %}
+{% endraw %}
 {%- if haproxy_enable_https_redirect %}
   redirect scheme https if !{ ssl_fc }
 {%- endif %}
@@ -311,15 +279,7 @@ backend {{ $shard.ServiceMeta.shard }}
   server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{{ range $release := scratch.MapValues "releases" }}
 backend release-{{ $release }}
-{% endraw %}{% if haproxy_corp_headers_enabled %}
-  acl corp_enabled_flag var(txn.referer) -i -m beg {{ haproxy_corp_headers_referers }}
-  acl corp_path capture.req.uri -i -m end /static/[^/]+$
-  acl corp_room var(txn.is_room) -m bool always_true
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Embedder-Policy require-corp if corp_enabled_flag corp_room
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_path
-  http-response set-header Cross-Origin-Resource-Policy cross-origin if corp_enabled_flag corp_room
-{% endif %}
+{% endraw %}
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 

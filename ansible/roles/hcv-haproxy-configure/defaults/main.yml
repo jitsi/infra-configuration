@@ -32,8 +32,6 @@ haproxy_consul_server: localhost:8500
 haproxy_conf_path: "/etc/haproxy"
 haproxy_configure_only: false
 haproxy_configure_setup: true
-# set cross-origin isolation headers. if true, define haproxy_corp_headers_referers as list of valid referers
-haproxy_corp_headers_enabled: false
 haproxy_default_conf_path: "/etc/default/"
 haproxy_domain_blacklist: example.com
 haproxy_domain_blacklist_enabled: false
