@@ -45,6 +45,7 @@ modules_enabled = {
     -- Nice to have
       "version"; -- Allow users to query for the prosody server version
       "secure_interfaces"; -- Avoids using TLS on connections from localhost
+      "ping";
 
     -- Admin interfaces
       "admin_adhoc"; -- Allows administration via an XMPP client that supports ad-hoc commands
@@ -394,7 +395,6 @@ VirtualHost "{{ prosody_domain_name }}"
         }
         modules_enabled = {
           "bosh";
-          "ping";
           -- "component_disconnect";
 {% if prosody_enable_filter_iq_rayo %}
           "filter_iq_rayo";
@@ -477,7 +477,6 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_guest_auth %}
 VirtualHost "{{ prosody_guest_domain_name }}"
         modules_enabled = {
-          "ping";
         {% if prosody_xmpp_resume %}
            "smacks";
         {% endif %}
@@ -493,7 +492,6 @@ VirtualHost "{{ prosody_auth_domain_name }}"
     {% if prosody_mod_limits_rate %}
       "limits_exception";
     {% endif %}
-      "ping";
     }
     authentication = "internal_hashed"
     ssl = {
@@ -503,7 +501,6 @@ VirtualHost "{{ prosody_auth_domain_name }}"
 
 VirtualHost "recorder.{{ prosody_domain_name }}"
     modules_enabled = {
-      "ping";
 {% if prosody_xmpp_resume %}
       "smacks";
 {% endif %}
@@ -660,7 +657,6 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 -- internal muc component, meant to enable pools of jibri and jigasi clients
 Component "internal.auth.{{ prosody_domain_name }}" "muc"
     modules_enabled = {
-      "ping";
       "muc_hide_all";
       "muc_filter_access";
 {% if prosody_enable_muc_events %}
@@ -761,7 +757,6 @@ Component "visitors.{{ prosody_domain_name }}" "visitors_component"
 {% if hcv_environment in sip_jibri_shared_secrets %}
 VirtualHost "sipjibri.{{ prosody_domain_name }}"
     modules_enabled = {
-      "ping";
 {% if prosody_xmpp_resume %}
       "smacks";
 {% endif %}
@@ -777,7 +772,6 @@ VirtualHost "sipjibri.{{ prosody_domain_name }}"
 {% if jigasi_xmpp_password %}
 VirtualHost "jigasi.{{ prosody_domain_name }}"
     modules_enabled = {
-      "ping";
 {% if prosody_xmpp_resume %}
       "smacks";
 {% endif %}
