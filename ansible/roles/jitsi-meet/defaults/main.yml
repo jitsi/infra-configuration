@@ -149,6 +149,8 @@ jitsi_meet_enable_sanitize_hack: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
 jitsi_meet_enable_simulcast: true
+jitsi_meet_enable_simulcast_av1: false
+jitsi_meet_enable_simulcast_vp9: false
 jitsi_meet_enable_source_name_signaling: false
 jitsi_meet_enable_ssrc_rewriting: false
 jitsi_meet_enable_stereo: false
