@@ -13,4 +13,4 @@ java_url_packages:
   - jdk-headless
   - jdk
   - dbg
-java_use_11: false
+java_use_11: true
