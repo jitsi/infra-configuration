@@ -17,13 +17,13 @@ jitsi_meet_anonymousdomain: false
 jitsi_meet_api_billing_counter: false
 jitsi_meet_api_branding_data_url: false
 jitsi_meet_api_conference_event_url: "{{ jitsi_meet_api_url }}/conferenceEvent"
-jitsi_meet_api_conference_invite_callflows_url: "{{ jitsi_meet_api_url }}/conferenceinvitecallflows"
-jitsi_meet_api_conference_invite_url: "{{ jitsi_meet_api_url }}/conferenceInvite"
+jitsi_meet_api_conference_invite_callflows_url: false
+jitsi_meet_api_conference_invite_url: false
 jitsi_meet_api_conference_mapper_url: "{{ jitsi_meet_api_url }}/conferenceMapper"
 jitsi_meet_api_dialin_numbers_url: "{{ jitsi_meet_api_url }}/phoneNumberList"
-jitsi_meet_api_dialout_auth_url: "{{ jitsi_meet_api_url }}/authorizephone"
-jitsi_meet_api_dialout_region_url: "{{ jitsi_meet_api_url }}/outbounddestination"
-jitsi_meet_api_dialout_codes_url: "{{ jitsi_meet_api_url }}/countrycodes"
+jitsi_meet_api_dialout_auth_url: false
+jitsi_meet_api_dialout_region_url: false
+jitsi_meet_api_dialout_codes_url: false
 jitsi_meet_api_directory_search_url: "{{ jitsi_meet_api_url }}/directorySearch"
 jitsi_meet_api_guest_dial_out_status_url: false
 jitsi_meet_api_guest_dial_out_url: false
@@ -209,7 +209,7 @@ jitsi_meet_opus_red_enabled: false
 jitsi_meet_override_plugin_contents: ""
 jitsi_meet_p2p_preferred_codecs: null
 jitsi_meet_p2p_preferred_mobile_codecs: null
-jitsi_meet_people_search_query_types: "['user','conferenceRooms']"
+jitsi_meet_people_search_query_types: false
 jitsi_meet_performance_stats: false
 jitsi_meet_polls_disabled: false
 jitsi_meet_prefer_sctp: false
