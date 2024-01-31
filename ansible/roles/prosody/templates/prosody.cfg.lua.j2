@@ -701,12 +701,18 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
     muc_room_allow_persistent = false
     muc_room_locking = false
     muc_room_default_public_jids = true
+{% if prosody_muc_max_occupants %}
+    muc_max_occupants = {{ prosody_muc_max_occupants }}
+{% endif %}
     modules_enabled = {
 {% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
 {% endif %}
 {% if prosody_meet_webhooks_enabled %}
         "muc_webhooks";
+{% endif %}
+{% if prosody_muc_max_occupants %}
+        "muc_max_occupants";
 {% endif %}
     }
 {% endif %}
@@ -719,6 +725,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
     muc_room_locking = false
     muc_room_default_public_jids = true
     muc_room_allow_persistent = false
+{% if prosody_muc_max_occupants %}
+    muc_max_occupants = {{ prosody_muc_max_occupants }}
+{% endif %}
     modules_enabled = {
 {% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
@@ -737,6 +746,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% endif %}
 {% if muc_meeting_id_exists.stat.exists %}
         "muc_meeting_id";
+{% endif %}
+{% if prosody_muc_max_occupants %}
+        "muc_max_occupants";
 {% endif %}
     }
 {% endif %}
