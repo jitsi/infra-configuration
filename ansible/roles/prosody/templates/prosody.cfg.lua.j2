@@ -682,11 +682,11 @@ Component "avmoderation.{{ prosody_domain_name }}" "av_moderation_component"
 {% if prosody_meet_speaker_stats_enabled %}
 Component "speakerstats.{{ prosody_domain_name }}" "speakerstats_component"
     muc_component = "conference.{{ prosody_domain_name }}"
-    {% if prosody_enable_muc_events %}
     modules_enabled = {
+{% if prosody_enable_muc_events %}
       "muc_events";
+{% endif %}
     }
-    {% endif %}
 {% endif %}
 {% if prosody_meet_conf_duration_enabled %}
 Component "conferenceduration.{{ prosody_domain_name }}" "conference_duration_component"
@@ -701,14 +701,14 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
     muc_room_allow_persistent = false
     muc_room_locking = false
     muc_room_default_public_jids = true
-    {% if prosody_enable_muc_rate_limit %}
     modules_enabled = {
+{% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
+{% endif %}
 {% if prosody_meet_webhooks_enabled %}
         "muc_webhooks";
 {% endif %}
     }
-    {% endif %}
 {% endif %}
 
 {% if prosody_breakout_rooms_enabled %}
@@ -719,9 +719,10 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
     muc_room_locking = false
     muc_room_default_public_jids = true
     muc_room_allow_persistent = false
-    {% if prosody_enable_muc_rate_limit %}
     modules_enabled = {
+{% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
+{% endif %}
 {% if prosody_polls_enabled %}
         "polls";
 {% endif %}
@@ -738,7 +739,6 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
         "muc_meeting_id";
 {% endif %}
     }
-    {% endif %}
 {% endif %}
 
 {% if prosody_meet_room_metadata_enabled %}
