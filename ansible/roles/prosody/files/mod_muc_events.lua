@@ -216,6 +216,11 @@ local function extract_occupant_details(occupant)
     r = r or {};
     r['jid'] = occupant.jid;
     r['bare_jid'] = occupant.bare_jid;
+    if is_visitor_prosody then
+        local node, host, resource = jid.split(occupant.jid);
+        r['jid'] = jid.join(node, main_domain, resource);
+        r['bare_jid'] = jid.join(node, main_domain);
+    end
 
     local t;
     if not r['email'] then
@@ -291,7 +296,7 @@ local function event_cb(content_, code_, response_, request_)
     end
 end
 
-local function sendEvent(type,room_address,participant,group,pdetails,cdetails)
+local function sendEvent(type ,room_address, participant, group, pdetails,cdetails)
     local event_ts = round(socket.gettime()*1000);
     local out_event = {
         ["conference"] = room_address,
@@ -452,16 +457,6 @@ end
 local function processEvent(type,event)
     if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local who = event.occupant;
-    local room_address = event.room.jid;
-
-    -- for the visitor prosody we want to report the same jid as main prosody in order to not confuse backend
-    -- maybe we can drop this at some point by updating backend
-    if is_visitor_prosody then
-        local room_node = jid.node(room_address);
-        room_address = jid.join(room_node, muc_domain_prefix..'.'..main_domain);
-    end
-
-    local pdetails = extract_occupant_details(event.occupant);
 
     -- search bare_jid for blacklisted prefixes before sending events
     if isBlacklisted(who) then
@@ -471,8 +466,26 @@ local function processEvent(type,event)
 
     -- search room jid for tenancy prefixes before sending events
     if is_vpaas(event.room) then
-        if DEBUG then module:log("debug", "processEvent: room tenant is droplisted %s", room_address); end
+        if DEBUG then module:log("debug", "processEvent: room tenant is droplisted %s", event.room.jid); end
         return;
+    end
+
+    local room_address = event.room.jid;
+
+    local pdetails = extract_occupant_details(event.occupant);
+    local who_jid = who.jid;
+
+    -- for the visitor prosody we want to report the same jid as main prosody in order to not confuse backend
+    -- maybe we can drop this at some point by updating backend
+    if is_visitor_prosody then
+        local room_node = jid.node(room_address);
+        room_address = jid.join(room_node, muc_domain_prefix..'.'..main_domain);
+
+        -- for visitor prosody we report only events for visitors
+        pdetails["visitor"] = true;
+
+        local node, host, resource = jid.split(who_jid);
+        who_jid = jid.join(node, main_domain, resource);
     end
 
     local cdetails = loadConferenceSession(type, event);
@@ -495,14 +508,9 @@ local function processEvent(type,event)
             pdetails["flip"] = false;
         end
     end
-    if DEBUG then module:log("debug", "Room %s Who %s Type %s", room_address, who, type); end
+    if DEBUG then module:log("debug", "Room %s Who %s Type %s", room_address, who_jid, type); end
 
-    -- for visitor prosody we report only events for visitors
-    if is_visitor_prosody then
-        pdetails["visitor"] = true;
-    end
-
-    sendEvent(type,room_address,who.jid,pdetails["group"],pdetails,cdetails);
+    sendEvent(type, room_address, who_jid, pdetails["group"], pdetails,cdetails);
 end
 
 local function handleOccupantJoined(event)
