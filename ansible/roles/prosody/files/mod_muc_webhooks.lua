@@ -468,6 +468,9 @@ function handle_occupant_access(event, event_type)
             end
         end
 
+        -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
+        decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
+
         module:log("debug", "Participant event %s", inspect(participant_access_event))
 
         event_count();
@@ -492,6 +495,26 @@ function handle_occupant_access(event, event_type)
                     handle_usage_update(main_room, meeting_fqn, nil, breakout_room_id, is_sip_jibri_event)
                 end
             end
+        end
+    end
+end
+
+function decorate_payload_with_flip(payload, occupant_nick, main_room, final_event_type)
+    if final_event_type == PARTICIPANT_JOINED then
+        local flip_participant_nick = main_room._data and main_room._data.flip_participant_nick
+        if occupant_nick and flip_participant_nick and flip_participant_nick == occupant_nick then
+            module:log("info", "Decorate participant joined event with flip for occupant nick %s", flip_participant_nick)
+            payload.flip = true;
+        else
+            payload.flip = false;
+        end
+    elseif final_event_type == PARTICIPANT_LEFT then
+        local kicked_participant_nick = main_room._data and main_room._data.kicked_participant_nick
+        if occupant_nick and kicked_participant_nick and kicked_participant_nick == occupant_nick then
+            module:log("info", "Decorate participant left event with flip for occupant nick %s", kicked_participant_nick)
+            payload.flip = true;
+        else
+            payload.flip = false;
         end
     end
 end
