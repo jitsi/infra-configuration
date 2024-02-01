@@ -228,7 +228,7 @@
 - name: Copy over the plugin for preset passwords on mucs
   ansible.builtin.copy:
     src: "mod_muc_password_preset.lua"
-    dest: "/usr/share/jitsi-meet/prosody-plugins/"
+    dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
 # The previous one creates the folder, we can just touch the file
