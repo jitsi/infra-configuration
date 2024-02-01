@@ -379,11 +379,10 @@ local function endConference(room)
     end
 end
 
-local function appendToChatHistory(room_jid, occupant, content)
+local function appendToChatHistory(room_jid, occupant_jid, occupant_bare_jid, content)
     local msgdetails = {};
-    local occupant_jid = occupant.jid;
-    msgdetails['jid'] = occupant.jid;
-    msgdetails['bare_jid'] = occupant.bare_jid;
+    msgdetails['jid'] = occupant_jid;
+    msgdetails['bare_jid'] = occupant_bare_jid;
     msgdetails['timestamp'] = round(socket.gettime() * 1000);
     msgdetails['content'] = content;
 
@@ -664,7 +663,7 @@ local function handleBroadcastMessage(event)
             if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: has type %s, continue processing",
                 event, "groupchat"); end
             local who = event.room:get_occupant_by_nick(event.stanza.attr.from);
-            appendToChatHistory(event.stanza.attr.to, who, body:get_text());
+            appendToChatHistory(event.stanza.attr.to, who.jid, who.bare_jid, body:get_text());
             return;
         else
             --handle transcription messages
@@ -684,6 +683,27 @@ local function handleBroadcastMessage(event)
                     body = request_body;
                 }, cb);
             end
+        end
+    end
+end
+
+local function handleVisitorsMessage(event)
+    local from, room, stanza, visitor = event.from, event.room, event.stanza, event.visitor;
+
+    if not visitor then
+        return;
+    end
+
+    local body = stanza:get_child("body");
+    if stanza.attr.type == "groupchat" then
+        if body then
+            local node, host, resource = jid.split(from);
+
+            local from_jid = jid.join(node, muc_domain_base, resource);
+            local from_bare_jid = jid.join(node, muc_domain_base);
+
+            appendToChatHistory(event.stanza.attr.to, from_jid, from_bare_jid, body:get_text());
+            return;
         end
     end
 end
@@ -795,6 +815,8 @@ function module.add_host(host_module)
         host_module:hook("pre-iq/host", attachMachineUid);
         host_module:hook("muc-broadcast-message", handleBroadcastMessage);
         host_module:hook("send-speaker-stats", handleSpeakerStats);
+
+        host_module:hook("muc-add-history", handleVisitorsMessage);
     end
 
     host_module:hook('muc-occupant-pre-join', handleOccupantPreJoin, 1000);
