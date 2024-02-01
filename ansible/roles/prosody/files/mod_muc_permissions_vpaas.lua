@@ -6,6 +6,7 @@ local util = module:require "util.internal";
 local oss_util = module:require "util";
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local is_vpaas = oss_util.is_vpaas;
+local urlencode = require "util.http".urlencode;
 
 local ASAPAudience
 = module:get_option_string("asap_audience", 'jitsi');
@@ -54,7 +55,7 @@ module:hook("muc-room-pre-create", function(event)
         end
     end
 
-    local jaas_actuator_customer_details_url = jaas_actuator_base_url .. "/v1/customers/" .. customer_id;
+    local jaas_actuator_customer_details_url = jaas_actuator_base_url .. "/v1/customers/" .. urlencode(customer_id);
 
     local headers = http_headers or {}
     headers['Authorization'] = util.generateToken(ASAPAudience)
