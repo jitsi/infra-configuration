@@ -91,8 +91,10 @@ local muc_domain_base
 local muc_domain = module:get_option_string(
     "muc_mapper_domain", muc_domain_prefix.."."..muc_domain_base);
 
+-- this is the main virtual host of the main prosody that this vnode serves
+local main_domain = module:get_option_string('main_domain');
 -- only the visitor prosody has main_domain setting
-local is_visitor_prosody = module:get_option_string("main_domain") ~= nil;
+local is_visitor_prosody = main_domain ~= nil;
 
 local escaped_muc_domain_base = muc_domain_base:gsub("%p", "%%%1");
 local escaped_muc_domain_prefix = muc_domain_prefix:gsub("%p", "%%%1");
@@ -451,6 +453,14 @@ local function processEvent(type,event)
     if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local who = event.occupant;
     local room_address = event.room.jid;
+
+    -- for the visitor prosody we want to report the same jid as main prosody in order to not confuse backend
+    -- maybe we can drop this at some point by updating backend
+    if is_visitor_prosody then
+        local room_node = jid.node(room_address);
+        room_address = jid.join(room_node, muc_domain_prefix..'.'..main_domain);
+    end
+
     local pdetails = extract_occupant_details(event.occupant);
 
     -- search bare_jid for blacklisted prefixes before sending events
