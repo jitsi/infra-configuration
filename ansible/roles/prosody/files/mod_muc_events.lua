@@ -65,10 +65,6 @@ local jwtKeyCache = require"util.cache".new(jwtKeyCacheSize);
 local blacklistPrefixes
     = module:get_option_array("muc_events_blacklist_prefixes", {'focus@auth.','recorder@recorder.','jvb@auth.','jibri@auth.','transcriber@recorder.'});
 
-local roomBlacklistHostPrefixes
-    = module:get_option_array("muc_events_blacklist_hosts", {'internal.auth.'});
-
-
 local eventURL
     = module:get_option_string("muc_events_url", 'http://127.0.0.1:9880/');
 
@@ -104,26 +100,6 @@ local escaped_muc_domain_prefix = muc_domain_prefix:gsub("%p", "%%%1");
 -- (e.g. extract 'foo' from 'foo.muc.example.com')
 local target_subdomain_pattern
     = "^"..escaped_muc_domain_prefix..".([^%.]+)%."..escaped_muc_domain_base;
-
---- Utility function to check and convert a room JID from
--- virtual room1@muc.foo.example.com to real [foo]room1@muc.example.com
--- @param room_jid the room jid to match and rewrite if needed
--- @return returns room jid [foo]room1@muc.example.com when it has subdomain
--- otherwise room1@muc.example.com(the room_jid value untouched)
-local function room_jid_match_rewrite(room_jid)
-    local node, host, resource = jid.split(room_jid);
-    local target_subdomain = host and host:match(target_subdomain_pattern);
-    if not target_subdomain then
-        module:log("debug", "No need to rewrite out 'to' %s", room_jid);
-        return room_jid;
-    end
-    -- Ok, rewrite room_jid  address to new format
-    local new_node, new_host, new_resource
-        = "["..target_subdomain.."]"..node, muc_domain, resource;
-    room_jid = jid.join(new_node, new_host, new_resource);
-    module:log("debug", "Rewrote to %s", room_jid);
-    return room_jid
-end
 
 local function remove_from_cache(key)
     confCache:set(key, nil);
@@ -264,18 +240,6 @@ local function extract_occupant_details(occupant)
     end
 
     return r;
-end
-
-local function isRoomBlacklisted(room_jid)
-    local node, host, resource = jid.split(room_jid);
-    for i, bPrefix in ipairs(roomBlacklistHostPrefixes) do
-        if string.sub(host,1,string.len(bPrefix)) == bPrefix then
-            module:log("debug","Blacklist host: %s found in %s ", bPrefix, host);
-            return true;
-        end
-    end
-
-    return false;
 end
 
 local function isBlacklisted(occupant)
@@ -495,12 +459,6 @@ local function processEvent(type,event)
         return;
     end
 
-    -- search room jid for blacklisted prefixes before sending events
-    if isRoomBlacklisted(room_address) then
-        module:log("debug", "processEvent: room is blacklisted %s", room_address);
-        return;
-    end
-
     local cdetails = loadConferenceSession(type, event);
 
     local occupant_nick = event.occupant and event.occupant.nick;
@@ -588,12 +546,6 @@ local function handleBroadcastPresence(event)
         return;
     end
 
-    -- search room jid for blacklisted prefixes before sending events
-    if isRoomBlacklisted(room_jid) then
-        module:log("debug", "handleBroadcastPresence: room is blacklisted %s", room_jid);
-        return;
-    end
-
     module:log("debug", "handleBroadcastPresence Room %s Who %s Type %s", room_jid, occupant_jid, type);
     local nick = presence_field(event.stanza,'nick', NICK_NS);
     local email = presence_field(event.stanza,'email');
@@ -651,12 +603,6 @@ local function processSubjectUpdate(occupant, room, new_subject)
     -- search room jid for tenancy prefixes before sending events
     if is_vpaas(room) then
         module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid);
-        return;
-    end
-
-    -- search room jid for blacklisted prefixes before sending events
-    if isRoomBlacklisted(room_jid) then
-        module:log("debug", "processSubjectUpdate: room is blacklisted %s", room_jid);
         return;
     end
 
@@ -729,72 +675,6 @@ local function attachMachineUid(event)
         if join then
             session.machine_uid = join:get_child_text('billingid', MUC_NS);
             module:log('debug', 'found machine_uid %s', session.machine_uid)
-        end
-    end
-end
-
-local function attachJibriSessionId(event)
-    module:log("debug","jibri iq search begun %s",event)
-    local stanza = event.stanza;
-    if stanza.name == "iq" then
-        local jibri = stanza:get_child('jibri', 'http://jitsi.org/protocol/jibri');
-        if jibri then
-            if jibri.attr.action == 'start' then
-
-                local update_app_data = false;
-                local app_data = jibri.attr.app_data;
-                if app_data then
-                    app_data = json.decode(app_data);
-                    module:log("debug","jibri app data found %s",inspect(app_data));
-                else
-                    app_data = {};
-                end
-                if app_data.file_recording_metadata == nil then
-                    app_data.file_recording_metadata = {};
-                end
-
-                if jibri.attr.room then
-                    local jibri_room = jibri.attr.room;
-                    module:log("debug","jibri start found %s",jibri_room)
-                    jibri_room = room_jid_match_rewrite(jibri_room)
-                    module:log("debug","jibri room rewrite %s",jibri_room)
-                    local conference_details = loadConferenceDetails(jibri_room)
-                    if conference_details then
-                        app_data.file_recording_metadata.conference_details = conference_details
-                        update_app_data = true;
-                        module:log("debug","jibri conference details added %s",inspect(conference_details))
-                    end
-                else
-                    module:log("debug","jibri start iq has no room, coming from participant %s",jibri)
-
-                    -- no room is because the iq received by the initiator in the room
-                    local session = event.origin;
-                    -- if a token is provided, add data to app_data
-                    if session ~= nil then
-                        local initiator = {};
-
-                        if session.jitsi_meet_context_user ~= nil then
-                            initiator.id = session.jitsi_meet_context_user.id;
-                        end
-                        if session.jitsi_meet_context_group ~= nil then
-                            initiator.group = session.jitsi_meet_context_group;
-                        end
-
-                        app_data.file_recording_metadata.initiator = initiator
-                        update_app_data = true;
-                    end
-
-                end
-
-                if update_app_data then
-                    app_data = json.encode(app_data);
-                    module:log("debug","jibri final app data %s",app_data)
-                    jibri.attr.app_data = app_data;
-                    jibri:up()
-                    stanza:up()
-                    module:log("debug","jibri iq final %s",jibri)
-                end
-            end
         end
     end
 end
@@ -876,7 +756,6 @@ function module.add_host(host_module)
                "Loading mod_muc_events for host %s!", host_module.host);
 
     if not is_visitor_prosody then
-        host_module:hook("pre-iq/full",attachJibriSessionId);
         host_module:hook("pre-iq/host", attachMachineUid);
         host_module:hook("muc-broadcast-message", handleBroadcastMessage);
         host_module:hook("send-speaker-stats", handleSpeakerStats);

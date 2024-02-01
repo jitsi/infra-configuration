@@ -438,6 +438,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_persistent_lobby %}
           "persistent_lobby";
 {% endif %}
+{% if prosody_enable_muc_events %}
+      "jibri_session";
+{% endif %}
         }
         shard_name = "{{ shard_name }}"
         region_name = "{{ prosody_region }}"
@@ -491,6 +494,9 @@ VirtualHost "{{ prosody_auth_domain_name }}"
     modules_enabled = {
     {% if prosody_mod_limits_rate %}
       "limits_exception";
+    {% endif %}
+    {% if prosody_enable_muc_events %}
+          "jibri_session";
     {% endif %}
     }
     authentication = "internal_hashed"
@@ -659,9 +665,6 @@ Component "internal.auth.{{ prosody_domain_name }}" "muc"
     modules_enabled = {
       "muc_hide_all";
       "muc_filter_access";
-{% if prosody_enable_muc_events %}
-      "muc_events";
-{% endif %}
     }
     storage = "memory"
     muc_room_cache_size = 1000
