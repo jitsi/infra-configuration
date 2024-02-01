@@ -95,6 +95,8 @@ local function is_admin(jid)
     return um_is_admin(jid);
 end
 
+local DEBUG = false;
+
 --- Verifies room name, domain name with the values in the token
 -- @param token the token we received
 -- @param room_address the full room address jid
@@ -188,7 +190,8 @@ function handle_get_room_password (event)
             };
             body = json.encode(room_details);
         };
-        module:log("debug","Sending response for room password: %s",inspect(GET_response))
+
+        if DEBUG then module:log("debug","Sending response for room password: %s",inspect(GET_response)) end
 
         return GET_response;
     end
@@ -254,7 +257,7 @@ local function queryForPassword(room)
     module:log("info","Querying for password to %s", pURL);
 
     local function clearJicofoPending(room_instance)
-        module:log("debug", "Unlock room jicofo %s", room_instance.jid)
+        if DEBUG then module:log("debug", "Unlock room jicofo %s", room_instance.jid) end
 
         module:context(muc_domain):fire_event('jicofo-unlock-room', { room = room_instance; pass_preset_fired = true;});
     end
@@ -264,7 +267,7 @@ local function queryForPassword(room)
     end
 
     local function cb(content_, code_, response_, request_)
-        module:log("debug","Local room var is %s", room)
+        if DEBUG then module:log("debug","Local room var is %s", room) end
 
         local is_vpaas_room = is_vpaas(room);
 
@@ -278,7 +281,7 @@ local function queryForPassword(room)
         -- create lobby and set moderator
         if code_ == 200 then
             local conference_res = json.decode(content_);
-            module:log("debug","Receive conference info response %s",inspect(conference_res))
+            if DEBUG then module:log("debug","Receive conference info response %s",inspect(conference_res)) end
             room._data.moderator_id = conference_res.moderatorId;
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
             room._data.max_occupants = conference_res.maxOccupants;
@@ -293,7 +296,7 @@ local function queryForPassword(room)
 
             if room._data.starts_with_lobby then
                 room._data.lobby_type = conference_res.lobbyType or 'WAIT_FOR_APPROVAL'
-                module:log("debug", "Will create %s lobby for room jid = %s", room._data.lobby_type, room.jid);
+                if DEBUG then module:log("debug", "Will create %s lobby for room jid = %s", room._data.lobby_type, room.jid) end
                 module:fire_event("create-lobby-room", { room = room; });
             end
             -- if the room will start with lobby and will wait for the moderator
@@ -308,7 +311,7 @@ local function queryForPassword(room)
             -- propagate the error to lib-jitsi-meet if is a JaaS meeting
             if is_vpaas_room then
                 local err = json.decode(content_)
-                module:log("debug", "Propagate error %s", inspect(err))
+                if DEBUG then module:log("debug", "Propagate error %s", inspect(err)) end
                 if err and err.status and err.status == 400
                     and err.messageKey and err.messageKey == 'settings.provisioning.exception' then
                     room._data.jaas_err = err.message;
@@ -330,11 +333,11 @@ local function queryForPassword(room)
             end
         elseif code_ == 404 then
             logLevel = 'debug'
-            module:log("debug", "Conference was not found");
+            if DEBUG then module:log("debug", "Conference was not found") end
         end
-        module:log(logLevel,
-            "URL Callback Code Content Response: %s %s %s",
-            code_, content_, inspect(response_));
+        if logLevel ~= 'debug' or DEBUG then
+            module:log(logLevel, "URL Callback Code Content Response: %s %s %s", code_, content_, inspect(response_));
+        end
 
         -- If any of the MUC config form fields have changed, send a notification to jicofo to
         -- make it re-request disco#info and get the new values. We use broacdast_message for
@@ -353,7 +356,7 @@ local function queryForPassword(room)
     local headers = http_headers or {}
     headers['Authorization'] = generateToken()
 
-    module:log("debug","Sending headers %s",inspect(headers));
+    if DEBUG then module:log("debug","Sending headers %s",inspect(headers)) end
 
     -- start timer to watch and timeout request
     timer.add_task(passwordTimeout, timeoutPasswordQuery)
@@ -370,7 +373,7 @@ function check_set_room_password(room)
         return
     end
 
-    module:log("debug","%s room create started, checking for preset password, lobby and moderator", room);
+    if DEBUG then module:log("debug","%s room create started, checking for preset password, lobby and moderator", room) end
     -- first check blacklist of room name
     -- fetch password from external service, set when ready
     queryForPassword(room)
