@@ -1,6 +1,7 @@
 module:set_global();
 
 local um_is_admin = require 'core.usermanager'.is_admin;
+local urlencode = require "util.http".urlencode;
 local json = require "util.json";
 local async_handler_wrapper = module:require "util".async_handler_wrapper;
 local jid = require "util.jid";
@@ -248,7 +249,7 @@ end
 -- without requiring a password
 local function queryForPassword(room)
     local room_address = internal_room_jid_match_rewrite(room.jid);
-    local pURL = conferenceInfoURL .."?conferenceFullName="..room_address;
+    local pURL = conferenceInfoURL .."?conferenceFullName="..urlencode(room_address);
 
     module:log("info","Querying for password to %s", pURL);
 
