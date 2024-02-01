@@ -114,6 +114,8 @@ local http_headers = {
 local MUC_NS = "http://jabber.org/protocol/muc";
 local NICK_NS = "http://jabber.org/protocol/nick";
 
+local DEBUG = false;
+
 local function shallow_copy(t)
     local t2 = {}
     for k,v in pairs(t) do
@@ -245,7 +247,7 @@ end
 local function isBlacklisted(occupant)
     for i, bPrefix in ipairs(blacklistPrefixes) do
         if string.sub(occupant.bare_jid,1,string.len(bPrefix)) == bPrefix then
-            module:log("debug","Blacklist prefix: %s found in %s ", bPrefix, occupant);
+            if DEBUG then module:log("debug","Blacklist prefix: %s found in %s ", bPrefix, occupant); end
             return true;
         end
     end
@@ -264,8 +266,8 @@ end
 
 local function cb(content_, code_, response_, request_)
     if code_ == 200 or code_ == 204 then
-        module:log("debug", "URL Callback: Code %s, Content %s, Request (host %s, path %s, body %s), Response: %s",
-                code_, content_, request_.host, request_.path, inspect(request_.body), inspect(response_));
+        if DEBUG then module:log("debug", "URL Callback: Code %s, Content %s, Request (host %s, path %s, body %s), Response: %s",
+                code_, content_, request_.host, request_.path, inspect(request_.body), inspect(response_)); end
     else
         module:log("warn", "URL Callback non successful: Code %s, Content %s, url (%s), Response: %s",
                 code_, content_, request_.url, inspect(response_));
@@ -276,8 +278,9 @@ local function event_cb(content_, code_, response_, request_)
     if code_ == 200 or code_ == 204 then
         -- increase event sent counter
         event_count_sent();
-        module:log("debug", "URL Callback: Code %s, Content %s, Request (host %s, path %s, body %s), Response: %s",
-                code_, content_, request_.host, request_.path, inspect(request_.body), inspect(response_));
+        if DEBUG then module:log("debug",
+            "URL Callback: Code %s, Content %s, Request (host %s, path %s, body %s), Response: %s",
+            code_, content_, request_.host, request_.path, inspect(request_.body), inspect(response_)); end
     else
         -- increase event failure counter
         event_count_failed();
@@ -297,12 +300,12 @@ local function sendEvent(type,room_address,participant,group,pdetails,cdetails)
         ["participant_details"] = pdetails,
         ["event_ts"] = event_ts
     }
-    module:log("debug","Sending event %s",inspect(out_event));
+    if DEBUG then module:log("debug","Sending event %s",inspect(out_event)); end
 
     local headers = http_headers or {}
     headers['Authorization'] = generateToken()
 
-    module:log("debug","Sending headers %s",inspect(headers));
+    if DEBUG then module:log("debug","Sending headers %s",inspect(headers)); end
 
     -- increase event counter metric
     event_count();
@@ -322,14 +325,15 @@ local function loadConferenceDetails(room_jid)
     local cdetails_content = confCache:get(room_jid);
     if cdetails_content then
         cdetails = json.decode(cdetails_content);
-        module:log("debug","Success retreiving conference details for room %s : %s",room_jid,inspect(cdetails))
+        if DEBUG then module:log("debug",
+            "Success retreiving conference details for room %s : %s", room_jid, inspect(cdetails)); end
     end
     return cdetails;
 end
 
 local function sendChatHistory(room)
     if not voChatHistoryURL then
-        module:log("debug", "No 'muc_chat_history_url' value set");
+        if DEBUG then module:log("debug", "No 'muc_chat_history_url' value set"); end
         return
     end
     local room_jid = room.jid;
@@ -349,7 +353,7 @@ local function sendChatHistory(room)
     local headers = http_headers or {}
     headers['Authorization'] = generateToken()
 
-    module:log("debug", "Sending chat history %s to %s", inspect(body), voChatHistoryURL);
+    if DEBUG then module:log("debug", "Sending chat history %s to %s", inspect(body), voChatHistoryURL); end
     local request = http.request(voChatHistoryURL, {
         headers = headers,
         method = "POST",
@@ -359,7 +363,7 @@ end
 
 local function endConference(room)
     local room_jid = room.jid;
-    module:log("debug", "Cleanup details for room %s", room_jid);
+    if DEBUG then module:log("debug", "Cleanup details for room %s", room_jid); end
     sendChatHistory(room);
     remove_from_cache(getChatHistoryKey(room_jid));
     remove_from_cache(room_jid);
@@ -392,13 +396,14 @@ local function appendToChatHistory(room_jid, occupant, content)
     table.insert(messages, msgdetails);
     confCache:set(chatHistoryKey, messages);
 
-    module:log("debug", "Adding chat message to history for room %s: msgdetails %s", room_jid, inspect(msgdetails));
+    if DEBUG then module:log("debug",
+        "Adding chat message to history for room %s: msgdetails %s", room_jid, inspect(msgdetails)); end
 end
 
 local function storeConferenceDetails(room_jid, cdetails)
     local new_content = json.encode(cdetails);
     confCache:set(room_jid, new_content);
-    module:log("debug", "Storing conference details to room %s : %s", room_jid, inspect(cdetails))
+    if DEBUG then module:log("debug", "Storing conference details to room %s : %s", room_jid, inspect(cdetails)); end
 end
 
 local function attachSessionIdToSpeakerStats(room_jid, session_id)
@@ -415,7 +420,7 @@ end
 
 local function loadConferenceSession(type, event)
     local room = event.room;
-    module:log("debug", "Load conference session triggered by event type %s room %s", type, room.jid);
+    if DEBUG then module:log("debug", "Load conference session triggered by event type %s room %s", type, room.jid); end
     local cdetails = loadConferenceDetails(room.jid);
     local session_id = cdetails["session_id"];
 
@@ -434,7 +439,8 @@ local function loadConferenceSession(type, event)
             attachSessionIdToSpeakerStats(room.jid, session_id);
             module:log("info", "Start new conference session for room %s: session_id %s", room.jid, session_id);
         else
-            module:log("debug", "Conference session is in progress, for room %s, session_id %s", room.jid, session_id);
+            if DEBUG then module:log("debug",
+                "Conference session is in progress, for room %s, session_id %s", room.jid, session_id); end
         end
     end
 
@@ -442,20 +448,20 @@ local function loadConferenceSession(type, event)
 end
 
 local function processEvent(type,event)
-    module:log("debug", "%s keys in confCache", confCache:count());
+    if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local who = event.occupant;
     local room_address = event.room.jid;
     local pdetails = extract_occupant_details(event.occupant);
 
     -- search bare_jid for blacklisted prefixes before sending events
     if isBlacklisted(who) then
-        module:log("debug", "processEvent: occupant is blacklisted %s", who);
+        if DEBUG then module:log("debug", "processEvent: occupant is blacklisted %s", who); end
         return;
     end
 
     -- search room jid for tenancy prefixes before sending events
     if is_vpaas(event.room) then
-        module:log("debug", "processEvent: room tenant is droplisted %s", room_address);
+        if DEBUG then module:log("debug", "processEvent: room tenant is droplisted %s", room_address); end
         return;
     end
 
@@ -479,7 +485,7 @@ local function processEvent(type,event)
             pdetails["flip"] = false;
         end
     end
-    module:log("debug", "Room %s Who %s Type %s", room_address, who, type);
+    if DEBUG then module:log("debug", "Room %s Who %s Type %s", room_address, who, type); end
 
     -- for visitor prosody we report only events for visitors
     if is_visitor_prosody then
@@ -528,7 +534,7 @@ local function handleOccupantLeft(event)
 end
 
 local function handleBroadcastPresence(event)
-    module:log("debug", "%s keys in confCache", confCache:count());
+    if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local type = "Update";
     local occupant = event.occupant;
     local occupant_jid = occupant.jid;
@@ -536,29 +542,31 @@ local function handleBroadcastPresence(event)
 
     -- search bare_jid for blacklisted prefixes before broadcasting events
     if isBlacklisted(occupant) then
-        module:log("debug", "handleBroadcastPresence: occupant is blacklisted %s", occupant.bare_jid);
+        if DEBUG then module:log("debug", "handleBroadcastPresence: occupant is blacklisted %s", occupant.bare_jid); end
         return;
     end
 
     -- search room jid for tenancy prefixes before sending events
     if is_vpaas(event.room) then
-        module:log("debug", "handleBroadcastPresence: room tenant is droplisted %s", room_jid);
+        if DEBUG then module:log("debug", "handleBroadcastPresence: room tenant is droplisted %s", room_jid); end
         return;
     end
 
-    module:log("debug", "handleBroadcastPresence Room %s Who %s Type %s", room_jid, occupant_jid, type);
+    if DEBUG then module:log("debug",
+        "handleBroadcastPresence Room %s Who %s Type %s", room_jid, occupant_jid, type); end
     local nick = presence_field(event.stanza,'nick', NICK_NS);
     local email = presence_field(event.stanza,'email');
 
     if nick or email then
-        module:log("debug", "handleBroadcastPresence email %s nick %s", nick, email);
+        if DEBUG then module:log("debug", "handleBroadcastPresence email %s nick %s", nick, email); end
         local content = confCache:get(occupant_jid);
 
-        module:log("debug", "handleBroadcastPresence old content %s", content);
+        if DEBUG then module:log("debug", "handleBroadcastPresence old content %s", content); end
 
         if content == nil then
             local new_content = json.encode({["name"] = nick,["email"] = email });
-            module:log("debug", "handleBroadcastPresence no old content for %s, saving item %s", occupant_jid, new_content);
+            if DEBUG then module:log("debug",
+                "handleBroadcastPresence no old content for %s, saving item %s", occupant_jid, new_content); end
             -- If the key is not found in the cache then it's a new participant, so do nothing except store it
             confCache:set(occupant_jid, new_content);
         else
@@ -569,19 +577,23 @@ local function handleBroadcastPresence(event)
                 pdetails.email = email or pdetails.email;
                 --update the cache with the latest
                 confCache:set(occupant_jid, json.encode(pdetails));
-                module:log("debug", "handleBroadcastPresence sending event %s", json.encode(pdetails));
+                if DEBUG then module:log("debug",
+                    "handleBroadcastPresence sending event %s", json.encode(pdetails)); end
                 sendEvent(type, room_jid, occupant_jid,false, extract_occupant_details(occupant));
             end
         end
     else
-        module:log("debug","handleBroadcastPresence empty nick and email, skipping broadcast");
+        if DEBUG then module:log("debug","handleBroadcastPresence empty nick and email, skipping broadcast"); end
     end
 end
 
 local function processSubjectUpdate(occupant, room, new_subject)
     local room_jid = room.jid;
-    module:log("debug", "%s keys in confCache", confCache:count());
-    module:log("debug", "processSubjectUpdate from_who %s, room_address %s, new_subject %s", occupant, room_jid, new_subject);
+    if DEBUG then
+        module:log("debug", "%s keys in confCache", confCache:count());
+        module:log("debug", "processSubjectUpdate from_who %s, room_address %s, new_subject %s",
+            occupant, room_jid, new_subject);
+    end
     local type = "SubjectUpdate";
     local occupant_jid = occupant.jid;
 
@@ -596,13 +608,13 @@ local function processSubjectUpdate(occupant, room, new_subject)
 
     -- search bare_jid for blacklisted prefixes before sending events
     if isBlacklisted(occupant) then
-        module:log("debug", "processSubjectUpdate occupant is blacklisted %s", occupant);
+        if DEBUG then module:log("debug", "processSubjectUpdate occupant is blacklisted %s", occupant); end
         return;
     end
 
     -- search room jid for tenancy prefixes before sending events
     if is_vpaas(room) then
-        module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid);
+        if DEBUG then module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid); end
         return;
     end
 
@@ -610,16 +622,19 @@ local function processSubjectUpdate(occupant, room, new_subject)
     cdetails["subject"] = new_subject;
     storeConferenceDetails(room_jid, cdetails);
 
-    module:log("debug", "processSubjectUpdate sending event type %s, room_address %s", type, room_jid);
+    if DEBUG then module:log("debug",
+        "processSubjectUpdate sending event type %s, room_address %s", type, room_jid); end
     sendEvent(type, room_jid, pdetails['jid'], false, pdetails, cdetails);
 end
 
 local function handleBroadcastMessage(event)
-    module:log("debug", "handleBroadcastMessage Event %s: Room %s Stanza %s", event, event.room, event.stanza);
+    if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: Room %s Stanza %s",
+        event, event.room, event.stanza); end
 
     local subject = event.stanza:get_child("subject");
     if subject then
-        module:log("debug", "handleBroadcastMessage Event %s: has subject %s, continue processing", event, subject:get_text());
+        if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: has subject %s, continue processing",
+            event, subject:get_text()); end
         local who = event.room:get_occupant_by_nick(event.stanza.attr.from);
         processSubjectUpdate(who, event.room, subject:get_text());
         return;
@@ -628,14 +643,15 @@ local function handleBroadcastMessage(event)
     local body = event.stanza:get_child("body");
     if event.stanza.attr.type == "groupchat" then
         if body then
-            module:log("debug", "handleBroadcastMessage Event %s: has type %s, continue processing", event, "groupchat");
+            if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: has type %s, continue processing",
+                event, "groupchat"); end
             local who = event.room:get_occupant_by_nick(event.stanza.attr.from);
             appendToChatHistory(event.stanza.attr.to, who, body:get_text());
             return;
         else
             --handle transcription messages
             if transcriptionsURL == nil or transcriptionsURL == "" then
-                module:log("debug", "Transcriptions is disabled for room %s", event.room.jid);
+                if DEBUG then module:log("debug", "Transcriptions is disabled for room %s", event.room.jid); end
                 return;
             end
 
@@ -655,7 +671,7 @@ local function handleBroadcastMessage(event)
 end
 
 local function attachMachineUid(event)
-    module:log("debug","attach machine uid %s",event)
+    if DEBUG then module:log("debug","attach machine uid %s",event); end
     local stanza, session = event.stanza, event.origin;
     -- the sending iq to jicofo method for retrieving the machine_uid is deprecated as we will be moving away from it
     -- where the initial conference iq will be sent over http
@@ -664,7 +680,7 @@ local function attachMachineUid(event)
         if conference then
             local machine_uid = conference.attr['machine-uid'];
             if machine_uid then
-                module:log("debug", "found machine_uid %s", machine_uid)
+                if DEBUG then module:log("debug", "found machine_uid %s", machine_uid); end
                 if session ~= nil then
                     session.machine_uid = machine_uid;
                 end
@@ -690,7 +706,8 @@ end
 
 local function handleSpeakerStats(event)
     if speakerStatsURL == nil or speakerStatsURL == "" then
-        module:log("debug", "Sending speaker stats is disabled. Not sending speaker stats for %s", event.room.jid);
+        if DEBUG then module:log("debug", "Sending speaker stats is disabled. Not sending speaker stats for %s",
+            event.room.jid); end
         return;
     end
     if not event.roomSpeakerStats then
@@ -698,7 +715,7 @@ local function handleSpeakerStats(event)
     end
     local requestBody = { sessionId = event.roomSpeakerStats.sessionId; isBreakoutRoom = event.roomSpeakerStats.isBreakout or false; breakoutRoomId = event.roomSpeakerStats.breakoutRoomId; speakerStats = {}; };
     if requestBody.isBreakoutRoom then
-        module:log("debug", "Speaker stats is not handled for breakout rooms for now.");
+        if DEBUG then module:log("debug", "Speaker stats is not handled for breakout rooms for now."); end
         return;
     end
     for user_jid, speakerTime in pairs(event.roomSpeakerStats) do
@@ -726,7 +743,7 @@ local function handleSpeakerStats(event)
         end
         requestBody.timestamp = round(socket.gettime() * 1000)
         module:log("info", "Sending speaker stats for %s", event.room.jid);
-        module:log("debug", "Request body for speaker stats %s", inspect(requestBody));
+        if DEBUG then module:log("debug", "Request body for speaker stats %s", inspect(requestBody)); end
         local headers = http_headers or {};
         headers['Authorization'] = generateToken();
 
@@ -748,7 +765,8 @@ local function handleRoomDestroyed(event)
         remove_from_cache(occupant.jid);
     end
     remove_from_cache(getChatHistoryKey(room_jid));
-    module:log("debug", "%s keys in confCache after room %s was destroyed", confCache:count(), room.jid);
+    if DEBUG then module:log("debug", "%s keys in confCache after room %s was destroyed",
+        confCache:count(), room.jid); end
 end
 
 function module.add_host(host_module)
