@@ -24,6 +24,8 @@ local jaas_actuator_base_url
 -- and add it to session for imposing further restrictions
 module:log("info", "Loading mod_muc_permissions_vpaas!");
 
+local DEBUG = false;
+
 -- Hook to assign disabled features for new rooms
 module:hook("muc-room-pre-create", function(event)
     local room = event.room;
@@ -37,7 +39,7 @@ module:hook("muc-room-pre-create", function(event)
         local room = room
         if code_ == 200 then
             local jaas_actuator_res = json.decode(content_);
-            module:log("debug", "Receive jaas actuator response %s", inspect(jaas_actuator_res))
+            if DEBUG then module:log("debug", "Receive jaas actuator response %s", inspect(jaas_actuator_res)); end
             room._data.disabled_features = jaas_actuator_res.disabledFeatures;
             if room._data.disabled_features then
                 module:log("info", "disabled features: %s for customer_id: %s", inspect(room._data.disabled_features), customer_id);
@@ -59,7 +61,11 @@ module:hook("muc-room-pre-create", function(event)
 
     local headers = http_headers or {}
     headers['Authorization'] = util.generateToken(ASAPAudience)
-    module:log("debug", "Requesting jaas actuator customer details: fqn %s customer id %s auth %s", meeting_fqn, customer_id, headers['Authorization']);
+    if DEBUG then
+        module:log("debug",
+            "Requesting jaas actuator customer details: fqn %s customer id %s auth %s",
+            meeting_fqn, customer_id, headers['Authorization']);
+    end
 
     local _ = http.request(jaas_actuator_customer_details_url, {
         headers = headers,
@@ -77,7 +83,7 @@ module:hook("muc-occupant-pre-join", function(event)
 
     if room ~= nil and room._data.disabled_features ~= nil then
         for _, disabled_feature in ipairs(room._data.disabled_features) do
-            module:log("debug", "Removing disabled feature %s from auth context", disabled_feature);
+            if DEBUG then module:log("debug", "Removing disabled feature %s from auth context", disabled_feature); end
             if origin.jitsi_meet_context_features then
                 origin.jitsi_meet_context_features[disabled_feature] = "false";
             end

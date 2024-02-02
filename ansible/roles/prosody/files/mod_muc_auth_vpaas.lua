@@ -42,6 +42,8 @@ end
 
 local token_util = module:require "token/util".new(parentCtx);
 
+local DEBUG = false;
+
 function invalidate_cache()
     token_util:clear_asap_cache()
     return CACHE_EXPIRATION_SECONDS;
@@ -69,7 +71,7 @@ end
 -- Retrieve the public key from VPAAS bucket
 -- based on the hash of the kid
 local function process_vpaas_token(session)
-    module:log("debug", "Fetching VPAAS public key form server %s", vpaas_asap_key_server);
+    if DEBUG then module:log("debug", "Fetching VPAAS public key form server %s", vpaas_asap_key_server); end
 
     if session.auth_token ~= nil then
         local jwt_encoded_header = session.auth_token:find("%.");
@@ -92,7 +94,7 @@ local function process_vpaas_token(session)
         local kid_parse_cache_obj = get_kid_parse_cache_obj(kid);
 
         if not kid_parse_cache_obj.is_vpaas then
-            module.log("debug", "Not a VPAAS user for pre validation");
+            if DEBUG then module.log("debug", "Not a VPAAS user for pre validation"); end
             return nil;
         end
 
@@ -135,7 +137,7 @@ local function validate_vpaas_token(session)
 
     local kid_parse_cache_obj = get_kid_parse_cache_obj(kid);
     if kid_parse_cache_obj.is_vpaas then
-        module:log("debug", "Post validate VPAAS token");
+        if DEBUG then module:log("debug", "Post validate VPAAS token"); end
         if tenant == nil then
             return { res = false, error = "not-allowed", reason = "'tenant' is missing from session" };
         end
@@ -143,7 +145,7 @@ local function validate_vpaas_token(session)
             return { res = false, error = "not-allowed", reason = "kid and jwt tenant do not match" };
         end
     else
-        module:log("debug", "Not a VPAAS user for post validation");
+        if DEBUG then module:log("debug", "Not a VPAAS user for post validation"); end
         if tenant ~= nil and type(tenant) ~= "string" then
             module:log("warn", "tenant in wrong format: %s", inspect(tenant));
         elseif tenant ~= nil and starts_with(tenant, VPAAS_PREFIX) then
@@ -162,7 +164,7 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
     if not is_healthcheck_room(room_jid) and not util_internal.is_blacklisted(occupant) then
         local initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
         if initiator then
-            module:log("debug", "Let Jigasi pass throw");
+            if DEBUG then module:log("debug", "Let Jigasi pass throw"); end
             return nil;
         end
 
@@ -172,11 +174,12 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
         end
 
         if not is_vpaas(room) then
-            module:log("debug", "Skip VPAAS related verifications for non VPAAS room %s", room_jid);
+            if DEBUG then module:log("debug", "Skip VPAAS related verifications for non VPAAS room %s", room_jid); end
             return nil;
         end
 
-        module:log("debug", "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant);
+        if DEBUG then module:log("debug",
+            "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant); end
         -- we allow participants from the main prosody to connect without token to the visitor one
         if token == nil and origin.type ~= 's2sin' then
             module:log("warn", "VPAAS room %s does not have a token", room_jid);
