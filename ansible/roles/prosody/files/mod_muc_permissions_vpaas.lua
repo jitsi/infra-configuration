@@ -41,7 +41,9 @@ module:hook("muc-room-pre-create", function(event)
             local jaas_actuator_res = json.decode(content_);
             if DEBUG then module:log("debug", "Receive jaas actuator response %s", inspect(jaas_actuator_res)); end
             room._data.disabled_features = jaas_actuator_res.disabledFeatures;
-            if room._data.disabled_features then
+            if room._data.disabled_features
+                and type(room._data.disabled_features) == "table"
+                and next(room._data.disabled_features) ~= nil then
                 module:log("info", "disabled features: %s for customer_id: %s", inspect(room._data.disabled_features), customer_id);
             end
 
