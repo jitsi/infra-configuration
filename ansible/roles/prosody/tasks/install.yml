@@ -231,7 +231,12 @@
     dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
-# The previous one creates the folder, we can just touch the file
+- name: Create jitsi-meet/prosody-plugins directory
+  ansible.builtin.file:
+    mode: 0755
+    path: /usr/share/jitsi-meet/prosody-plugins
+    state: directory
+
 - name: Adds a file to indicate we are running prosody 0.12 and mod_smacks needs to be dropped from jitsi-meet
   ansible.builtin.file:
     mode: 0644
