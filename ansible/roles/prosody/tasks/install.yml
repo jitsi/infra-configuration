@@ -231,6 +231,12 @@
     dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
+- name: Copy over the plugin for jibri sessions
+  ansible.builtin.copy:
+    src: "mod_jibri_session.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
+
 - name: Create jitsi-meet/prosody-plugins directory
   ansible.builtin.file:
     mode: 0755
