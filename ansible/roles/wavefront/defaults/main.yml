@@ -1,6 +1,7 @@
 ---
 datadog_extensions: "false"
 statsd_port: 8125
+telegraf_jicofo_filter: "jitsi_jicofo_conference_requests*"
 telegraf_additional_config_dir: "{{ telegraf_config_dir }}/telegraf.d"
 # telegraf variables
 # telegraf_config_wfcopy: "https://raw.githubusercontent.com/wavefrontHQ/integrations/master/telegraf/telegraf.conf"
