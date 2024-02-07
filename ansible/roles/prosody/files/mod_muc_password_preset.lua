@@ -340,7 +340,7 @@ local function queryForPassword(room)
         end
 
         -- If any of the MUC config form fields have changed, send a notification to jicofo to
-        -- make it re-request disco#info and get the new values. We use broacdast_message for
+        -- make it re-request disco#info and get the new values. We use broadcast_message for
         -- simplicity, because this executes before any non-jicofo participants are in the room.
         if room_config_changed then
             module:log("info", "Room config changed, notifying jicofo.");
@@ -462,7 +462,8 @@ function process_host(host)
 
         module:context(host):hook("muc-room-pre-create", function(event)
             check_set_room_password(event.room);
-        end);
+        end, -1); -- let's add it after the check that only jicofo can create rooms(prio: 0).
+                  -- This way the request to password service will be made only when jicofo tries to create the room
         module:context(host):hook('jicofo-unlock-room', function(e)
             -- we do not block events we fired
             if e.pass_preset_fired then
