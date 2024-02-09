@@ -27,6 +27,11 @@
 - name: Mark hold on nginx package version # noqa no-changed-when
   ansible.builtin.command: apt-mark hold {{ nginx_package }}
 
+- name: Remove nginx repo
+  ansible.builtin.apt_repository:
+    repo: "deb {{ nginx_apt_repo_url }} {{ ansible_distribution_release }} nginx"
+    state: absent
+
 # main nginx configuration tweaks
 - name: Configure nginx
   ansible.builtin.template:
