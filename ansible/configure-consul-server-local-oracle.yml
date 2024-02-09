@@ -21,11 +21,13 @@
     nomad_telemetry_prometheus_metrics: true
     shard_role: consul
     cloud_provider: oracle
+    cloud_instance_id: "{{ ansible_fqdn }}"
     nomad_pool_type: consul
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
       cloud_region: "{{ oracle_region }}"
+      cloud_instance_id: "{{ cloud_instance_id }}"
       pool_type: "consul"
       availability_domain: "{{ cloud_availability_domain }}"
       fault_domain: "{{ cloud_fault_domain }}"
@@ -97,6 +99,7 @@
       tags: setup
     - name: Set nomad instance variables
       ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
         nomad_shape: "{{ instance_result.json.shape }}"
         cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
         cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
