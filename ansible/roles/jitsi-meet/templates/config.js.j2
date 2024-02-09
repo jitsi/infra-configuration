@@ -234,6 +234,10 @@ var config = {
     transcription: {
         enabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %}
     },
+    recordings: {
+        suggestRecording: {% if jitsi_meet_recordings_prompt %}true{% else %}false{% endif %},
+        showPrejoinWarning: {% if jitsi_meet_recordings_warn %}true{% else %}false{% endif %}
+    },
     liveStreaming: {
         enabled: {% if jitsi_meet_enable_livestreaming %}true{% else %}false{% endif %}
     },
