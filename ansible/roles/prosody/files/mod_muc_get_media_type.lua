@@ -7,6 +7,7 @@
 --- getting the room --> e.g. <iq xmlns="jabber:client" id="26bbe412-6dde-4225-8ca8-0690a462b89d:sendIQ" to="borisyana1to1@conference.meet.jit.si/focus"
 --- room = borisyana1to1@conference.meet.jit.si
 
+local json = require "cjson";
 local jid = require "util.jid";
 local get_room_from_jid = module:require "util".get_room_from_jid;
 
@@ -32,23 +33,17 @@ function handle_media_event(event)
         if jingle_source_add then
             mediaType = jingle_source_add:find("content/{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType")
             module:log("info","---- videoType %s for room %s", mediaType, room_jid);
-        end
+        else
 
-        local jingle_session_accept = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "session-accept");
-        if jingle_session_accept then
-            local content;
-
-            for childnode in jingle_session_accept:children() do
-                if childnode then
-                    if childnode.name == "content" and childnode.attr.name == "video" then
-                        content = childnode;
+            local jingle_session_initiate = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "session-initiate");
+            if jingle_session_initiate then
+                local content = jingle_session_initiate:find("{http://jitsi.org/jitmeet}json-message#");
+                if content then
+                    module:log("info","---- initiate %s exists %s", content, string.match(content, "video"));
+                    if string.match(content, "video") then
+                        mediaType = "video";
                     end
                 end
-            end
-
-            if content then
-                mediaType = content:find("{urn:xmpp:jingle:apps:rtp:1}description@media")
-                module:log("info","---- media %s for room %s", mediaType, room_jid);
             end
         end
 
