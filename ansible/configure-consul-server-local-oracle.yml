@@ -124,9 +124,8 @@
     - { role: "iptables-nomad", tags: "iptables-nomad"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "common", tags: "common"}
-    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "sshusers", tags: "ssh" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "consul-server", tags: "consul-server", consul_install_flag: false}
