@@ -130,6 +130,11 @@
         content: "{{ oci_api_key_pem }}"
         dest: "/opt/jitsi/certs/oci_api_key.pem"
       tags: setup
+  post_tasks:
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
 
   roles:
     - { role: "iptables-serf", tags: "iptables-serf"}

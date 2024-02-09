@@ -119,6 +119,11 @@
         nomad_cpu_total_compute: "{{ cpu_total_compute_result.stdout }}"
       tags: setup
       when: nomad_shape == "VM.Standard.A1.Flex"
+  post_tasks:
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
   roles:
     - { role: "iptables-consul", tags: "iptables"}
     - { role: "iptables-nomad", tags: "iptables-nomad"}
