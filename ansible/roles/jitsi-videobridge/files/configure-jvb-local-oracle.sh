@@ -27,14 +27,14 @@ function checkout_repos() {
   fi
 
   cd $BOOTSTRAP_DIRECTORY/infra-configuration
-  git checkout $GIT_BRANCH
+  git checkout $GIT_BRANCH || git checkout main
   git submodule update --init --recursive
-  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
+  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH || git show-ref heads/main
   cd -
   cd $BOOTSTRAP_DIRECTORY/infra-customizations
-  git checkout $GIT_BRANCH
+  git checkout $GIT_BRANCH || git checkout main
   git submodule update --init --recursive
-  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
+  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH || git show-ref heads/main
   cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
   cd -
 }
