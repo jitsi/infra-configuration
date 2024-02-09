@@ -7,58 +7,20 @@
 --- getting the room --> e.g. <iq xmlns="jabber:client" id="26bbe412-6dde-4225-8ca8-0690a462b89d:sendIQ" to="borisyana1to1@conference.meet.jit.si/focus"
 --- room = borisyana1to1@conference.meet.jit.si
 
-local json = require "cjson";
 local jid = require "util.jid";
---local is_breakout = starts_with(module.host, 'breakout.');
---local is_lobby = starts_with(module.host, 'lobby.');
-local media_type_cache_video = {}
-local media_type_cache_desktop = {}
-
-function get_type_cache_video()
-    return media_type_cache_video;
-end
-
-function get_type_cache_desktop()
-    return media_type_cache_desktop;
-end
-
-function room_had_video(roomName)
-    return get_type_cache_video()[roomName];
-end
-
-function room_had_desktop(roomName)
-    return get_type_cache_desktop()[roomName];
-end
-
-function video_used_for_room(roomName)
-    get_type_cache_video()[roomName] = true;
-    module:log("info","---> Added media_type_cache_video %s", json.encode(media_type_cache_video));
-end
-
-function desktop_used_for_room(roomName)
-    get_type_cache_desktop()[roomName] = true;
-    module:log("info","---> Added media_type_cache_desktop %s", json.encode(media_type_cache_desktop));
-end
-
-function delete_video_used_for_room(roomName)
-    get_type_cache_video()[roomName] = nil;
-end
-
-function delete_desktop_used_for_room(roomName)
-    get_type_cache_desktop()[roomName] = nil;
-end
+local get_room_from_jid = module:require "util".get_room_from_jid;
 
 function handle_media_event(event)
-    --    if is_breakout or is_lobby then
-    --        module:log("info","--> is_breakout or is_lobby ");
-    --        return
-    --    end
-
     local stanza = event.stanza;
     if stanza.name == "iq" then
-        local roomName = jid.bare(stanza.attr.to);
+        local room_jid = jid.bare(stanza.attr.to);
+        local room = get_room_from_jid(room_jid);
 
-        if room_had_video(roomName) and room_had_desktop(roomName) then
+        if room == nil then
+            return
+        end
+
+        if room.had_video and room.had_desktop then
             module:log("info","--> It has both video and desktop - exit");
             return
         end
@@ -69,7 +31,7 @@ function handle_media_event(event)
         local jingle_source_add = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "source-add");
         if jingle_source_add then
             mediaType = jingle_source_add:find("content/{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType")
-            module:log("info","---- videoType %s for room %s", mediaType, roomName);
+            module:log("info","---- videoType %s for room %s", mediaType, room_jid);
         end
 
         local jingle_session_accept = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "session-accept");
@@ -86,46 +48,18 @@ function handle_media_event(event)
 
             if content then
                 mediaType = content:find("{urn:xmpp:jingle:apps:rtp:1}description@media")
-                module:log("info","---- media %s for room %s", mediaType, roomName);
+                module:log("info","---- media %s for room %s", mediaType, room_jid);
             end
         end
 
-        if room_had_video(roomName) == nil and (mediaType == "camera" or mediaType == "video") then
-            video_used_for_room(roomName);
+        if room.had_video == nil and (mediaType == "camera" or mediaType == "video") then
+            room.had_video = true;
         end
 
-        if room_had_desktop(roomName) == nil and mediaType == "desktop" then
-            desktop_used_for_room(roomName);
+        if room.had_desktop == nil and mediaType == "desktop" then
+            room.had_desktop = true;
         end
     end
 end
-
-function handle_room_destroyed_event(event)
-    local roomName = event.room;
-
-    local inserted = false;
-    local payload = {};
-
-    module:log("info","---> Room destroyed %s --- roomHadVideo %s --- room_had_desktop %s", roomName, room_had_video(roomName), room_had_desktop(roomName));
-
-    if room_had_video(roomName) then
-        table.insert(payload, "VIDEO");
-        inserted = true;
-        delete_video_used_for_room(roomName);
-    end
-
-    if room_had_desktop(roomName) then
-        table.insert(payload, "DESKTOP");
-        inserted = true;
-        delete_desktop_used_for_room(roomName);
-    end
-
-    if inserted == false then
-        table.insert(payload, "AUDIO_ONLY");
-    end
-
-    module:log("info","---> Room destroyed %s --- payload %s", roomName, json.encode(payload));
-end
-
 
 module:hook("pre-iq/full", handle_media_event, 0);

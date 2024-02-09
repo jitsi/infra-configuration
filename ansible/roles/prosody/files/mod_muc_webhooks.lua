@@ -536,6 +536,31 @@ function handle_broadcast_presence(event)
     end
 end
 
+function handle_room_media_type_on_destroyed_event(event)
+    local roomName = event.room;
+
+    local inserted = false;
+    local payload = {};
+
+    module:log("info","---> Room destroyed %s --- room_had_video %s --- room_had_desktop %s", roomName, room.had_video, room.had_desktop);
+
+    if room.had_video then
+        table.insert(payload, "VIDEO");
+        inserted = true;
+    end
+
+    if room.had_desktop then
+        table.insert(payload, "DESKTOP");
+        inserted = true;
+    end
+
+    if inserted == false then
+        table.insert(payload, "AUDIO_ONLY");
+    end
+
+    module:log("info","---> Room destroyed %s --- payload %s", roomName, json.encode(payload));
+end
+
 function handle_room_event(event, event_type)
     local room = event.room;
 
@@ -563,26 +588,7 @@ function handle_room_event(event, event_type)
     payload.breakoutRoomId = breakout_room_id;
 
     if event_type == ROOM_DESTROYED then
-        payload.mediaType = {};
-
-        local roomName = event.room.name;
-        local inserted = false;
-
-        if room_had_video(roomName) then
-            table.insert(payload.mediaType, "VIDEO");
-            inserted = true;
-            delete_video_used_for_room(roomName);
-        end
-
-        if room_had_desktop(roomName) then
-            table.insert(payload.mediaType, "DESKTOP");
-            inserted = true;
-            delete_desktop_used_for_room(roomName);
-        end
-
-        if inserted == false then
-            table.insert(payload.mediaType, "AUDIO_ONLY");
-        end
+        handle_room_media_type_on_destroyed_event(event);
     end
 
     local room_event = {
