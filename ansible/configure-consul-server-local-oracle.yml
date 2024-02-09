@@ -21,14 +21,17 @@
     nomad_telemetry_prometheus_metrics: true
     shard_role: consul
     cloud_provider: oracle
+    cloud_instance_id: "{{ ansible_fqdn }}"
     nomad_pool_type: consul
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
       cloud_region: "{{ oracle_region }}"
+      cloud_instance_id: "{{ cloud_instance_id }}"
       pool_type: "consul"
       availability_domain: "{{ cloud_availability_domain }}"
       fault_domain: "{{ cloud_fault_domain }}"
+    rsyslog_tcp_output_enabled: true
 
   pre_tasks:
     - name: Setup new repo template file
@@ -97,6 +100,7 @@
       tags: setup
     - name: Set nomad instance variables
       ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
         nomad_shape: "{{ instance_result.json.shape }}"
         cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
         cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
@@ -121,10 +125,10 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "common", tags: "common"}
-    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "sshusers", tags: "ssh" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
-    - { role: "consul-server", tags: "consul-server"}
+    - { role: "consul-server", tags: "consul-server", consul_install_flag: false}
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
     - { role: "consul-service-start", tags: "consul-service-start"}

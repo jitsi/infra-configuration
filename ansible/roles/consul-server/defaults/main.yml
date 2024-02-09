@@ -36,3 +36,4 @@ consul_server_types:
   stage: prod
 consul_wan_regions_aws: "{{ default_regions.strip().split('\n') }}"
 consul_wan_regions_oracle: []
+consul_install_flag: true

@@ -36,6 +36,7 @@
       public_ip: "{{ cloud_public_ip }}"
       availability_domain: "{{ cloud_availability_domain }}"
       fault_domain: "{{ cloud_fault_domain }}"
+    rsyslog_tcp_output_enabled: true
   pre_tasks:
     - name: Stop telegraf for nomad clients # noqa ignore-errors
       ansible.builtin.service:
@@ -135,6 +136,7 @@
     - { role: "iptables-nomad", tags: "iptables-nomad"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}

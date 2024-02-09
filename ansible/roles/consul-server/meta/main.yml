@@ -11,4 +11,4 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
-  - { role: consul-install }
+  - { role: consul-install, when: consul_install_flag }
