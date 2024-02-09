@@ -114,3 +114,8 @@
     enabled: true
     state: started
   when: rsyslog_os_supported
+
+# now flush handlers to ensure any restarts occur
+
+- name: Flush rsyslog handlers
+  ansible.builtin.meta: flush_handlers
