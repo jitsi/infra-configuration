@@ -31,6 +31,7 @@
       pool_type: "consul"
       availability_domain: "{{ cloud_availability_domain }}"
       fault_domain: "{{ cloud_fault_domain }}"
+    rsyslog_tcp_output_enabled: true
 
   pre_tasks:
     - name: Setup new repo template file
