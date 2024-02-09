@@ -1,0 +1,9 @@
+action(
+    type="omfwd"
+    Target="{{ ansible_default_ipv4.address }}"
+    Port="{{ rsyslog_tcp_output_port }}"
+    Protocol="tcp"
+    action.resumeRetryCount="100"
+    queue.type="linkedList"
+    queue.size="10000"
+)

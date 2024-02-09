@@ -25,3 +25,5 @@ rsyslog_udp_input_port: "{{ log_syslog_port }}"
 rsyslog_udp_server_enabled: true
 rsyslog_umask: "0022"
 shard_name: false
+rsyslog_tcp_output_port: 9000
+rsyslog_tcp_output_enabled: false
