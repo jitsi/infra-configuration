@@ -51,6 +51,11 @@
         backup: false
 
   pre_tasks:
+    - name: Remove nginx repo
+      ansible.builtin.apt_repository:
+        repo: "deb http://nginx.org/packages/ubuntu/ jammy nginx"
+        state: absent
+        update_cache: false
     - name: Remove old jitsi repo
       ansible.builtin.apt_repository:
         repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
@@ -209,7 +214,7 @@
         jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jvb_flag }}", jvb_ddns_cleanup_flag: true}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
-    - { role: "jvb-ssl", "tags": "jvb-ssl", when: jvb_nginx_ssl_enabled }
+    - { role: "jvb-ssl", "tags": "jvb-ssl", jvb_ssl_install_flag: false, when: jvb_nginx_ssl_enabled }
     - { role: "jitsi-videobridge-ddns", tags: "jitsi-videobridge-ddns",
         jvb_ddns_install_flag: false, jvb_ddns_configure_flag: true, jvb_ddns_cleanup_flag: true, ipv6_enabled: false }
     - { role: "jitsi-videobridge", tags: "jitsi-videobridge",

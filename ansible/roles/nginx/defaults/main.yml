@@ -1,6 +1,6 @@
 ---
-nginx_apt_key_url: http://nginx.org/keys/nginx_signing.key
-nginx_apt_repo_url: http://nginx.org/packages/ubuntu/
+nginx_apt_key_url: https://nginx.org/keys/nginx_signing.key
+nginx_apt_repo_url: https://nginx.org/packages/ubuntu/
 nginx_log_syslog_enabled: false
 nginx_log_syslog_hostname: localhost
 nginx_log_syslog_port: 514
