@@ -128,7 +128,7 @@
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
-    - { role: "consul-server", tags: "consul-server"}
+    - { role: "consul-server", tags: "consul-server", consul_install_flag: false}
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "nomad", tags: "nomad" }
     - { role: "consul-service-start", tags: "consul-service-start"}
