@@ -28,6 +28,11 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+    - name: Remove nginx repo
+      ansible.builtin.apt_repository:
+        repo: "deb http://nginx.org/packages/ubuntu/ jammy nginx"
+        state: absent
+        update_cache: false
     - name: Remove old jitsi repo
       ansible.builtin.apt_repository:
         repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
@@ -153,7 +158,7 @@
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "jigasi", tags: "jigasi", jigasi_install_flag: false, jigasi_configure_flag: true}
     - { role: "tcpdump-jigasi", tags: "tcpdump-jigasi", when: jigasi_enable_tcpdump }
-    - { role: "jigasi-web", tags: "jigasi-web"}
+    - { role: "jigasi-web", tags: "jigasi-web", jigasi_web_install_flag: false }
     - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent",
         jigasi_haproxy_agent_install_flag: false, jigasi_haproxy_agent_configure_flag: true, when: jigasi_shard_role == 'jigasi'}
     - { role: "jigasi-rtcstats-push", tags: "rtcstats-push",
