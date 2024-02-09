@@ -120,6 +120,7 @@
     - { role: "iptables-nomad", tags: "iptables-nomad"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "common", tags: "common"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "sshusers", tags: "ssh" }
