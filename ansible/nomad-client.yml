@@ -21,6 +21,7 @@
     nomad_enable_jitsi_autoscaler: false
     nvidia_docker_flag: false
     cloud_provider: oracle
+    cloud_instance_id: "{{ ansible_fqdn }}"
     shard_role: nomad-pool
     nomad_node_role: client
     nomad_gpu_count: 0
@@ -28,6 +29,7 @@
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
+      cloud_instance_id: "{{ cloud_instance_id }}"
       cloud_region: "{{ oracle_region }}"
       pool_type: "{{ nomad_pool_type }}"
       gpu_count: "{{ nomad_gpu_count }}"
@@ -57,6 +59,7 @@
       tags: setup
     - name: Set nomad instance variables
       ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
         nomad_shape: "{{ instance_result.json.shape }}"
         cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
         cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
