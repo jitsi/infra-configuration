@@ -22,7 +22,6 @@ function handle_media_event(event)
         end
 
         if room.had_video then
-            module:log("info","--> It has both video and desktop - exit");
             return
         end
 
