@@ -327,6 +327,12 @@
     dest: "/usr/lib/prosody/modules/"
     mode: 0644
 
+- name: Copy over the plugin for muc video/desktop detection
+  ansible.builtin.copy:
+    src: "mod_muc_get_media_type.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
+
 - name: Copy over the plugin for muc webhooks
   ansible.builtin.copy:
     src: "mod_muc_webhooks.lua"
