@@ -361,7 +361,7 @@ backend release-{{ release }}
 {%- endif %}  
 {% endfor %}
 {% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
-{% if item['release_number'] != release %}
+{% if item['release_number'] != release and item['exclusive_tenant'] == "" %}
   server {{ release }}-fallback-{{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
     {{ item['private_ip'] }}
   {%- else -%}
@@ -375,5 +375,19 @@ backend release-{{ release }}
   {%- endif %}
 {%- endif %}  
 {% endfor %}
-
+{% for item in haproxy_facts.backends|sort(attribute='local',reverse=True) %}
+{% if item['release_number'] != release and item['exclusive_tenant'] != "" %}
+  server {{ release }}-fallback-{{ item['shard'] }} {% if haproxy_backend_use_private_ip -%}
+    {{ item['private_ip'] }}
+  {%- else -%}
+    {{ item['public_ip'] }}
+  {%- endif -%}
+    :{{ item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port }} id {{ item['id'] }} backup 
+  {%- if (item['backend_port'] if item['backend_port'] is defined else haproxy_backend_port)==443 %} ssl verify none {% endif -%}
+  {% if haproxy_agent_check -%} no-check agent-check agent-port {{ item['agent_port'] if item['agent_port'] is defined else haproxy_agent_check_port }} agent-inter {{ haproxy_check_interval }} weight 256
+  {%- elif haproxy_check_port -%}
+    {%- if haproxy_check_port==443 %} check-ssl {% endif -%} check port {{ haproxy_check_port }}
+  {%- endif %}
+{%- endif %}  
+{% endfor %}
 {% endfor %} {# haproxy_facts.releases #}
