@@ -21,7 +21,7 @@ function handle_media_event(event)
             return
         end
 
-        if room.had_video and room.had_desktop then
+        if room.had_video then
             module:log("info","--> It has both video and desktop - exit");
             return
         end
@@ -31,18 +31,32 @@ function handle_media_event(event)
         -- https://xmpp.org/extensions/xep-0339.html
         local jingle_source_add = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "source-add");
         if jingle_source_add then
-            mediaType = jingle_source_add:find("content/{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType")
-            module:log("info","---- videoType %s for room %s", mediaType, room_jid);
+            mediaType = jingle_source_add:find("content/{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType");
+            if mediaType then
+                module:log("info","Video added [%s] for room [%s] on source add", mediaType, room_jid);
+            end
         else
+            -- https://xmpp.org/extensions/xep-0166.html#def-action-session-accept
+            local jingle_session_accept = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "session-accept");
+            if jingle_session_accept then
+                local content;
 
-            local jingle_session_initiate = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "session-initiate");
-            if jingle_session_initiate then
-                local content = jingle_session_initiate:find("{http://jitsi.org/jitmeet}json-message#");
-                if content then
-                    module:log("info","---- initiate %s exists %s", content, string.match(content, "video"));
-                    if string.match(content, "video") then
-                        mediaType = "video";
+                for childnode in jingle_session_accept:children() do
+                    if childnode then
+                        if childnode.name == "content" and childnode.attr.name == "video" then
+                            content = childnode;
+                        end
                     end
+                end
+
+                if content then
+                    mediaType = content:find("{urn:xmpp:jingle:apps:rtp:1}description@media")
+                    if mediaType == "video" then
+                        mediaType = content:find("{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType");
+                        if mediaType then
+                            module:log("info","Video detected [%s] for room [%s] on session accept", mediaType, room_jid);
+                        end
+                    end;
                 end
             end
         end
