@@ -6,7 +6,7 @@
 {% if jigasi_shard_role=='jigasi-transcriber' %}
   "consul_server":"{{ jigasi_consul_server }}",
 {% endif %}
-{% if jigasi_enable_local_datacenters and jigasi_shard_role!='jigasi-transcriber' %}
+{% if jigasi_enable_local_datacenters %}
   "datacenters":{{ jigasi_local_datacenters|to_json }},
 {% else %}
   "enable_cross_region": true,

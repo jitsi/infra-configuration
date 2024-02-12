@@ -125,7 +125,7 @@ jigasi_transcriber_filter_silence: false
 jigasi_transcriber_remote_select: "https://get-transcriber.jitsi.net"
 jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
-jigasi_transcriber_whisper_websocket_url: "ws://localhost:8000/ws/"
+jigasi_transcriber_whisper_websocket_url: "wss://{{ hcv_environment }}-{{ oracle_region }}-whisper.jitsi.net:443/ws/"
 jigasi_transcription_path: /var/lib/jigasi/transcripts
 jigasi_udp_buffer_max_backlog: 2000
 # temporarily increase buffer size until performance work is completed
