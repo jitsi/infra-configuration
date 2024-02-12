@@ -31,9 +31,6 @@ function handle_media_event(event)
         local jingle_source_add = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "source-add");
         if jingle_source_add then
             mediaType = jingle_source_add:find("content/{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType");
-            if mediaType then
-                module:log("info","Video added [%s] for room [%s] on source add", mediaType, room_jid);
-            end
         else
             -- https://xmpp.org/extensions/xep-0166.html#def-action-session-accept
             local jingle_session_accept = stanza:get_child_with_attr("jingle", "urn:xmpp:jingle:1", "action", "session-accept");
@@ -52,9 +49,6 @@ function handle_media_event(event)
                     mediaType = content:find("{urn:xmpp:jingle:apps:rtp:1}description@media")
                     if mediaType == "video" then
                         mediaType = content:find("{urn:xmpp:jingle:apps:rtp:1}description/{urn:xmpp:jingle:apps:rtp:ssma:0}source@videoType");
-                        if mediaType then
-                            module:log("info","Video detected [%s] for room [%s] on session accept", mediaType, room_jid);
-                        end
                     end;
                 end
             end
