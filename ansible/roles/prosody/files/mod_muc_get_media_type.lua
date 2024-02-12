@@ -59,6 +59,7 @@ function handle_media_event(event)
         end
 
         if room.had_desktop == nil and mediaType == "desktop" then
+            room.had_video = true;
             room.had_desktop = true;
         end
     end
