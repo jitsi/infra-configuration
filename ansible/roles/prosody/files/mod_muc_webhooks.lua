@@ -894,10 +894,6 @@ local function handle_transcription_chunk(event)
     end
 end
 
-function handle_source_add(event)
-
-end
-
 process_host_module(muc_domain_base, function(host_module, host)
     module:log('info', 'Main component loaded %s', host);
     host_module:hook("pre-iq/full", handle_jibri_event, -2);
