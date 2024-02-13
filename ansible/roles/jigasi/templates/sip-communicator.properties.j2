@@ -263,8 +263,8 @@ org.jitsi.jigasi.ENABLE_REST_SHUTDOWN=true
 org.jitsi.jigasi.ENABLE_TRANSCRIPTION=true
 org.jitsi.jigasi.ENABLE_SIP=false
 
-{% if jigasi_enable_css_integration %}
-org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.eght.CloudStorageService
+{% if jigasi_transcriber_custom_transcriber %}
+org.jitsi.jigasi.transcription.customService={{ jigasi_transcriber_custom_transcriber }}
 {% endif %}
 
 {% if jigasi_transcriber_filter_silence %}

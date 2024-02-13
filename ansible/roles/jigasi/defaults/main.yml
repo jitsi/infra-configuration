@@ -122,6 +122,7 @@ jigasi_transcriber_auth_password: "replaceme"
 jigasi_transcriber_auth_user: "transcriber"
 jigasi_transcriber_enable_debug: false
 jigasi_transcriber_filter_silence: false
+jigasi_transcriber_custom_transcriber: false
 jigasi_transcriber_remote_select: "https://get-transcriber.jitsi.net"
 jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
