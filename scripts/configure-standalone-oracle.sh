@@ -57,6 +57,7 @@ CLOUD_NAME="$ENVIRONMENT-$ORACLE_REGION"
 RESOURCE_NAME_ROOT="$ENVIRONMENT-$ORACLE_REGION-$UNIQUE_ID"
 
 [ -z "$DNS_ZONE_NAME" ] && DNS_ZONE_NAME="$DEFAULT_DNS_ZONE_NAME"
+[ -z "$SHARD_BASE" ] && SHARD_BASE="$ENVIRONMENT"
 
 # [ -z "$S3_PROFILE" ] && S3_PROFILE="oracle"
 # [ -z "$S3_STATE_BUCKET" ] && S3_STATE_BUCKET="tf-state-$ENVIRONMENT"
@@ -127,7 +128,7 @@ if [ -n "$PROSODY_FROM_URL" ]; then
 fi
 
 ansible-playbook -v $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
---extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
+--extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN shard_name=$SHARD_BASE-$ORACLE_REGION-$UNIQUE_ID" \
 -e "ansible_python_interpreter=/usr/bin/python" \
 -e "jitsi_videobridge_deb_pkg_version=$JVB_VERSION" \
 -e "jicofo_deb_pkg_version=$JICOFO_VERSION" \

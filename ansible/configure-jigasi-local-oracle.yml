@@ -101,6 +101,18 @@
         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
         state: present
       when: jigasi_shard_role == 'jigasi-transcriber'
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set nomad instance variables
+      ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
+        cloud_shape: "{{ instance_result.json.shape }}"
+        cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
+        cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
+      tags: setup
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
@@ -126,6 +138,8 @@
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jigasi_java_11 }}", java_install_flag: false }
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jigasi_enabled: true}
     - { role: "journald", tags: "journald"}
+    - { role: "vector", tags: "vector", when: jigasi_vector_enabled}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true, when: jigasi_vector_enabled}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
