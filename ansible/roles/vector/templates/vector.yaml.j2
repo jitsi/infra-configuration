@@ -34,6 +34,11 @@ sources:
             - "/var/log/jitsi/jicofo.log"
     prosody:
         type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: continue_through
+            condition_pattern: "^\\s+"
+            start_pattern: "^([A-Z][a-z]{2} \\d{2} \\d{2}:\\d{2}:\\d{2} )"
         include:
             - "/var/log/prosody/prosody.log"
             - "/var/log/prosody/prosody.err"
@@ -81,7 +86,7 @@ sinks:
   loki_prosody:
     remove_timestamp: false
     type: "loki"
-    inputs: ["prosody"]
+    inputs: ["prosody_to_structure"]
     endpoint: "[[ vector_loki_url ]]"
     encoding:
         codec: "json"
@@ -178,7 +183,7 @@ transforms:
   jigasi_to_structure:
     type: "remap"
     inputs: ["jigasi"]
-    # First try to parse as this: 2024-02-13 14:45:05.004 INFO: [2391] net.java.sip.communicator.impl.protocol.jabber.ChatRoomJabberImpl$MemberListener.joined: jigasibrewery@internal.auth.8x8.vc/jitsi-55s0cs has joined the jigasibrewery@internal.auth.8x8.vc chat room.
+    # First try to parse as this: 2024-02-13 14:45:05.004 INFO: [2391] net.java.sip.communicator.impl.protocol.jabber.ChatRoomJabberImplMemberListener.joined: jigasibrewery@internal.auth.8x8.vc/jitsi-55s0cs has joined the jigasibrewery@internal.auth.8x8.vc chat room.
     # then fall back to this: 2024-02-13 14:45:05.004 blah blah blah
     source: |
         structured =
@@ -186,6 +191,16 @@ transforms:
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
+  prosody_to_structure:
+    type: "remap"
+    inputs: ["prosody"]
+    # Try to parse as this: Feb 13 17:13:33 c2saaab1bd476b0 info    Client disconnected: connection closed
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<time>[A-Z][a-z]{2} \d{2} \d{2}:\d{2}:\d{2}) (?P<component>\w+)\t(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+        .timestamp = parse_timestamp(.time, "%b %d %H:%M:%S") ?? .timestamp
 
   message_to_structure:
     type: "remap"
