@@ -263,7 +263,7 @@ org.jitsi.jigasi.ENABLE_REST_SHUTDOWN=true
 org.jitsi.jigasi.ENABLE_TRANSCRIPTION=true
 org.jitsi.jigasi.ENABLE_SIP=false
 
-{% if jigasi_transcriber_custom_transcriber is defined and jigasi_transcriber_custom_transcriber %}
+{% if jigasi_transcriber_custom_transcriber %}
 org.jitsi.jigasi.transcription.customService={{ jigasi_transcriber_custom_transcriber }}
 {% endif %}
 
