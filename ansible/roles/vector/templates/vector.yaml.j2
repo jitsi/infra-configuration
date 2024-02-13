@@ -1,0 +1,200 @@
+data_dir: "/var/lib/vector"
+api:
+    enabled: true
+    address: "0.0.0.0:8686"
+    playground: true
+sources:
+    jvb:
+        type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: halt_before
+            condition_pattern: "^JVB "
+            start_pattern: "^JVB "
+        include:
+            - "/var/log/jitsi/jvb.log"
+    jigasi:
+        type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: halt_before
+            # regexp to match pattern eg: 2024-02-12 21:23:53.552 INFO: [99386] net.java.sip.communicator.plugin.reconnectplugin.PPReconnectWrapper.cancelReconnect: Cancel reconnect ReconnectTask [delay=300000, provider=ProtocolProviderServiceJabberImpl(Jabber:jigasi@auth.beta.meet.jit.si@10.82.184.35)]
+            condition_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+            start_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+        include:
+            - "/var/log/jitsi/jigasi.log"
+    jicofo:
+        type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: halt_before
+            condition_pattern: "^Jicofo "
+            start_pattern: "^Jicofo "
+        include:
+            - "/var/log/jitsi/jicofo.log"
+    prosody:
+        type: "file"
+        include:
+            - "/var/log/prosody/prosody.log"
+            - "/var/log/prosody/prosody.err"
+    logs:
+        type: "docker_logs"
+    syslog:
+        type: "syslog"
+        address: "0.0.0.0:9000"
+        mode: "tcp"
+sinks:
+  loki_syslog:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["syslog"]
+    endpoint: "[[ vector_loki_url ]]"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "[[ vector_cloud_instance_id ]]"
+        job: "syslog"
+        task: "{{ .appname }}"
+        group: "syslog"
+        namespace: "system"
+        node: "[[ ansible_hostname ]]"
+        region: "[[ vector_cloud_region ]]"
+  loki_jicofo:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["jicofo_to_structure"]
+    endpoint: "[[ vector_loki_url ]]"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "[[ vector_cloud_instance_id ]]"
+        job: "shard-[[ vector_shard_name ]]"
+        task: "jicofo"
+        group: "signal"
+        namespace: "default"
+        node: "[[ ansible_hostname ]]"
+        region: "[[ vector_cloud_region ]]"
+  loki_prosody:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["prosody"]
+    endpoint: "[[ vector_loki_url ]]"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "[[ vector_cloud_instance_id ]]"
+        job: "shard-[[ vector_shard_name ]]"
+        task: "prosody"
+        group: "signal"
+        namespace: "default"
+        node: "[[ ansible_hostname ]]"
+        region: "[[ vector_cloud_region ]]"
+  loki_jvb:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["jvb_to_structure"]
+    endpoint: "[[ vector_loki_url ]]"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "[[ vector_cloud_instance_id ]]"
+        job: "jvb-[[ ansible_hostname ]]"
+        task: "jvb"
+        group: "jvb"
+        namespace: "default"
+        node: "[[ ansible_hostname ]]"
+        region: "[[ vector_cloud_region ]]"
+  loki_jigasi:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["jigasi_to_structure"]
+    endpoint: "[[ vector_loki_url ]]"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "[[ vector_cloud_instance_id ]]"
+        job: "jigasi-[[ ansible_hostname ]]"
+        task: "jigasi"
+        group: "jigasi"
+        namespace: "default"
+        node: "[[ ansible_hostname ]]"
+        region: "[[ vector_cloud_region ]]"
+  out:
+    type: "console"
+    inputs: [ "message_to_structure" ]
+    encoding:
+        codec: "json"
+  loki:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["message_to_structure"]
+    endpoint: "[[ vector_loki_url ]]"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    remove_label_fields: true
+    labels:
+        alloc: "{{ label.\"com.hashicorp.nomad.alloc_id\" }}"
+        job: "{{ label.\"com.hashicorp.nomad.job_name\" }}"
+        task: "{{ label.\"com.hashicorp.nomad.task_name\" }}"
+        group: "{{ label.\"com.hashicorp.nomad.task_group_name\" }}"
+        namespace: "{{ label.\"com.hashicorp.nomad.namespace\" }}"
+        node: "{{ label.\"com.hashicorp.nomad.node_name\" }}"
+        region: "[[ vector_cloud_region ]]"
+transforms:
+  jvb_to_structure:
+    type: "remap"
+    inputs: ["jvb"]
+    # First try to parse as this: JVB 2023-10-21 01:12:01.046 FINE: [82] XmppConnection.handleIq#186: RECV: <iq xmlns='jabber:client' to='jvb@auth.jvb.aaron.jitsi.net/T5Jqgr6Z3qA9' from='jvbbrewery@muc.jvb.aaron.jitsi.net/focus' id='anZiQGF1dGguanZiLmFhcm9uLmppdHNpLm5ldC9UNUpxZ3I2WjNxQTkASVVUVEstOTQzMjcwAJaOnR9oV0r9' type='get'><healthcheck xmlns='http://jitsi.org/protocol/healthcheck'/></iq>
+    # then fall back to this: JVB 2023-10-21 01:12:01.046 blah blah blah
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<app>JVB) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<app>JVB) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+  jicofo_to_structure:
+    type: "remap"
+    inputs: ["jicofo"]
+    # First try to parse as this: Jicofo 2024-02-10 01:45:07.661 WARNING: [3573251] org.jivesoftware.smack.AbstractXMPPConnection.callConnectionClosedOnErrorListener
+    # then fall back to this: Jicofo 2024-02-10 01:45:07.661 blah blah blah
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<app>Jicofo) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<app>Jicofo) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+  jigasi_to_structure:
+    type: "remap"
+    inputs: ["jigasi"]
+    # First try to parse as this: 2024-02-13 14:45:05.004 INFO: [2391] net.java.sip.communicator.impl.protocol.jabber.ChatRoomJabberImpl$MemberListener.joined: jigasibrewery@internal.auth.8x8.vc/jitsi-55s0cs has joined the jigasibrewery@internal.auth.8x8.vc chat room.
+    # then fall back to this: 2024-02-13 14:45:05.004 blah blah blah
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+
+  message_to_structure:
+    type: "remap"
+    inputs: ["logs"]
+    source: |
+        structured =
+            parse_json(.message) ??
+            parse_syslog(.message) ??
+            parse_common_log(.message) ??
+            parse_regex(.message, r'^(?P<timestamp>\\d+/\\d+/\\d+ \\d+:\\d+:\\d+) \\[(?P<severity>\\w+)\\] (?P<pid>\\d+)#(?P<tid>\\d+):(?: \\*(?P<connid>\\d+))? (?P<message>.*)$') ??
+            {}
+        . = merge(., structured) ?? .

@@ -1,0 +1,52 @@
+---
+- name: Install datadog apt keys
+  ansible.builtin.apt_key:
+    url: "https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public"
+    state: present
+  when: vector_install_flag
+- name: Install vector apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ vector_apt_repo }}"
+    state: present
+    filename: "vector"
+    update_cache: true
+  when: vector_install_flag
+- name: Install vector
+  ansible.builtin.apt:
+    name: vector
+    state: present
+  when: vector_install_flag
+- name: Remove vector apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ vector_apt_repo }}"
+    state: absent
+    filename: "vector"
+  when: vector_install_flag
+
+- name: Create vector configuration directory
+  ansible.builtin.file:
+    path: /etc/vector
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: vector_configure_flag
+
+- name: Create vector configuration file
+  ansible.builtin.template:
+    src: vector.yaml.j2
+    dest: /etc/vector/vector.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    variable_start_string: '[['
+    variable_end_string: ']]'
+  notify: Restart vector
+  when: vector_configure_flag
+
+- name: Start vector
+  ansible.builtin.service:
+    name: vector
+    state: started
+    enabled: true
+  when: vector_configure_flag
