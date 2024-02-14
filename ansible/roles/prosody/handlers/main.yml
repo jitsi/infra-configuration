@@ -4,6 +4,11 @@
     name: prosody
     state: restarted
 
+- name: Reload prosody JVB
+  ansible.builtin.service:
+    name: prosody-jvb
+    state: restarted
+
 - name: Remove patches # noqa ignore-errors
   ansible.builtin.shell: |
     set -o pipefail
