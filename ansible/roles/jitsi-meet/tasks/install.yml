@@ -40,7 +40,7 @@
   ignore_errors: true
   args:
     creates: "{{ jitsi_meet_ssl_dest_dir }}/dhparam.pem"
-  notify: Restart nginx
+  notify: Restart nginx for jitsi-meet
 
 - name: Create home directory for www-data user
   ansible.builtin.file:
@@ -54,7 +54,7 @@
   ansible.builtin.file:
     path: "/etc/nginx/sites-enabled/{{ jitsi_meet_domain_name }}.conf"
     state: absent
-  notify: Restart nginx
+  notify: Restart nginx for jitsi-meet
 
 - name: Remove default nginx server
   ansible.builtin.file:

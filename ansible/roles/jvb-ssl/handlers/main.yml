@@ -1,5 +1,5 @@
 ---
-- name: Restart nginx
+- name: Restart nginx for jvb-ssl
   ansible.builtin.service:
     name: nginx
     state: restarted

@@ -4,7 +4,7 @@
     src: nginx.site.j2
     dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
     mode: 0644
-  notify: Restart nginx
+  notify: Restart nginx for colibri proxy
 
 - name: Remove nginx default site
   ansible.builtin.file:
@@ -21,7 +21,7 @@
     src: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
     dest: "/etc/nginx/sites-enabled/{{ jvb_colibri_proxy_domain_name }}"
     state: link
-  notify: Restart nginx
+  notify: Restart nginx for colibri proxy
 
 - name: Start nginx service
   ansible.builtin.service:
