@@ -1,9 +1,9 @@
 ---
 top_level_domain: jitsi.net
 vector_apt_repo: deb https://apt.vector.dev stable vector-0
-vector_cloud_instance_id: "[[ cloud_instance_id | default('default') ]]"
-vector_cloud_region: "[[ oracle_region ]]"
+vector_cloud_instance_id: "{{ cloud_instance_id | default('default') }}"
+vector_cloud_region: "{{ oracle_region }}"
 vector_configure_flag: true
 vector_install_flag: true
-vector_loki_url: "https://[[hcv_environment]]-[[oracle_region]]-loki.[[top_level_domain]]"
-vector_shard_name: "[[ shard_name ]]"
+vector_loki_url: "https://{{ hcv_environment}}-{{oracle_region }}-loki.{{ top_level_domain }}"
+vector_shard_name: "{{ shard_name }}"
