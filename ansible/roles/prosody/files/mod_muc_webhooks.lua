@@ -539,19 +539,16 @@ end
 local function handle_room_media_type_on_destroyed_event(event)
     local room_jid = event.room;
     local room = get_room_from_jid(room_jid);
-    local inserted = false;
     local payload = {};
 
     table.insert(payload, "AUDIO");
 
     if room.had_video then
         table.insert(payload, "VIDEO");
-        inserted = true;
     end
 
     if room.had_desktop then
         table.insert(payload, "DESKTOP");
-        inserted = true;
     end
 
     return payload;
