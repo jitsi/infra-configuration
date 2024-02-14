@@ -42,6 +42,38 @@
   notify: Restart vector
   when: vector_configure_flag
 
+- name: Check if jitsi group exists
+  ansible.builtin.getent:
+    database: group
+    key: jitsi
+    fail_key: false
+  register: jitsi_group_result
+
+- name: Add vector to jitsi group
+  ansible.builtin.user:
+    name: vector
+    groups: ["jitsi"]
+    append: true
+  when:
+    - ansible_facts.getent_group['jitsi'] is defined
+    - vector_configure_flag
+
+- name: Check if prosody group exists
+  ansible.builtin.getent:
+    database: group
+    key: prosody
+    fail_key: false
+  register: prosody_group_result
+
+- name: Add vector to prosody group
+  ansible.builtin.user:
+    name: vector
+    groups: ["prosody"]
+    append: true
+  when:
+    - ansible_facts.getent_group['prosody'] is defined
+    - vector_configure_flag
+
 - name: Start vector
   ansible.builtin.service:
     name: vector
