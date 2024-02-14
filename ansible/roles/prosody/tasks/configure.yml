@@ -226,6 +226,7 @@
     src: prosody.cfg.lua.j2
     dest: /etc/prosody/prosody.cfg.lua
     mode: 0644
+  notify: Reload prosody
 
 - name: Build prosody-jvb.cfg.lua from template
   ansible.builtin.template:
@@ -233,6 +234,7 @@
     dest: /etc/prosody-jvb/prosody.cfg.lua
     mode: 0644
   when: prosody_jvb_configure_flag
+  notify: Reload prosody JVB
 
 - name: Register focus prosody user
   ansible.builtin.command: prosodyctl register focus auth.{{ prosody_domain_name }} "{{ prosody_focus_user_secret }}"
@@ -454,6 +456,9 @@
     enabled: true
     daemon_reload: true
   when: prosody_jvb_configure_flag
+
+- name: Ensure handlers are notified now to reload prosody if configuration changed
+  ansible.builtin.meta: flush_handlers
 
 - name: Add moderator authentication
   ansible.builtin.command: prosodyctl register {{ moderator_auth_user }} {{ prosody_domain_name }} "{{ moderator_auth_password }}"
