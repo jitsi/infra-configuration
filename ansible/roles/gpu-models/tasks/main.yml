@@ -59,18 +59,18 @@
     path: "{{ gpu_models_s3fs_credentials_path }}"
     state: absent
 
-- name: Grab current skynet version from nomad job definition
+- name: Grab current image version from nomad job definition
   ansible.builtin.shell: |
     set -o pipefail
     export NOMAD_ADDR=https://{{ hcv_environment }}-{{ gpu_models_region }}-nomad.{{ gpu_models_dns_zone_name }}
-    nomad job inspect skynet-{{ gpu_models_region }} | jq -r ".Job.TaskGroups[].Tasks[].Config.image | split(\":\")[1]"
-  register: skynet_version_results
+    nomad job inspect {{ gpu_models_job_name }} | jq -r ".Job.TaskGroups[].Tasks[].Config.image | split(\":\")[1]"
+  register: job_version_results
   args:
     executable: /bin/bash
 
 - name: Set skynet version variable from stdout of previous task
   ansible.builtin.set_fact:
-    gpu_models_skynet_version: "{{ skynet_version_results.stdout }}"
+    gpu_models_skynet_version: "{{ job_version_results.stdout }}"
 
 - name: Ensure root docker dir
   ansible.builtin.file:
