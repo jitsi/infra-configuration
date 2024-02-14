@@ -1,5 +1,5 @@
 ---
-- name: Restart nginx for colibri proxy
+- name: Restart nginx for ops-repo
   ansible.builtin.service:
     name: nginx
     state: restarted

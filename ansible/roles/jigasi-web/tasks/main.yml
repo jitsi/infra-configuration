@@ -13,7 +13,7 @@
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
     state: absent
-  notify: Restart nginx
+  notify: Restart nginx for jigasi-web
 
 - name: Deploy jigasi web page
   ansible.builtin.template:
@@ -26,14 +26,14 @@
     src: nginx.site.j2
     dest: /etc/nginx/sites-available/jigasi
     mode: 0644
-  notify: Restart nginx
+  notify: Restart nginx for jigasi-web
 
 - name: Enable jigasi nginx site
   ansible.builtin.file:
     src: /etc/nginx/sites-available/jigasi
     dest: /etc/nginx/sites-enabled/jigasi
     state: link
-  notify: Restart nginx
+  notify: Restart nginx for jigasi-web
 
 - name: Ensure handlers are notified now to avoid firewall conflicts.
   ansible.builtin.meta: flush_handlers

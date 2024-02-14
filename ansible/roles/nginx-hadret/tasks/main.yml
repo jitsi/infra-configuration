@@ -30,7 +30,7 @@
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
     mode: 0644
-  notify: Restart nginx
+  notify: Restart nginx for nginx-hadret
 
 # directories for custom configuration
 - name: Nginx config sites available directory
@@ -56,14 +56,14 @@
     src: 'status_server'
     dest: '/etc/nginx/sites-available/status_server'
     mode: 0644
-  notify: Restart nginx
+  notify: Restart nginx for nginx-hadret
 
 - name: Nginx config status server enabled
   ansible.builtin.file:
     src: /etc/nginx/sites-available/status_server
     dest: /etc/nginx/sites-enabled/status_server
     state: link
-  notify: Restart nginx
+  notify: Restart nginx for nginx-hadret
 
 - name: Nginx rsyslog config
   ansible.builtin.include_tasks: rsyslog.yml
