@@ -1,18 +1,9 @@
 ---
 nomad_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-nomad_loki_mount_point: /opt/nomad/loki
 nomad_jibri_mount_point: "{{ nomad_jibri_recording_dir }}"
-nomad_s3fs_credentials: replaceme
-nomad_s3fs_credentials_path: /etc/.s3fs-passwd
 nomad_docker_auth_file_path: "{{ docker_auth_file_path }}"
 nomad_docker_auth_file:
   credHelpers:
     "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
-nomad_loki_bucket: "loki-{{ hcv_environment }}"
-nomad_loki_region: "{{ oracle_region | default('us-phoenix-1') }}"
-nomad_loki_s3_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
-nomad_loki_s3fs_options: "_netdev,passwd_file={{ nomad_s3fs_credentials_path }},\
-url=https://{{ nomad_loki_s3_namespace }}.compat.objectstorage.{{ nomad_loki_region }}.oraclecloud.com,\
-nomultipart,use_path_request_style,endpoint={{ nomad_loki_region }},allow_other,umask=000"
 nomad_jibri_preserve_boot_volume_if_needed: "{{ jibri_preserve_boot_volume_if_needed | default(false) }}"
 nomad_jibri_recording_dir: /opt/jibri/recordings

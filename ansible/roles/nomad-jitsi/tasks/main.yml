@@ -7,35 +7,6 @@
     state: present
     reload: true
 
-- name: Check loki bucket mount # no-qa ignore-errors
-  ansible.builtin.shell: |
-    set -o pipefail
-    mount | grep -q {{ nomad_loki_mount_point }}
-  args:
-    executable: /bin/bash
-  register: loki_mount_results
-  ignore_errors: true
-  when: nomad_pool_type == 'general'
-
-- name: Create loki mount point
-  ansible.builtin.file:
-    path: "{{ nomad_loki_mount_point }}"
-    state: directory
-    mode: 0755
-    recurse: true
-  when:
-    - nomad_pool_type == 'general'
-    - loki_mount_results.rc == 1
-
-- name: Create nomad s3fs passwd
-  ansible.builtin.copy:
-    mode: 0600
-    owner: root
-    content: "{{ nomad_s3fs_credentials }}"
-    dest: "{{ nomad_s3fs_credentials_path }}"
-  no_log: true
-  when: nomad_pool_type == 'general'
-
 - name: Create nomad jibri mount point
   ansible.builtin.file:
     path: "{{ nomad_jibri_mount_point }}"
@@ -43,22 +14,6 @@
     mode: 0755
     recurse: true
   when: nomad_pool_type == 'jibri'
-
-- name: Install apt pre-requisites
-  ansible.builtin.apt:
-    name: s3fs
-    state: present
-
-- name: Mount loki bucket
-  ansible.posix.mount:
-    src: "s3fs#{{ nomad_loki_bucket }}"
-    path: "{{ nomad_loki_mount_point }}"
-    opts: "{{ nomad_loki_s3fs_options }}"
-    fstype: "fuse"
-    state: mounted
-  when:
-    - nomad_pool_type == 'general'
-    - loki_mount_results.rc == 1
 
 - name: ECR credentials dependency
   ansible.builtin.apt:
