@@ -225,7 +225,7 @@ jvb_ws_relay_domain: "{{ jvb_server_prefix + '.' + jvb_ws_domain_suffix if jvb_c
 jvb_xmpp_port: "{{ 6222 if prosody_jvb_configure_flag else 5222 }}"
 jvb_yourkit_agent_path: "{{ jvb_yourkit_base_path }}/bin/linux-arm-64/libyjpagent.so"
 jvb_yourkit_base_path: "/opt/YourKit-JavaProfiler-2023.9"
-jvb_yourkit_url: "https://download.yourkit.com/yjp/2023.9/YourKit-JavaProfiler-2023.9-b102-arm64.zip"
+jvb_yourkit_url: "https://download.yourkit.com/yjp/2023.9/YourKit-JavaProfiler-2023.9-b106-arm64.zip"
 path_to_health_script: "/usr/local/bin/jvb-health-check.sh"
 path_to_stats_python_script: "/usr/local/bin/jvb-stats.py"
 path_to_stats_script: "/usr/local/bin/jvb-stats.sh"
