@@ -39,8 +39,6 @@
     owner: root
     group: root
     mode: '0644'
-    variable_start_string: '[['
-    variable_end_string: ']]'
   notify: Restart vector
   when: vector_configure_flag
 

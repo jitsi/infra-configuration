@@ -37,8 +37,6 @@ sources:
         include:
             - "/var/log/prosody/prosody.log"
             - "/var/log/prosody/prosody.err"
-    logs:
-        type: "docker_logs"
     syslog:
         type: "syslog"
         address: "0.0.0.0:9000"
@@ -48,110 +46,87 @@ sinks:
     remove_timestamp: false
     type: "loki"
     inputs: ["syslog"]
-    endpoint: "[[ vector_loki_url ]]"
+    endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
     healthcheck:
         enabled: true
     labels:
-        alloc: "[[ vector_cloud_instance_id ]]"
+        alloc: "{{ vector_cloud_instance_id }}"
         job: "syslog"
-        task: "{{ .appname }}"
+        task: "{{ '{{' }} .appname }}"
         group: "syslog"
         namespace: "system"
-        node: "[[ ansible_hostname ]]"
-        region: "[[ vector_cloud_region ]]"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
   loki_jicofo:
     remove_timestamp: false
     type: "loki"
     inputs: ["jicofo_to_structure"]
-    endpoint: "[[ vector_loki_url ]]"
+    endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
     healthcheck:
         enabled: true
     labels:
-        alloc: "[[ vector_cloud_instance_id ]]"
-        job: "shard-[[ vector_shard_name ]]"
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "shard-{{ vector_shard_name }}"
         task: "jicofo"
         group: "signal"
         namespace: "default"
-        node: "[[ ansible_hostname ]]"
-        region: "[[ vector_cloud_region ]]"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
   loki_prosody:
     remove_timestamp: false
     type: "loki"
     inputs: ["prosody"]
-    endpoint: "[[ vector_loki_url ]]"
+    endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
     healthcheck:
         enabled: true
     labels:
-        alloc: "[[ vector_cloud_instance_id ]]"
-        job: "shard-[[ vector_shard_name ]]"
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "shard-{{ vector_shard_name }}"
         task: "prosody"
         group: "signal"
         namespace: "default"
-        node: "[[ ansible_hostname ]]"
-        region: "[[ vector_cloud_region ]]"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
   loki_jvb:
     remove_timestamp: false
     type: "loki"
     inputs: ["jvb_to_structure"]
-    endpoint: "[[ vector_loki_url ]]"
+    endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
     healthcheck:
         enabled: true
     labels:
-        alloc: "[[ vector_cloud_instance_id ]]"
-        job: "jvb-[[ ansible_hostname ]]"
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "jvb-{{ ansible_hostname }}"
         task: "jvb"
         group: "jvb"
         namespace: "default"
-        node: "[[ ansible_hostname ]]"
-        region: "[[ vector_cloud_region ]]"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
   loki_jigasi:
     remove_timestamp: false
     type: "loki"
     inputs: ["jigasi_to_structure"]
-    endpoint: "[[ vector_loki_url ]]"
+    endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
     healthcheck:
         enabled: true
     labels:
-        alloc: "[[ vector_cloud_instance_id ]]"
-        job: "jigasi-[[ ansible_hostname ]]"
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "jigasi-{{ ansible_hostname }}"
         task: "jigasi"
         group: "jigasi"
         namespace: "default"
-        node: "[[ ansible_hostname ]]"
-        region: "[[ vector_cloud_region ]]"
-  out:
-    type: "console"
-    inputs: [ "message_to_structure" ]
-    encoding:
-        codec: "json"
-  loki:
-    remove_timestamp: false
-    type: "loki"
-    inputs: ["message_to_structure"]
-    endpoint: "[[ vector_loki_url ]]"
-    encoding:
-        codec: "json"
-    healthcheck:
-        enabled: true
-    remove_label_fields: true
-    labels:
-        alloc: "{{ label.\"com.hashicorp.nomad.alloc_id\" }}"
-        job: "{{ label.\"com.hashicorp.nomad.job_name\" }}"
-        task: "{{ label.\"com.hashicorp.nomad.task_name\" }}"
-        group: "{{ label.\"com.hashicorp.nomad.task_group_name\" }}"
-        namespace: "{{ label.\"com.hashicorp.nomad.namespace\" }}"
-        node: "{{ label.\"com.hashicorp.nomad.node_name\" }}"
-        region: "[[ vector_cloud_region ]]"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
 transforms:
   jvb_to_structure:
     type: "remap"
@@ -186,15 +161,3 @@ transforms:
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
-
-  message_to_structure:
-    type: "remap"
-    inputs: ["logs"]
-    source: |
-        structured =
-            parse_json(.message) ??
-            parse_syslog(.message) ??
-            parse_common_log(.message) ??
-            parse_regex(.message, r'^(?P<timestamp>\\d+/\\d+/\\d+ \\d+:\\d+:\\d+) \\[(?P<severity>\\w+)\\] (?P<pid>\\d+)#(?P<tid>\\d+):(?: \\*(?P<connid>\\d+))? (?P<message>.*)$') ??
-            {}
-        . = merge(., structured) ?? .
