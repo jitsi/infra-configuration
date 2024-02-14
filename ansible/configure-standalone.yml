@@ -235,8 +235,6 @@
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
     - { role: "journald", tags: "journald"}
-    - { role: "vector", tags: "vector"}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
     - { role: "fluentd-jitsi", tags: "fluentd",
         base_fluentd_install_flag: 'false', fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false, when: standalone_enable_fluentd}
@@ -267,6 +265,8 @@
 
   # additional components here
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
+    - { role: "vector", tags: "vector"}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: jitsi-dumper, tags: "jitsi-dumper"}
     - { role: jibri-auth, tags: "jibri-auth"}
     - { role: "jigasi-auth", tags: "jigasi-auth"}
