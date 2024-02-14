@@ -537,8 +537,7 @@ function handle_broadcast_presence(event)
 end
 
 local function handle_room_media_type_on_destroyed_event(event)
-    local room_jid = event.room;
-    local room = get_room_from_jid(room_jid);
+    local room = event.room;
     local payload = {};
 
     table.insert(payload, "AUDIO");
