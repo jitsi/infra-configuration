@@ -39,21 +39,21 @@
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
     state: absent
-  notify: Restart nginx
+  notify: Restart nginx for ops-repo
 
 - name: Deploy ops-repo website configuration
   ansible.builtin.template:
     src: nginx.conf.j2
     dest: /etc/nginx/sites-available/ops-repo
     mode: 0644
-  notify: Restart nginx
+  notify: Restart nginx for ops-repo
 
 - name: Enable ops-repo nginx site
   ansible.builtin.file:
     src: /etc/nginx/sites-available/ops-repo
     dest: /etc/nginx/sites-enabled/ops-repo
     state: link
-  notify: Restart nginx
+  notify: Restart nginx for ops-repo
 
 - name: Ensure handlers are notified now to avoid firewall conflicts.
   ansible.builtin.meta: flush_handlers
