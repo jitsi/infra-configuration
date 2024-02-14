@@ -126,6 +126,9 @@
     - name: Set shape fact
       ansible.builtin.set_fact:
         jvb_shape: "{{ instance_result.json.shape }}"
+        cloud_instance_id: "{{ instance_result.json.id }}"
+        cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
+        cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
       tags: setup
     - name: Get instance's Public IP from VNIC
       ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
