@@ -84,11 +84,13 @@ module:hook("muc-occupant-pre-join", function(event)
     end
 
     if room ~= nil and room._data.disabled_features ~= nil then
+        if not origin.jitsi_meet_context_features then
+            origin.jitsi_meet_context_features = {};
+        end
+
         for _, disabled_feature in ipairs(room._data.disabled_features) do
             if DEBUG then module:log("debug", "Removing disabled feature %s from auth context", disabled_feature); end
-            if origin.jitsi_meet_context_features then
-                origin.jitsi_meet_context_features[disabled_feature] = "false";
-            end
+            origin.jitsi_meet_context_features[disabled_feature] = "false";
         end
     end
 end);
