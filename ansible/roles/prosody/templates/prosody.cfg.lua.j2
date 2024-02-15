@@ -608,8 +608,8 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% endfor %}
     };
 
-    rate_limit_whitelist_jids = {
-{% for whitelist_jid in prosody_muc_max_occupants_ignore_list %}
+    rate_limit_whitelist_hosts = {
+{% for whitelist_jid in prosody_rate_limit_host_whitelist %}
         "{{ whitelist_jid }}"{% if not loop.last %},
 {% endif %}
 {% endfor %}
