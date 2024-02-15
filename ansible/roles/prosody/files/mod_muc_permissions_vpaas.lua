@@ -2,6 +2,7 @@ local http = require "net.http";
 local json = require "cjson";
 local inspect = require('inspect');
 
+local um_is_admin = require 'core.usermanager'.is_admin;
 local util = module:require "util.internal";
 local oss_util = module:require "util";
 local is_healthcheck_room = oss_util.is_healthcheck_room;
@@ -26,6 +27,20 @@ module:log("info", "Loading mod_muc_permissions_vpaas!");
 
 local DEBUG = false;
 
+local function is_admin(jid)
+    return um_is_admin(jid);
+end
+
+local function update_features(session, disabled_features)
+    if not session.jitsi_meet_context_features then
+        session.jitsi_meet_context_features = {};
+    end
+
+    for _, f in ipairs(disabled_features) do
+        session.jitsi_meet_context_features[f] = "false";
+    end
+end
+
 -- Hook to assign disabled features for new rooms
 module:hook("muc-room-pre-create", function(event)
     local room = event.room;
@@ -45,10 +60,30 @@ module:hook("muc-room-pre-create", function(event)
                 and type(room._data.disabled_features) == "table"
                 and next(room._data.disabled_features) ~= nil then
                 module:log("info", "disabled features: %s for customer_id: %s", inspect(room._data.disabled_features), customer_id);
+                -- if request was late, there is no problem to update features again
+                for _, o in room:each_occupant() do
+                    if not is_admin(o.bare_jid) then
+                        local ses = prosody.full_sessions[o.jid];
+                        if ses and ses.auth_token then
+                            module:log('warn', 'Updating features for %s in %s', o.jid, room.jid);
+                            update_features(ses, room._data.disabled_features);
+                        end
+                    end
+                end
             end
 
             if jaas_actuator_res.status ~= nil and (jaas_actuator_res.status == "BLOCKED" or jaas_actuator_res.status == "DELETED") then
                 room._data.disabled_access = true;
+                -- drop sessions if the request was late and someone joined
+                for _, o in room:each_occupant() do
+                    if not is_admin(o.bare_jid) then
+                        local ses = prosody.full_sessions[o.jid];
+                        if ses and ses.auth_token then
+                            module:log('warn', 'Closing session for %s in %s', o.jid, room.jid);
+                            ses:close();
+                        end
+                    end
+                end
             else
                 room._data.disabled_access = false;
             end
@@ -76,7 +111,7 @@ module:hook("muc-room-pre-create", function(event)
 end);
 
 module:hook("muc-occupant-pre-join", function(event)
-    local room, origin, stanza = event.room, event.origin, event.stanza;
+    local room, session, stanza = event.room, event.origin, event.stanza;
     local occupant_jid = stanza.attr.from;
 
     if is_healthcheck_room(room.jid) or util.is_blacklisted(occupant_jid) then
@@ -84,13 +119,6 @@ module:hook("muc-occupant-pre-join", function(event)
     end
 
     if room ~= nil and room._data.disabled_features ~= nil then
-        if not origin.jitsi_meet_context_features then
-            origin.jitsi_meet_context_features = {};
-        end
-
-        for _, disabled_feature in ipairs(room._data.disabled_features) do
-            if DEBUG then module:log("debug", "Removing disabled feature %s from auth context", disabled_feature); end
-            origin.jitsi_meet_context_features[disabled_feature] = "false";
-        end
+        update_features(session, room._data.disabled_features);
     end
 end);
