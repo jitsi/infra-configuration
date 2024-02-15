@@ -213,6 +213,8 @@ prosody_rate_limit_session_rate: 2000
 prosody_rate_limit_timeout: 60
 # whitelist localhost, internal network
 prosody_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8"]
+prosody_rate_limit_host_whitelist:
+  - "recorder.{{ prosody_domain_name }}"
 prosody_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
 prosody_server_public_key_repo_url: false
