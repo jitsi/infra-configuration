@@ -6,7 +6,7 @@
     mode: 0644
   register: syslog_template
   when: nginx_log_syslog_enabled
-  notify: Restart rsyslog
+  notify: Restart rsyslog for nginx-hadret
 
 - name: Remove nginx rsyslog config
   ansible.builtin.file:
@@ -14,4 +14,4 @@
     state: absent
   register: syslog_template
   when: not nginx_log_syslog_enabled
-  notify: Restart rsyslog
+  notify: Restart rsyslog for nginx-hadret

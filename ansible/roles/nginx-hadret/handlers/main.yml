@@ -15,7 +15,7 @@
     path: /etc/nginx/modules-enabled/70-mod-stream-geoip.conf
     state: absent
 
-- name: Restart rsyslog
+- name: Restart rsyslog for nginx-hadret
   ansible.builtin.service:
     name: rsyslog
     state: restarted

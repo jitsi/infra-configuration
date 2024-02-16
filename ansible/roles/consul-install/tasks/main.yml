@@ -33,4 +33,4 @@
     src: rsyslog.config.j2
     dest: /etc/rsyslog.d/33-consul.conf
   notify:
-    - Restart rsyslog service
+    - Restart rsyslog service for consul
