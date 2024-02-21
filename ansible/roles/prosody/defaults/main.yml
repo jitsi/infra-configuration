@@ -139,6 +139,7 @@ prosody_meet_auth_vpaas_enabled: false
 prosody_meet_av_moderation_enabled: true
 prosody_meet_chat_history_url: false
 prosody_meet_conf_duration_enabled: true
+prosody_get_media_type: false
 prosody_meet_flip_enabled: false
 prosody_meet_moderator_enabled: false
 prosody_meet_permissions_vpaas_enabled: false

@@ -536,6 +536,23 @@ function handle_broadcast_presence(event)
     end
 end
 
+local function handle_room_media_type_on_destroyed_event(event)
+    local room = event.room;
+    local payload = {};
+
+    table.insert(payload, "AUDIO");
+
+    if room.had_video then
+        table.insert(payload, "VIDEO");
+    end
+
+    if room.had_desktop then
+        table.insert(payload, "DESKTOP");
+    end
+
+    return payload;
+end
+
 function handle_room_event(event, event_type)
     local room = event.room;
 
@@ -561,6 +578,10 @@ function handle_room_event(event, event_type)
 
     payload.isBreakout = is_breakout;
     payload.breakoutRoomId = breakout_room_id;
+
+    if event_type == ROOM_DESTROYED then
+        payload.mediaTypes = handle_room_media_type_on_destroyed_event(event);
+    end
 
     local room_event = {
         ["idempotencyKey"] = uuid_gen(),

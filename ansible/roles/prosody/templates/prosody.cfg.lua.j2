@@ -414,6 +414,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_meet_conf_duration_enabled %}
           "conference_duration";
 {% endif %}
+{% if prosody_get_media_type %}
+          "muc_get_media_type";
+{% endif %}
 {% if prosody_enable_lobby %}
           "muc_lobby_rooms";
 {% endif %}
