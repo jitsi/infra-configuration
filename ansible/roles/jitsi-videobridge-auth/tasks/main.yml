@@ -1,13 +1,32 @@
 ---
 - name: Add jvb XMPP control authentication
-  ansible.builtin.command: prosodyctl register {{ jvb_auth_user }} {{ jvb_auth_domain }} {{ jvb_auth_password }}
+  ansible.builtin.command: prosodyctl adduser "{{ jvb_auth_user }}@{{ jvb_auth_domain }}"
   args:
+    stdin: "{{ jvb_auth_password }}\n{{ jvb_auth_password }}"
     creates: "{{ jvb_auth_domain_path }}"
+  when: jvb_auth_password is defined and jvb_auth_password and not prosody_jvb_configure_flag
 
 # prosody-jvb
 - name: Add jvb XMPP control authentication for prosody-jvb
   ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register {{ jvb_auth_user }} {{ prosody_jvb_auth_domain_name }} {{ jvb_auth_password }}
+    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "{{ jvb_auth_user }}@{{ prosody_jvb_auth_domain_name }}"
   args:
+    stdin: "{{ jvb_auth_password }}\n{{ jvb_auth_password }}"
     creates: "{{ jvb_auth_prosody_jvb_domain_path }}"
-  when: prosody_jvb_configure_flag
+  when: jvb_auth_password is defined and jvb_auth_password and prosody_jvb_configure_flag
+
+- name: Add jvb XMPP control authentication (B)
+  ansible.builtin.command: prosodyctl adduser "{{ jvb_auth_user_B }}@{{ jvb_auth_domain }}"
+  args:
+    stdin: "{{ jvb_auth_password_B }}\n{{ jvb_auth_password_B }}"
+    creates: "{{ jvb_auth_domain_path_B }}"
+  when: jvb_auth_password_B is defined and jvb_auth_password_B and not prosody_jvb_configure_flag
+
+# prosody-jvb
+- name: Add jvb XMPP control authentication for prosody-jvb (B)
+  ansible.builtin.command: |
+    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "{{ jvb_auth_user_B }}@{{ prosody_jvb_auth_domain_name }}"
+  args:
+    stdin: "{{ jvb_auth_password_B }}\n{{ jvb_auth_password_B }}"
+    creates: "{{ jvb_auth_prosody_jvb_domain_path_B }}"
+  when: jvb_auth_password_B is defined and jvb_auth_password_B and prosody_jvb_configure_flag

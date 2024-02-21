@@ -6,7 +6,7 @@ jitsi_videobridge_force_deb_pkg_version: false
 jvb_announce_version: true
 jvb_assumed_bandwidth_limit: "10 Mbps"
 jvb_auth_domain: "auth.{{ prosody_domain_name }}"
-jvb_auth_password: "{{ jvb_xmpp_password | default('replaceme') }}"
+jvb_auth_password: "{{ secrets_jvb_brewery_A | default(false) }}"
 jvb_auth_user: "jvb"
 jvb_average_participant_stress: "{{ jvb_average_participant_stress_by_shape[jvb_shape]
   if jvb_shape in jvb_average_participant_stress_by_shape else jvb_average_participant_stress_by_shape['default'] }}"

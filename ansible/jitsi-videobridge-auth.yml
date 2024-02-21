@@ -1,0 +1,14 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  strategy: free
+  vars_files:
+    - secrets/jvb.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  roles:
+    - { role: "jitsi-videobridge-auth", tags: "auth" }

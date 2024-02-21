@@ -1,8 +1,13 @@
 ---
 jvb_auth_domain: "auth.{{ prosody_domain_name }}"
 jvb_auth_domain_path: "/var/lib/prosody/{{ jvb_auth_domain | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/{{ jvb_auth_user }}.dat"
-jvb_auth_password: "{{ jvb_xmpp_password | default('replaceme') }}"
+jvb_auth_password: "{{ secrets_jvb_brewery_A | default(false) }}"
 # prosody-jvb
 jvb_auth_prosody_jvb_domain_path: "/var/lib/prosody-jvb/{{ prosody_jvb_auth_domain_name | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jvb_auth_user }}.dat"
 jvb_auth_user: "jvb"
+jvb_auth_password_B: "{{ secrets_jvb_brewery_B | default(false) }}"
+jvb_auth_user_B: "jvbb"
+jvb_auth_domain_path_B: "/var/lib/prosody/{{ jvb_auth_domain | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/{{ jvb_auth_user_B }}.dat"
+jvb_auth_prosody_jvb_domain_path_B: "/var/lib/prosody-jvb/{{ prosody_jvb_auth_domain_name | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jvb_auth_user_B }}.dat"
