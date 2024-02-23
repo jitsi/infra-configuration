@@ -184,7 +184,8 @@ sinks:
         group: "jibri"
         namespace: "default"
         node: "{{ ansible_hostname }}"
-        region: "{{ vector_cloud_region }}"transforms:
+        region: "{{ vector_cloud_region }}"
+transforms:
   jvb_to_structure:
     type: "remap"
     inputs: ["jvb"]
