@@ -37,6 +37,30 @@ sources:
         include:
             - "/var/log/prosody/prosody.log"
             - "/var/log/prosody/prosody.err"
+    jibri:
+        type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: halt_before
+            # regexp to match pattern eg: 2024-02-12 21:23:53.552 INFO: [99386] net.java.sip.communicator.plugin.reconnectplugin.PPReconnectWrapper.cancelReconnect: Cancel reconnect ReconnectTask [delay=300000, provider=ProtocolProviderServiceJabberImpl(Jabber:jigasi@auth.beta.meet.jit.si@10.82.184.35)]
+            condition_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+            start_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+        include:
+            - "/var/log/jitsi/jibri/log.0.txt"
+            - "/var/log/jitsi/jibri/log.1.txt"
+    jibri_components:
+        type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: halt_before
+            # regexp to match pattern eg: 2024-02-12 21:23:53.552 INFO: [99386] net.java.sip.communicator.plugin.reconnectplugin.PPReconnectWrapper.cancelReconnect: Cancel reconnect ReconnectTask [delay=300000, provider=ProtocolProviderServiceJabberImpl(Jabber:jigasi@auth.beta.meet.jit.si@10.82.184.35)]
+            condition_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+            start_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+        include:
+            - "/var/log/jitsi/jibri/browser.0.txt"
+            - "/var/log/jitsi/jibri/ffmpeg.0.txt"
+            - "/var/log/jitsi/jibri/browser.1.txt"
+            - "/var/log/jitsi/jibri/ffmpeg.1.txt"
     syslog:
         type: "syslog"
         address: "0.0.0.0:9000"
@@ -127,6 +151,40 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+  loki_jibri:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["jibri_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "jibri-{{ ansible_hostname }}"
+        task: "jibri"
+        group: "jibri"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
+  loki_jibri_components:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["jibri_components_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "jibri-{{ ansible_hostname }}"
+        task: "jibri-components"
+        group: "jibri"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
 transforms:
   jvb_to_structure:
     type: "remap"
@@ -153,8 +211,30 @@ transforms:
   jigasi_to_structure:
     type: "remap"
     inputs: ["jigasi"]
-    # First try to parse as this: 2024-02-13 14:45:05.004 INFO: [2391] net.java.sip.communicator.impl.protocol.jabber.ChatRoomJabberImpl$MemberListener.joined: jigasibrewery@internal.auth.8x8.vc/jitsi-55s0cs has joined the jigasibrewery@internal.auth.8x8.vc chat room.
+    # First try to parse as this: 2024-02-13 14:45:05.004 INFO: [2391] net.java.sip.communicator.impl.protocol.jabber.ChatRoomJabberImplMemberListener.joined: jigasibrewery@internal.auth.8x8.vc/jitsi-55s0cs has joined the jigasibrewery@internal.auth.8x8.vc chat room.
     # then fall back to this: 2024-02-13 14:45:05.004 blah blah blah
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+  jibri_to_structure:
+    type: "remap"
+    inputs: ["jibri"]
+    # First try to parse as this: 2024-02-23 12:10:38.879 FINE: [67740] JibriStatsDClient.incrementCounter#38: Incrementing statsd counter: xmpp-closed-on-error:xmpp_server_host:10.53.118.79:5222
+    # then fall back to this: 2024-02-23 12:10:38.879 blah blah blah
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+  jibri_components_to_structure:
+    type: "remap"
+    inputs: ["jibri_components"]
+    # First try to parse as this: 2024-02-23 12:10:38.879 FINE: [67740] JibriStatsDClient.incrementCounter#38: Incrementing statsd counter: xmpp-closed-on-error:xmpp_server_host:10.53.118.79:5222
+    # then fall back to this: 2024-02-23 12:10:38.879 blah blah blah
     source: |
         structured =
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??

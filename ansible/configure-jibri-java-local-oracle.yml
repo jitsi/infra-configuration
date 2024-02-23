@@ -18,6 +18,7 @@
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
+    cloud_instance_id: "{{ ansible_fqdn }}"
     fluentd_jitsi_region: us-west-2
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
@@ -41,6 +42,18 @@
         backup: false
 
   pre_tasks:
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set nomad instance variables
+      ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
+        cloud_shape: "{{ instance_result.json.shape }}"
+        cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
+        cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
+      tags: setup
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
         cloud_provider: oracle
@@ -135,6 +148,8 @@
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
+    - { role: "vector", tags: "vector", when: jibri_vector_enabled}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true, when: jibri_vector_enabled}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
     - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template }
