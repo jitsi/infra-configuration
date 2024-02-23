@@ -15,6 +15,7 @@
     - secrets/voximplant.yml
     - config/vars.yml
     - secrets/aws-cloudwatch.yml
+    - roles/jibri-java/defaults/main.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
@@ -26,6 +27,7 @@
       JIBRI_USERNAME: "{{ jibri_xmpp_username }}"
       JIBRI_PASSWORD: "{{ jibri_xmpp_password }}"
       JIBRI_MUC_NICKNAME: "{{ ansible_hostname }}"
+      JIBRI_BREWERY: "{{ jibri_xmpp_room_name }}"
       RECORDER_USERNAME: "{{ jibri_selenium_auth_user }}"
       RECORDER_PASSWORD: "{{ jibri_selenium_auth_password }}"
       JIBRI_USAGE_TIMEOUT: "{{ jibri_environments[hcv_environment]['usage_timeout']
