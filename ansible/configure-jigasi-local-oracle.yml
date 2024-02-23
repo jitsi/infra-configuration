@@ -9,6 +9,7 @@
     adl: "{{ ansible_distribution | lower }}"
     adrl: "{{ ansible_distribution_release | lower }}"
     cloud_provider: oracle
+    cloud_instance_id: "{{ ansible_fqdn }}"
     jigasi_enable_consul: true
     shard_role: "{{ jigasi_shard_role | default('jigasi') }}"
   vars_files:
