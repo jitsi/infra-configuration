@@ -1,0 +1,7 @@
+---
+skynet_credentials_directory: /opt/jitsi/skynet/credentials
+skynet_credentials_file: "{{ skynet_credentials_directory }}/credentials.yaml"
+skynet_openai_credentials_by_customer:
+  default:
+    api_key: "replaceme"
+    model_name: "optional"

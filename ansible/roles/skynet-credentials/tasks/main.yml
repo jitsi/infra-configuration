@@ -1,0 +1,17 @@
+---
+- name: Create skynet credentials directory
+  ansible.builtin.file:
+    path: "{{ skynet_credentials_directory }}"
+    state: directory
+    recurse: true
+    mode: 0700
+    owner: root
+    group: root
+
+- name: Create skynet credentials file
+  ansible.builtin.template:
+    src: credentials.yaml.j2
+    dest: "{{ skynet_credentials_file }}"
+    mode: 0600
+    owner: root
+    group: root
