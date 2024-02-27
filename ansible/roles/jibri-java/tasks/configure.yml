@@ -121,6 +121,7 @@
     dest: /etc/jitsi/jibri/xmpp.conf
     group: jitsi
     mode: 0640
+  when: not jibri_pjsua_flag
 
 - name: Override jibri xorg config, to keep resolution 1280x720 for sip-jibri
   ansible.builtin.copy:
