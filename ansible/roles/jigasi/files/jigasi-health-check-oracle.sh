@@ -26,11 +26,6 @@ CURL_BIN="/usr/bin/curl"
 
 . /usr/local/bin/oracle_cache.sh
 
-# transcriber has a higher allowed number of fixed threads
-if [[ "$SHARD_ROLE" == "jigasi-transcriber" ]]; then
-  THREAD_COUNT_CONSTANT=400
-fi
-
 $CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -f $HEALTH_URL > $HEALTH_OUTPUT 2>&1
 if [ $? -eq 0 ]; then
     echo "Basic health OK"
