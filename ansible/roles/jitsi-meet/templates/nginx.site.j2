@@ -260,6 +260,9 @@ server {
     proxy_read_timeout          90s;
     send_timeout                90s;
 
+    client_body_timeout 5s;
+    client_header_timeout 5s;
+
     listen *:443 ssl {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
 
     #also listen on all 127.0.0.1 IPs
