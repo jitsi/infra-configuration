@@ -40,21 +40,26 @@ else
   BASIC_HEALTH_PASSED=false
 fi
 
-STATS=$($CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -f $STATS_URL 2>/dev/null)
-if [ $? -eq 0 ]; then
-    THREAD_COUNT=$(echo $STATS | jq ".threads")
-    CONFERENCE_COUNT=$(echo $STATS | jq ".conferences")
-    THREAD_COUNT_THRESHOLD=$((THREAD_COUNT_CONSTANT+THREAD_COUNT_GRACE+CONFERENCE_COUNT*THREAD_COUNT_CONFERENCE_FACTOR))
-    if [ $THREAD_COUNT -gt $THREAD_COUNT_THRESHOLD ]; then
-      echo "Thread count $THREAD_COUNT above $THREAD_COUNT_THRESHOLD at $CONFERENCE_COUNT conferences $THREAD_COUNT_CONFERENCE_FACTOR factor $THREAD_COUNT_CONSTANT constant $THREAD_COUNT_GRACE grace, extended health failed"
-      EXTENDED_HEALTH_PASSED=false
-    else
-      echo "Extended health OK"
-      EXTENDED_HEALTH_PASSED=true
-    fi
+if [[ "$SHARD_ROLE" == "jigasi-transcriber" ]]; then
+  echo "Extended health skipped for transcriber"
+  EXTENDED_HEALTH_PASSED=true
 else
-  echo "Extended health failed, stats not available"
-  EXTENDED_HEALTH_PASSED=false
+  STATS=$($CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -f $STATS_URL 2>/dev/null)
+  if [ $? -eq 0 ]; then
+      THREAD_COUNT=$(echo $STATS | jq ".threads")
+      CONFERENCE_COUNT=$(echo $STATS | jq ".conferences")
+      THREAD_COUNT_THRESHOLD=$((THREAD_COUNT_CONSTANT+THREAD_COUNT_GRACE+CONFERENCE_COUNT*THREAD_COUNT_CONFERENCE_FACTOR))
+      if [ $THREAD_COUNT -gt $THREAD_COUNT_THRESHOLD ]; then
+        echo "Thread count $THREAD_COUNT above $THREAD_COUNT_THRESHOLD at $CONFERENCE_COUNT conferences $THREAD_COUNT_CONFERENCE_FACTOR factor $THREAD_COUNT_CONSTANT constant $THREAD_COUNT_GRACE grace, extended health failed"
+        EXTENDED_HEALTH_PASSED=false
+      else
+        echo "Extended health OK"
+        EXTENDED_HEALTH_PASSED=true
+      fi
+  else
+    echo "Extended health failed, stats not available"
+    EXTENDED_HEALTH_PASSED=false
+  fi
 fi
 
 if $BASIC_HEALTH_PASSED && $EXTENDED_HEALTH_PASSED; then
