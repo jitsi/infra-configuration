@@ -249,8 +249,10 @@ function handle_occupant_access(event, event_type)
     if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or util.has_prefix(occupant.jid, TRANSCRIBER_PREFIX) or util.has_prefix(occupant.jid, RECORDER_PREFIX)) then
         module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)", occupant.jid, room.jid, is_breakout, main_room.jid);
         local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
+        local _, _, nick_resource = split_jid(occupant.nick);
         local session = event.origin;
         local payload = {};
+
         if session and session.auth_token then
             -- replace user name from the jwt claim with the name from the pre-join screen
             local occupant_nick = stanza:get_child('nick', NICK_NS);
@@ -266,6 +268,7 @@ function handle_occupant_access(event, event_type)
             end
         end
         payload.participantJid = occupant.bare_jid;
+        payload.participantId = nick_resource;
         -- dial check
         if dial_participants[occupant.jid] ~= nil then
             module:log("debug", "dial participant %s leave room %s", occupant.jid, room.jid)
@@ -450,16 +453,15 @@ function handle_occupant_access(event, event_type)
 
         -- add reason for participant left
         if final_event_type == PARTICIPANT_LEFT or final_event_type == DIAL_OUT_ENDED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED then
-            local _, _, resource = split_jid(occupant.nick);
             -- check if the participant switch the main for the breakout room or vice versa
             local status_tag = stanza and stanza:get_child('status') or nil;
             if status_tag and status_tag:get_text() == 'switch_room' then
                 payload.disconnectReason = 'switch_room'
             elseif status_tag and status_tag:get_text() == 'unrecoverable_error' then
                 payload.disconnectReason = 'unrecoverable_error'
-            elseif KICKED_PARTICIPANTS_NICK[resource] then
+            elseif KICKED_PARTICIPANTS_NICK[nick_resource] then
                 payload.disconnectReason = 'kicked'
-                KICKED_PARTICIPANTS_NICK[resource] = nil
+                KICKED_PARTICIPANTS_NICK[nick_resource] = nil
             elseif DISCONNECTED_PARTICIPANTS_JID[occupant.jid] then
                 payload.disconnectReason = 'unknown'
                 DISCONNECTED_PARTICIPANTS_JID[occupant.jid] = nil
