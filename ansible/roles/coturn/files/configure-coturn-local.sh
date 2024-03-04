@@ -38,42 +38,32 @@ DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
 PLAYBOOK="configure-coturn.yml"
 
-if [ -n "$INFRA_CONFIGURATION_REPO" ]; then
-    #if there's still no git branch set, assume main
-    [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
-
-  checkout_repos
-
-  cd $BOOTSTRAP_DIRECTORY/infra-configuration
-  ansible-playbook -v \
-    -i "127.0.0.1," \
-    -c local \
-    --vault-password-file=/root/.vault-password \
-    --tags "$DEPLOY_TAGS" \
-    --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
-    -e "{coturn_configure_only_flag: $COTURN_CONFIGURE_ONLY_FLAG}" \
-    ansible/$PLAYBOOK
-  RET=$?
-  cd -
-
-else
-    #if there's still no git branch set, assume master
-    [ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
-
-
-
-    ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
-    -d /tmp/bootstrap --purge \
-    -i \"127.0.0.1,\" \
-    --vault-password-file=/root/.vault-password \
-    --accept-host-key \
-    -C "$GIT_BRANCH" \
-    --tags "$DEPLOY_TAGS" \
-    --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
-    -e "{coturn_configure_only_flag: $COTURN_CONFIGURE_ONLY_FLAG}" \
-    ansible/
-    ansible/$PLAYBOOK
-    RET=$?
+if [ -z "$INFRA_CONFIGURATION_REPO" ]; then
+  echo "No INFRA_CONFIGURATION_REPO set, using default..."
+  export INFRA_CONFIGURATION_REPO="https://github.com/jitsi/infra-configuration.git"
 fi
+
+if [ -z "$INFRA_CUSTOMIZATIONS_REPO" ]; then
+  echo "No INFRA_CUSTOMIZATIONS_REPO set, using default..."
+  export INFRA_CUSTOMIZATIONS_REPO="https://github.com/jitsi/infra-customizations.git"
+fi
+
+#if there's still no git branch set, assume main
+[ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
+
+checkout_repos
+
+cd $BOOTSTRAP_DIRECTORY/infra-configuration
+ansible-playbook -v \
+  -i "127.0.0.1," \
+  -c local \
+  --vault-password-file=/root/.vault-password \
+  --tags "$DEPLOY_TAGS" \
+  --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
+  -e "{coturn_configure_only_flag: $COTURN_CONFIGURE_ONLY_FLAG}" \
+  ansible/$PLAYBOOK
+RET=$?
+cd -
+
 
 exit $RET
