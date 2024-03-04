@@ -63,11 +63,8 @@ GIT_BRANCH_TAG="git_branch"
 #search for the git branch attached to this instance
 [ -z "$GIT_BRANCH" ] && GIT_BRANCH=$($AWS_BIN ec2 describe-tags --filters "Name=resource-id,Values=${EC2_INSTANCE_ID}" "Name=key,Values=${GIT_BRANCH_TAG}" | jq .Tags[0].Value -r)
 
-#if we get "null" back from the tags, then assume master
-[ "$GIT_BRANCH" == "null" ] && GIT_BRANCH="master"
-
-#if there's still no git branch set, assume master
-[ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
+#if we get "null" back from the tags, then assume blank
+[ "$GIT_BRANCH" == "null" ] && GIT_BRANCH=""
 
 MY_HOSTNAME="${MY_COMPONENT_ID}.${GRID}.jitsi.net"
 
@@ -93,12 +90,32 @@ echo "Dpkg unlocked, running ansible-pull"
 
 DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
 
-ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
--d /tmp/bootstrap --purge \
--i \"127.0.0.1,\" \
---vault-password-file=/root/.vault-password \
---accept-host-key \
--C "$GIT_BRANCH" \
---tags "$DEPLOY_TAGS" \
---extra-vars "selenium_grid_role=$GRID_ROLE selenium_grid_name=$GRID" \
-ansible/configure-selenium-grid-local.yml
+PLAYBOOK="configure-selenium-grid-local.yml"
+
+if [ -z "$INFRA_CONFIGURATION_REPO" ]; then
+  echo "No INFRA_CONFIGURATION_REPO set, using default..."
+  export INFRA_CONFIGURATION_REPO="https://github.com/jitsi/infra-configuration.git"
+fi
+
+if [ -z "$INFRA_CUSTOMIZATIONS_REPO" ]; then
+  echo "No INFRA_CUSTOMIZATIONS_REPO set, using default..."
+  export INFRA_CUSTOMIZATIONS_REPO="https://github.com/jitsi/infra-customizations.git"
+fi
+
+# if there's still no git branch set, assume main
+[ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
+
+checkout_repos
+
+cd $BOOTSTRAP_DIRECTORY/infra-configuration
+ansible-playbook -v \
+    -i "127.0.0.1," \
+    -c local \
+    --tags "$DEPLOY_TAGS" \
+    --extra-vars "cloud_name=$CLOUD_NAME cloud_provider=aws hcv_environment=$ENVIRONMENT selenium_grid_role=$GRID_ROLE selenium_grid_name=$GRID" \
+    --vault-password-file=/root/.vault-password \
+    ansible/$PLAYBOOK
+RET=$?
+cd -
+
+exit $RET
