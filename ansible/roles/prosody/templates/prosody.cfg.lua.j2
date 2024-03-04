@@ -770,6 +770,9 @@ Component "visitors.{{ prosody_domain_name }}" "visitors_component"
     {% if prosody_visitors_auto_allow %}
     auto_allow_visitor_promotion = true
     {% endif %}
+    {% if prosody_visitors_always_supported %}
+    always_visitors_enabled = true
+    {% endif %}
 {% endif %}
 
 {% if hcv_environment in sip_jibri_shared_secrets %}
