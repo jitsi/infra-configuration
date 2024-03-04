@@ -29,13 +29,30 @@ chmod 400 /root/.ssh/id_rsa
 #unless specified, run all tags
 DEPLOY_TAGS=${ANSIBLE_TAGS-"ec2_facts,common,hcv-haproxy-configure,consul-template"}
 
-#do all the heavy lifting
-ansible-pull -v -U git@github.com:8x8Cloud/jitsi-video-infrastructure.git \
--d /tmp/bootstrap --purge \
--i \"127.0.0.1,\" \
---vault-password-file=/root/.vault-password \
---accept-host-key \
--C "$GIT_BRANCH" \
---tags "$DEPLOY_TAGS" \
---extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT prosody_domain_name=$DOMAIN" \
-ansible/configure-haproxy-local.yml
+if [ -z "$INFRA_CONFIGURATION_REPO" ]; then
+  echo "No INFRA_CONFIGURATION_REPO set, using default..."
+  export INFRA_CONFIGURATION_REPO="https://github.com/jitsi/infra-configuration.git"
+fi
+
+if [ -z "$INFRA_CUSTOMIZATIONS_REPO" ]; then
+  echo "No INFRA_CUSTOMIZATIONS_REPO set, using default..."
+  export INFRA_CUSTOMIZATIONS_REPO="https://github.com/jitsi/infra-customizations.git"
+fi
+
+PLAYBOOK="configure-haproxy-local.yml"
+
+# if there's still no git branch set, assume main
+[ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
+
+checkout_repos
+
+cd $BOOTSTRAP_DIRECTORY/infra-configuration
+ansible-playbook -v \
+    -i "127.0.0.1," \
+    -c local \
+    --tags "$DEPLOY_TAGS" \
+    --extra-vars "hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle oracle_region=$ORACLE_REGION region=$ORACLE_REGION" \
+    --vault-password-file=/root/.vault-password \
+    ansible/$PLAYBOOK
+RET=$?
+cd -

@@ -1,6 +1,44 @@
 #!/bin/bash
 
-#!/bin/bash
+export BOOTSTRAP_DIRECTORY="/tmp/bootstrap"
+export LOCAL_REPO_DIRECTORY="/opt/jitsi/bootstrap"
+
+function checkout_repos() {
+  [ -d $BOOTSTRAP_DIRECTORY/infra-configuration ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-configuration
+  [ -d $BOOTSTRAP_DIRECTORY/infra-customizations ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-customizations
+
+  if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null; fi
+
+  mkdir -p "$BOOTSTRAP_DIRECTORY"
+  if [ -d "$LOCAL_REPO_DIRECTORY" ]; then
+    echo "Found local repo copies in $LOCAL_REPO_DIRECTORY, using instead of clone"
+    cp -a $LOCAL_REPO_DIRECTORY/infra-configuration $BOOTSTRAP_DIRECTORY
+    cp -a $LOCAL_REPO_DIRECTORY/infra-customizations $BOOTSTRAP_DIRECTORY
+    cd $BOOTSTRAP_DIRECTORY/infra-configuration
+    git pull
+    cd -
+    cd $BOOTSTRAP_DIRECTORY/infra-customizations
+    git pull
+    cd -
+  else
+    echo "No local repos found, cloning directly from github"
+    git clone $INFRA_CONFIGURATION_REPO $BOOTSTRAP_DIRECTORY/infra-configuration
+    git clone $INFRA_CUSTOMIZATIONS_REPO $BOOTSTRAP_DIRECTORY/infra-customizations
+  fi
+
+  cd $BOOTSTRAP_DIRECTORY/infra-configuration
+  git checkout $GIT_BRANCH
+  git submodule update --init --recursive
+  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
+  cd -
+  cd $BOOTSTRAP_DIRECTORY/infra-customizations
+  git checkout $GIT_BRANCH
+  git submodule update --init --recursive
+  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
+  cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
+  cd -
+}
+
 set -e
 
 . /usr/local/bin/aws_cache.sh
