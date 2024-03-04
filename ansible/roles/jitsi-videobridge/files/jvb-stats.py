@@ -375,7 +375,8 @@ if jvb_pool_stats:
             report_stats['memory_pool.%s' % pool_stat] = jvb_pool_stats[pool_stat]
 
 if jvb_transit_stats:
-    report_stats['transit.overall_bridge_jitter'] = jvb_transit_stats['overall_bridge_jitter']
+    if 'overall_bridge_jitter' in jvb_transit_stats:
+        report_stats['transit.overall_bridge_jitter'] = jvb_transit_stats['overall_bridge_jitter']
     e2e_packet_delay = jvb_transit_stats['e2e_packet_delay']
     for protocol in ['rtp', 'rtcp']:
         report_stats['transit.%s.average_delay_ms' % protocol] = e2e_packet_delay[protocol]['average_delay_ms']
