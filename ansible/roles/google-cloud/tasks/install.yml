@@ -14,3 +14,9 @@
   ansible.builtin.apt:
     name: google-cloud-sdk
     state: present
+
+- name: Remove Google Cloud repo
+  ansible.builtin.apt_repository:
+    repo: "deb http://packages.cloud.google.com/apt {{ google_cloud_apt_release_name }} main"
+    state: absent
+    update_cache: false
