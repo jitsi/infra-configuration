@@ -247,6 +247,7 @@ prosody_version: 0.12.*
 prosody_version_shell: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
 prosody_visitors_enabled: "{{ visitors_enabled | default(false) }}"
 prosody_visitors_count: "{{ visitors_count | default(0) }}"
+prosody_visitors_always_supported: false
 prosody_visitors_auto_allow: false
 prosody_visitors_muc_max_occupants: false
 prosody_vpaas_public_key_repo_url: false
