@@ -29,6 +29,11 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+    - name: Remove Google Cloud repo
+      ansible.builtin.apt_repository:
+        repo: "deb http://packages.cloud.google.com/apt cloud-sdk main"
+        state: absent
+        update_cache: false
     - name: Remove nginx repo
       ansible.builtin.apt_repository:
         repo: "deb http://nginx.org/packages/ubuntu/ jammy nginx"
