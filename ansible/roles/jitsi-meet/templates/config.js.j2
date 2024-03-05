@@ -110,7 +110,7 @@ var config = {
         codecPreferenceOrder: '{{ jitsi_meet_p2p_preferred_codecs }}',
 {% endif %}
 {% if jitsi_meet_p2p_preferred_mobile_codecs %}
-        mobileCodecPreferenceOrder: '{{ jitsi_meet_p2p_preferred_mobile_codecs }}',
+        mobileCodecPreferenceOrder: {{ jitsi_meet_p2p_preferred_mobile_codecs }},
 {% endif %}
         useStunTurn: {% if jitsi_meet_enable_p2p_turn %}true{% else %}false{% endif %} // use XEP-0215 to fetch STUN and TURN servers for the P2P connection
     },
