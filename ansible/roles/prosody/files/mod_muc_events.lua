@@ -393,18 +393,6 @@ local function storeConferenceDetails(room_jid, cdetails)
     if DEBUG then module:log("debug", "Storing conference details to room %s : %s", room_jid, inspect(cdetails)); end
 end
 
-local function attachSessionIdToSpeakerStats(room_jid, session_id)
-    local room = get_room_from_jid(room_jid);
-    if room == nil then
-        log("warn", "Room with jid %s not found", room_jid);
-        return;
-    end
-    if room.speakerStats == nil then
-        room.speakerStats = {};
-    end;
-    room.speakerStats.sessionId = session_id;
-end
-
 local function loadConferenceSession(type, event)
     local room = event.room;
     if DEBUG then module:log("debug", "Load conference session triggered by event type %s room %s", type, room.jid); end
@@ -418,8 +406,6 @@ local function loadConferenceSession(type, event)
             session_id = room._data.meetingId or uuid_gen();
             cdetails["session_id"] = session_id;
             storeConferenceDetails(room.jid, cdetails);
-            --TODO remove after speaker_stats is deployed
-            attachSessionIdToSpeakerStats(room.jid, session_id);
             module:log("info", "Start new conference session for room %s: session_id %s", room.jid, session_id);
         else
             if DEBUG then module:log("debug",
@@ -779,6 +765,10 @@ end
 local function handleRoomDestroyed(event)
     local room = event.room;
     local room_jid = room.jid;
+
+    if is_healthcheck_room(room_jid) then
+        return;
+    end
 
     module:log("info", "End of conference room %s", room_jid);
 
