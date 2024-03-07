@@ -262,15 +262,6 @@ local function isBlacklisted(occupant)
     return false;
 end
 
-local function hasNonBlacklistedOccupants(room)
-    for _, occupant in room:each_occupant() do
-        if not isBlacklisted(occupant) then
-            return true;
-        end
-    end
-    return false;
-end
-
 local function cb(content_, code_, response_, request_)
     if code_ == 200 or code_ == 204 then
         if DEBUG then module:log("debug", "URL Callback: Code %s, Content %s, Request (host %s, path %s, body %s), Response: %s",
@@ -338,6 +329,7 @@ local function loadConferenceDetails(room_jid)
     return cdetails;
 end
 
+-- used for jaas and vo
 local function sendChatHistory(room)
     if not voChatHistoryURL then
         if DEBUG then module:log("debug", "No 'muc_chat_history_url' value set"); end
@@ -366,17 +358,6 @@ local function sendChatHistory(room)
         method = "POST",
         body = json.encode(body)
     }, cb);
-end
-
-local function endConference(room)
-    local room_jid = room.jid;
-    if DEBUG then module:log("debug", "Cleanup details for room %s", room_jid); end
-    sendChatHistory(room);
-    remove_from_cache(getChatHistoryKey(room_jid));
-    remove_from_cache(room_jid);
-    for _, occupant in room:each_occupant() do
-        remove_from_cache(occupant.jid);
-    end
 end
 
 local function appendToChatHistory(room_jid, occupant_jid, occupant_bare_jid, content)
@@ -432,10 +413,6 @@ local function loadConferenceSession(type, event)
 
     if type == "Left" then
         cdetails["session_id"] = room._data.meetingId
-        if not hasNonBlacklistedOccupants(room) then
-            module:log("info", "End of conference session for room %s session_id %s", room.jid, session_id);
-            endConference(room);
-        end
     else
         if not session_id then
             session_id = room._data.meetingId or uuid_gen();
@@ -550,6 +527,7 @@ local function handleOccupantLeft(event)
     remove_from_cache(occupant_jid);
 end
 
+-- used only for vo
 local function handleBroadcastPresence(event)
     if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local type = "Update";
@@ -604,8 +582,14 @@ local function handleBroadcastPresence(event)
     end
 end
 
+-- used only for vo
 local function processSubjectUpdate(occupant, room, new_subject)
     local room_jid = room.jid;
+    if is_vpaas(room) then
+        if DEBUG then module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid); end
+        return;
+    end
+
     if DEBUG then
         module:log("debug", "%s keys in confCache", confCache:count());
         module:log("debug", "processSubjectUpdate from_who %s, room_address %s, new_subject %s",
@@ -629,12 +613,6 @@ local function processSubjectUpdate(occupant, room, new_subject)
         return;
     end
 
-    -- search room jid for tenancy prefixes before sending events
-    if is_vpaas(room) then
-        if DEBUG then module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid); end
-        return;
-    end
-
     local cdetails = loadConferenceDetails(room_jid);
     cdetails["subject"] = new_subject;
     storeConferenceDetails(room_jid, cdetails);
@@ -644,6 +622,7 @@ local function processSubjectUpdate(occupant, room, new_subject)
     sendEvent(type, room_jid, pdetails['jid'], false, pdetails, cdetails);
 end
 
+-- used for jaas and vo
 local function handleBroadcastMessage(event)
     if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: Room %s Stanza %s",
         event, event.room, event.stanza); end
@@ -742,6 +721,7 @@ local function handleOccupantPreJoin(event)
     attachMachineUid(event);
 end
 
+-- used for jaas and vo
 local function handleSpeakerStats(event)
     if speakerStatsURL == nil or speakerStatsURL == "" then
         if DEBUG then module:log("debug", "Sending speaker stats is disabled. Not sending speaker stats for %s",
@@ -795,16 +775,23 @@ local function handleSpeakerStats(event)
     end
 end
 
+-- used for jaas and vo
 local function handleRoomDestroyed(event)
     local room = event.room;
     local room_jid = room.jid;
+
+    module:log("info", "End of conference room %s", room_jid);
+
+    sendChatHistory(room);
     remove_from_cache(room_jid);
     for _, occupant in room:each_occupant() do
         remove_from_cache(occupant.jid);
     end
     remove_from_cache(getChatHistoryKey(room_jid));
+
     if DEBUG then module:log("debug", "%s keys in confCache after room %s was destroyed",
-        confCache:count(), room.jid); end
+        confCache:count(), room.jid);
+    end
 end
 
 function module.add_host(host_module)
