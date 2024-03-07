@@ -393,29 +393,6 @@ local function storeConferenceDetails(room_jid, cdetails)
     if DEBUG then module:log("debug", "Storing conference details to room %s : %s", room_jid, inspect(cdetails)); end
 end
 
-local function loadConferenceSession(type, event)
-    local room = event.room;
-    if DEBUG then module:log("debug", "Load conference session triggered by event type %s room %s", type, room.jid); end
-    local cdetails = loadConferenceDetails(room.jid);
-    local session_id = cdetails["session_id"];
-
-    if type == "Left" then
-        cdetails["session_id"] = room._data.meetingId
-    else
-        if not session_id then
-            session_id = room._data.meetingId or uuid_gen();
-            cdetails["session_id"] = session_id;
-            storeConferenceDetails(room.jid, cdetails);
-            module:log("info", "Start new conference session for room %s: session_id %s", room.jid, session_id);
-        else
-            if DEBUG then module:log("debug",
-                "Conference session is in progress, for room %s, session_id %s", room.jid, session_id); end
-        end
-    end
-
-    return cdetails;
-end
-
 local function processEvent(type,event)
     if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local who = event.occupant;
@@ -450,7 +427,7 @@ local function processEvent(type,event)
         who_jid = jid.join(node, main_domain, resource);
     end
 
-    local cdetails = loadConferenceSession(type, event);
+    local cdetails = loadConferenceDetails(event.room);
 
     local occupant_nick = event.occupant and event.occupant.nick;
     if type == "Joined" then
@@ -784,6 +761,24 @@ local function handleRoomDestroyed(event)
     end
 end
 
+local function roomCreated(event)
+    local room = event.room;
+
+    if is_healthcheck_room(room.jid) then
+        return;
+    end
+
+    local cdetails = loadConferenceDetails(room.jid);
+    local session_id = cdetails["session_id"];
+
+    if not session_id then
+        session_id = room._data.meetingId;
+        cdetails["session_id"] = session_id;
+        storeConferenceDetails(room.jid, cdetails);
+        module:log("info", "Start new conference session for room %s: session_id %s", room.jid, session_id);
+    end
+end
+
 function module.add_host(host_module)
     module:log("info",
                "Loading mod_muc_events for host %s!", host_module.host);
@@ -802,4 +797,5 @@ function module.add_host(host_module)
     host_module:hook("muc-occupant-joined", handleOccupantJoined);
     host_module:hook("muc-broadcast-presence", handleBroadcastPresence);
     host_module:hook("muc-room-destroyed", handleRoomDestroyed);
+    host_module:hook("muc-room-created", roomCreated, -1); -- run always after muc_meeting_id
 end
