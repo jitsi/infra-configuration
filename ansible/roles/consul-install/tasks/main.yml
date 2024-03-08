@@ -14,9 +14,9 @@
     state: present
     update_cache: true
 
-- name: Install consul
+- name: Install consul nomad and vault
   ansible.builtin.apt:
-    name: "consul"
+    name: ["consul", "nomad", "vault"]
     state: "present"
 
 # remove apt repo after consul install
