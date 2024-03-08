@@ -212,9 +212,10 @@
     path: /usr/share/jitsi-meet/prosody-plugins/mod_muc_meeting_id.lua
   register: muc_meeting_id_exists
 
+# TODO: cleanup, we probably no longer need this
 - name: Check whether module mod_external_services exists
   ansible.builtin.stat:
-    path: /usr/share/jitsi-meet/prosody-plugins/mod_external_services.lua
+    path: /usr/lib/prosody/modules/mod_external_services.lua
   register: stat_mod_external_services
 
 - name: Set mod_external_services fact
