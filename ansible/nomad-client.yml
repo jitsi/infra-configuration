@@ -27,7 +27,7 @@
     nomad_node_role: client
     nomad_gpu_count: 0
     nomad_node_class: "{{ nomad_pool_type }}"
-    nomad_vault_address: "https://{{ vault_environment }}-{{ vault_region }}-vault.{{ dns_zone_name }}"
+    nomad_vault_address: "https://{{ vault_environment }}-vault.{{ dns_zone_name }}"
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
