@@ -24,7 +24,7 @@ jitsi_meet_api_dialin_numbers_url: "{{ jitsi_meet_api_url }}/phoneNumberList"
 jitsi_meet_api_dialout_auth_url: false
 jitsi_meet_api_dialout_region_url: false
 jitsi_meet_api_dialout_codes_url: false
-jitsi_meet_api_directory_search_url: "{{ jitsi_meet_api_url }}/directorySearch"
+jitsi_meet_api_directory_search_url: false
 jitsi_meet_api_guest_dial_out_status_url: false
 jitsi_meet_api_guest_dial_out_url: false
 jitsi_meet_api_jaas_token_url: false
