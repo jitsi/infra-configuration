@@ -22,6 +22,7 @@
     shard_role: consul
     cloud_provider: oracle
     cloud_instance_id: "{{ ansible_fqdn }}"
+    nomad_vault_address: "https://{{ vault_environment }}-vault.{{ dns_zone_name }}"
     nomad_pool_type: consul
     nomad_meta:
       environment: "{{ hcv_environment }}"
