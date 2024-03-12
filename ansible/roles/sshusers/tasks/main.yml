@@ -23,7 +23,7 @@
   ansible.builtin.group:
     name: sshsudousers
     state: present
-  when: ssh_users_accounts_flag
+  when: ssh_users_accounts_flag or ssh_ops_account_flag
 
 - name: Remove sshusers sudoers
   ansible.builtin.file:
@@ -120,3 +120,59 @@
   with_items: "{{ jenkins_deploy_keys }}"
   no_log: true
   when: ssh_users_system_flag
+
+- name: Ops user account creation
+  ansible.builtin.user:
+    name: "ops"
+    groups: "sshsudousers"
+    shell: /bin/bash
+    comment: "Ops User"
+    password: "*"
+    createhome: true
+    state: present
+  with_items: "{{ security_users }}"
+  when: ssh_ops_account_flag
+
+- name: SSH TrustedCA pem file
+  ansible.builtin.copy:
+    content: "{{ ssh_users_trusted_ca_pem }}"
+    dest: /etc/ssh/trusted-CA.pem
+    mode: 0600
+  notify: Restart sshd for sshusers
+  when: ssh_ops_account_flag
+
+- name: SSH AuthorizedPrincipals directory
+  ansible.builtin.file:
+    path: /etc/ssh/auth_principals
+    state: directory
+    mode: 0755
+  notify: Restart sshd for sshusers
+  when: ssh_ops_account_flag
+
+- name: SSH AuthorizedPrincipals ops mapping
+  ansible.builtin.copy:
+    content: "ops\n"
+    dest: /etc/ssh/auth_principals/ops
+    mode: 0644
+  notify: Restart sshd for sshusers
+  when: ssh_ops_account_flag
+
+- name: SSH AuthorizedPrincipals configuration
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?AuthorizedPrincipalsFile '
+    insertafter: "# Expect .ssh/authorized_keys2 to be disregarded by default in future."
+    line: "AuthorizedPrincipalsFile /etc/ssh/auth_principals/%u"
+    state: present
+  notify: Restart sshd for sshusers
+  when: ssh_ops_account_flag
+
+- name: SSH TrustedUserCAKeys configuration
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?TrustedUserCAKeys '
+    insertafter: "AuthorizedPrincipalsFile /etc/ssh/auth_principals/%u"
+    line: "TrustedUserCAKeys /etc/ssh/trusted-CA.pem"
+    state: present
+  notify: Restart sshd for sshusers
+  when: ssh_ops_account_flag

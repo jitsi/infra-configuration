@@ -13,3 +13,5 @@ ssh_users: "{{ ssh_users_jitsi }}"
 ssh_users_config_flag: true
 ssh_users_accounts_flag: true
 ssh_users_system_flag: true
+ssh_ops_account_flag: true
+ssh_users_trusted_ca_pem: ""
