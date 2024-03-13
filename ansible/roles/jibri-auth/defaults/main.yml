@@ -14,10 +14,11 @@ jibri_prosody_jvb_auth_domain_name: "auth.jvb.{{ prosody_domain_name }}"
 jibri_selenium_auth_domain: "recorder.{{ prosody_domain_name }}"
 jibri_selenium_auth_domain_path: "/var/lib/prosody/{{ jibri_selenium_auth_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_auth_user }}.dat"
-jibri_selenium_auth_password: "jibrimeet"
+jibri_selenium_auth_password: "replaceme"
 jibri_selenium_auth_user: "recorder"
 outbound_sip_jibri_auth_domain: "auth.{{ prosody_domain_name }}"
 outbound_sip_jibri_auth_domain_path: "/var/lib/prosody/{{ outbound_sip_jibri_auth_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ outbound_sip_jibri_auth_user | regex_replace('-', '%2d') }}.dat"
 outbound_sip_jibri_auth_password: "replaceme"
 outbound_sip_jibri_auth_user: "outbound-sip-jibri"
+jibri_legacy_auth: true
