@@ -71,6 +71,10 @@
     state: present
   when: common_cloud_provider == "oracle"
 
+- name: Install hvac module from pip used for hashicorp vault access inside ansible
+  ansible.builtin.pip:
+    name: hvac
+
 - name: Set executable bit on pip-installed aws binary
   ansible.builtin.file:
     path: /usr/local/bin/aws

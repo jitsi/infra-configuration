@@ -65,6 +65,11 @@ sources:
         type: "syslog"
         address: "0.0.0.0:9000"
         mode: "tcp"
+    vault_audit:
+        type: "file"
+        include:
+            - "/var/log/vault/audit.log"
+            - "/var/log/vault/audit.log.1"
 sinks:
   loki_syslog:
     remove_timestamp: false
@@ -114,6 +119,23 @@ sinks:
         job: "shard-{{ vector_shard_name }}"
         task: "prosody"
         group: "signal"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
+  loki_vault_audit:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["vault_audit_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "vault-{{ vector_cloud_region }}"
+        task: "vault-audit"
+        group: "vault"
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
@@ -186,6 +208,14 @@ sinks:
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
 transforms:
+  vault_audit_to_structure:
+    type: "remap"
+    inputs: ["vault_audit"]
+    source: |
+        structured =
+            parse_json(.message) ??
+            {}
+        . = merge(., structured)
   jvb_to_structure:
     type: "remap"
     inputs: ["jvb"]
