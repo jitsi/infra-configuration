@@ -1,0 +1,4 @@
+template(name="outfmt" type="string" string= "%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n")
+    if $programname == 'vault' then {{vault_log_dir}}/vault.log
+    if $programname == 'vault-proxy' then {{vault_log_dir}}/vault.log
+& stop

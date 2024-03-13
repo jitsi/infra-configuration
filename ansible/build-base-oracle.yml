@@ -53,6 +53,7 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "vault", tags: "vault", vault_install_flag: true, vault_configure_flag: false}
     - { role: "vector", tags: "vector", vector_install_flag: true, vector_configure_flag: false}
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
