@@ -1,0 +1,40 @@
+- name: Install vault server configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: server.hcl.j2
+    dest: /etc/vault.d/vault.hcl
+  notify: Restart vault server
+  when: vault_role == "server"
+
+- name: Vault audit log directory
+  ansible.builtin.file:
+    path: /var/log/vault
+    state: directory
+    mode: 0755
+    owner: vault
+    group: vault
+  when: vault_role == "server"
+
+- name: Vault server startup
+  ansible.builtin.service:
+    name: vault
+    state: started
+    enabled: true
+  when: vault_role == "server"
+
+- name: Install vault proxy configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: proxy.hcl.j2
+    dest: /etc/vault.d/proxy.hcl
+  notify: Restart vault proxy
+  when: vault_role == "proxy"
+
+- name: Vault proxy startup
+  ansible.builtin.service:
+    name: vault-proxy
+    state: started
+    enabled: true
+  when:
+    - vault_role == "proxy"
+    - vault_proxy_startup

@@ -1,0 +1,8 @@
+---
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
+  when: vault_install_flag
+
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
+  when: vault_configure_flag

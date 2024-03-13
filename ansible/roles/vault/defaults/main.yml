@@ -1,0 +1,42 @@
+---
+vault_server_api_url: "https://vault.{{ dns_zone_name }}"
+vault_apt_key: https://apt.releases.hashicorp.com/gpg
+vault_apt_repo: https://apt.releases.hashicorp.com
+vault_architecture: "{{'arm64' if ansible_architecture == 'aarch64' else 'amd64'}}"
+vault_bucket_name: "vault"
+vault_bucket_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
+vault_crypto_endpoint:
+vault_install_flag: true
+vault_configure_flag: true
+vault_key_id:
+vault_lock_bucket_name: "vault-lock"
+vault_log_dir: /var/log
+vault_management_endpoint:
+vault_role: "proxy"
+vault_tls_cert_path: /opt/vault/tls/tls.crt
+vault_tls_key_path: /opt/vault/tls/tls.key
+vault_proxy_replace_pattern: _REPLACE_PATTERN_
+vault_proxy_replace_value: "${ENVIRONMENT}-vault-proxy"
+vault_proxy_startup: false
+vault_proxy_instance_role: "replaceme"
+vault_proxy_address: "https://localhost:8200"
+vault_proxy_auth_method: "approle"
+vault_proxy_auth_config: |
+  {
+      role_id_file_path = "/tmp/vault-role-id"
+      secret_id_file_path = "/tmp/vault-secret-id"
+      remove_secret_id_file_after_reading = false
+    }
+vault_server_seal_type: "awskms"
+vault_server_seal_config: |
+  {
+    "type": "awskms",
+    "kms_key_id": "{{ vault_key_id }}"
+  }
+vault_server_storage_type: "aws"
+vault_server_storage_config: |
+  {
+    "s3": {
+      "bucket": "{{ vault_bucket_name }}",
+      "region": "{{ oracle_region }}"
+  }

@@ -1,0 +1,15 @@
+---
+- name: Restart rsyslog for vault
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
+
+- name: Restart vault proxy
+  ansible.builtin.service:
+    name: vault-proxy
+    state: restarted
+
+- name: Restart vault server
+  ansible.builtin.service:
+    name: vault
+    state: restarted
