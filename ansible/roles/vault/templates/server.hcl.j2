@@ -11,12 +11,7 @@ log_level = "INFO"
 max_lease_ttl = "30m"
 
 seal "{{ vault_server_seal_type }}" {{ vault_server_seal_config }}
-{
-  auth_type_api_key   = "false"
-  crypto_endpoint     = "{{ vault_crypto_endpoint }}" 
-  key_id              = "{{ vault_key_id }}"
-  management_endpoint = "{{ vault_management_endpoint }}"
-}
+
 storage "{{ vault_server_storage_type }}" {{ vault_server_storage_config }}
 
 ui = "true"
