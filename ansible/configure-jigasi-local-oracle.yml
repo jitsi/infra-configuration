@@ -35,11 +35,13 @@
         url: "http://127.0.0.1:8100/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
       register: jigasi_xmpp_secret
       when: jigasi_vault_enabled
+      tags: setup
 
     - name: Debug jigasi secrets from vault
       ansible.builtin.debug:
         var: jigasi_xmpp_secret
       when: jigasi_vault_enabled
+      tags: setup
 
     - name: Remove Google Cloud repo
       ansible.builtin.apt_repository:
