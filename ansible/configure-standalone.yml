@@ -76,15 +76,18 @@
       retries: 5
       delay: 10
       no_log: true
-      register: jigasi_auth_secret
+      register: jigasi_xmpp_secret
+      ignore_errors: true
       when: jigasi_vault_enabled
       tags: "provision"
 
     - name: Set jigasi variables from vault secrets
       ansible.builtin.set_fact:
-        jigasi_auth_user: "{{ jigasi_auth_secret.json.data.data.user }}"
-        jigasi_auth_password: "{{ jigasi_auth_secret.json.data.data.password }}"
-      when: jigasi_vault_enabled
+        jigasi_xmpp_jid_username: "{{ jigasi_xmpp_secret.json.data.data.user }}"
+        jigasi_xmpp_password: "{{ jigasi_xmpp_secret.json.data.data.password }}"
+      when:
+        - jigasi_xmpp_secret
+        - jigasi_auth_secret is defined
       no_log: true
       tags: "provision"
 
