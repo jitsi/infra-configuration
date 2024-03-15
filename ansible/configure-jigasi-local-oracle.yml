@@ -33,6 +33,9 @@
     - name: Fetch jigasi secrets from vault
       ansible.builtin.uri:
         url: "{{ vault_local_proxy_address }}/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
+      retries: 5
+      delay: 10
+      no_log: true
       register: jigasi_xmpp_secret
       when: jigasi_vault_enabled
       tags: setup
@@ -42,6 +45,7 @@
         jigasi_xmpp_jid_username: "{{ jigasi_xmpp_secret.json.data.data.user }}"
         jigasi_xmpp_password: "{{ jigasi_xmpp_secret.json.data.data.password }}"
       when: jigasi_vault_enabled
+      no_log: true
       tags: setup
 
     - name: Remove Google Cloud repo
