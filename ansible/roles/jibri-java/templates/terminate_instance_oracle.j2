@@ -19,6 +19,9 @@ if [ "$PRESERVE_BOOT_VOLUME_IF_NEEDED" == "true" ]; then
   fi
 fi
 
+nomad node drain -self -enable -force -detach -yes
+sleep 10
+service nomad stop
 service consul stop
 
 # now terminate our instance; we enable debug to have more details in case of oci cli failures
