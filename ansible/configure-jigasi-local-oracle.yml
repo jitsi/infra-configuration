@@ -37,9 +37,10 @@
       when: jigasi_vault_enabled
       tags: setup
 
-    - name: Debug jigasi secrets from vault
-      ansible.builtin.debug:
-        var: jigasi_xmpp_secret
+    - name: Set jigasi variables from vault secrets
+      ansible.builtin.set_fact:
+        jigasi_xmpp_jid_username: "{{ jigasi_xmpp_secret.json.data.data.user }}"
+        jigasi_xmpp_password: "{{ jigasi_xmpp_secret.json.data.data.password }}"
       when: jigasi_vault_enabled
       tags: setup
 
