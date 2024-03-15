@@ -32,7 +32,7 @@
   # fetch secrets from vault
     - name: Fetch jigasi secrets from vault
       ansible.builtin.uri:
-        url: "http://127.0.0.1:8100/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
+        url: "{{ vault_local_proxy_address }}/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
       register: jigasi_xmpp_secret
       when: jigasi_vault_enabled
       tags: setup
