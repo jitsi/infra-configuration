@@ -29,6 +29,19 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+  # fetch secrets from vault
+    - name: Fetch jigasi secrets from vault
+      ansible.builtin.set_fact:
+        jigasi_xmpp_secret: "{{ lookup('community.hashi_vault.vault_read',
+          'secret/'+hcv_environment'/jigasi/xmpp',
+          url='http://127.0.0.1:8100', auth_method='none') }}"
+      when: jigasi_vault_enabled
+      tags: setup
+    - name: Debug jigasi secrets from vault
+      ansible.builtin.debug:
+        var: jigasi_xmpp_secret
+      when: jigasi_vault_enabled
+
     - name: Remove Google Cloud repo
       ansible.builtin.apt_repository:
         repo: "deb http://packages.cloud.google.com/apt cloud-sdk main"
