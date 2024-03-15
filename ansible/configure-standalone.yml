@@ -59,6 +59,25 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+  # fetch secrets from vault
+    - name: Fetch jigasi secrets from vault
+      ansible.builtin.uri:
+        url: "{{ vault_local_proxy_address }}/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
+      retries: 5
+      delay: 10
+      no_log: true
+      register: jigasi_auth_secret
+      when: jigasi_vault_enabled
+      tags: "provision"
+
+    - name: Set jigasi variables from vault secrets
+      ansible.builtin.set_fact:
+        jigasi_auth_user: "{{ jigasi_auth_secret.json.data.data.user }}"
+        jigasi_auth_password: "{{ jigasi_auth_secret.json.data.data.password }}"
+      when: jigasi_vault_enabled
+      no_log: true
+      tags: "provision"
+
     - name: Show JVB use public variable
       ansible.builtin.debug:
         var: jvb_use_public_ip
@@ -226,6 +245,7 @@
 
   roles:
   # initial system pre-requisites
+    - { role: "vault", tags: "vault", vault_install_flag: false, vault_configure_flag: true, vault_proxy_startup: true }
     - { role: "common", tags: "common" }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     # - { role: "carbon-black", tags: "carbon-black" }
