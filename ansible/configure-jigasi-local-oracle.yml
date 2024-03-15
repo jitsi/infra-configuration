@@ -33,7 +33,7 @@
     - name: Fetch jigasi secrets from vault
       ansible.builtin.set_fact:
         jigasi_xmpp_secret: "{{ lookup('community.hashi_vault.vault_read',
-          'secret/'+hcv_environment'/jigasi/xmpp',
+          'secret/'+hcv_environment+'/jigasi/xmpp',
           url='http://127.0.0.1:8100', auth_method='none') }}"
       when: jigasi_vault_enabled
       tags: setup
