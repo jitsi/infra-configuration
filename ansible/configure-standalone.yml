@@ -39,6 +39,7 @@
     # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
+    vault_proxy_startup: "{{ jigasi_vault_enabled | default(false) }}"
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
@@ -59,6 +60,15 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+  # enable vault proxy
+    - name: Enable and start vault-proxy
+      ansible.builtin.service:
+        name: vault-proxy
+        enabled: true
+        state: started
+      tags: "provision"
+      ignore_errors: true
+      when: vault_proxy_startup
   # fetch secrets from vault
     - name: Fetch jigasi secrets from vault
       ansible.builtin.uri:
