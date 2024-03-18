@@ -791,15 +791,30 @@ VirtualHost "sipjibri.{{ prosody_domain_name }}"
 {% endif %}
 {% endif %}
 
-{% if jigasi_xmpp_password %}
-VirtualHost "jigasi.{{ prosody_domain_name }}"
+{% if secrets_jigasi_conference_A %}
+VirtualHost "jigasia.{{ prosody_domain_name }}"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
       "smacks";
 {% endif %}
     }
     authentication = "jitsi-shared-secret"
-    shared_secret = "{{ jigasi_xmpp_password }}"
+    shared_secret = "{{ secrets_jigasi_conference_A }}"
+{% if prosody_xmpp_resume %}
+    -- this is dropped in 0.12
+    smacks_max_hibernated_sessions = 2000;
+{% endif %}
+{% endif %}
+
+{% if secrets_jigasi_conference_B %}
+VirtualHost "jigasib.{{ prosody_domain_name }}"
+    modules_enabled = {
+{% if prosody_xmpp_resume %}
+      "smacks";
+{% endif %}
+    }
+    authentication = "jitsi-shared-secret"
+    shared_secret = "{{ secrets_jigasi_conference_B }}"
 {% if prosody_xmpp_resume %}
     -- this is dropped in 0.12
     smacks_max_hibernated_sessions = 2000;
