@@ -22,3 +22,12 @@ outbound_sip_jibri_auth_domain_path: "/var/lib/prosody/{{ outbound_sip_jibri_aut
 outbound_sip_jibri_auth_password: "replaceme"
 outbound_sip_jibri_auth_user: "outbound-sip-jibri"
 jibri_legacy_auth: true
+# Different than the legacy username because we want to provision new accounts.
+# Note: avoid capital letters and special chars because prosody lowers/encodes them in the filename.
+jibri_brewery_domain: "auth.{{ prosody_domain_name }}"
+jibri_brewery_username_A: jibria
+jibri_brewery_path_A: "/var/lib/prosody/{{ jibri_brewery_domain | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jibri_brewery_username_A | regex_replace('-', '%2d') }}.dat"
+jibri_brewery_username_B: jibrib
+jibri_brewery_path_B: "/var/lib/prosody/{{ jibri_brewery_domain | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jibri_brewery_username_B | regex_replace('-', '%2d') }}.dat"
