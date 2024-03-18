@@ -181,14 +181,22 @@ prosody_mod_turncredentials_secret: "{{ coturn_secret | default('secret') }}"
 prosody_muc_allowners: false
 prosody_muc_max_occupants: 21
 prosody_muc_max_occupants_ignore_list:
+  - "jibria@recorder.{{ prosody_domain_name }}"
+  - "jibrib@recorder.{{ prosody_domain_name }}"
   - "recorder@recorder.{{ prosody_domain_name }}"
   - "transcriber@recorder.{{ prosody_domain_name }}"
+  - "transcribera@recorder.{{ prosody_domain_name }}"
+  - "transcriberb@recorder.{{ prosody_domain_name }}"
 prosody_muc_moderated_rooms: false
 prosody_muc_moderated_subdomains: false
 prosody_muc_password_whitelist_jids:
   - "focus@{{ prosody_auth_domain_name }}"
+  - "jibria@recorder.{{ prosody_domain_name }}"
+  - "jibrib@recorder.{{ prosody_domain_name }}"
   - "recorder@recorder.{{ prosody_domain_name }}"
   - "transcriber@recorder.{{ prosody_domain_name }}"
+  - "transcribera@recorder.{{ prosody_domain_name }}"
+  - "transcriberb@recorder.{{ prosody_domain_name }}"
 prosody_muc_require_token_for_moderation: false
 # prosody 0.11 and later should always use epoll for scalability
 prosody_network_backend: epoll
