@@ -29,6 +29,14 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+  # enable vault proxy
+    - name: Enable and start vault-proxy
+      ansible.builtin.service:
+        name: vault-proxy
+        enabled: true
+        state: started
+      tags: "setup"
+      when: jigasi_vault_enabled
   # fetch secrets from vault
     - name: Fetch jigasi secrets from vault
       ansible.builtin.uri:
