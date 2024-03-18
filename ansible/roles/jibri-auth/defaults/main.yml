@@ -34,10 +34,10 @@ jibri_brewery_path_B: "/var/lib/prosody/{{ jibri_brewery_domain | regex_replace(
 jibri_selenium_domain: "recorder.{{ prosody_domain_name }}"
 jibri_selenium_user_A: jibria
 jibri_selenium_path_A: "/var/lib/prosody/{{ jibri_selenium_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_username_A | regex_replace('-', '%2d') }}.dat"
+  regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_user_A | regex_replace('-', '%2d') }}.dat"
 jibri_selenium_user_B: jibrib
 jibri_selenium_path_B: "/var/lib/prosody/{{ jibri_selenium_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_username_B | regex_replace('-', '%2d') }}.dat"
+  regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_user_B | regex_replace('-', '%2d') }}.dat"
 jibri_outbound_sip_domain: "auth.{{ prosody_domain_name }}"
 jibri_outbound_sip_user_A: sipjibriouta
 jibri_outbound_sip_path_A: "/var/lib/prosody/{{ jibri_outbound_sip_domain | regex_replace('\\.', '%2e') |
