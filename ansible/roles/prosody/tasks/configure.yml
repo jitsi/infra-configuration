@@ -277,6 +277,13 @@
     state: directory
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
+- name: Create the prosody visitor directory in /var/lib
+  ansible.builtin.file:
+    mode: 0750
+    path: "/var/lib/prosody-v{{ item }}"
+    state: directory
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+
 - name: Build prosody.cfg.lua from template for visitor
   ansible.builtin.template:
     src: prosody.cfg.lua.visitor.j2
