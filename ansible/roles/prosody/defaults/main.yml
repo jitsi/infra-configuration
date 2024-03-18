@@ -118,6 +118,7 @@ prosody_jvb_admins:
   - "jvb@{{ prosody_jvb_auth_domain_name }}"
 prosody_jvb_auth_domain_name: "auth.{{ prosody_jvb_domain_name }}"
 prosody_jvb_auth_user: "jvb"
+prosody_jvb_auth_user_B: "jvbb"
 prosody_jvb_brewery_muc: "jvbbrewery@{{ prosody_jvb_muc_name }}"
 prosody_jvb_c2s_stanza_size_limit: '10*1024*1024'
 prosody_jvb_configure_flag: true

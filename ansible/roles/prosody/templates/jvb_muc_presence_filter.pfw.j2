@@ -1,6 +1,7 @@
 # Drop all presence from a jvb in a MUC to a jvb
 FROM: {{ prosody_jvb_brewery_muc }}
-TO: {{ prosody_jvb_auth_user }}@{{ prosody_jvb_auth_domain_name }}
+# Note: we assume all JVB usernames are jvb* (i.e. "jvb" and "jvbb")
+TO: <{{ prosody_jvb_auth_user }}*>@{{ prosody_jvb_auth_domain_name }}
 KIND: presence
 # Seems safer to allow all "unavailable" to pass
 TYPE: available
