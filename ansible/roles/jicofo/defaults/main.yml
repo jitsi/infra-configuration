@@ -46,7 +46,6 @@ jicofo_max_audio_senders: 999999
 jicofo_max_bridge_participants: 80
 jicofo_max_memory: "1536m"
 jicofo_max_video_senders: 999999
-jicofo_opts: ""
 jicofo_prosody_jvb_hostname: "127.0.0.1"
 jicofo_prosody_jvb_port: 6222
 jicofo_prosody_brewery_shard_enabled: "{{ prosody_brewery_shard_enabled | default(true) }}"
