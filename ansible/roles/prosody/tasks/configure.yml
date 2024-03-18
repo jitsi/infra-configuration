@@ -238,9 +238,11 @@
   notify: Reload prosody JVB
 
 - name: Register focus prosody user
-  ansible.builtin.command: prosodyctl register focus auth.{{ prosody_domain_name }} "{{ prosody_focus_user_secret }}"
+  ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
   args:
+    stdin: "{{ prosody_focus_user_secret }}\n{{ prosody_focus_user_secret }}"
     creates: /var/lib/prosody/auth.{{ prosody_domain_name | replace(".", "%2") }}/accounts/focus.dat
+  when: prosody_focus_user_secret is defined and prosody_focus_user_secret and prosody_focus_user_secret != "replaceme"
 
 - name: Check whether module mod_roster_command exists
   ansible.builtin.stat:
@@ -255,11 +257,11 @@
 
 - name: Register focus prosody-jvb user
   ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register focus {{ prosody_jvb_auth_domain_name }} \
-     "{{ prosody_focus_user_secret }}"
+    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "focus@{{ prosody_jvb_auth_domain_name }}"
   args:
+    stdin: "{{ prosody_focus_user_secret }}\n{{ prosody_focus_user_secret }}"
     creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name | replace(".", "%2") }}/accounts/focus.dat
-  when: prosody_jvb_configure_flag
+  when: prosody_jvb_configure_flag and prosody_focus_user_secret is defined and prosody_focus_user_secret and prosody_focus_user_secret != "replaceme"
 
 - name: Install muc presence filter pfw rule
   ansible.builtin.template:
@@ -319,10 +321,12 @@
     daemon_reload: true
 
 - name: Add jicofo user for visitors
-  ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua register focus auth.meet.jitsi "{{ prosody_focus_user_secret }}"
+  ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua adduser focus@auth.meet.jitsi
   args:
+    stdin: "{{ prosody_focus_user_secret }}\n{{ prosody_focus_user_secret }}"
     creates: /var/lib/prosody-v{{ item }}/auth%2meet%2jitsi/accounts/focus.dat
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+  when: prosody_focus_user_secret is defined and prosody_focus_user_secret and prosody_focus_user_secret != "replaceme"
 
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
