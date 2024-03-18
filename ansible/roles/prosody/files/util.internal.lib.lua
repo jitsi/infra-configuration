@@ -16,6 +16,7 @@ if not muc_domain_base then
 end
 
 local blacklist_prefix = module:get_option_array("muc_events_blacklist_prefixes", { 'focus@auth.', 'recorder@recorder.','recordera@recorder', 'recorderb@recorder', 'jvb@auth.', 'jibri@auth.','jibri@auth.','jibrib@auth.', 'transcriber@recorder.','transcribera@recorder.','transcriberb@recorder.', 'jigasi@auth.', 'jigasia@auth.','jigasib@auth.' });
+local blacklist_domain_prefix = module:get_option_array("muc_events_blacklist_domain_prefixes", {'jigasia.', 'jigasib.' });
 
 -- The "real" MUC domain that we are proxying to
 local muc_domain = module:get_option_string("muc_mapper_domain", muc_domain_prefix .. "." .. muc_domain_base);
@@ -152,6 +153,13 @@ function Util.is_blacklisted(occupant)
     for _, prefix in ipairs(blacklist_prefix) do
         if string.sub(occupant_jid, 1, string.len(prefix)) == prefix then
             module:log("debug", "Occupant %s is blacklisted ", occupant_jid);
+            return true;
+        end
+    end
+    local occupant_domain = jid.host(occupant_jid);
+    for _, prefix in ipairs(blacklist_domain_prefix) do
+        if string.sub(occupant_domain, 1, string.len(prefix)) == prefix then
+            module:log("debug", "Occupant %s is blacklisted by domain", occupant_jid);
             return true;
         end
     end
