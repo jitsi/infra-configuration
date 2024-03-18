@@ -58,3 +58,17 @@
     stdin: "{{ secrets_jibri_selenium_B }}\n{{ secrets_jibri_selenium_B }}"
     creates: "{{ jibri_selenium_path_B }}"
   when: secrets_jibri_selenium_B is defined and secrets_jibri_selenium_B and secrets_jibri_selenium_B != ""
+
+- name: Add jibri account A for outbound sip
+  ansible.builtin.command: prosodyctl adduser "{{ jibri_outbound_sip_user_A }}@{{ jibri_outbound_sip_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_outbound_sip_A }}\n{{ secrets_jibri_outbound_sip_A }}"
+    creates: "{{ jibri_outbound_sip_path_A }}"
+  when: secrets_jibri_outbound_sip_A is defined and secrets_jibri_outbound_sip_A and secrets_jibri_outbound_sip_A != ""
+
+- name: Add jibri account B for outbound sip
+  ansible.builtin.command: prosodyctl adduser "{{ jibri_outbound_sip_user_B }}@{{ jibri_outbound_sip_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_outbound_sip_B }}\n{{ secrets_jibri_outbound_sip_B }}"
+    creates: "{{ jibri_outbound_sip_path_B }}"
+  when: secrets_jibri_outbound_sip_B is defined and secrets_jibri_outbound_sip_B and secrets_jibri_outbound_sip_B != ""
