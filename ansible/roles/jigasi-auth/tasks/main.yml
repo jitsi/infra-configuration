@@ -24,3 +24,17 @@
     stdin: "{{ secrets_jigasi_brewery_B }}\n{{ secrets_jigasi_brewery_B }}"
     creates: "{{ jigasi_brewery_path_B }}"
   when: secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
+
+- name: Add jigasi account A for transcriber
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_username_A }}@{{ jigasi_transcriber_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_transcriber_A }}\n{{ secrets_jigasi_transcriber_A }}"
+    creates: "{{ jigasi_transcriber_path_A }}"
+  when: secrets_jigasi_transcriber_A is defined and secrets_jigasi_transcriber_A and secrets_jigasi_transcriber_A != ""
+
+- name: Add jigasi account B for transcriber
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_username_B }}@{{ jigasi_transcriber_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_transcriber_B }}\n{{ secrets_jigasi_transcriber_B }}"
+    creates: "{{ jigasi_transcriber_path_B }}"
+  when: secrets_jigasi_transcriber_B is defined and secrets_jigasi_transcriber_B and secrets_jigasi_transcriber_B != ""
