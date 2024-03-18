@@ -38,3 +38,33 @@
     stdin: "{{ secrets_jigasi_transcriber_B }}\n{{ secrets_jigasi_transcriber_B }}"
     creates: "{{ jigasi_transcriber_path_B }}"
   when: secrets_jigasi_transcriber_B is defined and secrets_jigasi_transcriber_B and secrets_jigasi_transcriber_B != ""
+
+- name: Add jitsi-shared-secret account for jigasi A
+  ansible.builtin.blockinfile:
+    path: /etc/prosody/prosody.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A"
+    block: |
+      VirtualHost "jigasia.{{ prosody_domain_name }}"
+        modules_enabled = {
+      {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
+      "smacks";
+      {% endif %}
+      }
+      authentication = "jitsi-shared-secret"
+      shared_secret = "{{ secrets_jigasi_conference_A }}"
+  when: secrets_jigasi_conference_A is defined and secrets_jigasi_conference_A and secrets_jigasi_conference_A != ""
+
+- name: Add jitsi-shared-secret account for jigasi B
+  ansible.builtin.blockinfile:
+    path: /etc/prosody/prosody.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B"
+    block: |
+      VirtualHost "jigasib.{{ prosody_domain_name }}"
+        modules_enabled = {
+      {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
+      "smacks";
+      {% endif %}
+      }
+      authentication = "jitsi-shared-secret"
+      shared_secret = "{{ secrets_jigasi_conference_B }}"
+  when: secrets_jigasi_conference_B is defined and secrets_jigasi_conference_B and secrets_jigasi_conference_B != ""
