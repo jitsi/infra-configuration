@@ -71,8 +71,8 @@ local main_muc_service;
 
 local NICK_NS = "http://jabber.org/protocol/nick";
 local JIGASI_CALL_DIRECTION_ATTR_NAME = "JigasiCallDirection";
-local TRANSCRIBER_PREFIX = 'transcriber@recorder.';
-local RECORDER_PREFIX = 'recorder@recorder.';
+local TRANSCRIBER_PREFIXES = { 'transcriber@recorder.', 'transcribera@recorder.', 'transcriberb@recorder.' };
+local RECORDER_PREFIXES = { 'recorder@recorder.', 'jibria@recorder.', 'jibrib@recorder.' };
 
 local event_count = module:measure("muc_webhooks_rate", "rate")
 local event_count_failed = module:measure("muc_webhooks_failed", "rate")
@@ -246,7 +246,7 @@ function handle_occupant_access(event, event_type)
     local final_event_type = event_type
     local dial_participants = room._data.dial_participants or {};
 
-    if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or util.has_prefix(occupant.jid, TRANSCRIBER_PREFIX) or util.has_prefix(occupant.jid, RECORDER_PREFIX)) then
+    if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) or util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)) then
         module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)", occupant.jid, room.jid, is_breakout, main_room.jid);
         local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
         local _, _, nick_resource = split_jid(occupant.nick);
@@ -306,7 +306,7 @@ function handle_occupant_access(event, event_type)
         end
 
         -- transcriber check
-        if stanza and util.has_prefix(occupant.jid, TRANSCRIBER_PREFIX) then
+        if stanza and util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) then
             local presence_type = stanza.attr.type;
             if not presence_type then
                 module:log("debug", "Transcriber %s join the room %s", occupant.jid, room.jid)
@@ -340,7 +340,7 @@ function handle_occupant_access(event, event_type)
         end
 
         -- live stream/recording
-        if util.has_prefix(occupant.jid, RECORDER_PREFIX) then
+        if util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES) then
             local recorderType = event.room._data.recorderType;
             if final_event_type == PARTICIPANT_JOINED then
                 module:log("debug", "Recorder %s joined", event.occupant.jid)
@@ -377,10 +377,10 @@ function handle_occupant_access(event, event_type)
             if sip_address and is_new_sip_participant then
                 local sip_jibri_prefix = util.get_sip_jibri_prefix(stanza);
 
-                if sip_jibri_prefix == util.INBOUND_SIP_JIBRI_PREFIX then
+                if util.starts_with_one_of(sip_jibri_prefix, util.INBOUND_SIP_JIBRI_PREFIXES) then
                     participant_access_event["eventType"] = SIP_CALL_IN_STARTED;
                     final_event_type = SIP_CALL_IN_STARTED;
-                elseif sip_jibri_prefix == util.OUTBOUND_SIP_JIBRI_PREFIX then
+                elseif util.starts_with_one_of(sip_jibri_prefix, util.OUTBOUND_SIP_JIBRI_PREFIXES) then
                     participant_access_event["eventType"] = SIP_CALL_OUT_STARTED;
                     final_event_type = SIP_CALL_OUT_STARTED;
                 end

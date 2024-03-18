@@ -15,7 +15,8 @@ if not muc_domain_base then
     muc_domain_base = ""
 end
 
-local blacklist_prefix = module:get_option_array("muc_events_blacklist_prefixes", { 'focus@auth.', 'recorder@recorder.', 'jvb@auth.', 'jibri@auth.', 'transcriber@recorder.', 'jigasi@auth.' });
+local blacklist_prefix = module:get_option_array("muc_events_blacklist_prefixes", { 'focus@auth.', 'recorder@recorder.','recordera@recorder', 'recorderb@recorder', 'jvb@auth.', 'jibri@auth.','jibri@auth.','jibrib@auth.', 'transcriber@recorder.','transcribera@recorder.','transcriberb@recorder.', 'jigasi@auth.', 'jigasia@auth.','jigasib@auth.' });
+local blacklist_domain_prefix = module:get_option_array("muc_events_blacklist_domain_prefixes", {'jigasia.', 'jigasib.' });
 
 -- The "real" MUC domain that we are proxying to
 local muc_domain = module:get_option_string("muc_mapper_domain", muc_domain_prefix .. "." .. muc_domain_base);
@@ -45,8 +46,8 @@ else
     return
 end
 
-Util.OUTBOUND_SIP_JIBRI_PREFIX = 'outbound-sip-jibri@';
-Util.INBOUND_SIP_JIBRI_PREFIX = 'inbound-sip-jibri@';
+Util.OUTBOUND_SIP_JIBRI_PREFIXES = { 'outbound-sip-jibri@', 'sipjibriouta@', 'sipjibrioutb@' };
+Util.INBOUND_SIP_JIBRI_PREFIXES = { 'inbound-sip-jibri@', 'sipjibriina@', 'sipjibriinb@' };
 
 Util.FIRST_TRANSCRIPT_MESSAGE_POS = 1;
 
@@ -155,16 +156,23 @@ function Util.is_blacklisted(occupant)
             return true;
         end
     end
+    local occupant_domain = jid.host(occupant_jid);
+    for _, prefix in ipairs(blacklist_domain_prefix) do
+        if string.sub(occupant_domain, 1, string.len(prefix)) == prefix then
+            module:log("debug", "Occupant %s is blacklisted by domain", occupant_jid);
+            return true;
+        end
+    end
     return false;
 end
 
 local function get_sip_jibri_email_prefix(email)
     if not email then
         return nil;
-    elseif Util.has_prefix(email, Util.INBOUND_SIP_JIBRI_PREFIX) then
-        return Util.INBOUND_SIP_JIBRI_PREFIX;
-    elseif Util.has_prefix(email, Util.OUTBOUND_SIP_JIBRI_PREFIX) then
-        return Util.OUTBOUND_SIP_JIBRI_PREFIX;
+    elseif Util.starts_with_one_of(email, Util.INBOUND_SIP_JIBRI_PREFIXES) then
+        return Util.starts_with_one_of(INBOUND_SIP_JIBRI_PREFIXES);
+    elseif Util.starts_with_one_of(email, Util.OUTBOUND_SIP_JIBRI_PREFIXES) then
+        return Util.starts_with_one_of(OUTBOUND_SIP_JIBRI_PREFIXES);
     else
         return nil;
     end
@@ -211,6 +219,18 @@ function Util.has_prefix(str, prefix)
         return false;
     end
     return str:sub(1, #prefix) == prefix
+end
+
+function Util.starts_with_one_of(str, prefixes)
+    if not str then
+        return false;
+    end
+    for i=1,#prefixes do
+        if Util.has_prefix(str, prefixes[i]) then
+            return prefixes[i];
+        end
+    end
+    return false
 end
 
 local function extract_field_text(o, field, ns)
