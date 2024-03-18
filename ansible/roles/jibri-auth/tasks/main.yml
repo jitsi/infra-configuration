@@ -30,3 +30,17 @@
   args:
     creates: "{{ jibri_auth_prosody_jvb_domain_path }}"
   when: prosody_jvb_configure_flag and jibri_auth_password and jibri_auth_password != 'replaceme'
+
+- name: Add jibri account A for XMPP brewery
+  ansible.builtin.command: prosodyctl adduser "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+    creates: "{{ jibri_brewery_path_A }}"
+  when: secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
+
+- name: Add jibri account B for XMPP brewery
+  ansible.builtin.command: prosodyctl adduser "{{ jibri_brewery_username_B }}@{{ jibri_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+    creates: "{{ jibri_brewery_path_B }}"
+  when: secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
