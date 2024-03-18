@@ -241,7 +241,7 @@
   ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
   args:
     stdin: "{{ prosody_focus_secret }}\n{{ prosody_focus_secret }}"
-    creates: /var/lib/prosody/auth.{{ prosody_domain_name | replace(".", "%2") }}/accounts/focus.dat
+    creates: /var/lib/prosody/auth.{{ prosody_domain_name | replace("\\.", "%2e") }}/accounts/focus.dat
   when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"
 
 - name: Check whether module mod_roster_command exists
