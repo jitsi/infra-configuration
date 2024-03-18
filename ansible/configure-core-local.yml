@@ -25,6 +25,7 @@
     - secrets/ssl-certificates.yml
     - secrets/prosody.yml
     - secrets/jibri.yml
+    - secrets/jicofo.yml
     - secrets/jigasi.yml
     - secrets/wavefront.yml
     - secrets/coturn.yml

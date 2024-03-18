@@ -1,6 +1,8 @@
 ---
 jicofo_auth_domain: auth.domain.local
 jicofo_auth_password: replaceme
+jicofo_auth_password_jvb: replaceme
+jicofo_auth_password_visitor: replaceme
 jicofo_auth_type: XMPP
 jicofo_auth_url: "{{ prosody_domain_name }}"
 jicofo_auth_url_enable: false

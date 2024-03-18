@@ -156,7 +156,7 @@ jicofo {
       port = {{ jicofo_prosody_jvb_port }}
       domain = "{{ prosody_jvb_auth_domain_name }}"
       username = "{{ jicofo_auth_user }}"
-      password = "{{ jicofo_auth_password }}"
+      password = "{{ jicofo_auth_password_jvb }}"
 {% if not jicofo_prosody_brewery_shard_enabled %}
       disable-certificate-verification = true
 {% endif %}
@@ -182,7 +182,7 @@ jicofo {
                 port = {{ 52220+i }}
                 domain = auth.meet.jitsi
                 xmpp-domain = v{{ i }}.meet.jitsi
-                password = {{ jicofo_auth_password }}
+                password = {{ jicofo_auth_password_visitor }}
                 disable-certificate-verification = true
             }
     {% endfor %}
