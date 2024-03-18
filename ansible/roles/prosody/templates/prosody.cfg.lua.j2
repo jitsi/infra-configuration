@@ -787,7 +787,7 @@ VirtualHost "sipjibri.{{ prosody_domain_name }}"
 {% endif %}
 
 {% if secrets_jigasi_conference_A %}
-; BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
+-- BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
 VirtualHost "jigasia.{{ prosody_domain_name }}"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
@@ -796,11 +796,11 @@ VirtualHost "jigasia.{{ prosody_domain_name }}"
     }
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ secrets_jigasi_conference_A }}"
-; END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
+-- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
 {% endif %}
 
 {% if secrets_jigasi_conference_B %}
-; BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
+-- BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
 VirtualHost "jigasib.{{ prosody_domain_name }}"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
@@ -810,4 +810,4 @@ VirtualHost "jigasib.{{ prosody_domain_name }}"
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ secrets_jigasi_conference_B }}"
 {% endif %}
-; END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
+-- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
