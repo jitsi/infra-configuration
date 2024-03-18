@@ -260,7 +260,7 @@
     prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "focus@{{ prosody_jvb_auth_domain_name }}"
   args:
     stdin: "{{ prosody_focus_jvb_secret }}\n{{ prosody_focus_jvb_secret }}"
-    creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name | replace(".", "%2") }}/accounts/focus.dat
+    creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name | replace("\\.", "%2e") }}/accounts/focus.dat
   when: prosody_jvb_configure_flag and prosody_focus_jvb_secret is defined and prosody_focus_jvb_secret and prosody_focus_jvb_secret != "replaceme"
 
 - name: Install muc presence filter pfw rule
