@@ -4,6 +4,8 @@ c2s_ports = { 52220 + {{ item }} }
 http_ports = { 52800 + {{ item }} }
 https_ports = { }
 
+data_path = "/var/lib/prosody-v{{ item }}/"
+
 daemonize = true;
 
 -- we use a common jid for jicofo

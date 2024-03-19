@@ -44,6 +44,7 @@
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/jibri.yml
+    - secrets/jicofo.yml
     - secrets/jigasi.yml
     - secrets/asap-keys.yml
     - secrets/coturn.yml
