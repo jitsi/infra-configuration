@@ -1,8 +1,8 @@
 ---
-jicofo_auth_domain: "auth.{{ prosody_domain_name | default(domain.local) }}"
-jicofo_auth_password: "{{ secrets_jicofo_focus | default(replaceme) }}"
-jicofo_auth_password_jvb: "{{ secrets_jicofo_focus_jvb | default(replaceme) }}"
-jicofo_auth_password_visitor: "{{ secrets_jicofo_focus_visitor | default(replaceme) }}"
+jicofo_auth_domain: "auth.{{ prosody_domain_name | default('domain.local') }}"
+jicofo_auth_password: "{{ secrets_jicofo_focus | default('replaceme') }}"
+jicofo_auth_password_jvb: "{{ secrets_jicofo_focus_jvb | default('replaceme') }}"
+jicofo_auth_password_visitor: "{{ secrets_jicofo_focus_visitor | default('replaceme') }}"
 jicofo_auth_type: XMPP
 jicofo_auth_url: "{{ prosody_domain_name }}"
 jicofo_auth_url_enable: false
@@ -35,7 +35,7 @@ jicofo_health_cron:
   minute: "*"
 jicofo_health_cron_user: ubuntu
 jicofo_health_script_path: /usr/local/bin/jicofo-health.sh
-jicofo_hostname: "{{ prosody_domain_name | default(domain.local) }}"
+jicofo_hostname: "{{ prosody_domain_name | default('domain.local') }}"
 jicofo_install_flag: true
 jicofo_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
 jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
