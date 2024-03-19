@@ -9,7 +9,6 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/jibri.yml
-    - secrets/jicofo.yml
     - secrets/repo.yml
     - secrets/prosody-egress-aws.yml
     - secrets/github-deploy.yml
