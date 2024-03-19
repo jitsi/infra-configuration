@@ -220,6 +220,8 @@ VirtualHost 'auth.meet.jitsi'
 Component 'conference.v{{ item }}.meet.jitsi' 'muc'
     storage = 'memory'
     muc_room_cache_size = 10000
+    muc_tombstones = false
+    muc_room_allow_persistent = false
     restrict_room_creation = true
     modules_enabled = {
 {% if prosody_hide_all_rooms %}

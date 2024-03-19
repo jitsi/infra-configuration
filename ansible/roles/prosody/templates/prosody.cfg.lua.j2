@@ -524,6 +524,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
     storage = "memory"
     muc_room_cache_size = 10000
     restrict_room_creation = true
+    muc_tombstones = false
     muc_room_allow_persistent = false
     modules_enabled = {
 {% if prosody_hide_all_rooms %}
@@ -704,6 +705,7 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
     storage = "memory"
     muc_room_cache_size = 10000
     restrict_room_creation = true
+    muc_tombstones = false
     muc_room_allow_persistent = false
     muc_room_locking = false
     muc_room_default_public_jids = true
@@ -727,6 +729,7 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
 Component "breakout.{{ prosody_domain_name }}" "muc"
     restrict_room_creation = true
     storage = "memory"
+    muc_tombstones = false
     muc_room_cache_size = 10000
     muc_room_locking = false
     muc_room_default_public_jids = true
