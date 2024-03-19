@@ -174,11 +174,6 @@
     mode: 0644
     owner: root
 
-# reconfigure java certificates to allow callstats SDK to work as expected
-# - name: post-install configure java certificates
-#  command: /var/lib/dpkg/info/ca-certificates-java.postinst configure
-#  when: jvb_enable_callstats
-
 # Build video bridge files from templates (if flags are set)
 - name: Install jitsi-videobridge config file
   ansible.builtin.template:
