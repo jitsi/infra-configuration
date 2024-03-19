@@ -164,6 +164,11 @@
       register: jigasi_version
       changed_when: jigasi_version.rc != 0 # <- Uses the return code to define when the task has changed.
       tags: setup
+  post_tasks:
+    - name: Restart rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
 
   roles:
     - { role: "iptables-jigasi", tags: "iptables"}
