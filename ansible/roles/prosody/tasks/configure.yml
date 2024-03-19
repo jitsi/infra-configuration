@@ -282,6 +282,8 @@
     mode: 0750
     path: "/var/lib/prosody-v{{ item }}"
     state: directory
+    group: prosody
+    owner: prosody
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
 - name: Build prosody.cfg.lua from template for visitor
