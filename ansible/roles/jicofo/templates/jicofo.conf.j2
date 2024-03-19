@@ -145,8 +145,8 @@ jicofo {
     client {
       client-proxy = focus.{{ prosody_domain_name }}
       domain = {{ jicofo_auth_domain }}
-      username = {{ jicofo_auth_user }}
-      password = {{ jicofo_auth_password }}
+      username = "{{ jicofo_auth_user }}"
+      password = "{{ jicofo_auth_password }}"
       xmpp-domain = {{ jicofo_hostname }}
     }
 {% if jicofo_separate_jvb_muc %}
@@ -182,7 +182,7 @@ jicofo {
                 port = {{ 52220+i }}
                 domain = auth.meet.jitsi
                 xmpp-domain = v{{ i }}.meet.jitsi
-                password = {{ jicofo_auth_password_visitor }}
+                password = "{{ jicofo_auth_password_visitor }}"
                 disable-certificate-verification = true
             }
     {% endfor %}
