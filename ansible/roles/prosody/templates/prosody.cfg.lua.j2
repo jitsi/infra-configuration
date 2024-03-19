@@ -772,6 +772,8 @@ Component "visitors.{{ prosody_domain_name }}" "visitors_component"
     {% endif %}
     {% if prosody_visitors_always_supported %}
     always_visitors_enabled = true
+    {% else %}
+    always_visitors_enabled = false
     {% endif %}
 {% endif %}
 
