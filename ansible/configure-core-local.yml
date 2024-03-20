@@ -180,7 +180,7 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "vector", tags: "vector", when: core_vector_enabled}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: "{{ core_vector_enabled }}" }
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: "{{ core_vector_enabled }}" }
     - { role: "fluentd-jitsi", tags: "fluentd",
         cloud_provider: "{{ core_cloud_provider }}", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: core_enable_fluentd }
     - role: "wavefront"
