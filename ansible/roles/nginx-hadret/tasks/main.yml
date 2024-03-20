@@ -24,6 +24,11 @@
     name: "libnginx-mod-http-fancyindex"
     state: present
 
+- name: Remove nginx hadret repository from PPA
+  ansible.builtin.apt_repository:
+    repo: ppa:hadret/nginx
+    state: absent
+
 # main nginx configuration tweaks
 - name: Nginx main configuration
   ansible.builtin.template:
