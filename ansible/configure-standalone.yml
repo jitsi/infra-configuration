@@ -315,7 +315,7 @@
   # additional components here
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
     - { role: "vector", tags: "vector"}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
+    - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: jitsi-dumper, tags: "jitsi-dumper"}
     - { role: jibri-auth, tags: "jibri-auth"}
     - { role: "jigasi-auth", tags: "jigasi-auth"}
