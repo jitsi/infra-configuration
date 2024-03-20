@@ -21,7 +21,6 @@
         cache_valid_time: 86400
       tags: setup
   roles:
-    - { role: "common", tags: "common" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "sshmfa", tags: "sshmfa", when: production_env_flag}
     - { role: "fail2ban", tags: "fail2ban" }

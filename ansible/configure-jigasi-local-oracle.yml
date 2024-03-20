@@ -29,6 +29,48 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+  # enable vault proxy
+    - name: Enable and start vault-proxy
+      ansible.builtin.service:
+        name: vault-proxy
+        enabled: true
+        state: started
+      tags: "setup"
+      when: jigasi_vault_enabled
+  # fetch secrets from vault
+    - name: Fetch jigasi secrets from vault
+      ansible.builtin.uri:
+        url: "{{ vault_local_proxy_address }}/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
+      retries: 5
+      delay: 10
+      no_log: true
+      register: jigasi_xmpp_secret
+      when: jigasi_vault_enabled
+      tags: setup
+
+    - name: Set jigasi variables from vault secrets
+      ansible.builtin.set_fact:
+        jigasi_xmpp_jid_username: "{{ jigasi_xmpp_secret.json.data.data.user }}"
+        jigasi_xmpp_password: "{{ jigasi_xmpp_secret.json.data.data.password }}"
+      when: jigasi_vault_enabled
+      no_log: true
+      tags: setup
+
+    - name: Remove Ansible repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:ansible/ansible"
+        state: absent
+        update_cache: false
+    - name: Remove OpenJDK repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: absent
+        update_cache: false
+    - name: Remove rsyslog apt repo
+      ansible.builtin.apt_repository:
+        repo: "ppa:adiscon/v8-stable"
+        state: absent
+        update_cache: false
     - name: Remove Google Cloud repo
       ansible.builtin.apt_repository:
         repo: "deb http://packages.cloud.google.com/apt cloud-sdk main"

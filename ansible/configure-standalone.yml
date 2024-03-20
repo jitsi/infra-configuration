@@ -59,6 +59,52 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+  # enable vault proxy
+    - name: Enable and start vault-proxy
+      ansible.builtin.service:
+        name: vault-proxy
+        enabled: true
+        state: started
+      tags: "provision"
+      ignore_errors: true
+      when: vault_proxy_startup
+  # fetch secrets from vault
+    - name: Fetch jigasi secrets from vault
+      ansible.builtin.uri:
+        url: "{{ vault_local_proxy_address }}/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
+      retries: 5
+      delay: 10
+      no_log: true
+      register: jigasi_xmpp_secret
+      ignore_errors: true
+      when: jigasi_vault_enabled
+      tags: "provision"
+
+    - name: Set jigasi variables from vault secrets
+      ansible.builtin.set_fact:
+        jigasi_auth_user: "{{ jigasi_xmpp_secret.json.data.data.user }}"
+        jigasi_auth_password: "{{ jigasi_xmpp_secret.json.data.data.password }}"
+      when:
+        - jigasi_vault_enabled
+        - jigasi_xmpp_secret is defined
+      no_log: true
+      tags: "provision"
+    - name: Remove Ansible repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:ansible/ansible"
+        state: absent
+        update_cache: false
+    - name: Remove OpenJDK repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: absent
+        update_cache: false
+    - name: Remove rsyslog apt repo
+      ansible.builtin.apt_repository:
+        repo: "ppa:adiscon/v8-stable"
+        state: absent
+        update_cache: false
+
     - name: Show JVB use public variable
       ansible.builtin.debug:
         var: jvb_use_public_ip
