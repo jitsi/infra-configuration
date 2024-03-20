@@ -75,21 +75,21 @@
     - vector_configure_flag
 
 
-- name: Check if vault group exists
-  ansible.builtin.getent:
-    database: group
-    key: vault
-    fail_key: false
-  register: vault_group_result
+# - name: Check if vault group exists
+#   ansible.builtin.getent:
+#     database: group
+#     key: vault
+#     fail_key: false
+#   register: vault_group_result
 
-- name: Add vector to vault group
-  ansible.builtin.user:
-    name: vector
-    groups: ["vault"]
-    append: true
-  when:
-    - ansible_facts.getent_group['vault'] is defined
-    - vector_configure_flag
+# - name: Add vector to vault group
+#   ansible.builtin.user:
+#     name: vector
+#     groups: ["vault"]
+#     append: true
+#   when:
+#     - ansible_facts.getent_group['vault'] is defined
+#     - vector_configure_flag
 
 - name: Start vector
   ansible.builtin.service:
