@@ -275,7 +275,6 @@
   roles:
   # initial system pre-requisites
     - { role: "vault", tags: "vault", vault_install_flag: false, vault_configure_flag: true, vault_proxy_startup: true }
-    - { role: "common", tags: "common" }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     # - { role: "carbon-black", tags: "carbon-black" }
     - { role: "openjdk-java", tags: "openjdk" }
