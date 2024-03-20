@@ -45,7 +45,6 @@
         state: restarted
   roles:
     - { role: "iptables-jigasi-proxy", tags: "iptables" }
-    - { role: "common", tags: "common" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}

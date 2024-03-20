@@ -21,7 +21,6 @@
         update_cache: true
 
   roles:
-    - { role: "common", tags: "common" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "fail2ban", tags: "fail2ban" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
