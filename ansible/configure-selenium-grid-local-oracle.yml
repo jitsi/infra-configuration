@@ -83,7 +83,6 @@
         cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
       tags: setup
   roles:
-    - { role: "common", tags: "common"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "iptables-serf", tags: "iptables-serf", when: selenium_grid_enable_nomad == "true" }
     - { role: "iptables-nomad", tags: "iptables-nomad", when: selenium_grid_enable_nomad == "true" }
