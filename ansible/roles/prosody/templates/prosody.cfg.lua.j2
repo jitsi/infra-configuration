@@ -10,6 +10,14 @@ admins = {
 
 pidfile = "/var/run/prosody/prosody.pid";
 
+{% if prosody_use_lua_54 %}
+gc = {
+    mode = "generational";
+    minor_threshold = 40;
+    major_threshold = 200;
+}
+{% endif %}
+
 -- Enable use of libevent for better performance under high load
 -- For more information see: http://prosody.im/doc/libevent
 -- commenting until we debug prosody crashes during libevent use

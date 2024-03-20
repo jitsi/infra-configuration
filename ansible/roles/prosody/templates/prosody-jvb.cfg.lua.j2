@@ -1,3 +1,11 @@
+{% if prosody_use_lua_54 %}
+gc = {
+    mode = "generational";
+    minor_threshold = 40;
+    major_threshold = 200;
+}
+{% endif %}
+
 daemonize = false;
 admins = {
 {% for admin in prosody_jvb_admins %}

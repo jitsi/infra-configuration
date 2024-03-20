@@ -1,5 +1,15 @@
 ---
 
+- name: Configure to use lua 5.4 by default
+  ansible.builtin.shell: |
+    set -o pipefail
+    update-alternatives --set lua-compiler /usr/bin/luac5.4
+    update-alternatives --set lua-interpreter /usr/bin/lua5.4
+    luarocks config --scope system  lua_version 5.4
+  args:
+    executable: /bin/bash
+  when: prosody_use_lua_54
+
 # prosody-jvb
 - name: Configure prosody JVB service
   ansible.builtin.script: setup-prosody-jvb-service.sh

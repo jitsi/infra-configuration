@@ -242,6 +242,7 @@ prosody_trusted_proxies: [
   "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32",
   "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"
 ]
+prosody_use_lua_54: false
 prosody_url_version: 0.12.4
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax
