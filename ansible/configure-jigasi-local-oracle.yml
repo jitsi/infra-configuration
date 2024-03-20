@@ -29,6 +29,21 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
+    - name: Remove Ansible repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:ansible/ansible"
+        state: absent
+        update_cache: false
+    - name: Remove OpenJDK repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: absent
+        update_cache: false
+    - name: Remove rsyslog apt repo
+      ansible.builtin.apt_repository:
+        repo: "ppa:adiscon/v8-stable"
+        state: absent
+        update_cache: false
     - name: Remove Google Cloud repo
       ansible.builtin.apt_repository:
         repo: "deb http://packages.cloud.google.com/apt cloud-sdk main"
