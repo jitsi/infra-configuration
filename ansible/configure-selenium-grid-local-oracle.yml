@@ -30,6 +30,21 @@
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
+    - name: Remove Ansible repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:ansible/ansible"
+        state: absent
+        update_cache: false
+    - name: Remove OpenJDK repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: absent
+        update_cache: false
+    - name: Remove rsyslog apt repo
+      ansible.builtin.apt_repository:
+        repo: "ppa:adiscon/v8-stable"
+        state: absent
+        update_cache: false
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
@@ -55,7 +70,6 @@
         reload: true
       when: selenium_grid_role == 'node'
   roles:
-    - { role: "common", tags: "common"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "iptables-serf", tags: "iptables-serf", when: selenium_grid_enable_nomad == "true" }
     - { role: "iptables-nomad", tags: "iptables-nomad", when: selenium_grid_enable_nomad == "true" }

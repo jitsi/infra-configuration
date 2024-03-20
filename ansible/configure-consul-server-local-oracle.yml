@@ -29,6 +29,21 @@
       pool_type: "consul"
 
   pre_tasks:
+    - name: Remove Ansible repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:ansible/ansible"
+        state: absent
+        update_cache: false
+    - name: Remove OpenJDK repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: absent
+        update_cache: false
+    - name: Remove rsyslog apt repo
+      ansible.builtin.apt_repository:
+        repo: "ppa:adiscon/v8-stable"
+        state: absent
+        update_cache: false
     - name: Setup new repo template file
       ansible.builtin.template:
         dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
@@ -116,8 +131,7 @@
     - { role: "iptables-nomad", tags: "iptables-nomad"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
-    - { role: "common", tags: "common"}
-    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "sshusers", tags: "ssh" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "consul-server", tags: "consul-server"}

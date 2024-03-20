@@ -133,7 +133,6 @@
     - { role: "iptables-serf", tags: "iptables-serf", when: coturn_enable_nomad }
     - { role: "iptables-nomad", tags: "iptables-nomad", when: coturn_enable_nomad }
 #    - { role: "ipv6", tags: "ipv6", ipv6_enabled: true}
-    - { role: "common", tags: "common"}
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_coturn_enabled: true}
     - { role: "journald", tags: "journald"}
