@@ -14,3 +14,9 @@
   ansible.builtin.apt:
     pkg: "{{ rsyslog_package_names }}"
     state: present
+
+- name: Remove rsyslog apt repo
+  ansible.builtin.apt_repository:
+    repo: "ppa:adiscon/v8-stable"
+    state: absent
+  when: ansible_distribution == "Ubuntu"

@@ -48,3 +48,11 @@
   ansible.builtin.command: "update-java-alternatives --jre-headless --set {{ java_alternatives_version }}"
   register: java_alternatives_output # <- Registers the command output.
   changed_when: java_alternatives_output.rc != 0 # <- Uses the return code to define when the task has changed.
+
+- name: Remove apt repository for openjdk
+  ansible.builtin.apt_repository:
+    repo: "ppa:openjdk-r/ppa"
+    state: absent
+  when:
+    - java_from_apt
+    - java_install_flag
