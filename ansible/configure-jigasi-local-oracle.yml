@@ -192,7 +192,7 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jigasi_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "vector", tags: "vector", when: jigasi_vector_enabled}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true, when: jigasi_vector_enabled}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jigasi_vector_enabled}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}

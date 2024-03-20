@@ -51,7 +51,7 @@
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
-    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog"}
     - { role: "consul-haproxy-jigasi", tags: "consul-haproxy-jigasi" }
     - { role: "haproxy-lua", tags: "haproxy-lua" }
     - { role: "haproxy", tags: "haproxy", haproxy_manage_config: true }

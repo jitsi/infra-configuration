@@ -38,6 +38,21 @@
       fault_domain: "{{ cloud_fault_domain }}"
     rsyslog_tcp_output_enabled: true
   pre_tasks:
+    - name: Remove Ansible repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:ansible/ansible"
+        state: absent
+        update_cache: false
+    - name: Remove OpenJDK repository
+      ansible.builtin.apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: absent
+        update_cache: false
+    - name: Remove rsyslog apt repo
+      ansible.builtin.apt_repository:
+        repo: "ppa:adiscon/v8-stable"
+        state: absent
+        update_cache: false
     - name: Stop telegraf for nomad clients # noqa ignore-errors
       ansible.builtin.service:
         name: telegraf
@@ -101,7 +116,7 @@
     - { role: "iptables-nomad", tags: "iptables-nomad"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true}
+    - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: nomad_enable_fluentd }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
