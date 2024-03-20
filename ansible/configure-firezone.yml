@@ -27,7 +27,7 @@
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
-    - { role: "rsyslog", tags: "rsyslog"}
+    - { role: "rsyslog", rsyslog_install_flag: false,  tags: "rsyslog"}
     - { role: "nginx", tags: "nginx"}
     - { role: "docker", tags: "docker"}
     - { role: "iptables-firezone", tags: "iptables"}

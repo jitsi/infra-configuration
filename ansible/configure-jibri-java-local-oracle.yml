@@ -166,7 +166,7 @@
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "vector", tags: "vector", when: jibri_vector_enabled}
-    - { role: "rsyslog", tags: "rsyslog", rsyslog_tcp_output_enabled: true, when: jibri_vector_enabled}
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jibri_vector_enabled}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
     - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template and not jibri_pjsua_flag }

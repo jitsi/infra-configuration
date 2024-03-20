@@ -14,7 +14,9 @@
 
 - name: Include main debian
   ansible.builtin.include_tasks: main_deb.yml
-  when: ansible_os_family == 'Debian'
+  when:
+    - rsyslog_install_flag
+    - ansible_os_family == 'Debian'
 
 - name: Setup main configuration
   tags:
