@@ -14,6 +14,7 @@ rsyslog_file_create_mode: "0640"
 rsyslog_file_mode: "0640"
 rsyslog_include_path: "/etc/rsyslog.d"
 rsyslog_inet6_input_enabled: false
+rsyslog_install_flag: true
 rsyslog_known_programs: ["kernel", "ntpd", "prosody", "ansible", "JVB", "Jicofo", "monitor-terminating-instance"]
 rsyslog_local_log_directory: "/var/log/local/"
 rsyslog_main_config: "/etc/rsyslog.conf"
