@@ -23,14 +23,6 @@
     creates: "{{ inbound_sip_jibri_auth_domain_path }}"
   when: jibri_legacy_auth and inbound_sip_jibri_auth_password and inbound_sip_jibri_auth_password != 'replaceme'
 
-# prosody-jvb
-- name: Add jibri authentication for prosody-jvb
-  ansible.builtin.command: prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua register
-    {{ jibri_auth_user }} {{ jibri_prosody_jvb_auth_domain_name }} {{ jibri_auth_password }}
-  args:
-    creates: "{{ jibri_auth_prosody_jvb_domain_path }}"
-  when: prosody_jvb_configure_flag and jibri_auth_password and jibri_auth_password != 'replaceme'
-
 - name: Add jibri account A for XMPP brewery
   ansible.builtin.command: prosodyctl adduser "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
   args:
