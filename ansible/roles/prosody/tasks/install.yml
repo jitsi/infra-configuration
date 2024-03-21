@@ -59,7 +59,7 @@
     - uuid
 
 
-- name: Install lua 5.5
+- name: Install lua 5.4
   ansible.builtin.apt:
     name: ["lua5.4", "liblua5.4-dev"]
     state: present
