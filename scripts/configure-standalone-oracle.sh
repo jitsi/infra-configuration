@@ -129,7 +129,9 @@ fi
 
 if [ -f "$LOCAL_PATH/vault-login.sh" ]; then
      . $LOCAL_PATH/vault-login.sh
+set +x     
      export VAULT_TOKEN="$(cat $HOME/.vault-token)"
+set -x
 fi
 
 ansible-playbook -v $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
