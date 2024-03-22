@@ -127,6 +127,11 @@ if [ -n "$PROSODY_FROM_URL" ]; then
     PROSODY_APT_FLAG="\"prosody_install_from_apt\":$PROSODY_APT_FLAG"
 fi
 
+if [ -f "$LOCAL_PATH/vault-login.sh" ]; then
+     . $LOCAL_PATH/vault-login.sh
+     export VAULT_TOKEN="$(cat $HOME/.vault-token)"
+fi
+
 ansible-playbook -v $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
 --extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN shard_name=$SHARD_BASE-$ORACLE_REGION-$UNIQUE_ID" \
 -e "ansible_python_interpreter=/usr/bin/python" \

@@ -61,24 +61,27 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
-  # enable vault proxy
-    - name: Enable and start vault-proxy
-      ansible.builtin.service:
-        name: vault-proxy
-        enabled: true
-        state: started
-      tags: "provision"
-      ignore_errors: true
-      when: vault_proxy_startup
   # fetch secrets from vault
-    - name: Fetch jigasi secrets from vault
-      ansible.builtin.uri:
-        url: "{{ vault_local_proxy_address }}/v1/secret/data/{{ hcv_environment }}/jigasi/xmpp"
-      retries: 5
-      delay: 10
+    - name: Read a kv2 secret with the default mount point
+      ansible.builtin.set_fact:
+        jigasi_response: "{{ lookup('community.hashi_vault.vault_kv2_get', 'secret/'+hcv_environment+'/jigasi/xmpp') }}"
+      # equivalent API path in 3.x.x is kv/data/hello
+      # equivalent API path in 4.0.0+ is secret/data/hello
       no_log: true
       register: jigasi_xmpp_secret
       ignore_errors: true
+      when: jigasi_vault_enabled
+      tags: "provision"
+
+    - name: Debug it all
+      ansible.builtin.debug:
+        var: jigasi_xmpp_secret
+      when: jigasi_vault_enabled
+      tags: "provision"
+
+    - name: Debug response
+      ansible.builtin.debug:
+        var: jigasi_response
       when: jigasi_vault_enabled
       tags: "provision"
 
