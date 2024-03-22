@@ -1,3 +1,13 @@
+{% if prosody_use_lua_54 %}
+gc = {
+    mode = "{{ prosody_gc_mode }}";
+    -- Incremental mode
+    threshold = {{ prosody_gc_inc_threshold }}, speed = {{ prosody_gc_inc_speed }}, step_size = {{ prosody_gc_inc_step_size }};
+    -- Generational mode
+    minor_threshold = {{ prosody_gc_gen_min_threshold }}, major_threshold = {{ prosody_gc_gen_major_threshold }};
+}
+{% endif %}
+
 ---------- Server-wide settings ----------
 s2s_ports = { 52690 + {{ item }} };
 c2s_ports = { 52220 + {{ item }} }
