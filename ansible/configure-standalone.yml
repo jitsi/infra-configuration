@@ -64,7 +64,7 @@
   # fetch secrets from vault
     - name: Read a kv2 secret with the default mount point
       ansible.builtin.set_fact:
-        jigasi_response: "{{ lookup('community.hashi_vault.vault_kv2_get', 'secret/'+hcv_environment+'/jigasi/xmpp') }}"
+        jigasi_response: "{{ lookup('community.hashi_vault.vault_kv2_get', hcv_environment+'/jigasi/xmpp') }}"
       # equivalent API path in 3.x.x is kv/data/hello
       # equivalent API path in 4.0.0+ is secret/data/hello
       no_log: true
@@ -87,11 +87,11 @@
 
     - name: Set jigasi variables from vault secrets
       ansible.builtin.set_fact:
-        jigasi_auth_user: "{{ jigasi_xmpp_secret.json.data.data.user }}"
-        jigasi_auth_password: "{{ jigasi_xmpp_secret.json.data.data.password }}"
+        jigasi_auth_user: "{{ jigasi_response.secret.user }}"
+        jigasi_auth_password: "{{ jigasi_response.secret.password }}"
       when:
         - jigasi_vault_enabled
-        - jigasi_xmpp_secret is defined
+        - jigasi_response is defined
       no_log: true
       tags: "provision"
     - name: Remove Ansible repository
