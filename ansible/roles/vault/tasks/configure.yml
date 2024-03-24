@@ -34,6 +34,14 @@
     src: vault-agent.service
     dest: /usr/lib/systemd/system/vault-agent.service
 
+- name: Install vault agent token location
+  ansible.builtin.file:
+    path: /var/lib/vault-agent
+    mode: 0750
+    owner: vault
+    group: root
+    state: directory
+
 - name: Install vault agent configuration
   ansible.builtin.template:
     mode: 0644
