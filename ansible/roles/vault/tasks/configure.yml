@@ -22,19 +22,19 @@
     enabled: true
   when: vault_role == "server"
 
-- name: Install vault proxy configuration
+- name: Install vault agent configuration
   ansible.builtin.template:
     mode: 0644
-    src: proxy.hcl.j2
-    dest: /etc/vault.d/proxy.hcl
-  notify: Restart vault proxy
-  when: vault_role == "proxy"
+    src: agent.hcl.j2
+    dest: /etc/vault.d/agent.hcl
+  notify: Restart vault agent
+  when: vault_role == "agent"
 
-- name: Vault proxy startup
+- name: Vault agent startup
   ansible.builtin.service:
-    name: vault-proxy
+    name: vault-agent
     state: started
     enabled: true
   when:
-    - vault_role == "proxy"
-    - vault_proxy_startup
+    - vault_role == "agent"
+    - vault_agent_startup

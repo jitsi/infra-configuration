@@ -1,8 +1,0 @@
-#!/bin/bash
-grep -q "{{ vault_proxy_replace_pattern }}" /etc/vault.d/proxy.hcl
-if [ $? -ne 0 ]; then
-  exit 0
-fi
-. /usr/local/bin/oracle_cache.sh
-
-sed -i "s/{{ vault_proxy_replace_pattern }}/{{ vault_proxy_replace_value }}/g" /etc/vault.d/proxy.hcl

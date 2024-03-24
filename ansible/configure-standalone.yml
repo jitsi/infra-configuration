@@ -39,7 +39,6 @@
     # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
-    vault_proxy_startup: "{{ jigasi_vault_enabled | default(false) }}"
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
@@ -261,7 +260,7 @@
 
   roles:
   # initial system pre-requisites
-    - { role: "vault", tags: "vault", vault_install_flag: false, vault_configure_flag: true, vault_proxy_startup: true }
+    - { role: "vault", tags: "vault", vault_install_flag: false, vault_configure_flag: true, vault_agent_startup: true }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     # - { role: "carbon-black", tags: "carbon-black" }
     - { role: "openjdk-java", tags: "openjdk" }
