@@ -5,4 +5,4 @@ if [ $? -ne 0 ]; then
 fi
 . /usr/local/bin/oracle_cache.sh
 
-sed -i "s/{{ vault_agent_replace_pattern }}/{{ vault_agent_replace_value }}/g" /etc/vault.d/proxy.hcl
+sed -i "s/{{ vault_agent_replace_pattern }}/{{ vault_agent_replace_value }}/g" /etc/vault.d/agent.hcl
