@@ -22,19 +22,39 @@
     enabled: true
   when: vault_role == "server"
 
-- name: Install vault proxy configuration
+- name: Install vault-proxy pre start script
+  ansible.builtin.template:
+    mode: 0755
+    src: vault-agent-startup.sh.j2
+    dest: /usr/local/bin/vault-agent-startup.sh
+
+- name: Install vault-agent systemd service
+  ansible.builtin.copy:
+    mode: 0644
+    src: vault-agent.service
+    dest: /usr/lib/systemd/system/vault-agent.service
+
+- name: Install vault agent token location
+  ansible.builtin.file:
+    path: /var/lib/vault-agent
+    mode: 0750
+    owner: vault
+    group: root
+    state: directory
+
+- name: Install vault agent configuration
   ansible.builtin.template:
     mode: 0644
-    src: proxy.hcl.j2
-    dest: /etc/vault.d/proxy.hcl
-  notify: Restart vault proxy
-  when: vault_role == "proxy"
+    src: agent.hcl.j2
+    dest: /etc/vault.d/agent.hcl
+  notify: Restart vault agent
+  when: vault_role == "agent"
 
-- name: Vault proxy startup
+- name: Vault agent startup
   ansible.builtin.service:
-    name: vault-proxy
+    name: vault-agent
     state: started
     enabled: true
   when:
-    - vault_role == "proxy"
-    - vault_proxy_startup
+    - vault_role == "agent"
+    - vault_agent_startup

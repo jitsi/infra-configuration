@@ -1,0 +1,18 @@
+vault {
+  address = "{{ vault_agent_address }}"
+  retry {
+    num_retries = 5
+  }
+}
+
+auto_auth {
+  method "{{ vault_agent_auth_method }}" {
+    config = {{ vault_agent_auth_config }}
+  }
+
+  sink "file" {
+    config = {
+      path = "/var/lib/vault-agent/.vault-token"
+    }
+  }
+}

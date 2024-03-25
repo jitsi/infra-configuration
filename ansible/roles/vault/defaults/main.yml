@@ -12,16 +12,16 @@ vault_key_id:
 vault_lock_bucket_name: "vault-lock"
 vault_log_dir: /var/log
 vault_management_endpoint:
-vault_role: "proxy"
+vault_role: "agent"
 vault_tls_cert_path: /opt/vault/tls/tls.crt
 vault_tls_key_path: /opt/vault/tls/tls.key
-vault_proxy_replace_pattern: _REPLACE_PATTERN_
-vault_proxy_replace_value: "${ENVIRONMENT}-vault-proxy"
-vault_proxy_startup: false
-vault_proxy_instance_role: "replaceme"
-vault_proxy_address: "https://localhost:8200"
-vault_proxy_auth_method: "approle"
-vault_proxy_auth_config: |
+vault_agent_replace_pattern: _REPLACE_PATTERN_
+vault_agent_replace_value: "${ENVIRONMENT}-vault-agent"
+vault_agent_startup: false
+vault_agent_instance_role: "replaceme"
+vault_agent_address: "https://localhost:8200"
+vault_agent_auth_method: "approle"
+vault_agent_auth_config: |
   {
       role_id_file_path = "/tmp/vault-role-id"
       secret_id_file_path = "/tmp/vault-secret-id"
