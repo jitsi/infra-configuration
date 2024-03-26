@@ -272,7 +272,7 @@
 - name: Create jitsi-meet/prosody-plugins directory
   ansible.builtin.file:
     mode: 0755
-    path: prosody_plugins_path
+    path: "{{ prosody_plugins_path }}"
     state: directory
 
 - name: Adds a file to indicate we are running prosody 0.12 and mod_smacks needs to be dropped from jitsi-meet
