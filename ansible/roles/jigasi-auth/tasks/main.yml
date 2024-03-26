@@ -1,12 +1,72 @@
 ---
-- name: Add jigasi XMPP control authentication
+- name: Add legacy jigasi XMPP control authentication
   ansible.builtin.command: prosodyctl adduser "{{ jigasi_auth_user }}@{{ jigasi_auth_domain }}"
   args:
     stdin: "{{ jigasi_auth_password }}\n{{ jigasi_auth_password }}"
     creates: "{{ jigasi_auth_domain_path }}"
+  when: jigasi_legacy_auth and jigasi_auth_password != 'replaceme'
 
-- name: Add jigasi transcriber authentication
+- name: Add legacy jigasi transcriber authentication
   ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}"
   args:
     stdin: "{{ jigasi_transcriber_auth_password }}\n{{ jigasi_transcriber_auth_password }}"
     creates: "{{ jigasi_transcriber_auth_domain_path }}"
+  when: jigasi_legacy_auth and jigasi_transcriber_auth_password != 'replaceme'
+
+- name: Add jigasi account A for XMPP brewery
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_brewery_username_A }}@{{ jigasi_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_brewery_A }}\n{{ secrets_jigasi_brewery_A }}"
+    creates: "{{ jigasi_brewery_path_A }}"
+  when: secrets_jigasi_brewery_A is defined and secrets_jigasi_brewery_A and secrets_jigasi_brewery_A != ""
+
+- name: Add jigasi account B for XMPP brewery
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_brewery_username_B }}@{{ jigasi_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_brewery_B }}\n{{ secrets_jigasi_brewery_B }}"
+    creates: "{{ jigasi_brewery_path_B }}"
+  when: secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
+
+- name: Add jigasi account A for transcriber
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_username_A }}@{{ jigasi_transcriber_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_transcriber_A }}\n{{ secrets_jigasi_transcriber_A }}"
+    creates: "{{ jigasi_transcriber_path_A }}"
+  when: secrets_jigasi_transcriber_A is defined and secrets_jigasi_transcriber_A and secrets_jigasi_transcriber_A != ""
+
+- name: Add jigasi account B for transcriber
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_username_B }}@{{ jigasi_transcriber_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_transcriber_B }}\n{{ secrets_jigasi_transcriber_B }}"
+    creates: "{{ jigasi_transcriber_path_B }}"
+  when: secrets_jigasi_transcriber_B is defined and secrets_jigasi_transcriber_B and secrets_jigasi_transcriber_B != ""
+
+- name: Add jitsi-shared-secret account for jigasi A
+  ansible.builtin.blockinfile:
+    path: /etc/prosody/prosody.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A"
+    block: |
+      VirtualHost "jigasia.{{ prosody_domain_name }}"
+        modules_enabled = {
+      {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
+      "smacks";
+      {% endif %}
+      }
+      authentication = "jitsi-shared-secret"
+      shared_secret = "{{ secrets_jigasi_conference_A }}"
+  when: secrets_jigasi_conference_A is defined and secrets_jigasi_conference_A and secrets_jigasi_conference_A != ""
+
+- name: Add jitsi-shared-secret account for jigasi B
+  ansible.builtin.blockinfile:
+    path: /etc/prosody/prosody.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B"
+    block: |
+      VirtualHost "jigasib.{{ prosody_domain_name }}"
+        modules_enabled = {
+      {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
+      "smacks";
+      {% endif %}
+      }
+      authentication = "jitsi-shared-secret"
+      shared_secret = "{{ secrets_jigasi_conference_B }}"
+  when: secrets_jigasi_conference_B is defined and secrets_jigasi_conference_B and secrets_jigasi_conference_B != ""

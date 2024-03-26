@@ -63,7 +63,7 @@ local jwtKeyCache = require"util.cache".new(jwtKeyCacheSize);
 
 -- option to ignore events about the focus and other components
 local blacklistPrefixes
-    = module:get_option_array("muc_events_blacklist_prefixes", {'focus@auth.','recorder@recorder.','jvb@auth.','jibri@auth.','transcriber@recorder.'});
+    = module:get_option_array("muc_events_blacklist_prefixes", {'focus@auth.','recorder@recorder.','recordera@recorder.','recorderb@','jvb@auth.','jibri@auth.','jibria@auth.','jibrib@auth.','transcriber@recorder.', 'transcribera@recorder.', 'transcriberb@recorder.'});
 
 local eventURL
     = module:get_option_string("muc_events_url", 'http://127.0.0.1:9880/');
