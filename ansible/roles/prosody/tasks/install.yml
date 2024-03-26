@@ -272,20 +272,20 @@
 - name: Create jitsi-meet/prosody-plugins directory
   ansible.builtin.file:
     mode: 0755
-    path: /usr/share/jitsi-meet/prosody-plugins
+    path: prosody_plugins_path
     state: directory
 
 - name: Adds a file to indicate we are running prosody 0.12 and mod_smacks needs to be dropped from jitsi-meet
   ansible.builtin.file:
     mode: 0644
-    path: /usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua
+    path: "{{ prosody_plugins_path }}/.drop.mod_smacks.lua"
     state: touch
   when: (prosody_minor_version | int) == 12
 
 - name: Adds a file to indicate we are running prosody 0.12 and mod_external_services needs to be dropped from jitsi-meet
   ansible.builtin.file:
     mode: 0644
-    path: /usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua
+    path: "{{ prosody_plugins_path }}/.drop.mod_external_services.lua"
     state: touch
   when: (prosody_minor_version | int) == 12
 

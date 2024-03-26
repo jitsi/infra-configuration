@@ -2,3 +2,5 @@
 jitsi_meet_deb_pkg_version: "*"
 jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
 jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"
+jitsi_meet_prosody_plugins_path: "/usr/share/jitsi-meet/prosody-plugins"
+jitsi_meet_prosody_deb_skip: false

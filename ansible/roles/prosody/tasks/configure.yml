@@ -219,7 +219,7 @@
 
 - name: Check whether module muc_meeting_id exists
   ansible.builtin.stat:
-    path: /usr/share/jitsi-meet/prosody-plugins/mod_muc_meeting_id.lua
+    path: "{{ prosody_plugins_path }}/mod_muc_meeting_id.lua"
   register: muc_meeting_id_exists
 
 # TODO: cleanup, we probably no longer need this
@@ -256,7 +256,7 @@
 
 - name: Check whether module mod_roster_command exists
   ansible.builtin.stat:
-    path: /usr/share/jitsi-meet/prosody-plugins/mod_roster_command.lua
+    path: "{{ prosody_plugins_path }}/mod_roster_command.lua"
   register: stat_mod_roster_command
 
 - name: Add client_proxy to jicofo's roster

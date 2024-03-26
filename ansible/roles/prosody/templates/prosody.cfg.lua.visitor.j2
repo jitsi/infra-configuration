@@ -175,7 +175,7 @@ muc_limit_messages_count = {{ prosody_limit_messages }};
 muc_limit_messages_check_token = {{ prosody_limit_messages_check_token }};
 {% endif %}
 
-plugin_paths = { '/usr/share/jitsi-meet/prosody-plugins/' }
+plugin_paths = { '{{ prosody_plugins_path }}/' }
 
 ----------- Virtual hosts -----------
 VirtualHost 'v{{ item }}.meet.jitsi'
