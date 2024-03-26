@@ -1,9 +1,9 @@
 [Unit]
-Description="HashiCorp Vault Proxy - A tool for managing secrets"
+Description="HashiCorp Vault Agent - A tool for managing secrets"
 Documentation=https://developer.hashicorp.com/vault/docs
 Requires=network-online.target
 After=network-online.target
-ConditionFileNotEmpty=/etc/vault.d/proxy.hcl
+ConditionFileNotEmpty=/etc/vault.d/agent.hcl
 StartLimitIntervalSec=60
 StartLimitBurst=3
 
@@ -19,10 +19,10 @@ PrivateDevices=yes
 SecureBits=keep-caps
 AmbientCapabilities=CAP_IPC_LOCK
 CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
-NoNewPrivileges=yes 
+NoNewPrivileges=yes s
 PermissionsStartOnly=true
-ExecStartPre=/usr/local/bin/vault-proxy-startup.sh
-ExecStart=/usr/bin/vault proxy -config=/etc/vault.d/proxy.hcl
+ExecStartPre=/usr/local/bin/vault-agent-startup.sh
+ExecStart=/usr/bin/vault agent -config=/etc/vault.d/agent.hcl
 ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
 KillSignal=SIGINT

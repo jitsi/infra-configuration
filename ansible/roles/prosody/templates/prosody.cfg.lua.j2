@@ -10,6 +10,16 @@ admins = {
 
 pidfile = "/var/run/prosody/prosody.pid";
 
+{% if prosody_use_lua_54 %}
+gc = {
+    mode = "{{ prosody_gc_mode }}";
+    -- Incremental mode
+    threshold = {{ prosody_gc_inc_threshold }}, speed = {{ prosody_gc_inc_speed }}, step_size = {{ prosody_gc_inc_step_size }};
+    -- Generational mode
+    minor_threshold = {{ prosody_gc_gen_min_threshold }}, major_threshold = {{ prosody_gc_gen_major_threshold }};
+}
+{% endif %}
+
 -- Enable use of libevent for better performance under high load
 -- For more information see: http://prosody.im/doc/libevent
 -- commenting until we debug prosody crashes during libevent use

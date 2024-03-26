@@ -16,12 +16,6 @@
     ]
     state: present
 
-- name: Install libssl1.0 if ubuntu == 18
-  ansible.builtin.apt:
-    name: libssl1.0-dev
-    state: present
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
-
 - name: Install luarocks luaoscket
   ansible.builtin.shell: |
     set -o pipefail
@@ -63,6 +57,44 @@
     - net-url
     - inspect
     - uuid
+
+
+- name: Install lua 5.4
+  ansible.builtin.apt:
+    name: ["lua5.4", "liblua5.4-dev"]
+    state: present
+
+- name: Set default lua 5.4 and luarocks to use 5.4
+  ansible.builtin.shell: |
+    set -o pipefail
+    update-alternatives --set lua-compiler /usr/bin/luac5.4
+    update-alternatives --set lua-interpreter /usr/bin/lua5.4
+    luarocks config --scope system  lua_version 5.4
+  args:
+    executable: /bin/bash
+
+- name: Install luarocks dependencies for lua 5.4
+  ansible.builtin.shell: |
+    set -o pipefail
+    luarocks list | grep -w -q {{ item }} || luarocks install {{ item }}
+  args:
+    executable: /bin/bash
+  with_items:
+    - net-url
+    - inspect
+    - uuid
+    - basexx
+    - luaossl
+    - lua-cjson 2.1.0-1
+
+- name: Set back default lua 5.2 and luarocks to use 5.2
+  ansible.builtin.shell: |
+    set -o pipefail
+    update-alternatives --set lua-compiler /usr/bin/luac5.2
+    update-alternatives --set lua-interpreter /usr/bin/lua5.2
+    luarocks config --scope system  lua_version 5.2
+  args:
+    executable: /bin/bash
 
 - name: Install prosody-log-filter script
   ansible.builtin.copy:

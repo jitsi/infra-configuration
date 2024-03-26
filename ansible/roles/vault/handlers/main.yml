@@ -4,9 +4,9 @@
     name: rsyslog
     state: restarted
 
-- name: Restart vault proxy
+- name: Restart vault agent
   ansible.builtin.service:
-    name: vault-proxy
+    name: vault-agent
     state: restarted
 
 - name: Restart vault server

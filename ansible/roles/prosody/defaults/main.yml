@@ -104,6 +104,14 @@ prosody_focus_admins:
 prosody_focus_secret: "{{ secrets_jicofo_focus | default(false) }}"
 prosody_focus_jvb_secret: "{{ secrets_jicofo_focus_jvb | default(false) }}"
 prosody_focus_visitor_secret: "{{ secrets_jicofo_focus_visitor | default(false) }}"
+
+prosody_gc_mode: "generational"
+prosody_gc_inc_threshold: 105
+prosody_gc_inc_speed: 500
+prosody_gc_inc_step_size: 13
+prosody_gc_gen_min_threshold: 40
+prosody_gc_gen_major_threshold: 200
+
 prosody_guest_domain_name: "guest.{{ prosody_domain_name }}"
 prosody_hide_all_rooms: true
 prosody_install_flag: true
@@ -250,6 +258,7 @@ prosody_trusted_proxies: [
   "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32",
   "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"
 ]
+prosody_use_lua_54: false
 prosody_url_version: 0.12.4
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax

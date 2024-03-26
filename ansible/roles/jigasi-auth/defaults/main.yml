@@ -1,7 +1,7 @@
 ---
 jigasi_auth_domain: "auth.{{ prosody_domain_name }}"
 jigasi_auth_domain_path: "/var/lib/prosody/{{ jigasi_auth_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jigasi_auth_user }}.dat"
+  regex_replace('-', '%2d') }}/accounts/{{ jigasi_auth_user | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}.dat"
 jigasi_auth_password: "{{ jigasi_xmpp_password | default('replaceme') }}"
 jigasi_auth_user: "{{ jigasi_xmpp_jid_username }}"
 jigasi_brewery_domain: "auth.{{ prosody_domain_name }}"
@@ -17,7 +17,7 @@ jigasi_brewery_path_B: "/var/lib/prosody/{{ jigasi_brewery_domain | regex_replac
 jigasi_legacy_auth: true
 jigasi_transcriber_auth_domain: "recorder.{{ prosody_domain_name }}"
 jigasi_transcriber_auth_domain_path: "/var/lib/prosody/{{ jigasi_transcriber_auth_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jigasi_transcriber_auth_user }}.dat"
+  regex_replace('-', '%2d') }}/accounts/{{ jigasi_transcriber_auth_user | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}.dat"
 jigasi_transcriber_auth_password: "replaceme"
 jigasi_transcriber_auth_user: "transcriber"
 # Different than the legacy username because we want to provision new accounts.

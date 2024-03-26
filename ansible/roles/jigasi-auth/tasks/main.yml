@@ -1,13 +1,15 @@
 ---
 - name: Add legacy jigasi XMPP control authentication
-  ansible.builtin.command: prosodyctl register {{ jigasi_auth_user }} {{ jigasi_auth_domain }} {{ jigasi_auth_password }}
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_auth_user }}@{{ jigasi_auth_domain }}"
   args:
+    stdin: "{{ jigasi_auth_password }}\n{{ jigasi_auth_password }}"
     creates: "{{ jigasi_auth_domain_path }}"
   when: jigasi_legacy_auth and jigasi_auth_password != 'replaceme'
 
 - name: Add legacy jigasi transcriber authentication
-  ansible.builtin.command: prosodyctl register {{ jigasi_transcriber_auth_user }} {{ jigasi_transcriber_auth_domain }} {{ jigasi_transcriber_auth_password }}
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}"
   args:
+    stdin: "{{ jigasi_transcriber_auth_password }}\n{{ jigasi_transcriber_auth_password }}"
     creates: "{{ jigasi_transcriber_auth_domain_path }}"
   when: jigasi_legacy_auth and jigasi_transcriber_auth_password != 'replaceme'
 
