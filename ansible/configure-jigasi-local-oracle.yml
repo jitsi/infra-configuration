@@ -49,7 +49,7 @@
 
     - name: Set jigasi variables from vault secrets
       ansible.builtin.set_fact:
-        jigasi_xmpp_jid_username: "{{ jjigasi_secret_response.secret.user }}"
+        jigasi_xmpp_jid_username: "{{ jigasi_secret_response.secret.user }}"
         jigasi_xmpp_password: "{{ jigasi_secret_response.secret.password }}"
       when: jigasi_vault_enabled
       no_log: true
