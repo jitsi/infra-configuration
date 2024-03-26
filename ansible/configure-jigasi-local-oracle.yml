@@ -41,8 +41,8 @@
     # fetch secrets from vault
     - name: Retrieve jigasi secrets from vault
       ansible.builtin.set_fact:
-        jigasi_secret_response: "{{ lookup('community.hashi_vault.vault_kv2_get', hcv_environment+'/jigasi/xmpp') }}"
-      no_log: true
+        jigasi_secret_response: "{{ lookup('community.hashi_vault.vault_kv2_get', hcv_environment+'/jigasi/xmpp'), url=vault_agent_address }}"
+#      no_log: true
       when: jigasi_vault_enabled
       tags: "setup"
 
