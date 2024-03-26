@@ -76,7 +76,6 @@ fi
 
 checkout_repos
 
-export ANSIBLE_HASHI_VAULT_TOKEN_FILE="/var/lib/vault-agent/.vault-token"
 cd $BOOTSTRAP_DIRECTORY/infra-configuration
 ansible-playbook -v \
     -i "127.0.0.1," \
