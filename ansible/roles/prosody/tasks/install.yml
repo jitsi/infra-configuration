@@ -275,20 +275,6 @@
     path: "/usr/share/jitsi-meet/prosody-plugins"
     state: directory
 
-- name: Adds a file to indicate we are running prosody 0.12 and mod_smacks needs to be dropped from jitsi-meet
-  ansible.builtin.file:
-    mode: 0644
-    path: "/usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua"
-    state: touch
-  when: (prosody_minor_version | int) == 12
-
-- name: Adds a file to indicate we are running prosody 0.12 and mod_external_services needs to be dropped from jitsi-meet
-  ansible.builtin.file:
-    mode: 0644
-    path: "/usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua"
-    state: touch
-  when: (prosody_minor_version | int) == 12
-
 - name: Prosody file open limits
   ansible.builtin.copy:
     mode: 0644
