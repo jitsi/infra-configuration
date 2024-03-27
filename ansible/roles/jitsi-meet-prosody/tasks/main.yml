@@ -35,7 +35,7 @@
     mode: 0755
 
 - name: Copy jitsi-meet-prosody plugins to appropriate location
-  ansible.builtin.command: cp -a ./usr/share/jitsi-meet/prosody-plugins/* /usr/share/jitsi-meet/prosody-plugins
+  ansible.builtin.shell: cp -a ./usr/share/jitsi-meet/prosody-plugins/* /usr/share/jitsi-meet/prosody-plugins
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
