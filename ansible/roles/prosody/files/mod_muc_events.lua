@@ -427,7 +427,7 @@ local function processEvent(type,event)
         who_jid = jid.join(node, main_domain, resource);
     end
 
-    local cdetails = loadConferenceDetails(event.room);
+    local cdetails = loadConferenceDetails(event.room.jid);
 
     local occupant_nick = event.occupant and event.occupant.nick;
     if type == "Joined" then
