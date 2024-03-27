@@ -29,29 +29,29 @@
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
 - name: Copy jitsi-meet-prosody plugins to appropriate location
-  ansible.builtin.command: cp -a ./usr/share/jitsi-meet/prosody-plugins/ "{{ jitsi_meet_prosody_plugins_path }}"
+  ansible.builtin.command: cp -a ./usr/share/jitsi-meet/prosody-plugins/ "/usr/share/jitsi-meet/prosody-plugins"
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
 - name: Check do we need to drop mod_smacks
   ansible.builtin.stat:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/.drop.mod_smacks.lua"
+    path: "/usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua"
   register: need_to_drop_mod_smacks
 
 - name: Remove mod_smacks as we are running prosody that has that module
   ansible.builtin.file:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/mod_smacks.lua"
+    path: "/usr/share/jitsi-meet/prosody-plugins/mod_smacks.lua"
     state: absent
   when: need_to_drop_mod_smacks.stat.exists
 
 - name: Check do we need to drop mod_external_services
   ansible.builtin.stat:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/.drop.mod_external_services.lua"
+    path: "/usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua"
   register: need_to_drop_mod_external_services
 
 - name: Remove mod_external_services as we are running prosody that has that module
   ansible.builtin.file:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/mod_external_services.lua"
+    path: "/usr/share/jitsi-meet/prosody-plugins/mod_external_services.lua"
     state: absent
   when: need_to_drop_mod_external_services.stat.exists
 
@@ -63,25 +63,25 @@
 - name: Copy over the external events lib
   ansible.builtin.copy:
     src: "ext_events.lib.lua"
-    dest: "{{ jitsi_meet_prosody_plugins_path }}/"
+    dest: "/usr/share/jitsi-meet/prosody-plugins/"
     mode: 0644
   notify: Reload prosody plugins
 
 - name: Copy over the asap lib
   ansible.builtin.copy:
     src: "asap.lib.lua"
-    dest: "{{ jitsi_meet_prosody_plugins_path }}/"
+    dest: "/usr/share/jitsi-meet/prosody-plugins/"
     mode: 0644
   notify: Reload prosody plugins
 
 - name: Check do we have the patch installed
   ansible.builtin.stat:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/stanza_router_no-log.patch"
+    path: "/usr/share/jitsi-meet/prosody-plugins/stanza_router_no-log.patch"
   register: standza_router_patch_exists
 - name: Apply stanza_router_no-log.patch
   ansible.posix.patch:
     basedir: /usr/share/lua/5.1/prosody/
-    src: "{{ jitsi_meet_prosody_plugins_path }}/stanza_router_no-log.patch"
+    src: "/usr/share/jitsi-meet/prosody-plugins/stanza_router_no-log.patch"
     strip: 1
     remote_src: true
   when:
@@ -90,12 +90,12 @@
 
 - name: Check do we have the patch installed
   ansible.builtin.stat:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/s2sout_override1.patch"
+    path: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override1.patch"
   register: s2sout_override1_patch_exists
 - name: Apply s2sout_override1.patch
   ansible.posix.patch:
     basedir: /usr/share/lua/5.1/prosody/
-    src: "{{ jitsi_meet_prosody_plugins_path }}/s2sout_override1.patch"
+    src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override1.patch"
     strip: 1
     remote_src: true
   when:
@@ -104,12 +104,12 @@
 
 - name: Check do we have the patch installed
   ansible.builtin.stat:
-    path: "{{ jitsi_meet_prosody_plugins_path }}/s2sout_override2.patch"
+    path: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override2.patch"
   register: s2sout_override2_patch_exists
 - name: Apply s2sout_override2.patch
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules/
-    src: "{{ jitsi_meet_prosody_plugins_path }}/s2sout_override2.patch"
+    src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override2.patch"
     strip: 1
     remote_src: true
   when:
