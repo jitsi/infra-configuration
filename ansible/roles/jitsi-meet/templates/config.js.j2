@@ -77,9 +77,7 @@ var config = {
         rtcstatsEndpoint: "{{ jitsi_meet_rtcstats_endpoint }}",
         rtcstatsPollInterval: {{ jitsi_meet_rtcstats_poll_interval }},
     {% if jitsi_meet_rtcstats_log_sdp %}
-        {% if (jitsi_meet_web_version | int) > 6908 %}
         rtcstatsSendSdp: true,
-        {% endif %}
     {% endif %}
     {% if jitsi_meet_google_analytics_flag or jitsi_meet_google_analytics_hep_flag %}
         scriptURLs: [

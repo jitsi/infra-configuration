@@ -139,7 +139,6 @@ jitsi_meet_enable_p2p: false
 jitsi_meet_enable_p2p_turn: false
 jitsi_meet_enable_prejoin_page: false
 jitsi_meet_enable_room_api: false
-jitsi_meet_enable_sanitize_hack: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
 jitsi_meet_enable_simulcast: true
@@ -256,7 +255,6 @@ jitsi_meet_user_documentation_url: false
 jitsi_meet_video_quality: false
 jitsi_meet_visitors_enabled: "{{ visitors_enabled | default(false) }}"
 jitsi_meet_visitors_count: "{{ visitors_count | default(0) }}"
-jitsi_meet_web_version: false
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
 jitsi_meet_whiteboard_user_limit: 25

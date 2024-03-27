@@ -284,6 +284,7 @@
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: true, signal_sidecar_configure_flag: false }
 
   # configure phase of jitsi components
+    - { role: "jitsi-meet-branding", tags: "jitsi-meet" }
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true}
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true }
     - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: false, jicofo_rtcstats_push_configure_flag: true }
