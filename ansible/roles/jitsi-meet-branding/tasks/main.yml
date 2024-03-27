@@ -1,0 +1,40 @@
+---
+- name: Register installed Meet version
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+  args:
+    executable: /bin/bash
+  register: jitsi_meet_web_version_shell
+
+- name: Install branding override when required
+  ansible.builtin.apt:
+    name: "{{ jitsi_meet_branding_override }}=1.0.{{ jitsi_meet_web_version_shell.stdout }}*"
+    allow-downgrades: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  when: jitsi_meet_branding_override != "jitsi-meet"
+
+- name: Register installed branding version
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg -s {{ jitsi_meet_branding_override }} | grep Version | awk '{print $2}' | cut -d'.' -f3,4 | cut -d'-' -f1
+  args:
+    executable: /bin/bash
+  register: jitsi_meet_branding_version_shell
+  when: jitsi_meet_branding_override != "jitsi-meet"
+
+- name: Set jitsi_meet_branding_version
+  ansible.builtin.set_fact:
+    jitsi_meet_branding_version: "{{ jitsi_meet_branding_version_shell.stdout if (jitsi_meet_branding_override != 'jitsi-meet')
+      else jitsi_meet_web_version_shell.stdout }}"
+
+- name: Remove mod_smacks as we are running prosody that has that module
+  ansible.builtin.file:
+    path: "{{ jitsi_meet_branding_prosody_plugins_path }}/mod_smacks.lua"
+    state: absent
+
+- name: Remove mod_external_services as we are running prosody that has that module
+  ansible.builtin.file:
+    path: "{{ jitsi_meet_branding_prosody_plugins_path }}/mod_external_services.lua"
+    state: absent

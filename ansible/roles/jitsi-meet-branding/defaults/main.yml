@@ -1,0 +1,3 @@
+---
+jitsi_meet_branding_override: jitsi-meet
+jitsi_meet_branding_prosody_plugins_path: "{{ jitsi_meet_prosody_plugins_path | default('/usr/share/'+jitsi_meet_branding_override+'/prosody-plugins') }}"

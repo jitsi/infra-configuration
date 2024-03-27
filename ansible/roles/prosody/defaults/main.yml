@@ -217,6 +217,8 @@ prosody_package_filename: "{{ prosody_package_name }}_{{ prosody_package_version
 prosody_package_name: "{{ prosody_dpkg_base_name if not prosody_install_from_apt else prosody_apt_base_name }}"
 prosody_package_subversion: "13"
 
+prosody_plugins_path: "/usr/share/jitsi-meet/prosody-plugins"
+
 prosody_polls_enabled: true
 
 prosody_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"

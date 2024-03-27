@@ -117,7 +117,7 @@ log = {
 {% endif %}
 }
 
-plugin_paths = { "/usr/share/jitsi-meet/prosody-plugins/" }
+plugin_paths = { "{{ prosody_plugins_path }}/" }
 
 ----------- Virtual hosts -----------
 VirtualHost "{{ prosody_jvb_auth_domain_name }}"
