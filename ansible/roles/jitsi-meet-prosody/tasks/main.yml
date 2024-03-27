@@ -33,27 +33,15 @@
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
 
-- name: Check do we need to drop mod_smacks
-  ansible.builtin.stat:
-    path: "/usr/share/jitsi-meet/prosody-plugins/.drop.mod_smacks.lua"
-  register: need_to_drop_mod_smacks
-
 - name: Remove mod_smacks as we are running prosody that has that module
   ansible.builtin.file:
     path: "/usr/share/jitsi-meet/prosody-plugins/mod_smacks.lua"
     state: absent
-  when: need_to_drop_mod_smacks.stat.exists
-
-- name: Check do we need to drop mod_external_services
-  ansible.builtin.stat:
-    path: "/usr/share/jitsi-meet/prosody-plugins/.drop.mod_external_services.lua"
-  register: need_to_drop_mod_external_services
 
 - name: Remove mod_external_services as we are running prosody that has that module
   ansible.builtin.file:
     path: "/usr/share/jitsi-meet/prosody-plugins/mod_external_services.lua"
     state: absent
-  when: need_to_drop_mod_external_services.stat.exists
 
 - name: Remove jitsi-meet-prosody tempdir
   ansible.builtin.file:
@@ -87,31 +75,3 @@
   when:
     - (prosody_minor_version | int) == 12
     - standza_router_patch_exists.stat.exists
-
-- name: Check do we have the patch installed
-  ansible.builtin.stat:
-    path: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override1.patch"
-  register: s2sout_override1_patch_exists
-- name: Apply s2sout_override1.patch
-  ansible.posix.patch:
-    basedir: /usr/share/lua/5.1/prosody/
-    src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override1.patch"
-    strip: 1
-    remote_src: true
-  when:
-    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
-    - s2sout_override1_patch_exists.stat.exists
-
-- name: Check do we have the patch installed
-  ansible.builtin.stat:
-    path: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override2.patch"
-  register: s2sout_override2_patch_exists
-- name: Apply s2sout_override2.patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody/modules/
-    src: "/usr/share/jitsi-meet/prosody-plugins/s2sout_override2.patch"
-    strip: 1
-    remote_src: true
-  when:
-    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
-    - s2sout_override2_patch_exists.stat.exists
