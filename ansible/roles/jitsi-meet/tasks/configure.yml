@@ -153,13 +153,6 @@
     src: "plugin.head.html.j2"
     dest: "{{ jitsi_meet_nginx_root }}/plugin.head.html"
 
-# This is here only for compat with older jitsi-meet versions. New versions don't need this file
-- name: Override jitsi meet local details
-  ansible.builtin.template:
-    mode: 0644
-    src: "local.html.j2"
-    dest: "{{ jitsi_meet_nginx_root }}/local.html"
-
 - name: Create symlink for index_conference.html to index.html
   ansible.builtin.file:
     path: "{{ jitsi_meet_nginx_root }}/index_conference.html"
