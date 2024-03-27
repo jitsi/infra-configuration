@@ -145,8 +145,9 @@ local function get_main_room(breakout_room)
     end
 end
 
-local function get_current_event_usage(session, customer_id, event_type, phone_no, call_direction)
+local function get_current_event_usage(session, participant_id, customer_id, event_type, phone_no, call_direction)
     local current_usage_item = {};
+    current_usage_item.participantId = participant_id;
     if event_type == DIAL_IN_STARTED or event_type == DIAL_OUT_STARTED then
         current_usage_item.deviceId = phone_no;
         current_usage_item.kid = JAAS_PREFIX .. customer_id .. "/" .. "dialIO";
@@ -269,6 +270,10 @@ function handle_occupant_access(event, event_type)
         end
         payload.participantJid = occupant.bare_jid;
         payload.participantId = nick_resource;
+        if (is_lobby) then
+            -- manually extract participantId from jid, because the nick resource is different for lobby
+            payload.participantId = occupant.jid:match("^(.-)-");
+        end
         -- dial check
         if dial_participants[occupant.jid] ~= nil then
             module:log("debug", "dial participant %s leave room %s", occupant.jid, room.jid)
@@ -491,7 +496,7 @@ function handle_occupant_access(event, event_type)
                     local participants = room._data.participants_jid or {};
                     table.insert(participants, occupant.bare_jid);
                     room._data.participants_jid = participants;
-                    local current_usage_item = get_current_event_usage(session, customer_id, final_event_type, payload.nick, payload.direction);
+                    local current_usage_item = get_current_event_usage(session, nick_resource, customer_id, final_event_type, payload.nick, payload.direction);
                     handle_usage_update(main_room, meeting_fqn, current_usage_item, breakout_room_id, is_sip_jibri_event);
                 else
                     handle_usage_update(main_room, meeting_fqn, nil, breakout_room_id, is_sip_jibri_event)
@@ -673,6 +678,7 @@ function handle_poll_created(pollData)
         user = {
             name = pollData.poll.senderName,
             participantJid = user['bare_jid'],
+            participantId = pollData.poll.senderId,
             email = user['email'],
             id = user['id']
         },
@@ -689,7 +695,7 @@ function handle_poll_created(pollData)
         ["eventType"] = POLL_CREATED,
         ["data"] = eventData
     }
-    module:log("debug", "Poll creeated event: %s", inspect(poll_created_event))
+    module:log("debug", "Poll created event: %s", inspect(poll_created_event))
     event_count();
     http.request(EGRESS_URL, {
         headers = util.http_headers_no_auth,
@@ -718,6 +724,7 @@ function handle_poll_answered(answerData)
         user = {
             name = answerData.voterName,
             participantJid = user['bare_jid'],
+            participantId = answerData.voterId,
             email = user['email'],
             id = user['id']
         },
@@ -802,20 +809,31 @@ local function occupant_affiliation_changed(event)
     if event.actor and event.affiliation == 'owner' then
         local room = event.room;
         local granted_to_occupant = {};
+        local granted_by_occupant = {};
         -- event.jid is the bare jid of participant
         for _, occupant in room:each_occupant() do
             if occupant.bare_jid == event.jid then
                 granted_to_occupant = occupant;
-                module:log("debug", "Participant %s was promoted to moderator by %s", occupant.jid, event.actor)
+                module:log("debug", "Participant %s was promoted to moderator by %s", occupant.jid, event.actor);
+            end
+            if occupant.jid == event.actor then
+                granted_by_occupant = occupant;
+            end
+            -- break when both found
+            if next(granted_to_occupant) and next(granted_by_occupant) then
+                break;
             end
         end
-
         local eventData = {
             grantedBy = {
-                participantJid = event.actor
+                participantJid = granted_by_occupant.jid,
+                participantId = select(3, split_jid(granted_by_occupant.nick)),
+                id = util.extract_occupant_identity_user(granted_by_occupant)['id']
             },
             grantedTo = {
-                participantJid = granted_to_occupant.jid
+                participantJid = granted_to_occupant.jid,
+                participantId = select(3, split_jid(granted_to_occupant.nick)),
+                id = util.extract_occupant_identity_user(granted_to_occupant)['id']
             },
             role = granted_to_occupant.role
         }
