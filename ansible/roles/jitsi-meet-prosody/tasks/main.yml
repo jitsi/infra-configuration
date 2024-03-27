@@ -17,25 +17,21 @@
     state: directory
     suffix: jitsi-meet-prosody
   register: jitsi_meet_prosody_tempdir
-  when: not jitsi_meet_prosody_deb_skip
 
 - name: Download jitsi-meet-prosody .deb # noqa command-instead-of-module
   ansible.builtin.command: apt-get download {{ jitsi_meet_prosody_deb_pkg_name }}={{ jitsi_meet_prosody_deb_pkg_version }}
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
-  when: not jitsi_meet_prosody_deb_skip
 
 - name: Unpack jitsi-meet-prosody .deb
   ansible.builtin.shell: dpkg -x {{ jitsi_meet_prosody_deb_pkg_name }}*.deb .
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
-  when: not jitsi_meet_prosody_deb_skip
 
 - name: Copy jitsi-meet-prosody plugins to appropriate location
   ansible.builtin.command: cp -a ./usr/share/jitsi-meet/prosody-plugins/ "{{ jitsi_meet_prosody_plugins_path }}"
   args:
     chdir: "{{ jitsi_meet_prosody_tempdir.path }}"
-  when: not jitsi_meet_prosody_deb_skip
 
 - name: Check do we need to drop mod_smacks
   ansible.builtin.stat:
@@ -63,7 +59,6 @@
   ansible.builtin.file:
     path: "{{ jitsi_meet_prosody_tempdir.path }}"
     state: absent
-  when: not jitsi_meet_prosody_deb_skip
 
 - name: Copy over the external events lib
   ansible.builtin.copy:
