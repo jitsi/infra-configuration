@@ -144,25 +144,25 @@
     -keyout /var/lib/prosody/{{ prosody_auth_domain_name }}.key \
     -out /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
   args:
-    creates: /var/lib/prosody/{{ prosody_auth_domain_name }}.key
+    creates: "/var/lib/prosody/{{ prosody_auth_domain_name }}.key"
 
 - name: Link auth domain keyfile
   ansible.builtin.file:
     state: link
-    src: /var/lib/prosody/{{ prosody_auth_domain_name }}.key
-    dest: /etc/prosody/certs/{{ prosody_auth_domain_name }}.key
+    src: "/var/lib/prosody/{{ prosody_auth_domain_name }}.key"
+    dest: "/etc/prosody/certs/{{ prosody_auth_domain_name }}.key"
 
 - name: Link auth domain certificate
   ansible.builtin.file:
     state: link
-    src: /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
-    dest: /etc/prosody/certs/{{ prosody_auth_domain_name }}.crt
+    src: "/var/lib/prosody/{{ prosody_auth_domain_name }}.crt"
+    dest: "/etc/prosody/certs/{{ prosody_auth_domain_name }}.crt"
 
 - name: Link auth domain certificate into /usr/local/share/ca-certificates
   ansible.builtin.file:
     state: link
-    src: /var/lib/prosody/{{ prosody_auth_domain_name }}.crt
-    dest: /usr/local/share/ca-certificates/{{ prosody_auth_domain_name }}.crt
+    src: "/var/lib/prosody/{{ prosody_auth_domain_name }}.crt"
+    dest: "/usr/local/share/ca-certificates/{{ prosody_auth_domain_name }}.crt"
   notify: Rebuild ca certificates
 
 - name: Generate prosody-jvb auth domain certificate
@@ -172,28 +172,28 @@
     -keyout /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key \
     -out /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
   args:
-    creates: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key
+    creates: "/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key"
   when: prosody_jvb_configure_flag
 
 - name: Link prosody-jvb auth domain keyfile
   ansible.builtin.file:
     state: link
-    src: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key
-    dest: /etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.key
+    src: "/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.key"
+    dest: "/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.key"
   when: prosody_jvb_configure_flag
 
 - name: Link prosody-jvb auth domain certificate
   ansible.builtin.file:
     state: link
-    src: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
-    dest: /etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.crt
+    src: "/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt"
+    dest: "/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.crt"
   when: prosody_jvb_configure_flag
 
 - name: Link prosody-jvb auth domain certificate into /usr/local/share/ca-certificates
   ansible.builtin.file:
     state: link
-    src: /var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt
-    dest: /usr/local/share/ca-certificates/{{ prosody_jvb_auth_domain_name }}.crt
+    src: "/var/lib/prosody/{{ prosody_jvb_auth_domain_name }}.crt"
+    dest: "/usr/local/share/ca-certificates/{{ prosody_jvb_auth_domain_name }}.crt"
   notify: Rebuild ca certificates
   when: prosody_jvb_configure_flag
 
@@ -251,7 +251,7 @@
   ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
   args:
     stdin: "{{ prosody_focus_secret }}\n{{ prosody_focus_secret }}"
-    creates: /var/lib/prosody/auth.{{ prosody_domain_name | replace("\\.", "%2e") }}/accounts/focus.dat
+    creates: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') }}/accounts/focus.dat"
   when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"
 
 - name: Check whether module mod_roster_command exists
@@ -270,7 +270,7 @@
     prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "focus@{{ prosody_jvb_auth_domain_name }}"
   args:
     stdin: "{{ prosody_focus_jvb_secret }}\n{{ prosody_focus_jvb_secret }}"
-    creates: /var/lib/prosody-jvb/auth.{{ prosody_domain_name | replace("\\.", "%2e") }}/accounts/focus.dat
+    creates: "/var/lib/prosody-jvb/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') }}/accounts/focus.dat"
   when: prosody_jvb_configure_flag and prosody_focus_jvb_secret is defined and prosody_focus_jvb_secret and prosody_focus_jvb_secret != "replaceme"
 
 - name: Install muc presence filter pfw rule
