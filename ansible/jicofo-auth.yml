@@ -1,0 +1,16 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: false
+  become: true
+  become_user: root
+  strategy: free
+  vars_files:
+    - roles/jicofo/defaults/main.yml
+    - roles/prosody/defaults/main.yml
+    - secrets/jicofo.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  roles:
+    - { role: "jicofo-auth", tags: "jicofo-auth" }
