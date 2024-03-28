@@ -170,9 +170,9 @@ local function get_sip_jibri_email_prefix(email)
     if not email then
         return nil;
     elseif Util.starts_with_one_of(email, Util.INBOUND_SIP_JIBRI_PREFIXES) then
-        return Util.starts_with_one_of(INBOUND_SIP_JIBRI_PREFIXES);
+        return Util.starts_with_one_of(Util.INBOUND_SIP_JIBRI_PREFIXES);
     elseif Util.starts_with_one_of(email, Util.OUTBOUND_SIP_JIBRI_PREFIXES) then
-        return Util.starts_with_one_of(OUTBOUND_SIP_JIBRI_PREFIXES);
+        return Util.starts_with_one_of(Util.OUTBOUND_SIP_JIBRI_PREFIXES);
     else
         return nil;
     end
