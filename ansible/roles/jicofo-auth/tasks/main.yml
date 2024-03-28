@@ -3,7 +3,6 @@
   ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua passwd focus@auth.meet.jitsi
   args:
     stdin: "{{ prosody_focus_visitor_secret }}\n{{ prosody_focus_visitor_secret }}"
-    creates: "/var/lib/prosody-v{{ item }}/auth%2emeet%2ejitsi/accounts/focus.dat"
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
   when:
     - jicofo_auth_visitors_enabled
