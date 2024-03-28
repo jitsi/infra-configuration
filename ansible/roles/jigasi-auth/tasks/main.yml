@@ -70,3 +70,40 @@
       authentication = "jitsi-shared-secret"
       shared_secret = "{{ secrets_jigasi_conference_B }}"
   when: secrets_jigasi_conference_B is defined and secrets_jigasi_conference_B and secrets_jigasi_conference_B != ""
+
+# now update passwords
+- name: Update legacy jigasi XMPP control authentication
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_auth_user }}@{{ jigasi_auth_domain }}"
+  args:
+    stdin: "{{ jigasi_auth_password }}\n{{ jigasi_auth_password }}"
+  when: jigasi_legacy_auth and jigasi_auth_password != 'replaceme'
+
+- name: Update legacy jigasi transcriber authentication
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}"
+  args:
+    stdin: "{{ jigasi_transcriber_auth_password }}\n{{ jigasi_transcriber_auth_password }}"
+  when: jigasi_legacy_auth and jigasi_transcriber_auth_password != 'replaceme'
+
+- name: Update jigasi account A for XMPP brewery
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_brewery_username_A }}@{{ jigasi_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_brewery_A }}\n{{ secrets_jigasi_brewery_A }}"
+  when: secrets_jigasi_brewery_A is defined and secrets_jigasi_brewery_A and secrets_jigasi_brewery_A != ""
+
+- name: Update jigasi account B for XMPP brewery
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_brewery_username_B }}@{{ jigasi_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_brewery_B }}\n{{ secrets_jigasi_brewery_B }}"
+  when: secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
+
+- name: Update jigasi account A for transcriber
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_transcriber_username_A }}@{{ jigasi_transcriber_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_transcriber_A }}\n{{ secrets_jigasi_transcriber_A }}"
+  when: secrets_jigasi_transcriber_A is defined and secrets_jigasi_transcriber_A and secrets_jigasi_transcriber_A != ""
+
+- name: Update jigasi account B for transcriber
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_transcriber_username_B }}@{{ jigasi_transcriber_domain }}"
+  args:
+    stdin: "{{ secrets_jigasi_transcriber_B }}\n{{ secrets_jigasi_transcriber_B }}"
+  when: secrets_jigasi_transcriber_B is defined and secrets_jigasi_transcriber_B and secrets_jigasi_transcriber_B != ""

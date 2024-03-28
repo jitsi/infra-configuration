@@ -78,3 +78,54 @@
     stdin: "{{ secrets_jibri_inbound_sip_B }}\n{{ secrets_jibri_inbound_sip_B }}"
     creates: "{{ jibri_inbound_sip_path_B }}"
   when: secrets_jibri_inbound_sip_B is defined and secrets_jibri_inbound_sip_B and secrets_jibri_inbound_sip_B != ""
+
+
+# now update passwords
+
+- name: Update jibri account A for XMPP brewery
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+  when: secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
+
+- name: Update jibri account B for XMPP brewery
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_brewery_username_B }}@{{ jibri_brewery_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+  when: secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
+
+- name: Update jibri account A for selenium
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_selenium_A }}\n{{ secrets_jibri_selenium_A }}"
+  when: secrets_jibri_selenium_A is defined and secrets_jibri_selenium_A and secrets_jibri_selenium_A != ""
+
+- name: Update jibri account B for selenium
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_B }}@{{ jibri_selenium_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_selenium_B }}\n{{ secrets_jibri_selenium_B }}"
+  when: secrets_jibri_selenium_B is defined and secrets_jibri_selenium_B and secrets_jibri_selenium_B != ""
+
+- name: Update jibri account A for outbound sip
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_outbound_sip_user_A }}@{{ jibri_outbound_sip_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_outbound_sip_A }}\n{{ secrets_jibri_outbound_sip_A }}"
+  when: secrets_jibri_outbound_sip_A is defined and secrets_jibri_outbound_sip_A and secrets_jibri_outbound_sip_A != ""
+
+- name: Update jibri account B for outbound sip
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_outbound_sip_user_B }}@{{ jibri_outbound_sip_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_outbound_sip_B }}\n{{ secrets_jibri_outbound_sip_B }}"
+  when: secrets_jibri_outbound_sip_B is defined and secrets_jibri_outbound_sip_B and secrets_jibri_outbound_sip_B != ""
+
+- name: Update jibri account A for inbound sip
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_inbound_sip_user_A }}@{{ jibri_inbound_sip_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_inbound_sip_A }}\n{{ secrets_jibri_inbound_sip_A }}"
+  when: secrets_jibri_inbound_sip_A is defined and secrets_jibri_inbound_sip_A and secrets_jibri_inbound_sip_A != ""
+
+- name: Update jibri account B for inbound sip
+  ansible.builtin.command: prosodyctl passwd "{{ jibri_inbound_sip_user_B }}@{{ jibri_inbound_sip_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_inbound_sip_B }}\n{{ secrets_jibri_inbound_sip_B }}"
+  when: secrets_jibri_inbound_sip_B is defined and secrets_jibri_inbound_sip_B and secrets_jibri_inbound_sip_B != ""
