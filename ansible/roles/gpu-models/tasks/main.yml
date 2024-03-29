@@ -68,6 +68,11 @@
   args:
     executable: /bin/bash
 
+- name: ECR credentials dependency
+  ansible.builtin.apt:
+    name: amazon-ecr-credential-helper
+    state: present
+
 - name: Set skynet version variable from stdout of previous task
   ansible.builtin.set_fact:
     gpu_models_skynet_version: "{{ job_version_results.stdout }}"
