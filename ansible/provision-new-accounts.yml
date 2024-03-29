@@ -1,0 +1,44 @@
+---
+- name: Provision new jibri and jigasi accounts
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  strategy: free
+  vars_files:
+    - secrets/jibri.yml
+    - secrets/jigasi.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  pre_tasks:
+  - name: Provision updated mod_muc_events.lua
+    ansible.builtin.copy:
+      src: "roles/prosody/files/mod_muc_events.lua"
+      dest: "/usr/lib/prosody/modules/"
+      mode: 0644
+  - name: Provision updated mod_muc_webhooks.lua
+    ansible.builtin.copy:
+      src: "roles/prosody/files/mod_muc_webhooks.lua"
+      dest: "/usr/lib/prosody/modules/"
+      mode: 0644
+  - name: Provision updated util.internal.lib.lua
+    ansible.builtin.copy:
+      src: "roles/prosody/files/util.internal.lib.lua"
+      dest: "/usr/lib/prosody/modules/"
+      mode: 0644
+  - name: Provision updated util.lib.lua
+    ansible.builtin.copy:
+      src: "util.lib.lua"
+      dest: "/usr/share/jitsi-meet/prosody-plugins/"
+      mode: 0644
+  - name: Reload prosody.cfg.lua
+    ansible.builtin.command: prosodyctl reload
+  - name: Reload mod_muc_events
+    ansible.builtin.command: prosodyctl shell module reload muc_events
+  - name: Reload mod_muc_webhooks
+    ansible.builtin.command: prosodyctl shell module reload muc_webhooks
+
+  roles:
+    - { role: "jibri-auth", tags: "auth" }
+    - { role: "jigasi-auth", tags: "auth" }
