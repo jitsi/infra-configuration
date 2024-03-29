@@ -5,13 +5,13 @@
     state: directory
     recurse: true
     mode: 0700
-    owner: root
-    group: root
+    owner: ubuntu
+    group: ubuntu
 
 - name: Create skynet credentials file
   ansible.builtin.template:
     src: credentials.yaml.j2
     dest: "{{ skynet_credentials_file }}"
     mode: 0600
-    owner: root
-    group: root
+    owner: ubuntu
+    group: ubuntu
