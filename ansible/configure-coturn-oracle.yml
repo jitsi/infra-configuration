@@ -14,6 +14,7 @@
     coturn_ssl_dest: "/etc/ssl"
     coturn_ssl_key_dest_path: "{{ coturn_ssl_dest }}/{{ coturn_ssl_cert_name }}.key"
     coturn_ssl_key_name: "{{ coturn_ssl_cert_name }}"
+    nomad_vault_address: "https://{{ vault_environment }}-vault.{{ dns_zone_name }}"
     nomad_meta:
       environment: "{{ hcv_environment }}"
       cloud_name: "{{ cloud_name }}"
