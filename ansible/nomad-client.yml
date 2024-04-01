@@ -12,6 +12,7 @@
     - secrets/skynet.yml
     - secrets/oci-logging.yml
     - secrets/carbon-black.yml
+    - secrets/asap-keys.yml
     - secrets/ops-repo.yml
     - secrets/repo.yml
     - config/vars.yml
