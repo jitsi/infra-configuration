@@ -54,6 +54,7 @@ jvb_enable_sctp_debug_logs: false
 jvb_enable_silence_detection: false
 jvb_enable_stats_cron: true
 jvb_enable_stats_filter: true
+jvb_enable_telegraf: false
 jvb_enable_ufrag_prefix: false
 jvb_enable_websockets: true
 jvb_enable_websockets_ssl: "{{ false if jvb_nginx_ssl_enabled else true | bool }}"
