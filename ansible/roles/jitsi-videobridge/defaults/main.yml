@@ -52,7 +52,7 @@ jvb_enable_route_loudest_logs: false
 jvb_enable_sctp: false
 jvb_enable_sctp_debug_logs: false
 jvb_enable_silence_detection: false
-jvb_enable_stats_cron: "{{ false if jvb_enable_telegraf else true | bool }}"
+jvb_enable_stats_cron: {{ false if jvb_enable_telegraf else true }}
 jvb_enable_stats_filter: true
 jvb_enable_telegraf: false
 jvb_enable_ufrag_prefix: false
