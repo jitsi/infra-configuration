@@ -105,9 +105,9 @@ prosody_focus_secret: "{{ secrets_jicofo_focus | default(false) }}"
 prosody_focus_jvb_secret: "{{ secrets_jicofo_focus_jvb | default(false) }}"
 prosody_focus_visitor_secret: "{{ secrets_jicofo_focus_visitor | default(false) }}"
 
-prosody_gc_mode: "generational"
-prosody_gc_inc_threshold: 105
-prosody_gc_inc_speed: 500
+prosody_gc_mode: "incremental"
+prosody_gc_inc_threshold: 400
+prosody_gc_inc_speed: 250
 prosody_gc_inc_step_size: 13
 prosody_gc_gen_min_threshold: 40
 prosody_gc_gen_major_threshold: 200
