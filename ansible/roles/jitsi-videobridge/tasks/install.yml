@@ -131,7 +131,7 @@
     src: "jvb-stats.sh"
     mode: 0755
     owner: root
-  when: jvb_cloud_provider == "aws"
+  when: jvb_cloud_provider == "aws" and jvb_enable_stats_cron
 
 - name: JVB stats script upload oracle
   ansible.builtin.copy:
@@ -139,7 +139,7 @@
     src: "jvb-stats-oracle.sh"
     mode: 0755
     owner: root
-  when: jvb_cloud_provider == "oracle"
+  when: jvb_cloud_provider == "oracle" and jvb_enable_stats_cron
 
 # add a stats script to upload colibri stats to DataDog
 - name: JVB stats python script upload
@@ -148,6 +148,7 @@
     src: "jvb-stats.py"
     mode: 0755
     owner: root
+  when: jvb_enable_stats_cron
 
 # provide bash script for last minute final configuration based on AWS tags
 - name: Upload postinstall script aws
