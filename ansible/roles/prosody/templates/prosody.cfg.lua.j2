@@ -13,10 +13,15 @@ pidfile = "/var/run/prosody/prosody.pid";
 {% if prosody_use_lua_54 %}
 gc = {
     mode = "{{ prosody_gc_mode }}";
+
+    {% if prosody_gc_mode == "incremental" %}
     -- Incremental mode
     threshold = {{ prosody_gc_inc_threshold }}, speed = {{ prosody_gc_inc_speed }}, step_size = {{ prosody_gc_inc_step_size }};
+    {% endif %}
+    {% if prosody_gc_mode == "generational" %}
     -- Generational mode
     minor_threshold = {{ prosody_gc_gen_min_threshold }}, major_threshold = {{ prosody_gc_gen_major_threshold }};
+    {% endif %}
 }
 {% endif %}
 
