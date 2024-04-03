@@ -15,3 +15,7 @@ seal "{{ vault_server_seal_type }}" {{ vault_server_seal_config }}
 storage "{{ vault_server_storage_type }}" {{ vault_server_storage_config }}
 
 ui = "true"
+
+telemetry {
+  statsd_address = "127.0.0.1:8125"
+}
