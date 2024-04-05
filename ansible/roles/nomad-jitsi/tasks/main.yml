@@ -91,3 +91,42 @@
     remote_src: true
     dest: /var/nomad/plugins/
     mode: 0755
+
+# sysctl for bridge-nf-call-iptables
+- name: Update sysctl for bridge-nf-call-iptables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Update sysctl for bridge-nf-call-arptables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-arptables
+    value: 1
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Update sysctl for bridge-nf-call-ip6tables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Create directory for cni plugins
+  ansible.builtin.file:
+    path: /opt/cni/bin
+    state: directory
+    recurse: true
+    mode: 0755
+
+- name: Download cni nomad_cni_plugins_url
+  ansible.builtin.unarchive:
+    src: "{{ nomad_cni_plugins_url }}"
+    remote_src: true
+    dest: /opt/cni/bin
+    mode: 0755
