@@ -168,7 +168,7 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
             return nil;
         end
 
-        if util_internal.is_sip_jibri_join(stanza) then
+        if util.is_sip_jibri_join(stanza) then
             module:log("info", "Let Sip Jibri pass through %s", occupant);
             return nil;
         end
