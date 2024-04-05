@@ -2,7 +2,7 @@ module:set_global();
 
 local um_is_admin = require 'core.usermanager'.is_admin;
 local urlencode = require "util.http".urlencode;
-local json = require "util.json";
+local json = require "cjson.safe";
 local async_handler_wrapper = module:require "util".async_handler_wrapper;
 local jid = require "util.jid";
 local timer = require "util.timer";
@@ -184,11 +184,16 @@ function handle_get_room_password (event)
         room_details["password"] = room:get_password() or "";
         room_details["lobby"] = room._data ~= nil and room._data.lobbyroom ~= nil;
 
+        local json_msg_str, error = json.encode(room_details);
+        if not json_msg_str then
+            module:log('error', 'Error encoding details room:%s error:%s', room.jid, error);
+            return { status_code = 418 };
+        end
         local GET_response = {
             headers = {
                 content_type = "application/json";
             };
-            body = json.encode(room_details);
+            body = json_msg_str;
         };
 
         if DEBUG then module:log("debug","Sending response for room password: %s",inspect(GET_response)) end
@@ -278,9 +283,13 @@ local function queryForPassword(room)
 
         local room_config_changed = false;
 
+        local conference_res, error = json.decode(content_);
+        if not conference_res then
+            module:log('error', 'Error decoding response room:%s error:%s', room.jid, error);
+        end
+
         -- create lobby and set moderator
         if code_ == 200 then
-            local conference_res = json.decode(content_);
             if DEBUG then module:log("debug","Receive conference info response %s",inspect(conference_res)) end
             room._data.moderator_id = conference_res.moderatorId;
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
@@ -309,8 +318,8 @@ local function queryForPassword(room)
             room._data.moderator_id = nil;
             room._data.starts_with_lobby = false;
             -- propagate the error to lib-jitsi-meet if is a JaaS meeting
-            if is_vpaas_room then
-                local err = json.decode(content_)
+            if is_vpaas_room and not error then
+                local err = conference_res;
                 if DEBUG then module:log("debug", "Propagate error %s", inspect(err)) end
                 if err and err.status and err.status == 400
                     and err.messageKey and err.messageKey == 'settings.provisioning.exception' then
@@ -324,8 +333,8 @@ local function queryForPassword(room)
         local logLevel = 'error';
         if code_ == 200 then
             logLevel = 'debug';
-            local r = json.decode(content_)
-            if r['passcodeProtected'] then
+            local r = conference_res;
+            if r and r['passcodeProtected'] then
                 if r['passcode'] and r['passcode'] ~= "" then
                     module:log("info", "Found passcode in response, setting for room %s", room)
                     room:set_password(r['passcode'])
