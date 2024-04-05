@@ -7,3 +7,12 @@ advertise_addr = "{{ ansible_default_ipv4.address }}"
 encrypt = "{{ consul_encryption_key }}"
 {% endif %}
 retry_join ={{ consul_retry_join_lan }}
+addresses {
+    grpc = "0.0.0.0"
+}
+connect {
+  enabled = true
+}
+ports {
+  grpc  = 8502
+}
