@@ -252,7 +252,7 @@ function handle_occupant_access(event, event_type)
     local final_event_type = event_type
     local dial_participants = room._data.dial_participants or {};
 
-    if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) or util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)) then
+    if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) or oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)) then
         if DEBUG then
             module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)",
                 occupant.jid, room.jid, is_breakout, main_room.jid);
@@ -315,7 +315,7 @@ function handle_occupant_access(event, event_type)
         end
 
         -- transcriber check
-        if stanza and util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) then
+        if stanza and oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) then
             local presence_type = stanza.attr.type;
             if not presence_type then
                 if DEBUG then module:log("debug", "Transcriber %s join the room %s", occupant.jid, room.jid); end
@@ -349,7 +349,7 @@ function handle_occupant_access(event, event_type)
         end
 
         -- live stream/recording
-        if util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES) then
+        if oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES) then
             local recorderType = event.room._data.recorderType;
             if final_event_type == PARTICIPANT_JOINED then
                 if DEBUG then module:log("debug", "Recorder %s joined", event.occupant.jid); end
@@ -377,7 +377,7 @@ function handle_occupant_access(event, event_type)
         -- another one shortly after, containing additional info, such as the participant's sip_address
         -- multiple other presence updates can be sent apart from the 2 mandatory presences
         -- we process only the first presence containing the sip address
-        if event_type == PARTICIPANT_JOINED and util.is_sip_jibri_join(stanza) then
+        if event_type == PARTICIPANT_JOINED and oss_util.is_sip_jibri_join(stanza) then
             room._data.sip_participants_events = room._data.sip_participants_events or {}
             -- we must send sip address on the webhook
             local sip_address = stanza:get_child_text('sip_address');
@@ -386,10 +386,10 @@ function handle_occupant_access(event, event_type)
             if sip_address and is_new_sip_participant then
                 local sip_jibri_prefix = util.get_sip_jibri_prefix(stanza);
 
-                if util.starts_with_one_of(sip_jibri_prefix, util.INBOUND_SIP_JIBRI_PREFIXES) then
+                if oss_util.starts_with_one_of(sip_jibri_prefix, util.INBOUND_SIP_JIBRI_PREFIXES) then
                     participant_access_event["eventType"] = SIP_CALL_IN_STARTED;
                     final_event_type = SIP_CALL_IN_STARTED;
-                elseif util.starts_with_one_of(sip_jibri_prefix, util.OUTBOUND_SIP_JIBRI_PREFIXES) then
+                elseif oss_util.starts_with_one_of(sip_jibri_prefix, util.OUTBOUND_SIP_JIBRI_PREFIXES) then
                     participant_access_event["eventType"] = SIP_CALL_OUT_STARTED;
                     final_event_type = SIP_CALL_OUT_STARTED;
                 end
@@ -548,7 +548,7 @@ function handle_broadcast_presence(event)
     -- and another one shortly after, containing additional info, such as the participant's sip_address
     -- multiple other presence updates can be sent apart from the 2 mandatory presences
     -- we process only the first presence containing the sip address
-    if not is_healthcheck_room(room.jid) and util.is_sip_jibri_join(stanza) then
+    if not is_healthcheck_room(room.jid) and oss_util.is_sip_jibri_join(stanza) then
         local sip_address = stanza:get_child_text('sip_address');
         if sip_address then
             handle_occupant_access(event, PARTICIPANT_JOINED)

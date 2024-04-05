@@ -166,45 +166,6 @@ function Util.is_blacklisted(occupant)
     return false;
 end
 
-local function get_sip_jibri_email_prefix(email)
-    if not email then
-        return nil;
-    elseif Util.starts_with_one_of(email, Util.INBOUND_SIP_JIBRI_PREFIXES) then
-        return Util.starts_with_one_of(email, Util.INBOUND_SIP_JIBRI_PREFIXES);
-    elseif Util.starts_with_one_of(email, Util.OUTBOUND_SIP_JIBRI_PREFIXES) then
-        return Util.starts_with_one_of(email, Util.OUTBOUND_SIP_JIBRI_PREFIXES);
-    else
-        return nil;
-    end
-end
-
--- sip jibri joins with a stanza having a jibri feature,
--- and an occupant having a special email prefix
-function Util.is_sip_jibri_join(stanza)
-    if not stanza then
-        return false;
-    end
-
-    local features = stanza:get_child('features');
-    local email = stanza:get_child_text('email');
-
-    if not features or not email then
-        return false;
-    end
-
-    for i = 1, #features do
-        local feature = features[i];
-        if feature.attr and feature.attr.var and feature.attr.var == "http://jitsi.org/protocol/jibri" then
-            if get_sip_jibri_email_prefix(email) then
-                module:log("debug", "Occupant with email %s is a sip jibri ", email);
-                return true;
-            end
-        end
-    end
-
-    return false
-end
-
 function Util.get_sip_jibri_prefix(stanza)
     if not stanza then
         return nil;
@@ -212,25 +173,6 @@ function Util.get_sip_jibri_prefix(stanza)
 
     local email = stanza:get_child_text('email');
     return get_sip_jibri_email_prefix(email);
-end
-
-function Util.has_prefix(str, prefix)
-    if not str then
-        return false;
-    end
-    return str:sub(1, #prefix) == prefix
-end
-
-function Util.starts_with_one_of(str, prefixes)
-    if not str then
-        return false;
-    end
-    for i=1,#prefixes do
-        if Util.has_prefix(str, prefixes[i]) then
-            return prefixes[i];
-        end
-    end
-    return false
 end
 
 local function extract_field_text(o, field, ns)
