@@ -30,8 +30,7 @@
       JIBRI_BREWERY: "{{ jibri_xmpp_room_name }}"
       RECORDER_USERNAME: "{{ jibri_selenium_auth_user }}"
       RECORDER_PASSWORD: "{{ jibri_selenium_auth_password }}"
-      JIBRI_USAGE_TIMEOUT: "{{ jibri_environments[hcv_environment]['usage_timeout']
-        if hcv_environment in jibri_environments and 'usage_timeout' in jibri_environments[hcv_environment] else 0 }}"
+      JIBRI_USAGE_TIMEOUT: "{{ jibri_max_usage | default(0) }}"
     consul_template_template_files:
       - src: roles/jibri-java/files/xmpp.conf.template
     consul_template_templates:
