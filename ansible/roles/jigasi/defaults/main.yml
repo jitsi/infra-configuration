@@ -3,15 +3,21 @@ default_jigasi_environments: []
 environment_domain_name: "jigasi"
 jigasi_auth_domain: "{{ jigasi_auth_prefix }}.{{ prosody_domain_name }}"
 jigasi_auth_prefix: "{{ auth_prefix | default('auth') }}"
+# Controls which account to use: "legacy", "A" or "B"
+jigasi_auth_type: "legacy"
 jigasi_bosh_host_override: false
 jigasi_bosh_url_pattern: "https://{host}{subdomain}/http-bind?room={roomName}"
 jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix }}.{{ jigasi_xmpp_domain }}"
 jigasi_brewery_muc_room: JigasiBrewery
+jigasi_brewery_pass: "{{ secrets_jigasi_brewery_A if jigasi_auth_type == 'A' else (secrets_jigasi_brewery_B if jigasi_auth_type == 'B' else jigasi_xmpp_password) }}"
+jigasi_brewery_user: "{{ 'jigasia' if jigasi_auth_type == 'A' else ('jigasib' if jigasi_auth_type == 'B' else jigasi_xmpp_jid_username) }}"
 jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc
-jigasi_client_auth_domain: "jigasi.{{ prosody_domain_name }}"
+jigasi_client_auth_domain: "{{ 'jigasia' if jigasi_auth_type == 'A' else ('jigasib' if jigasi_auth_type == 'B' else 'jigasi') }}.{{ prosody_domain_name }}"
 jigasi_cloud_provider: "{{ cloud_provider | default('aws') }}"
 # use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
 jigasi_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g3>_\\g<g4>') }}"
+# The password for the account used to login to the conference (XMPP)
+jigasi_conference_password: "{{ secrets_jigasi_conference_A if jigasi_auth_type == 'A' else (secrets_jigasi_conference_B if jigasi_auth_type == 'B' else jigasi_xmpp_password) }}"
 jigasi_conferences_threshold: 80
 jigasi_configure_flag: true
 jigasi_configure_only_flag: false
@@ -111,7 +117,8 @@ jigasi_sip_password: "replaceme"
 jigasi_sip_pcma_priority: 0
 jigasi_sip_pcmu_priority: 0
 jigasi_sip_server: "{{ jigasi_outbound_sip_server if jigasi_outbound_flag else jigasi_default_sip_server }}"
-jigasi_sip_username: "jigasi"
+# Username for the account used to login to the conference (XMPP)
+jigasi_sip_username: "{{ 'jigasia' if jigasi_auth_type == 'A' else ('jigasib' if jigasi_auth_type == 'B' else 'jigasi') }}"
 jigasi_stats_cron:
   hour: "*"
   job: "{{ jigasi_path_to_stats_script }} > /tmp/stats-cron-output 2>&1"

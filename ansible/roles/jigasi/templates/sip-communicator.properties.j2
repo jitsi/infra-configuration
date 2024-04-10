@@ -125,7 +125,7 @@ net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_ADD
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ server['host_port'] if server['host_port'] is defined else jigasi_xmpp_port }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_SECURE=true
 #base64 AES keyLength:256 or 128
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_xmpp_password|b64encode }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_brewery_pass|b64encode }}
 
 #net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=jigasi
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
@@ -226,7 +226,7 @@ org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
 {% endif %}
 {% if jigasi_enable_bosh_auth %}
 org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_sip_username }}@{{ jigasi_client_auth_domain }}
-org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_xmpp_password }}
+org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_conference_password }}
 org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
 {% if jigasi_shard_role=='jigasi' %}
