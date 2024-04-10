@@ -1,8 +1,9 @@
 ---
-inbound_sip_jibri_xmpp_password: "{{ inbound_sip_jibri_auth_password }}"
-inbound_sip_jibri_xmpp_user: "{{ inbound_sip_jibri_auth_user }}"
-outbound_sip_jibri_xmpp_password: "{{ outbound_sip_jibri_auth_password }}"
-outbound_sip_jibri_xmpp_user: "{{ outbound_sip_jibri_auth_user }}"
+inbound_sip_jibri_xmpp_password: "{{ secrets_jibri_inbound_sip_A if sip_jibri_auth_type == 'A' else (secrets_jibri_inbound_sip_B if sip_jibri_auth_type == 'B' else inbound_sip_jibri_auth_password) }}"
+inbound_sip_jibri_xmpp_user: "{{ 'sipjibriina' if sip_jibri_auth_type == 'A' else ('sipjibriinb' if sip_jibri_auth_type == 'B' else inbound_sip_jibri_auth_user) }}"
+outbound_sip_jibri_xmpp_password: "{{ secrets_jibri_outbound_sip_A if sip_jibri_auth_type == 'A' else (secrets_jibri_outbound_sip_B if sip_jibri_auth_type == 'B' else outbound_sip_jibri_auth_password) }}"
+outbound_sip_jibri_xmpp_user: "{{ 'sipjibriouta' if sip_jibri_auth_type == 'A' else ('sipjibrioutb' if sip_jibri_auth_type == 'B' else outbound_sip_jibri_auth_user) }}"
+sip_jibri_auth_type: "A"
 sip_jibri_base_path: /opt/jitsi/sip-jibri-sidecar
 #use regexp to extract the last two octet of the IP address and use it as the component ID for the jibri
 sip_jibri_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"

@@ -24,12 +24,12 @@
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
     consul_template_env:
-      JIBRI_USERNAME: "{{ jibri_xmpp_username }}"
-      JIBRI_PASSWORD: "{{ jibri_xmpp_password }}"
+      JIBRI_USERNAME: "{{ jibri_auth_control_user }}"
+      JIBRI_PASSWORD: "{{ jibri_auth_control_pass }}"
       JIBRI_MUC_NICKNAME: "{{ ansible_hostname }}"
       JIBRI_BREWERY: "{{ jibri_xmpp_room_name }}"
-      RECORDER_USERNAME: "{{ jibri_selenium_auth_user }}"
-      RECORDER_PASSWORD: "{{ jibri_selenium_auth_password }}"
+      RECORDER_USERNAME: "{{ jibri_auth_call_user }}"
+      RECORDER_PASSWORD: "{{ jibri_auth_call_pass }}"
       JIBRI_USAGE_TIMEOUT: "{{ jibri_max_usage | default(0) }}"
     consul_template_template_files:
       - src: roles/jibri-java/files/xmpp.conf.template
