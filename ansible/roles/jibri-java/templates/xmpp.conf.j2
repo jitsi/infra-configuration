@@ -6,8 +6,8 @@ jibri.api.xmpp.environments = [
         xmpp-domain = "{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
         control-login {
             domain = "{{ jibri_jid_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
-            username = "{{ jibri_xmpp_username }}"
-            password = "{{ jibri_xmpp_password }}"
+            username = "{{ jibri_auth_control_user }}"
+            password = "{{ jibri_auth_control_pass }}"
             port = {{ jibri_config_hosts[env_key]['host_port'] if jibri_config_hosts[env_key]['host_port'] is defined else jibri_xmpp_port }}
         }
         control-muc {
@@ -17,8 +17,8 @@ jibri.api.xmpp.environments = [
         }
         call-login {
             domain = "{{ jibri_selenium_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
-            username = "{{ jibri_selenium_auth_user }}"
-            password = "{{ jibri_selenium_auth_password }}"
+            username = "{{ jibri_auth_call_user }}"
+            password = "{{ jibri_auth_call_pass }}"
         }
         strip-from-room-domain = "{{ jibri_conference_prefix }}"
         usage-timeout = "{{ jibri_config_hosts[env_key]['usage_timeout'] }} minutes"

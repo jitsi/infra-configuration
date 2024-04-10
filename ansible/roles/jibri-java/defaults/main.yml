@@ -7,6 +7,12 @@ jibri_asap_audience: "jibri-queue"
 jibri_asap_issuer: "jibri"
 jibri_asap_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
 jibri_asap_key_path: "/etc/jitsi/jibri/asap.key"
+# Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
+jibri_auth_type: "legacy"
+jibri_auth_call_user: "{{ 'jibria' if jibri_auth_type == 'A' else ('jibrib' if jibri_auth_type == 'B' else 'recorder') }}"
+jibri_auth_call_pass: "{{ secrets_jibri_selenium_A if jibri_auth_type == 'A' else (secrets_jibri_selenium_B if jibri_auth_type == 'B' else jibri_selenium_auth_password) }}"
+jibri_auth_control_user: "{{ 'jibria' if jibri_auth_type == 'A' else ('jibrib' if jibri_auth_type == 'B' else 'jibri') }}"
+jibri_auth_control_pass: "{{ secrets_jibri_brewery_A if jibri_auth_type == 'A' else (secrets_jibri_brewery_B if jibri_auth_type == 'B' else jibri_auth_password) }}"
 jibri_brewery_prefix: "{{ internal_muc_prefix | default('internal.auth') }}."
 jibri_brewery_prosody_jvb_prefix: "{{ internal_jvb_prosody_muc_prefix | default('muc.jvb') }}."
 # Whether or not any value in the call-status-checks block is overridden
