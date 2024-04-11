@@ -73,9 +73,16 @@
     group: "{{ rsyslog_file_group }}"
     mode: "{{ rsyslog_file_mode }}"
 
+- name: Remove old tcp local output
+  ansible.builtin.file:
+    path: "{{ rsyslog_include_path }}/45-route-to-vector.conf"
+    state: absent
+  notify:
+    - Restart rsyslog
+
 - name: Add tcp local output
   ansible.builtin.template:
-    dest: "{{ rsyslog_include_path }}/45-route-to-vector.conf"
+    dest: "{{ rsyslog_include_path }}/10-route-to-vector.conf"
     src: "rsyslog-local-shipping.conf.j2"
     mode: 0644
   when: rsyslog_tcp_output_enabled
@@ -84,7 +91,7 @@
 
 - name: Remove tcp local output
   ansible.builtin.file:
-    path: "{{ rsyslog_include_path }}/45-route-to-vector.conf"
+    path: "{{ rsyslog_include_path }}/10-route-to-vector.conf"
     state: absent
   when: not rsyslog_tcp_output_enabled
   notify:
