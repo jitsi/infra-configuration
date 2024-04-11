@@ -1,0 +1,28 @@
+- name: Main
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  strategy: free
+  vars_files:
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  pre_tasks:
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      tags: setup
+    - name: Set shape fact
+      ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
+        cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
+        cloud_fault_domain: "{{ instance_result.json.faultDomain }}"
+        oracle_region: "{{ instance_result.json.regionInfo.regionIdentifier }}"
+        shard_name: "{{ instance_result.json.definedTags.jitsi.get('shard') }}"
+      tags: setup
+
+  roles:
+    - { role: "vector", tags: "vector" }
+    - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true }
