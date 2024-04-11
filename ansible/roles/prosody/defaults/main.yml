@@ -141,6 +141,7 @@ prosody_limit_messages_check_token: false
 # there are cases where we want messages limit config, but no module loaded and we can load it live later
 prosody_limit_messages_load_module: false
 prosody_log_level: info
+prosody_log_not_allowed_errors: true
 prosody_log_syslog_enabled: false
 prosody_log_syslog_hostname: localhost
 prosody_log_syslog_port: 514
