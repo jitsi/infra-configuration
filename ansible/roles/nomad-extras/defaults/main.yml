@@ -1,0 +1,6 @@
+---
+nomad_extras_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+nomad_extras_nvidia_helper_plugin_url: "https://releases.hashicorp.com/nomad-device-nvidia/1.0.0/nomad-device-nvidia_1.0.0_linux_\
+  {{ nomad_extras_architecture }}.zip"
+nomad_extras_cni_plugins_url: "https://github.com/containernetworking/plugins/releases/download/v1.4.1/cni-plugins-linux-\
+  {{ nomad_extras_architecture }}-v1.4.1.tgz"

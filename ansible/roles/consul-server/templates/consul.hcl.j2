@@ -8,6 +8,7 @@ bootstrap_expect = 3
 advertise_addr = "{{ ansible_default_ipv4.address }}"
 addresses {
     http = "0.0.0.0"
+    grpc = "0.0.0.0"
 }
 connect {
   enabled = true
@@ -19,4 +20,10 @@ telemetry {
 }
 ui_config {
   enabled = true
+}
+auto_encrypt {
+  allow_tls = true
+}
+ports {
+  grpc  = 8502
 }

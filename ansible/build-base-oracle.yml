@@ -59,6 +59,7 @@
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }
     - { role: "nomad", tags: "nomad", nomad_enabled_on_boot: false }
+    - { role: "nomad-extras", tags: "nomad-extras" }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: true, autoscaler_configure_flag: false}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
