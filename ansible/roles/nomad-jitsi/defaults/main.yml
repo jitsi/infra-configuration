@@ -7,4 +7,3 @@ nomad_docker_auth_file:
     "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
 nomad_jibri_preserve_boot_volume_if_needed: "{{ jibri_preserve_boot_volume_if_needed | default(false) }}"
 nomad_jibri_recording_dir: /opt/jibri/recordings
-nomad_cni_plugins_url: "https://github.com/containernetworking/plugins/releases/download/v1.4.1/cni-plugins-linux-{{ nomad_architecture }}-v1.4.1.tgz"
