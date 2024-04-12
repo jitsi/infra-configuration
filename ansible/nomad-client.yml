@@ -15,6 +15,7 @@
     - secrets/asap-keys.yml
     - secrets/ops-repo.yml
     - secrets/repo.yml
+    - roles/nomad-extras/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
@@ -106,6 +107,18 @@
     - name: Update apt-cache
       ansible.builtin.apt:
         update_cache: true
+    - name: ECR credentials dependency
+      ansible.builtin.apt:
+        name: amazon-ecr-credential-helper
+        state: present
+    - name: Install nvidia helper plugin
+      ansible.builtin.unarchive:
+        src: "{{ nomad_extras_nvidia_helper_plugin_url }}"
+        remote_src: true
+        dest: /var/nomad/plugins/
+        mode: 0755
+      when: nvidia_docker_flag
+      tags: setup
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
