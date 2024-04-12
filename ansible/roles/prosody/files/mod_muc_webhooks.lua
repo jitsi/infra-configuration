@@ -33,6 +33,7 @@ local PARTICIPANT_JOINED = "PARTICIPANT_JOINED";
 local PARTICIPANT_JOINED_LOBBY = "PARTICIPANT_JOINED_LOBBY";
 local PARTICIPANT_LEFT = "PARTICIPANT_LEFT";
 local PARTICIPANT_LEFT_LOBBY = "PARTICIPANT_LEFT_LOBBY";
+local PARTICIPANT_SUBJECT_UPDATE = "PARTICIPANT_SUBJECT_UPDATE";
 local ROOM_CREATED = "ROOM_CREATED";
 local ROOM_DESTROYED = "ROOM_DESTROYED";
 local LIVE_STREAM_STARTED = "LIVE_STREAM_STARTED";
@@ -863,12 +864,50 @@ local function occupant_affiliation_changed(event)
     end
 end
 
-local function handle_transcription_chunk(event)
-    local subject = event.stanza:get_child("subject");
-    if subject then
-        return;
+local function handle_subject_changed(event, new_subject)
+    local room = event.room;
+    local who = room:get_occupant_by_nick(event.stanza.attr.from);
+    local user = util.extract_occupant_identity_user(who)
+
+    local sessionId = room._data.meetingId;
+    local meetingFqn, customerId = util.get_fqn_and_customer_id(room);
+
+    local eventData = {
+        participantJid = user['bare_jid'],
+        email = user['email'],
+        id = user['id'],
+        name = user['name'],
+        subject = new_subject
+    }
+
+    local session = event.origin;
+    if session and session.auth_token and session.jitsi_meet_context_group then
+        eventData.group = session.jitsi_meet_context_group;
     end
 
+    local subject_updated_event = {
+        ["idempotencyKey"] = uuid_gen(),
+        ["sessionId"] = sessionId,
+        ["customerId"] = customerId,
+        ["created"] = util.round(socket.gettime() * 1000),
+        ["meetingFqn"] = meetingFqn,
+        ["eventType"] = PARTICIPANT_SUBJECT_UPDATE,
+        ["data"] = eventData
+    }
+
+    if DEBUG then
+        module:log("debug", "Subject updated received event: %s", inspect(subject_updated_event));
+    end
+
+    event_count();
+    http.request(EGRESS_URL, {
+        headers = util.http_headers_no_auth,
+        method = "POST",
+        body = json.encode(subject_updated_event);
+    }, cb);
+end
+
+local function handle_transcription_chunk(event)
     if event.stanza.attr.type == "groupchat" then
         local body = event.stanza:get_child("body")
         if body then
@@ -965,6 +1004,11 @@ module:hook("muc-set-affiliation", function(event)
 end, -1);
 
 module:hook("muc-broadcast-message", function(event)
+    local subject = event.stanza:get_child("subject");
+    if subject then
+        handle_subject_changed(event, subject:get_text());
+        return;
+    end
     handle_transcription_chunk(event)
 end, -1);
 
