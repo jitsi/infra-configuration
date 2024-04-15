@@ -92,6 +92,7 @@ prosody_enable_plain_auth: false
 # flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
 prosody_enable_rate_limit: true
+prosody_enable_system_chat_message: false
 prosody_enable_token_room_verification: true
 # don't enable tokens by default for now
 prosody_enable_tokens: true
