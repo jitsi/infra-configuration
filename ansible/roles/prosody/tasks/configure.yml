@@ -347,6 +347,12 @@
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
   when: prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
 
+- name: Copy over the plugin for sending system chat messages
+  ansible.builtin.copy:
+    src: "mod_system_chat_message.lua"
+    dest: "/usr/lib/prosody/modules/"
+    mode: 0644
+
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
     src: "mod_muc_events.lua"
