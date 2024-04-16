@@ -146,6 +146,15 @@ server {
         tcp_nodelay on;
     }
 
+    location = /send-system-chat-message {
+        proxy_pass http://127.0.0.1:5280/send-system-chat-message$is_args$args;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host {{ jitsi_meet_xmpp_domain_name }};
+
+        proxy_buffering off;
+        tcp_nodelay on;
+    }
+
     location = /invite-jigasi{
             proxy_pass http://127.0.0.1:5280/invite-jigasi$is_args$args;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -169,6 +178,14 @@ server {
         set $prefix "$1";
 
         rewrite ^/(.*)$ /end-meeting;
+    }
+
+    location ~ ^/([^/?&:'"]+)/send-system-chat-message$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        set $prefix "$1";
+
+        rewrite ^/(.*)$ /send-system-chat-message;
     }
 
     location ~ ^/([^/?&:'"]+)/invite-jigasi$ {
