@@ -798,4 +798,15 @@ function module.add_host(host_module)
     host_module:hook("muc-broadcast-presence", handleBroadcastPresence);
     host_module:hook("muc-room-destroyed", handleRoomDestroyed);
     host_module:hook("muc-room-created", roomCreated, -1); -- run always after muc_meeting_id
+    host_module:hook('jicofo-unlock-room', function(e)
+        local room = e.room;
+        if e.fmuc_fired then
+            -- Updates the meeting id if it changed on connecting vnode
+            local cdetails = loadConferenceDetails(room.jid);
+            if cdetails["session_id"] ~= room._data.meetingId then
+                cdetails["session_id"] = room._data.meetingId;
+                storeConferenceDetails(room.jid, cdetails);
+            end
+        end
+    end);
 end
