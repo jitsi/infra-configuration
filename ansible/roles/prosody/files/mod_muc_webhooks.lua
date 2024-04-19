@@ -866,8 +866,18 @@ end
 
 local function handle_subject_changed(event, new_subject)
     local room = event.room;
+
+    local breakout_room_id;
+    if is_breakout then
+        breakout_room_id = jid_split(room.jid);
+    end
+
     local who = room:get_occupant_by_nick(event.stanza.attr.from);
-    local user = util.extract_occupant_identity_user(who)
+    local user = {};
+
+    if who then
+        user = util.extract_occupant_identity_user(who)
+    end
 
     local sessionId = room._data.meetingId;
     local meetingFqn, customerId = util.get_fqn_and_customer_id(room);
@@ -877,7 +887,9 @@ local function handle_subject_changed(event, new_subject)
         email = user['email'],
         id = user['id'],
         name = user['name'],
-        subject = new_subject
+        subject = new_subject,
+        isBreakout = is_breakout,
+        breakoutRoomId = breakout_room_id
     }
 
     local session = event.origin;
