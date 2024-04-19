@@ -176,6 +176,12 @@
     content: "OK"
     dest: "{{ jitsi_meet_nginx_root }}/_unlock"
 
+- name: Add _health file
+  ansible.builtin.copy:
+    mode: 0644
+    content: "OK"
+    dest: "{{ jitsi_meet_nginx_root }}/_health"
+
 - name: Set base HTML contents (no sanitize hack)
   ansible.builtin.set_fact:
     jitsi_meet_base_html_content: "<base href=\"{{ jitsi_meet_cdn_base_url }}/{{ jitsi_meet_cdn_prefix }}{{ jitsi_meet_branding_version }}/\" />"
