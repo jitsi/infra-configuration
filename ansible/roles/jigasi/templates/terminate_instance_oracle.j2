@@ -8,6 +8,10 @@ INSTANCE_ID=$(echo "$INSTANCE_METADATA" | jq .id -r)
 # stop consul gracefully
 service consul stop
 
+# notify the sidecar of imminent shutdown
+$CURL_BIN -d '{}' -v localhost:6000/hook/v1/shutdown
+sleep 10
+
 # now terminate our instance
 echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
 $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
