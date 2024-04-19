@@ -81,6 +81,7 @@ autoscaler_stats_retrieve_urls:
   'jigasi': http://localhost:8788/about/stats
   'sip-jibri': http://localhost:2222/jibri/api/v1.0/health
 autoscaler_status_url: "https://{{ autoscaler_server_host }}/sidecar/status"
+autoscaler_shutdown_url: "https://{{ autoscaler_server_host }}/sidecar/shutdown"
 autoscaler_terminate_script: '/usr/local/bin/terminate_instance.sh'
 autoscaler_use_default_terminate_script: false
 autoscaler_user:
