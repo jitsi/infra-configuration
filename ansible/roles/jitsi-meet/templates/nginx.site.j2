@@ -519,6 +519,15 @@ server {
         add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
     }
 
+    location = /_health {
+        # do not log this path
+        access_log off;
+        add_header 'X-Jitsi-Shard' '{{ shard_name }}';
+        add_header 'X-Jitsi-Region' '{{ shard_region }}';
+        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
+        add_header "Cache-Control" "no-cache, no-store";
+    }
+
     location = /_unlock {
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
