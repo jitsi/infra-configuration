@@ -1,0 +1,7 @@
+---
+haproxy_dataplaneapi_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+haproxy_dataplaneapi_install_flag: true
+haproxy_dataplaneapi_url: "https://github.com/haproxytech/dataplaneapi/releases/download/v\
+  {{ haproxy_dataplaneapi_version }}/dataplaneapi_{{ haproxy_dataplaneapi_version }}_linux_{{ haproxy_dataplaneapi_architecture }}.deb"
+haproxy_dataplaneapi_version: 2.9.2
+haproxy_dataplaneapi_configure_flag: true

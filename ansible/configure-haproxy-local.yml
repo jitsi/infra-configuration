@@ -209,6 +209,7 @@
           cloud: "{{ cloud_provider }}"
 
     - { role: "haproxy", tags: "haproxy"}
+    - { role: "haproxy-dataplaneapi", tags: "haproxy-dataplaneapi", when: haproxy_enable_dataplaneapi }
     - { role: "consul-haproxy", tags: "consul-haproxy",
         consul_haproxy_install_flag: false, consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
