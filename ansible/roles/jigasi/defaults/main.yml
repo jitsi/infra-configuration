@@ -106,6 +106,7 @@ jigasi_service_version_shell_new: "dpkg -s jigasi | grep Version | awk '{print $
 jigasi_service_version_shell_old: "dpkg -s jigasi | grep Version | awk '{print $2}' | cut -d'-' -f2"
 # controls whether jigasi is meant for dial in/out or transcription
 jigasi_shard_role: jigasi
+jigasi_enable_google_sdk: "{{ true if jigasi_shard_role == 'jigasi-transcriber' else false }}"
 jigasi_sip_password: "replaceme"
 # disable pcma and pcmu for voximplant, enable for voxbone
 jigasi_sip_pcma_priority: 0
