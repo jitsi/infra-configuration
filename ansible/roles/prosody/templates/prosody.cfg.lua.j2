@@ -108,9 +108,6 @@ modules_enabled = {
 {% if prosody_enable_end_meeting %}
       "muc_end_meeting";
 {% endif %}
-{% if prosody_enable_system_chat_message %}
-      "system_chat_message";
-{% endif %}
 {% if prosody_mod_log_ringbuffer_size %}
       "log_ringbuffer";
 {% endif %}
@@ -459,6 +456,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_enable_persistent_lobby %}
           "persistent_lobby";
+{% endif %}
+{% if prosody_enable_system_chat_message %}
+      "system_chat_message";
 {% endif %}
 {% if prosody_enable_muc_events %}
       "jibri_session";
