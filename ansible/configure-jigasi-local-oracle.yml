@@ -193,7 +193,7 @@
     - { role: "vector", tags: "vector", when: jigasi_vector_enabled}
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jigasi_vector_enabled}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
-    - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true}
+    - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true, when: jigasi_shard_role == 'jigasi'}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jigasi_enable_fluentd }
     - role: "wavefront"
