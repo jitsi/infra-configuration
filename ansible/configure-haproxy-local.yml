@@ -167,12 +167,6 @@
         enabled: false
       ignore_errors: true
       when: not haproxy_enable_fluentd
-    - name: Stop jitsi-system-events # noqa ignore-errors
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      ignore_errors: true
   roles:
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }
@@ -215,7 +209,7 @@
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
     - { role: "consul-template", tags: "consul-template", when: haproxy_enable_consul_template }
-    - { role: "consul-telegraf", tags: "consul-telegraf" }
+    - { role: "consul-telegraf", tags: "consul-telegraf", prosody_domain_name: "{{ prosody_domain_name }}" }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
     - { role: "haproxy-tenant-pin", tags: "haproxy-tenant-pin", haproxy_tenant_pin_install_flag: true, haproxy_tenant_pin_configure_flag: true,
         when: not haproxy_enable_consul_template }
