@@ -219,6 +219,7 @@ logrotate_rules_jigasi:
       - compress
       - delaycompress
       - copytruncate
+      - maxage 14
     path:
       - /var/log/jitsi/jigasi.log
 logrotate_rules_jigasi_enabled: false
