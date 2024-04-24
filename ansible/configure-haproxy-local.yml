@@ -72,6 +72,7 @@
     consul_template_template_templates:
       - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
       - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
+    prosody_domain_name: "{{ domain }}"
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
     private_ip: "{{ ansible_default_ipv4.address }}"
     host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
