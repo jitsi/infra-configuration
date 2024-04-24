@@ -79,6 +79,7 @@
     hostname_component: "{{ hcv_environment }}-haproxy-{{ ip_component }}"
     full_hostname: "{{ hostname_component }}.{{ environment_domain_name }}"
     telegraf_hostname: "{{ full_hostname }}"
+    prosody_domain_name: "{{ domain }}"
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml

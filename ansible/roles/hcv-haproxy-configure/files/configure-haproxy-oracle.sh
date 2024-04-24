@@ -63,7 +63,7 @@ fi
 
 checkout_repos
 
-export ANSIBLE_VARS="hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle region=$ORACLE_REGION oracle_region=$ORACLE_REGION prosody_domain_name=$DOMAIN"
+export ANSIBLE_VARS="hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle region=$ORACLE_REGION oracle_region=$ORACLE_REGION domain=$DOMAIN"
 
 cd $BOOTSTRAP_DIRECTORY/infra-configuration
 ansible-playbook -v \
