@@ -63,13 +63,12 @@ fi
 
 checkout_repos
 
-export ANSIBLE_VARS="hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle region=$ORACLE_REGION oracle_region=$ORACLE_REGION domain=$DOMAIN"
-
 cd $BOOTSTRAP_DIRECTORY/infra-configuration
 ansible-playbook -v \
     -i "127.0.0.1," \
     -c local \
     --tags "$DEPLOY_TAGS" \
+    --extra-vars "hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle oracle_region=$ORACLE_REGION region=$ORACLE_REGION domain=$DOMAIN" \
     --vault-password-file=/root/.vault-password \
     ansible/$PLAYBOOK
 RET=$?
