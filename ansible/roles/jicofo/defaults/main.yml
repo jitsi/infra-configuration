@@ -1,10 +1,10 @@
 ---
-jicofo_auth_domain: "auth.{{ prosody_domain_name | default('domain.local') }}"
+jicofo_auth_domain: "auth.{{ environment_domain_name | default('domain.local') }}"
 jicofo_auth_password: "{{ secrets_jicofo_focus | default('replaceme') }}"
 jicofo_auth_password_jvb: "{{ secrets_jicofo_focus_jvb | default('replaceme') }}"
 jicofo_auth_password_visitor: "{{ secrets_jicofo_focus_visitor | default('replaceme') }}"
 jicofo_auth_type: XMPP
-jicofo_auth_url: "{{ prosody_domain_name }}"
+jicofo_auth_url: "{{ environment_domain_name }}"
 jicofo_auth_url_enable: false
 jicofo_auth_user: focus
 jicofo_average_participant_stress: 0.005
@@ -35,14 +35,14 @@ jicofo_health_cron:
   minute: "*"
 jicofo_health_cron_user: ubuntu
 jicofo_health_script_path: /usr/local/bin/jicofo-health.sh
-jicofo_hostname: "{{ prosody_domain_name | default('domain.local') }}"
+jicofo_hostname: "{{ environment_domain_name | default('domain.local') }}"
 jicofo_install_flag: true
 jicofo_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
-jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
+jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 # Note the units are seconds
 jicofo_jibri_pending_timeout: 90
-jicofo_jigasi_brewery_muc: JigasiBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
-jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
+jicofo_jigasi_brewery_muc: JigasiBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
+jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 jicofo_max_audio_senders: 999999
 # Max participants in a single conference on a single bridge.
 jicofo_max_bridge_participants: 80
@@ -55,7 +55,7 @@ jicofo_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region 
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
 jicofo_require_muc_config_flag: false
 jicofo_separate_jvb_muc: "{{ prosody_jvb_configure_flag }}"
-jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ prosody_domain_name }}
+jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 # a temp workaround to skip adding main vhost to list of trusted-domains till we migrate all sipjibris to authenticate
 jicofo_sipjibri_skip_main_in_trusted_domains: false
 # No delay for conferences with <=25, 1 second for 25-50, etc.

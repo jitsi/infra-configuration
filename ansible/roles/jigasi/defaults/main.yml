@@ -1,14 +1,14 @@
 ---
 default_jigasi_environments: []
 environment_domain_name: "jigasi"
-jigasi_auth_domain: "{{ jigasi_auth_prefix }}.{{ prosody_domain_name }}"
+jigasi_auth_domain: "{{ jigasi_auth_prefix }}.{{ environment_domain_name }}"
 jigasi_auth_prefix: "{{ auth_prefix | default('auth') }}"
 jigasi_bosh_host_override: false
 jigasi_bosh_url_pattern: "https://{host}{subdomain}/http-bind?room={roomName}"
 jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix }}.{{ jigasi_xmpp_domain }}"
 jigasi_brewery_muc_room: JigasiBrewery
 jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc
-jigasi_client_auth_domain: "jigasi.{{ prosody_domain_name }}"
+jigasi_client_auth_domain: "jigasi.{{ environment_domain_name }}"
 jigasi_cloud_provider: "{{ cloud_provider | default('aws') }}"
 # use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
 jigasi_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g3>_\\g<g4>') }}"

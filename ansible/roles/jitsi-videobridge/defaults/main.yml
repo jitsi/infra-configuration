@@ -5,7 +5,7 @@ jitsi_videobridge_force_deb_pkg_version: false
 # Whether to make the jvb version known to clients
 jvb_announce_version: true
 jvb_assumed_bandwidth_limit: "10 Mbps"
-jvb_auth_domain: "auth.{{ prosody_domain_name }}"
+jvb_auth_domain: "auth.{{ environment_domain_name }}"
 jvb_auth_password: "{{ secrets_jvb_brewery_A | default(false) }}"
 jvb_auth_user: "jvb"
 jvb_average_participant_stress: "{{ jvb_average_participant_stress_by_shape[jvb_shape]
@@ -15,7 +15,7 @@ jvb_average_participant_stress_by_shape:
   "VM.Standard.E3.Flex": 0.005
   "VM.Standard.E4.Flex": 0.004
   "default": 0.01
-jvb_brewery_muc: "JvbBrewery@{{ jvb_internal_muc_prefix }}.{{ prosody_domain_name }}"
+jvb_brewery_muc: "JvbBrewery@{{ jvb_internal_muc_prefix }}.{{ environment_domain_name }}"
 jvb_cloud_provider: "{{ cloud_provider | default('aws') }}"
 # use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
 jvb_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
@@ -30,7 +30,7 @@ jvb_data_channel_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_s
 jvb_data_channel_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
 jvb_disable_bwe: false
 jvb_disable_tcp: true
-jvb_domain_name: "{{ prosody_domain_name }}"
+jvb_domain_name: "{{ environment_domain_name }}"
 jvb_download_yourkit: false
 jvb_enable_all_timeseries: false
 jvb_enable_brctrl_timeseries: false
@@ -66,7 +66,7 @@ jvb_health_check_cron:
   minute: "*"
 jvb_health_check_cron_user: ubuntu
 jvb_host: localhost
-jvb_hostname: "{{ prosody_domain_name }}"
+jvb_hostname: "{{ environment_domain_name }}"
 jvb_image_build_flag: false
 jvb_initial_drain_mode: false
 jvb_install_flag: true
@@ -105,8 +105,8 @@ jvb_path_to_terminate_instance_script: /usr/local/bin/terminate_instance.sh
 jvb_pool_mode: shard
 jvb_preserve_frame_pointer: false
 # prosody-jvb
-jvb_prosody_jvb_auth_domain_name: "auth.jvb.{{ prosody_domain_name }}"
-jvb_prosody_jvb_muc_name: "muc.jvb.{{ prosody_domain_name }}"
+jvb_prosody_jvb_auth_domain_name: "auth.jvb.{{ environment_domain_name }}"
+jvb_prosody_jvb_muc_name: "muc.jvb.{{ environment_domain_name }}"
 # The number of recent speakers to signal to endpoints.
 jvb_recent_speakers_count: 30
 jvb_reconfigure_on_changes_flag: false
