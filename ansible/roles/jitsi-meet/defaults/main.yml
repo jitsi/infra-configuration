@@ -60,7 +60,7 @@ jitsi_meet_assetlinks: |
       }
   }]
 jitsi_meet_bad_room_list: "{{ bad_room_list | default([]) }}"
-jitsi_meet_bosh_host: "{{ prosody_domain_name }}"
+jitsi_meet_bosh_host: "{{ environment_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "https://"
 jitsi_meet_bosh_url: "{{ jitsi_meet_bosh_protocol }}{{ jitsi_meet_bosh_host }}/{{ jitsi_meet_bosh_path }}"
@@ -91,7 +91,7 @@ jitsi_meet_conference_info_overwrite: false
 jitsi_meet_conference_info_visible: "[ 'recording', 'local-recording', 'raised-hands-count' ]"
 jitsi_meet_conference_info_autohide: "[ 'highlight-moment', 'subject', 'conference-timer', 'participants-count', 'e2ee',
   'transcribing', 'video-quality', 'visitors-count', 'insecure-room' ]"
-jitsi_meet_conference_request_host: "{{ prosody_domain_name }}"
+jitsi_meet_conference_request_host: "{{ environment_domain_name }}"
 jitsi_meet_conference_request_path: "conference-request/v1"
 jitsi_meet_colibri_websocket_port: "{{ jvb_websockets_port | default(9090) }}"
 jitsi_meet_config_path: "/etc/jitsi/meet"
@@ -108,7 +108,7 @@ jitsi_meet_disable_record_audio_notification: false
 jitsi_meet_disable_speaker_stats_search: false
 jitsi_meet_disable_stage_filmstrip: false
 jitsi_meet_disable_vp9_scalability_mode: false
-jitsi_meet_domain_name: "{{ prosody_domain_name }}"
+jitsi_meet_domain_name: "{{ environment_domain_name }}"
 jitsi_meet_download_apps_url: false
 jitsi_meet_dropbox_app_key: false
 jitsi_meet_dump_transcript: false
@@ -258,11 +258,11 @@ jitsi_meet_visitors_count: "{{ visitors_count | default(0) }}"
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
 jitsi_meet_whiteboard_user_limit: 25
-jitsi_meet_ws_host: "{{ prosody_domain_name }}"
+jitsi_meet_ws_host: "{{ environment_domain_name }}"
 jitsi_meet_ws_path: "xmpp-websocket"
 jitsi_meet_ws_protocol: "wss://"
 jitsi_meet_ws_url: "{{ jitsi_meet_ws_protocol }}{{ jitsi_meet_ws_host }}/{{ jitsi_meet_ws_path }}"
-jitsi_meet_xmpp_domain_name: "{{ prosody_domain_name }}"
+jitsi_meet_xmpp_domain_name: "{{ environment_domain_name }}"
 jitsi_release_number: ''
 shard_name: "{{ hcv_environment }}"
 # start deeplinking config

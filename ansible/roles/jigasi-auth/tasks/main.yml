@@ -46,7 +46,7 @@
     path: /etc/prosody/prosody.cfg.lua
     marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A"
     block: |
-      VirtualHost "jigasia.{{ prosody_domain_name }}"
+      VirtualHost "jigasia.{{ environment_domain_name }}"
         modules_enabled = {
       {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
       "smacks";
@@ -61,7 +61,7 @@
     path: /etc/prosody/prosody.cfg.lua
     marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B"
     block: |
-      VirtualHost "jigasib.{{ prosody_domain_name }}"
+      VirtualHost "jigasib.{{ environment_domain_name }}"
         modules_enabled = {
       {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
       "smacks";

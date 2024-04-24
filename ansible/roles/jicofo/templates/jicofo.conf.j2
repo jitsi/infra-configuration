@@ -143,7 +143,7 @@ jicofo {
 
   xmpp {
     client {
-      client-proxy = focus.{{ prosody_domain_name }}
+      client-proxy = focus.{{ environment_domain_name }}
       domain = {{ jicofo_auth_domain }}
       username = "{{ jicofo_auth_user }}"
       password = "{{ jicofo_auth_password }}"
@@ -163,13 +163,13 @@ jicofo {
     }
 {% endif %}
 {% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
-      # By trusting prosody_domain_name we effectively disable the feature and allow clients to impersonate Jibri. This is
+      # By trusting environment_domain_name we effectively disable the feature and allow clients to impersonate Jibri. This is
       # intentional until we are able to have SIP Jibris login to one of the authenticated domains (otherwise SIP Jibris will
       # not be recognized by jicofo leading to "mute all" affecting them).
 {% endif %}
-      trusted-domains = [ "{{ prosody_auth_domain_name }}", "recorder.{{ prosody_domain_name }}",
+      trusted-domains = [ "{{ prosody_auth_domain_name }}", "recorder.{{ environment_domain_name }}",
 {% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
-        "{{ prosody_domain_name }}"
+        "{{ environment_domain_name }}"
 {% endif %}
     ]
 {% if jicofo_visitors_enabled %}
