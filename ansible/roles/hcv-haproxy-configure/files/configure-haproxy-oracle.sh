@@ -68,7 +68,7 @@ ansible-playbook -v \
     -i "127.0.0.1," \
     -c local \
     --tags "$DEPLOY_TAGS" \
-    --extra-vars "hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle oracle_region=$ORACLE_REGION region=$ORACLE_REGION domain=$DOMAIN" \
+    --extra-vars "hcv_environment=$ENVIRONMENT cloud_name=$CLOUD_NAME cloud_provider=oracle oracle_region=$ORACLE_REGION region=$ORACLE_REGION" \
     --vault-password-file=/root/.vault-password \
     ansible/$PLAYBOOK
 RET=$?
