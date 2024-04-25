@@ -1,5 +1,5 @@
 ---
-jvb_auth_domain: "auth.{{ prosody_domain_name }}"
+jvb_auth_domain: "auth.{{ environment_domain_name }}"
 jvb_auth_domain_path: "/var/lib/prosody/{{ jvb_auth_domain | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/{{ jvb_auth_user }}.dat"
 jvb_auth_password: "{{ secrets_jvb_brewery_A | default(false) }}"
 # prosody-jvb

@@ -42,7 +42,7 @@ prosody_create_users: "{{ prosody_enable_plain_auth }}"
 prosody_disable_messaging: false
 prosody_disabled_modules: ["pubsub", "register"]
 prosody_disable_required_room_claim: false
-prosody_domain_name: domain.local
+prosody_domain_name: "{{ environment_domain_name | default('domain.local') }}"
 # version vars for url install method
 prosody_dpkg_base_name: prosody
 prosody_dpkg_path: "/tmp/{{ prosody_package_filename }}"

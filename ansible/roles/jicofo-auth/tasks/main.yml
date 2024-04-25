@@ -9,7 +9,7 @@
     - prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
 
 - name: Update focus prosody user password
-  ansible.builtin.command: prosodyctl passwd focus@auth.{{ prosody_domain_name }}
+  ansible.builtin.command: prosodyctl passwd focus@auth.{{ environment_domain_name }}
   args:
     stdin: "{{ prosody_focus_secret }}\n{{ prosody_focus_secret }}"
   when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"

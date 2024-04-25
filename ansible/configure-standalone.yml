@@ -35,7 +35,7 @@
     jitsi_meet_enable_colibri_websockets: true
     # disable colibri passthru to JVB IP
     jitsi_meet_colibri_proxy_enabled: false
-    jvb_ws_domain: "{{ prosody_domain_name }}"
+    jvb_ws_domain: "{{ environment_domain_name }}"
     # disable egress health in standalone
     egress_enable_health_cron: false
     tcpdump_prosody_jvb_enabled: false
@@ -141,7 +141,7 @@
       when: cloud_provider == 'oracle'
     - name: Set server hostname
       ansible.builtin.hostname:
-        name: "{{ prosody_domain_name }}"
+        name: "{{ environment_domain_name }}"
       tags: "provision"
     - name: Remove td-agent deb repository
       ansible.builtin.apt_repository:
@@ -292,7 +292,7 @@
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true, jitsi_meet_redirect_to_ssl: true}
     - { role: jitsi-videobridge, tags: "jitsi-videobridge",
         jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true,
-        jvb_enable_multiple_shards: false, jvb_hostname: "{{ prosody_domain_name }}", jvb_reconfigure_on_changes_flag: true }
+        jvb_enable_multiple_shards: false, jvb_hostname: "{{ environment_domain_name }}", jvb_reconfigure_on_changes_flag: true }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true}
 
@@ -317,7 +317,7 @@
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - role: "wavefront"
       tags: "telegraf"
-      telegraf_hostname: "{{ prosody_domain_name }}"
+      telegraf_hostname: "{{ environment_domain_name }}"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
       wavefront_configure_collector: true
       wavefront_install_collector: false
@@ -344,7 +344,7 @@
           role: "all"
           jvb_version: "{{ jitsi_videobridge_deb_pkg_version }}"
           environment: "{{ hcv_environment }}"
-          shard: "{{ prosody_domain_name }}"
+          shard: "{{ environment_domain_name }}"
           region: "{{ cloud_region }}"
           release_number: "{{ jitsi_meet_deb_pkg_version }}"
           cloud: "{{ cloud_provider }}"

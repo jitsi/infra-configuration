@@ -139,7 +139,6 @@ stats_whitelist = [
     'total_conferences_created',
     'total_data_channel_messages_sent',
     'total_data_channel_messages_received',
-    'total_failed_conferences',
     'total_fds',
     'total_ice_failed',
     'total_ice_succeeded',
@@ -147,7 +146,6 @@ stats_whitelist = [
     'total_keyframes_received',
     'total_layering_changes_received',
     'total_packets_dropped_octo',
-    'total_partially_failed_conferences',
     'total_video_stream_milliseconds_received',
     'transit.overall_bridge_jitter',
     'transit.rtp.all', # Legacy
@@ -301,9 +299,7 @@ if jvb_stats and "total_conference_seconds" in jvb_stats:
 
     conferenceSeconds = jvb_stats["total_conference_seconds"]
     conferencesCompleted = jvb_stats["total_conferences_completed"]
-    conferencesFailed = jvb_stats["total_failed_conferences"]
     conferencesCreated = jvb_stats["total_conferences_created"]
-    conferencesPartialFailed = jvb_stats["total_partially_failed_conferences"]
 
     if conferencesCompleted > 0:
         report_stats['average_conference_seconds'] = conferenceSeconds/conferencesCompleted
@@ -319,21 +315,16 @@ if jvb_stats and "total_conference_seconds" in jvb_stats:
         lastTotalParticipants = last_jvb_stats['total_participants']
         lastConferenceSeconds = last_jvb_stats["total_conference_seconds"]
         lastConferencesCompleted = last_jvb_stats["total_conferences_completed"]
-
-        lastConferencesFailed = last_jvb_stats["total_failed_conferences"]
         lastConferencesCreated = last_jvb_stats["total_conferences_created"]
-        lastConferencesPartialFailed = last_jvb_stats["total_partially_failed_conferences"]
 
         report_stats['conference_completed_delta'] = conferencesCompleted - lastConferencesCompleted
         report_stats['conference_seconds_delta'] = conferenceSeconds - lastConferenceSeconds
         report_stats['conference_created_delta'] = conferencesCreated - lastConferencesCreated
-        report_stats['conference_failed_delta'] = conferencesFailed - lastConferencesFailed
-        report_stats['conference_partially_failed_delta'] = conferencesPartialFailed - lastConferencesPartialFailed
         report_stats['total_participants_delta'] = totalParticipants - lastTotalParticipants
 
         # do a quick negative check for all deltas, in case of restart of JVB since history was written
         delta_keys = ['total_participants_delta', 'conference_completed_delta', 'conference_seconds_delta',
-                      'conference_created_delta', 'conference_failed_delta', 'conference_partially_failed_delta']
+                      'conference_created_delta']
         for dk in delta_keys:
             if report_stats[dk] < 0:
                 report_stats[dk] = 0
