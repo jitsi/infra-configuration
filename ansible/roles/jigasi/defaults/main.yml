@@ -125,8 +125,12 @@ jigasi_stats_cron:
   minute: "*"
 jigasi_stats_cron_user: ubuntu
 jigasi_transcriber_auth_domain: "recorder.{{ jigasi_xmpp_domain }}"
+jigasi_transcriber_auth_pass: "{{ secrets_jigasi_transcriber_A if jigasi_transcriber_auth_type == 'A' else (secrets_jigasi_transcriber_B if jigasi_transcriber_auth_type == 'B' else jigasi_transcriber_auth_password) }}"
+# Legacy.
 jigasi_transcriber_auth_password: "replaceme"
-jigasi_transcriber_auth_user: "transcriber"
+# Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
+jigasi_transcriber_auth_type: "legacy"
+jigasi_transcriber_auth_user: "{{ 'transcribera' if jigasi_transcriber_auth_type == 'A' else ('transcriberb' if jigasi_transcriber_auth_type == 'B' else 'transcriber') }}"
 jigasi_transcriber_enable_debug: false
 jigasi_transcriber_filter_silence: false
 jigasi_transcriber_custom_transcriber: false
