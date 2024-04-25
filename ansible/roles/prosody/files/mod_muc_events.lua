@@ -655,6 +655,18 @@ local function handleOccupantPreJoin(event)
     end
 
     attachMachineUid(event);
+
+    if is_visitor_prosody then
+        local occupant, room, session, stanza = event.occupant, event.room, event.origin, event.stanza;
+        if session.jitsi_meet_context_user and session.jitsi_meet_context_user.id then
+            local flip_device_tag = stanza:get_child("flip_device");
+            if flip_device_tag and session.jitsi_meet_context_features.flip
+                and (session.jitsi_meet_context_features.flip == true
+                        or session.jitsi_meet_context_features.flip == "true") then
+                room._data.flip_participant_nick = occupant.nick;
+            end
+        end
+    end
 end
 
 -- used for jaas and vo
