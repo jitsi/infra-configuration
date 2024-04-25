@@ -6,28 +6,13 @@
     state: present
   when: haproxy_dataplaneapi_install_flag
 
-# change the dataplaneapi port in the dataplaneapi config
-- name: Change dataplaneapi port
-  ansible.builtin.replace:
-    path: /etc/dataplaneapi/dataplaneapi.yml
-    regexp: 'port: 5555'
-    replace: 'port: 6700'
+- name: Render dataplaneapi config
+  ansible.builtin.template:
+    src: dataplaneapi.yml.j2
+    dest: /etc/dataplaneapi/dataplaneapi.yml
   when: haproxy_dataplaneapi_configure_flag
 
-# remove all instances of userlist from dataplaneapi config
-- name: Replace userlist from dataplaneapi config
-  ansible.builtin.replace:
-    path: /etc/dataplaneapi/dataplaneapi.yml
-    regexp: '(userlist:[\s\S]*)dataplaneapi'
-    replace: |-
-      username:
-        - insecure: true
-          password: insecure
-          name: dataplane
-  when: haproxy_dataplaneapi_configure_flag
-
-# start dataplane API service
-- name: Start dataplane API
+- name: Start dataplaneapi service
   ansible.builtin.systemd:
     name: dataplaneapi
     state: started
