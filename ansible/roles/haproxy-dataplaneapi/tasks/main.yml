@@ -1,0 +1,20 @@
+---
+# install the dataplaneapi .deb package
+- name: Install haproxy-dataplaneapi
+  ansible.builtin.apt:
+    deb: "{{ haproxy_dataplaneapi_url }}"
+    state: present
+  when: haproxy_dataplaneapi_install_flag
+
+- name: Render dataplaneapi config
+  ansible.builtin.template:
+    src: dataplaneapi.yml.j2
+    dest: /etc/dataplaneapi/dataplaneapi.yml
+  when: haproxy_dataplaneapi_configure_flag
+
+- name: Start dataplaneapi service
+  ansible.builtin.systemd:
+    name: dataplaneapi
+    state: started
+    enabled: true
+  when: haproxy_dataplaneapi_configure_flag

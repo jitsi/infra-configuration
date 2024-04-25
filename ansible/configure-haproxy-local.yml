@@ -167,12 +167,6 @@
         enabled: false
       ignore_errors: true
       when: not haproxy_enable_fluentd
-    - name: Stop jitsi-system-events # noqa ignore-errors
-      ansible.builtin.service:
-        name: "jitsi-system-events"
-        state: stopped
-        enabled: false
-      ignore_errors: true
   roles:
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }
@@ -209,6 +203,7 @@
           cloud: "{{ cloud_provider }}"
 
     - { role: "haproxy", tags: "haproxy"}
+    - { role: "haproxy-dataplaneapi", tags: "haproxy-dataplaneapi", when: haproxy_enable_dataplaneapi }
     - { role: "consul-haproxy", tags: "consul-haproxy",
         consul_haproxy_install_flag: false, consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}" }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }

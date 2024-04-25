@@ -1,0 +1,26 @@
+dataplaneapi:
+   host: 0.0.0.0
+   port: 6700
+   transaction:
+     transaction_dir: /tmp/haproxy
+   user:
+   - insecure: true
+     password: insecure
+     name: dataplane
+   resources:
+    maps_dir: /etc/haproxy/maps
+haproxy:
+   config_file: /etc/haproxy/haproxy.cfg
+   haproxy_bin: /usr/sbin/haproxy
+   reload:
+      reload_delay: 5
+      reload_cmd: service haproxy reload
+      restart_cmd: service haproxy restart
+log_targets:
+- log_to: file
+  log_file: /var/log/dataplaneapi.log
+  log_level: info
+  log_format: text
+  log_types:
+  - access
+  - app
