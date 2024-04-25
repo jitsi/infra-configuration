@@ -12,6 +12,10 @@ jigasi_auth_prefix: "{{ auth_prefix | default('auth') }}"
 jigasi_auth_type: 'legacy'
 jigasi_bosh_host_override: false
 jigasi_bosh_url_pattern: "https://{host}{subdomain}/http-bind?room={roomName}"
+jigasi_brewery_auth_pass: "{{ secrets_jigasi_brewery_A if jigasi_brewery_auth_type == 'A' else (secrets_jigasi_brewery_A if jigasi_brewery_auth_type == 'B' else jigasi_xmpp_password) }}"
+# Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
+jigasi_brewery_auth_type: "legacy"
+jigasi_brewery_auth_user: "{{ 'jigasia' if jigasi_brewery_auth_type == 'A' else ('jigasib' if jigasi_brewery_auth_type == 'B' else 'jigasi') }}"
 jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix }}.{{ jigasi_xmpp_domain }}"
 jigasi_brewery_muc_room: JigasiBrewery
 jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc

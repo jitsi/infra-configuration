@@ -119,13 +119,14 @@ net.java.sip.communicator.impl.protocol.sip.SKIP_REINVITE_ON_FOCUS_CHANGE_PROP=t
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}=acc-{{ server['id'] }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ACCOUNT_UID=Jabber:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}
 net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTION.Jabber\:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}=true
+
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USER_ID={{ server['jid'] }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_SERVER_OVERRIDDEN=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_ADDRESS={{ server['xmpp_host_private_ip_address'] }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ server['host_port'] if server['host_port'] is defined else jigasi_xmpp_port }}
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_SECURE=true
 #base64 AES keyLength:256 or 128
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_xmpp_password|b64encode }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_brewery_auth_pass|b64encode }}
 
 #net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=jigasi
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
