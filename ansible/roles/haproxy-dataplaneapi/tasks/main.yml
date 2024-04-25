@@ -21,9 +21,9 @@
     regexp: '(userlist:[\s\S]*)dataplaneapi'
     replace: |-
       username:
-      - insecure: true
-        password: insecure
-        name: dataplane
+        - insecure: true
+          password: insecure
+          name: dataplane
   when: haproxy_dataplaneapi_configure_flag
 
 # start dataplane API service
