@@ -107,6 +107,14 @@ local function remove_from_cache(key)
     confCache:set(key, nil);
 end
 
+local function load_from_cache(key)
+    return confCache:get(key) or {};
+end
+
+local function store_in_cache(key, details)
+    confCache:set(key, details);
+end
+
 local http_headers = {
     ["User-Agent"] = "Prosody ("..prosody.version.."; "..prosody.platform..")",
     ["x-api-key"] = eventAPIKey,
@@ -205,15 +213,9 @@ local function extract_field(o,field,ns)
 end
 
 local function extract_occupant_details(occupant)
-    local r;
-
     local occupant_jid =  occupant.jid;
-    local cachedPDetails = confCache:get(occupant_jid);
-    if cachedPDetails then
-        cachedPDetails = json.decode(cachedPDetails);
-        r = cachedPDetails.identity;
-    end
-    r = r or {};
+    local cachedPDetails = load_from_cache(occupant_jid);
+    local r = cachedPDetails.identity or {};
     r['jid'] = occupant.jid;
     r['bare_jid'] = occupant.bare_jid;
     if is_visitor_prosody then
@@ -287,7 +289,7 @@ local function event_cb(content_, code_, response_, request_)
     end
 end
 
-local function sendEvent(type ,room_address, participant, group, pdetails,cdetails)
+local function sendEvent(type ,room_address, participant, group, pdetails, cdetails)
     local event_ts = round(socket.gettime()*1000);
     local out_event = {
         ["conference"] = room_address,
@@ -318,17 +320,6 @@ local function getChatHistoryKey(room_jid)
     return "chat@" .. room_jid;
 end
 
-local function loadConferenceDetails(room_jid)
-    local cdetails = {};
-    local cdetails_content = confCache:get(room_jid);
-    if cdetails_content then
-        cdetails = json.decode(cdetails_content);
-        if DEBUG then module:log("debug",
-            "Success retreiving conference details for room %s : %s", room_jid, inspect(cdetails)); end
-    end
-    return cdetails;
-end
-
 -- used for jaas and vo
 local function sendChatHistory(room)
     if not voChatHistoryURL then
@@ -337,7 +328,7 @@ local function sendChatHistory(room)
     end
     local room_jid = room.jid;
 
-    local cdetails = loadConferenceDetails(room_jid);
+    local cdetails = load_from_cache(room_jid);
     local timestamp = round(socket.gettime() * 1000);
     local meeting_fqn = util.get_fqn_and_customer_id(room);
     local body = {
@@ -367,30 +358,17 @@ local function appendToChatHistory(room_jid, occupant_jid, occupant_bare_jid, co
     msgdetails['timestamp'] = round(socket.gettime() * 1000);
     msgdetails['content'] = content;
 
-    local participantDetails = confCache:get(occupant_jid);
-    local pdetails = {};
-    if participantDetails then
-        pdetails = json.decode(participantDetails);
-        msgdetails['name'] = pdetails['name'];
-        msgdetails['email'] = pdetails['email'];
-    end
+    local pdetails = load_from_cache(occupant_jid);
+    msgdetails['name'] = pdetails['name'];
+    msgdetails['email'] = pdetails['email'];
 
     local chatHistoryKey = getChatHistoryKey(room_jid);
-    local messages = confCache:get(chatHistoryKey);
-    if messages == nil then
-        messages = {};
-    end
+    local messages = load_from_cache(chatHistoryKey);
     table.insert(messages, msgdetails);
-    confCache:set(chatHistoryKey, messages);
+    store_in_cache(chatHistoryKey, messages);
 
     if DEBUG then module:log("debug",
         "Adding chat message to history for room %s: msgdetails %s", room_jid, inspect(msgdetails)); end
-end
-
-local function storeConferenceDetails(room_jid, cdetails)
-    local new_content = json.encode(cdetails);
-    confCache:set(room_jid, new_content);
-    if DEBUG then module:log("debug", "Storing conference details to room %s : %s", room_jid, inspect(cdetails)); end
 end
 
 local function processEvent(type,event)
@@ -427,7 +405,7 @@ local function processEvent(type,event)
         who_jid = jid.join(node, main_domain, resource);
     end
 
-    local cdetails = loadConferenceDetails(event.room.jid);
+    local cdetails = load_from_cache(event.room.jid);
 
     local occupant_nick = event.occupant and event.occupant.nick;
     if type == "Joined" then
@@ -449,7 +427,7 @@ local function processEvent(type,event)
     end
     if DEBUG then module:log("debug", "Room %s Who %s Type %s", room_address, who_jid, type); end
 
-    sendEvent(type, room_address, who_jid, pdetails["group"], pdetails,cdetails);
+    sendEvent(type, room_address, who_jid, pdetails["group"], pdetails, cdetails);
 end
 
 local function handleOccupantJoined(event)
@@ -466,10 +444,10 @@ local function handleOccupantJoined(event)
                 and shallow_copy(session.jitsi_meet_context_user) or nil;
         if identity ~= nil then
             identity.group = session.jitsi_meet_context_group;
-            local pdetails_string = confCache:get(occupant_jid);
-            local pdetails = pdetails_string ~= nil and json.decode(pdetails_string) or {};
+
+            local pdetails = load_from_cache(occupant_jid);
             pdetails.identity = identity;
-            confCache:set(occupant_jid, json.encode(pdetails));
+            store_in_cache(occupant_jid, pdetails);
         end
     end
     processEvent(event_type, event);
@@ -522,21 +500,20 @@ local function handleBroadcastPresence(event)
         if DEBUG then module:log("debug", "handleBroadcastPresence old content %s", content); end
 
         if content == nil then
-            local new_content = json.encode({["name"] = nick,["email"] = email });
+            local new_content = {["name"] = nick,["email"] = email };
             if DEBUG then module:log("debug",
-                "handleBroadcastPresence no old content for %s, saving item %s", occupant_jid, new_content); end
+                "handleBroadcastPresence no old content for %s, saving item %s", occupant_jid, inspect(new_content)); end
             -- If the key is not found in the cache then it's a new participant, so do nothing except store it
-            confCache:set(occupant_jid, new_content);
+            store_in_cache(occupant_jid, new_content);
         else
-            local pdetails = json.decode(content);
-            pdetails = pdetails or {};
+            local pdetails = content or {};
             if pdetails.name ~= nick or pdetails.email ~= email then
                 pdetails.name = nick or pdetails.name;
                 pdetails.email = email or pdetails.email;
                 --update the cache with the latest
-                confCache:set(occupant_jid, json.encode(pdetails));
+                store_in_cache(occupant_jid, pdetails);
                 if DEBUG then module:log("debug",
-                    "handleBroadcastPresence sending event %s", json.encode(pdetails)); end
+                    "handleBroadcastPresence sending event %s", inspect(pdetails)); end
                 sendEvent(type, room_jid, occupant_jid,false, extract_occupant_details(occupant));
             end
         end
@@ -562,11 +539,7 @@ local function processSubjectUpdate(occupant, room, new_subject)
     local occupant_jid = occupant.jid;
 
     -- extract participant details
-    local pdetails = {};
-    local participantContent = confCache:get(occupant_jid);
-    if participantContent then
-        pdetails = json.decode(participantContent);
-    end
+    local pdetails = load_from_cache(occupant_jid);
     pdetails['jid'] = occupant.jid;
     pdetails['bare_jid'] = occupant.bare_jid;
 
@@ -576,9 +549,9 @@ local function processSubjectUpdate(occupant, room, new_subject)
         return;
     end
 
-    local cdetails = loadConferenceDetails(room_jid);
+    local cdetails = load_from_cache(room_jid);
     cdetails["subject"] = new_subject;
-    storeConferenceDetails(room_jid, cdetails);
+    store_in_cache(room_jid, cdetails);
 
     if DEBUG then module:log("debug",
         "processSubjectUpdate sending event type %s, room_address %s", type, room_jid); end
@@ -768,13 +741,13 @@ local function roomCreated(event)
         return;
     end
 
-    local cdetails = loadConferenceDetails(room.jid);
+    local cdetails = load_from_cache(room.jid);
     local session_id = cdetails["session_id"];
 
     if not session_id then
         session_id = room._data.meetingId;
         cdetails["session_id"] = session_id;
-        storeConferenceDetails(room.jid, cdetails);
+        store_in_cache(room.jid, cdetails);
         module:log("info", "Start new conference session for room %s: session_id %s", room.jid, session_id);
     end
 end
@@ -802,10 +775,10 @@ function module.add_host(host_module)
         local room = e.room;
         if e.fmuc_fired then
             -- Updates the meeting id if it changed on connecting vnode
-            local cdetails = loadConferenceDetails(room.jid);
+            local cdetails = load_from_cache(room.jid);
             if cdetails["session_id"] ~= room._data.meetingId then
                 cdetails["session_id"] = room._data.meetingId;
-                storeConferenceDetails(room.jid, cdetails);
+                store_in_cache(room.jid, cdetails);
             end
         end
     end);
