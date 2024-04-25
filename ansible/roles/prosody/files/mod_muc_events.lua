@@ -431,8 +431,8 @@ local function processEvent(type,event)
 end
 
 local function handleOccupantJoined(event)
-    -- we skip healthcheck rooms and any main participant on a visitor prosody
-    if is_healthcheck_room(event.room.jid) or (is_visitor_prosody and event.occupant.role ~= 'visitor') then
+    -- we skip healthcheck rooms
+    if is_healthcheck_room(event.room.jid) then
         return;
     end
 
@@ -450,7 +450,20 @@ local function handleOccupantJoined(event)
             store_in_cache(occupant_jid, pdetails);
         end
     end
-    processEvent(event_type, event);
+
+    -- we skip sending event for main participant on a visitor prosody
+    if is_visitor_prosody then
+        if event.occupant.role == 'visitor' then
+            processEvent(event_type, event);
+        else
+            -- we need that to be able to match flipping visitor to a main participant,
+            -- to pass through without asking for password
+            local identity = util.extract_occupant_identity_user(event.occupant);
+            store_in_cache(occupant_jid, identity);
+        end
+    else
+        processEvent(event_type, event);
+    end
 end
 
 -- do not check occupant.role as it maybe already reset
@@ -664,6 +677,45 @@ local function handleOccupantPreJoin(event)
                 and (session.jitsi_meet_context_features.flip == true
                         or session.jitsi_meet_context_features.flip == "true") then
                 room._data.flip_participant_nick = occupant.nick;
+
+                if not room:get_password() then
+                    return;
+                end
+
+                local found_main_occupant_same_id = false;
+                local local_domain = muc_domain_base;
+                for _, o in room:each_occupant() do
+                    -- check only remote occupants
+                    if jid.host(o.bare_jid) ~= local_domain then
+                        local pdetails = load_from_cache(o.jid);
+                        if pdetails.id and pdetails.id == session.jitsi_meet_context_user.id then
+                            found_main_occupant_same_id = true;
+                            break;
+                        end
+                    end
+                end
+
+                -- we cannot verify is that participant in another visitor node, we can only verify
+                -- if it is as main participant
+                if found_main_occupant_same_id then
+                    local join = stanza:get_child("x", MUC_NS);
+                    if not join then
+                        join = stanza:tag("x", { xmlns = MUC_NS });
+                    end
+                    local password = join:get_child("password", MUC_NS);
+                    if password then
+                        join:maptags(
+                                function(tag)
+                                    for k, v in pairs(tag) do
+                                        if k == "name" and v == "password" then
+                                            return nil
+                                        end
+                                    end
+                                    return tag
+                                end);
+                    end
+                    join:tag("password", { xmlns = MUC_NS }):text(event.room:get_password());
+                end
             end
         end
     end
