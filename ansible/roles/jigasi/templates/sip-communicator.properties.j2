@@ -225,8 +225,8 @@ org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
 {% endif %}
 {% if jigasi_enable_bosh_auth %}
-org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_sip_username }}@{{ jigasi_client_auth_domain }}
-org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_xmpp_password }}
+org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_auth_conference_user }}@{{ jigasi_auth_conference_domain }}
+org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_auth_conference_pass }}
 org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
 {% if jigasi_shard_role=='jigasi' %}
