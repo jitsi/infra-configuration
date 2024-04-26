@@ -4,7 +4,7 @@ JIGASI_OPTS="--nocomponent=true"
 # adds java system props that are passed to jigasi (default are for logging config file)
 JAVA_SYS_PROPS="-Djava.util.logging.config.file=/etc/jitsi/jigasi/logging.properties"
 
-{%- if jigasi_enable_google_sdk %}
+{% if jigasi_enable_google_sdk -%}
 # Credential for Google Cloud Speech API
 GOOGLE_APPLICATION_CREDENTIALS=/etc/google-cloud/google-cloud-s2t-key-file.json
 {%- endif %}
