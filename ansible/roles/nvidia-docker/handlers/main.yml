@@ -1,5 +1,5 @@
 ---
-- name: Restart docker
+- name: Restart docker for nvidia-docker
   ansible.builtin.systemd:
     name: docker
     state: restarted

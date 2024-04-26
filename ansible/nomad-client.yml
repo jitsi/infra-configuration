@@ -23,6 +23,12 @@
     nvidia_docker_flag: false
     cloud_provider: oracle
     cloud_instance_id: "{{ ansible_fqdn }}"
+    docker_daemon_nvidia_options:
+      runtimes:
+        nvidia:
+          path: /usr/bin/nvidia-container-runtime
+          runtimeArgs: []
+    docker_daemon_options_extras: "{{ docker_daemon_nvidia_options if nvidia_docker_flag else {} }}"
     shard_role: nomad-pool
     nomad_node_role: client
     nomad_gpu_count: 0
@@ -144,6 +150,7 @@
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
+    - { role: "docker-daemon-config", tags: "docker-daemon-config" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
     - { role: "skynet-credentials", tags: "skynet-credentials", when: nomad_pool_type == "skynet" }
