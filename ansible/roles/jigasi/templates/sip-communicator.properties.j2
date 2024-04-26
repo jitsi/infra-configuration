@@ -224,15 +224,12 @@ org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_transcriber_auth_user }}@{{ jigasi_t
 org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_transcriber_auth_pass }}
 org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
-{% endif %}
-{% if jigasi_enable_bosh_auth %}
+{% elif jigasi_enable_bosh_auth %}
 org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_auth_conference_user }}@{{ jigasi_auth_conference_domain }}
 org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_auth_conference_pass }}
 org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
-{% if jigasi_shard_role=='jigasi' %}
 org.jitsi.jigasi.xmpp.acc.UNIQUE_USER_ID=true
-{% endif %}
 {% endif %}
 
 # 30 minutes
