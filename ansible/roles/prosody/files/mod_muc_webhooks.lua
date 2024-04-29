@@ -489,6 +489,10 @@ function handle_occupant_access(event, event_type)
             end
         end
 
+        if final_event_type == PARTICIPANT_JOINED then
+                payload.meetingCreatedTimestamp = room.created_timestamp;
+        end
+
         -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
         decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
 
