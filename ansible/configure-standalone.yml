@@ -341,7 +341,7 @@
             namepass:
               - "http*"
               - "signal*"
-              - "{{ telegraf_jvb_filter }}"
+              - "{% for item in telegraf_jvb_filter %}{{ item }}{% if not loop.last %}", "{% endif %}{% endfor %}"
               - "{{ telegraf_jicofo_filter }}"
         telegraf_tags:
           shard-role: "all"
