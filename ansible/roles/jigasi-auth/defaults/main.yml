@@ -17,11 +17,13 @@ jigasi_brewery_path_B: "/var/lib/prosody/{{ jigasi_brewery_domain | regex_replac
 jigasi_legacy_auth: true
 jigasi_transcriber_auth_domain: "recorder.{{ environment_domain_name }}"
 jigasi_transcriber_auth_domain_path: "/var/lib/prosody/{{ jigasi_transcriber_auth_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/transcriber.dat"
+  regex_replace('-', '%2d') }}/accounts/{{ jigasi_transcriber_legacy_user }}.dat"
 jigasi_transcriber_auth_password: "replaceme"
 # Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
 jigasi_transcriber_auth_type: "legacy"
-jigasi_transcriber_auth_user: "{{ 'transcribera' if jigasi_transcriber_auth_type == 'A' else ('transcriberb' if jigasi_transcriber_auth_type == 'B' else 'transcriber') }}"
+jigasi_transcriber_legacy_user: "transcriber"
+jigasi_transcriber_auth_user: "{{ 'transcribera' if jigasi_transcriber_auth_type == 'A' \
+  else ('transcriberb' if jigasi_transcriber_auth_type == 'B' else 'transcriber') }}"
 # Different than the legacy username because we want to provision new accounts.
 # Note: avoid capital letters and special chars because prosody lowers/encodes them in the filename.
 jigasi_transcriber_domain: "recorder.{{ environment_domain_name }}"
