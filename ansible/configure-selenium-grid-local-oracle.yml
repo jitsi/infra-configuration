@@ -109,7 +109,7 @@
           oracle_region: "{{ oracle_region }}"
           cloud: "oracle"
     - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: selenium_grid_enable_nomad == "true"}
-    - { role: "docker", tags: "docker", when: selenium_grid_enable_nomad == "true" }
+    - { role: "docker-daemon-config", tags: "docker-daemon-config" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi", when: selenium_grid_enable_nomad == "true" }
     - { role: "nomad", tags: "nomad", when: selenium_grid_enable_nomad == "true" }
 

@@ -1,0 +1,8 @@
+docker_mirrors_environment: "{{ hcv_environment }}"
+docker_mirrors_region: "{{ oracle_region | default('us-phoenix-1') }}"
+docker_mirrors_dns_zone_name: "{{ dns_zone_name | default('example.com') }}"
+docker_mirrors_daemon_options:
+  registry-mirrors:
+    - "https://{{ docker_mirrors_environment }}-{{ docker_mirrors_region }}-dhmirror.{{ docker_mirrors_dns_zone_name }}"
+docker_daemon_options_extras: {}
+docker_daemon_options: "{{ dict(docker_mirrors_daemon_options, **docker_daemon_options_extras) }}"
