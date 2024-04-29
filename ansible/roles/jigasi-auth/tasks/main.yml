@@ -79,7 +79,7 @@
   when: jigasi_legacy_auth and jigasi_auth_password != 'replaceme'
 
 - name: Update legacy jigasi transcriber authentication
-  ansible.builtin.command: prosodyctl passwd "{{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}"
+  ansible.builtin.command: prosodyctl passwd "{{ jigasi_transcriber_legacy_user }}@{{ jigasi_transcriber_auth_domain }}"
   args:
     stdin: "{{ jigasi_transcriber_auth_password }}\n{{ jigasi_transcriber_auth_password }}"
   when: jigasi_legacy_auth and jigasi_transcriber_auth_password != 'replaceme'
