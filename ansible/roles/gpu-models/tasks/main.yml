@@ -76,6 +76,7 @@
   ansible.builtin.apt:
     name: amazon-ecr-credential-helper
     state: present
+  when: not gpu_models_docker_local_mirror_flag
 
 - name: Ensure root docker dir
   ansible.builtin.file:
@@ -88,6 +89,7 @@
     mode: 0644
     dest: "/root/.docker/config.json"
     content: "{{ nomad_docker_auth_file | to_json }}"
+  when: not gpu_models_docker_local_mirror_flag
 
 - name: Docker pull latest skynet
   ansible.builtin.command: docker --config /root/.docker pull {{ gpu_models_docker_image }}
