@@ -7,7 +7,7 @@
   when: jigasi_legacy_auth and jigasi_auth_password != 'replaceme'
 
 - name: Add legacy jigasi transcriber authentication
-  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}"
+  ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_legacy_user }}@{{ jigasi_transcriber_auth_domain }}"
   args:
     stdin: "{{ jigasi_transcriber_auth_password }}\n{{ jigasi_transcriber_auth_password }}"
     creates: "{{ jigasi_transcriber_auth_domain_path }}"
@@ -46,7 +46,7 @@
     path: /etc/prosody/prosody.cfg.lua
     marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A"
     block: |
-      VirtualHost "jigasia.{{ environment_domain_name }}"
+      VirtualHost "jigasia.{{ prosody_domain_name }}"
         modules_enabled = {
       {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
       "smacks";
@@ -61,7 +61,7 @@
     path: /etc/prosody/prosody.cfg.lua
     marker: "-- {mark} ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B"
     block: |
-      VirtualHost "jigasib.{{ environment_domain_name }}"
+      VirtualHost "jigasib.{{ prosody_domain_name }}"
         modules_enabled = {
       {% if prosody_xmpp_resume is not defined or prosody_xmpp_resume %}
       "smacks";
