@@ -56,15 +56,16 @@ sip_jibri_voximplant_region_users: "{{ sip_jibri_voximplant_env_users[sip_jibri_
 sip_jibri_voximplant_user: "{{ sip_jibri_voximplant_region_users[sip_jibri_voximplant_user_id|int]|default({}) }}"
 sip_jibri_voximplant_user_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
 sip_jibri_ws_server_url: "{{ sip_jibri_ws_server_url | default('wss://api-vo-pilot.jitsi.net') }}"
+sip_jibri_xmpp_logins_enable: false
 sip_jibri_xmpp_login_map:
   inbound:
-    prod-8x8:
-      domain: auth.8x8.vc
-      password: "{{ inbound_sip_jibri_xmpp_password }}"
-      username: "{{ inbound_sip_jibri_xmpp_user }}"
+    {{ sip_jibri_environment }}:
+      domain: "sipjibri.{{ hcv_environment }}"
+      password: "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+      username: "{{ sip_jibri_nick }}"
   outbound:
-    prod-8x8:
-      domain: auth.8x8.vc
-      password: "{{ outbound_sip_jibri_xmpp_password }}"
-      username: "{{ outbound_sip_jibri_xmpp_user }}"
+    {{ sip_jibri_environment }}:
+      domain: "sipjibri.{{ hcv_environment }}"
+      password: "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+      username: "{{ sip_jibri_nick }}"
 sip_jibri_xmpp_logins_path: /etc/jitsi/sip-jibri-sidecar/xmpp-logins.json
