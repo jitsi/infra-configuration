@@ -341,7 +341,7 @@
             namepass:
               - "http*"
               - "signal*"
-              - "{{ telegraf_jvb_filter | join('", "') }}"
+              - "{{ telegraf_jvb_filter | to_json | regex_replace('^\[|\]$','') }}"
               - "{{ telegraf_jicofo_filter }}"
         telegraf_tags:
           shard-role: "all"
