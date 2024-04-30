@@ -1,5 +1,4 @@
 ---
-sip_jibri_auth_type: "A"
 sip_jibri_base_path: /opt/jitsi/sip-jibri-sidecar
 #use regexp to extract the last two octet of the IP address and use it as the component ID for the jibri
 sip_jibri_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
