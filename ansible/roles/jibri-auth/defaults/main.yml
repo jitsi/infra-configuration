@@ -1,9 +1,4 @@
 ---
-inbound_sip_jibri_auth_domain: "auth.{{ environment_domain_name }}"
-inbound_sip_jibri_auth_domain_path: "/var/lib/prosody/{{ inbound_sip_jibri_auth_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ inbound_sip_jibri_auth_user | regex_replace('-', '%2d') }}.dat"
-inbound_sip_jibri_auth_password: "replaceme"
-inbound_sip_jibri_auth_user: "inbound-sip-jibri"
 jibri_auth_domain: "auth.{{ environment_domain_name }}"
 jibri_auth_domain_path: "/var/lib/prosody/{{ jibri_auth_domain | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/{{ jibri_auth_user }}.dat"
 jibri_auth_password: "jibri"
@@ -16,11 +11,6 @@ jibri_selenium_auth_domain_path: "/var/lib/prosody/{{ jibri_selenium_auth_domain
   regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_auth_user }}.dat"
 jibri_selenium_auth_password: "replaceme"
 jibri_selenium_auth_user: "recorder"
-outbound_sip_jibri_auth_domain: "auth.{{ environment_domain_name }}"
-outbound_sip_jibri_auth_domain_path: "/var/lib/prosody/{{ outbound_sip_jibri_auth_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ outbound_sip_jibri_auth_user | regex_replace('-', '%2d') }}.dat"
-outbound_sip_jibri_auth_password: "replaceme"
-outbound_sip_jibri_auth_user: "outbound-sip-jibri"
 jibri_legacy_auth: true
 # Different than the legacy username because we want to provision new accounts.
 # Note: avoid capital letters and special chars because prosody lowers/encodes them in the filename.
