@@ -28,17 +28,3 @@ jibri_selenium_path_A: "/var/lib/prosody/{{ jibri_selenium_domain | regex_replac
 jibri_selenium_user_B: jibrib
 jibri_selenium_path_B: "/var/lib/prosody/{{ jibri_selenium_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_user_B | regex_replace('-', '%2d') }}.dat"
-jibri_outbound_sip_domain: "auth.{{ environment_domain_name }}"
-jibri_outbound_sip_user_A: sipjibriouta
-jibri_outbound_sip_path_A: "/var/lib/prosody/{{ jibri_outbound_sip_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_outbound_sip_user_A | regex_replace('-', '%2d') }}.dat"
-jibri_outbound_sip_user_B: sipjibrioutb
-jibri_outbound_sip_path_B: "/var/lib/prosody/{{ jibri_outbound_sip_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_outbound_sip_user_B | regex_replace('-', '%2d') }}.dat"
-jibri_inbound_sip_domain: "auth.{{ environment_domain_name }}"
-jibri_inbound_sip_user_A: sipjibriina
-jibri_inbound_sip_path_A: "/var/lib/prosody/{{ jibri_inbound_sip_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_inbound_sip_user_A | regex_replace('-', '%2d') }}.dat"
-jibri_inbound_sip_user_B: sipjibriinb
-jibri_inbound_sip_path_B: "/var/lib/prosody/{{ jibri_inbound_sip_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_inbound_sip_user_B | regex_replace('-', '%2d') }}.dat"
