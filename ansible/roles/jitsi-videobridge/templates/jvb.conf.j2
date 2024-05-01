@@ -101,6 +101,10 @@ videobridge {
 
   stats {
     enabled = true
+    transit-time {
+      enable-json = {{ jvb_enable_stats_cron }}
+      enable-prometheus = {{ jvb_enable_telegraf }}
+    }
   }
 
   websockets {
