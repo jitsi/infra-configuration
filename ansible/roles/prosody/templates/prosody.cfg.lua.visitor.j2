@@ -113,8 +113,6 @@ asap_require_room_claim = false;
 -- https://prosody.im/doc/modules/mod_smacks
 smacks_max_unacked_stanzas = 5;
 smacks_hibernation_time = 60;
--- this is dropped in 0.12
-smacks_max_hibernated_sessions = 1;
 smacks_max_old_sessions = 1;
 
 {% if prosody_stats_provider %}
@@ -319,3 +317,31 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_enable_muc_rate_limit %}
     muc_rate_joins = 30;
 {% endif %}
+
+{% if secrets_jigasi_conference_A %}
+-- BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
+VirtualHost "jigasia.{{ prosody_domain_name }}"
+    modules_enabled = {
+{% if prosody_xmpp_resume %}
+      "smacks";
+{% endif %}
+    }
+    authentication = "jitsi-shared-secret"
+    shared_secret = "{{ secrets_jigasi_conference_A }}"
+    smacks_max_old_sessions = 2000;
+-- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
+{% endif %}
+
+{% if secrets_jigasi_conference_B %}
+-- BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
+VirtualHost "jigasib.{{ prosody_domain_name }}"
+    modules_enabled = {
+{% if prosody_xmpp_resume %}
+      "smacks";
+{% endif %}
+    }
+    authentication = "jitsi-shared-secret"
+    shared_secret = "{{ secrets_jigasi_conference_B }}"
+    smacks_max_old_sessions = 2000;
+{% endif %}
+-- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
