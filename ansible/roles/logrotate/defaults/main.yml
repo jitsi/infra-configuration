@@ -214,11 +214,13 @@ logrotate_rules_jigasi:
       - su jigasi jitsi
       - size 100M
       - rotate 7
+      - weekly
       - missingok
       - notifempty
       - compress
       - delaycompress
       - copytruncate
+      - maxage 14
     path:
       - /var/log/jitsi/jigasi.log
 logrotate_rules_jigasi_enabled: false
