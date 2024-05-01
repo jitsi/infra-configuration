@@ -167,8 +167,8 @@ sinks:
         enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
-        job: "jigasi-{{ ansible_hostname }}"
-        task: "jigasi"
+        job: "{{ vector_shard_role }}-{{ ansible_hostname }}"
+        task: "{{ vector_shard_role }}"
         group: "jigasi"
         namespace: "default"
         node: "{{ ansible_hostname }}"
