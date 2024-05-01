@@ -214,6 +214,7 @@ logrotate_rules_jigasi:
       - su jigasi jitsi
       - size 100M
       - rotate 7
+      - weekly
       - missingok
       - notifempty
       - compress
