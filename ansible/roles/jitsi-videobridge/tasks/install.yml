@@ -139,7 +139,7 @@
     src: "jvb-stats-oracle.sh"
     mode: 0755
     owner: root
-  when: jvb_cloud_provider == "oracle" and jvb_enable_stats_cron
+  when: jvb_cloud_provider == "oracle"
 
 # add a stats script to upload colibri stats to DataDog
 - name: JVB stats python script upload
