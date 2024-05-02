@@ -14,7 +14,7 @@ jigasi_brewery_path_A: "/var/lib/prosody/{{ jigasi_brewery_domain | regex_replac
 jigasi_brewery_path_B: "/var/lib/prosody/{{ jigasi_brewery_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jigasi_brewery_username_B }}.dat"
 # Enable/disable provisioning jigasi accounts using the old variable names
-jigasi_legacy_auth: true
+jigasi_legacy_auth: false
 jigasi_transcriber_auth_domain: "recorder.{{ environment_domain_name }}"
 jigasi_transcriber_auth_domain_path: "/var/lib/prosody/{{ jigasi_transcriber_auth_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jigasi_transcriber_legacy_user }}.dat"
