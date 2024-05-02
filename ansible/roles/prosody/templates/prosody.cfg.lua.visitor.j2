@@ -319,7 +319,6 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% endif %}
 
 {% if secrets_jigasi_conference_A %}
--- BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
 VirtualHost "jigasia.{{ prosody_domain_name }}"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
@@ -329,11 +328,9 @@ VirtualHost "jigasia.{{ prosody_domain_name }}"
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ secrets_jigasi_conference_A }}"
     smacks_max_old_sessions = 2000;
--- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
 {% endif %}
 
 {% if secrets_jigasi_conference_B %}
--- BEGIN ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
 VirtualHost "jigasib.{{ prosody_domain_name }}"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
@@ -344,4 +341,3 @@ VirtualHost "jigasib.{{ prosody_domain_name }}"
     shared_secret = "{{ secrets_jigasi_conference_B }}"
     smacks_max_old_sessions = 2000;
 {% endif %}
--- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi B
