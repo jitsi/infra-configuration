@@ -219,8 +219,6 @@ prosody_password_public_key_repo_url = "{{ prosody_password_public_key_repo_url 
 -- https://prosody.im/doc/modules/mod_smacks
 smacks_max_unacked_stanzas = 5;
 smacks_hibernation_time = 60;
--- this is dropped in 0.12
-smacks_max_hibernated_sessions = 1;
 smacks_max_old_sessions = 1;
 {% endif %}
 
@@ -535,8 +533,7 @@ VirtualHost "recorder.{{ prosody_domain_name }}"
     }
     authentication = "internal_hashed"
 {% if prosody_xmpp_resume %}
-    -- this is dropped in 0.12
-    smacks_max_hibernated_sessions = 2000;
+    smacks_max_old_sessions = 2000;
 {% endif %}
 
 Component "conference.{{ prosody_domain_name }}" "muc"
@@ -804,6 +801,7 @@ VirtualHost "sipjibri.{{ prosody_domain_name }}"
     }
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+    smacks_max_old_sessions = 2000;
 {% endif %}
 
 {% if secrets_jigasi_conference_A %}
@@ -816,6 +814,7 @@ VirtualHost "jigasia.{{ prosody_domain_name }}"
     }
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ secrets_jigasi_conference_A }}"
+    smacks_max_old_sessions = 2000;
 -- END ANSIBLE MANAGED BLOCK jitsi-shared-secret jigasi A
 {% endif %}
 
@@ -827,6 +826,7 @@ VirtualHost "jigasib.{{ prosody_domain_name }}"
       "smacks";
 {% endif %}
     }
+    smacks_max_old_sessions = 2000;
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ secrets_jigasi_conference_B }}"
 {% endif %}
