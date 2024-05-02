@@ -245,7 +245,7 @@
 - name: JVB stats python script upload
   ansible.builtin.copy:
     dest: "{{ path_to_stats_python_script }}"
-    src: "{{ 'jvb-stats-extras-only.py' if jvb_enable_telegraf else 'jvb-stats.py' }}"
+    src: "jvb-stats.py"
     mode: 0755
     owner: root
   when: jvb_enable_stats_cron
