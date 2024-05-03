@@ -19,12 +19,12 @@
     action: insert
     comment: Added via ansible post-launch configuration script
 
-- name: Open http TCP port 8500 via iptables
+- name: Open http TCP port 8500-8502 via iptables
   ansible.builtin.iptables:
     chain: INPUT
     ctstate: NEW
     protocol: tcp
-    destination_port: "8500"
+    destination_port: "8500:8502"
     jump: ACCEPT
     action: insert
     comment: Added via ansible post-launch configuration script
