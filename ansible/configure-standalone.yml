@@ -337,8 +337,8 @@
           nstat:
             fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
           prometheus:
-            urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics"]
-            namepass: ["http*", "signal*", "{{ telegraf_jicofo_filter }}"]
+            urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics", "http://localhost:8080/metrics"]
+            namepass: "{{ telegraf_jvb_filter + ['http*', 'signal*'] + [ telegraf_jicofo_filter ] }}"
         telegraf_tags:
           shard-role: "all"
           role: "all"
