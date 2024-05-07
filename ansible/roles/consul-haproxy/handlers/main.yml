@@ -1,5 +1,5 @@
 ---
-- name: Restart consul
+- name: Restart consul for consul-haproxy # noqa ignore-errors
   ansible.builtin.systemd:
     name: consul
     state: restarted

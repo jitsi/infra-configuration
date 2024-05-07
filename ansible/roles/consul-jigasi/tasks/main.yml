@@ -4,6 +4,7 @@
     mode: 0644
     src: "jigasi.json.j2"
     dest: "/etc/consul.d/jigasi.json"
+  notify: Restart consul for consul-jigasi
 
 - name: Enable consul service # noqa ignore-errors
   ansible.builtin.systemd:

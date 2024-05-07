@@ -1,5 +1,5 @@
 ---
-- name: Restart consul for consul-telegraf # noqa ignore-errors
+- name: Restart consul for consul-standalone # noqa ignore-errors
   ansible.builtin.systemd:
     name: consul
     state: restarted

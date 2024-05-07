@@ -5,7 +5,7 @@
     src: "haproxy.json.j2"
     dest: "/etc/consul.d/haproxy.json"
   notify:
-    - Restart consul
+    - Restart consul for consul-haproxy
 
 - name: Make sure consul service is running
   ansible.builtin.systemd:
