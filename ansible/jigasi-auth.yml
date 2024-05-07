@@ -26,14 +26,5 @@
       no_log: true
       when: jigasi_vault_enabled
       tags: "vault"
-    - name: Set jigasi variables from vault secrets
-      ansible.builtin.set_fact:
-        jigasi_auth_user: "{{ jigasi_secret_response.secret.user }}"
-        jigasi_auth_password: "{{ jigasi_secret_response.secret.password }}"
-      when:
-        - jigasi_vault_enabled
-        - jigasi_secret_response is defined
-      no_log: true
-      tags: "vault"
   roles:
     - { role: "jigasi-auth", tags: "jigasi-auth" }

@@ -1,21 +1,20 @@
 ---
 default_jigasi_environments: []
 environment_domain_name: "jigasi"
-jigasi_auth_conference_domain: "{{ 'jigasia' if jigasi_auth_type == 'A' else ('jigasib' if jigasi_auth_type == 'B' else 'jigasi') }}.{{ environment_domain_name }}"
-jigasi_auth_conference_pass: "{{ secrets_jigasi_conference_A if jigasi_auth_type == 'A' else (secrets_jigasi_conference_B if jigasi_auth_type == 'B' else jigasi_xmpp_password) }}"
+jigasi_auth_conference_domain: "{{ 'jigasia' if jigasi_auth_type == 'A' else 'jigasib' }}.{{ environment_domain_name }}"
+jigasi_auth_conference_pass: "{{ secrets_jigasi_conference_A if jigasi_auth_type == 'A' else secrets_jigasi_conference_B }}"
 # With jitsi-shared-secret authentication any username is accepted (the domain is what controls whether to use account
 # A or B) and we want it to be unique among all jigasis logged into the host since we use it for whitelisting.
 jigasi_auth_conference_user: "{{ jigasi_sip_username }}"
-jigasi_auth_domain: "{{ jigasi_auth_prefix }}.{{ environment_domain_name }}"
 jigasi_auth_prefix: "{{ auth_prefix | default('auth') }}"
-# Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
-jigasi_auth_type: 'legacy'
+# Either "A" or "B"
+jigasi_auth_type: 'A'
 jigasi_bosh_host_override: false
 jigasi_bosh_url_pattern: "https://{host}{subdomain}/http-bind?room={roomName}"
-jigasi_brewery_auth_pass: "{{ secrets_jigasi_brewery_A if jigasi_brewery_auth_type == 'A' else (secrets_jigasi_brewery_A if jigasi_brewery_auth_type == 'B' else jigasi_xmpp_password) }}"
-# Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
-jigasi_brewery_auth_type: "legacy"
-jigasi_brewery_auth_user: "{{ 'jigasia' if jigasi_brewery_auth_type == 'A' else ('jigasib' if jigasi_brewery_auth_type == 'B' else 'jigasi') }}"
+jigasi_brewery_auth_pass: "{{ secrets_jigasi_brewery_A if jigasi_brewery_auth_type == 'A' else secrets_jigasi_brewery_B }}"
+# Either "A" or "B"
+jigasi_brewery_auth_type: "A"
+jigasi_brewery_auth_user: "{{ 'jigasia' if jigasi_brewery_auth_type == 'A' else 'jigasib' }}"
 jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix }}.{{ jigasi_xmpp_domain }}"
 jigasi_brewery_muc_room: JigasiBrewery
 jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc
@@ -129,12 +128,10 @@ jigasi_stats_cron:
   minute: "*"
 jigasi_stats_cron_user: ubuntu
 jigasi_transcriber_auth_domain: "recorder.{{ jigasi_xmpp_domain }}"
-jigasi_transcriber_auth_pass: "{{ secrets_jigasi_transcriber_A if jigasi_transcriber_auth_type == 'A' else (secrets_jigasi_transcriber_B if jigasi_transcriber_auth_type == 'B' else jigasi_transcriber_auth_password) }}"
-# Legacy.
-jigasi_transcriber_auth_password: "replaceme"
-# Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
-jigasi_transcriber_auth_type: "legacy"
-jigasi_transcriber_auth_user: "{{ 'transcribera' if jigasi_transcriber_auth_type == 'A' else ('transcriberb' if jigasi_transcriber_auth_type == 'B' else 'transcriber') }}"
+jigasi_transcriber_auth_pass: "{{ secrets_jigasi_transcriber_A if jigasi_transcriber_auth_type == 'A' else secrets_jigasi_transcriber_B }}"
+# Either "A" or "B".
+jigasi_transcriber_auth_type: "A"
+jigasi_transcriber_auth_user: "{{ 'transcribera' if jigasi_transcriber_auth_type == 'A' else 'transcriberb' }}"
 jigasi_transcriber_enable_debug: false
 jigasi_transcriber_filter_silence: false
 jigasi_transcriber_custom_transcriber: false
@@ -147,7 +144,5 @@ jigasi_udp_buffer_max_backlog: 2000
 # temporarily increase buffer size until performance work is completed
 jigasi_udp_buffer_size: 2097152
 jigasi_xmpp_domain: "{{ environment_domain_name }}"
-jigasi_xmpp_jid_username: jigasi
-jigasi_xmpp_password: "replaceme"
 jigasi_xmpp_port: 5222
 jigasi_xmpp_server: 127.0.0.1
