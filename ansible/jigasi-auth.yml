@@ -10,21 +10,5 @@
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
 
-  pre_tasks:
-    # enable vault agent
-    - name: Enable and start vault agent
-      ansible.builtin.service:
-        name: vault-agent
-        enabled: true
-        state: started
-      tags: "vault"
-      when: jigasi_vault_enabled
-    # fetch secrets from vault
-    - name: Retrieve jigasi secrets from vault
-      ansible.builtin.set_fact:
-        jigasi_secret_response: "{{ lookup('community.hashi_vault.vault_kv2_get', hcv_environment+'/jigasi/xmpp') }}"
-      no_log: true
-      when: jigasi_vault_enabled
-      tags: "vault"
   roles:
     - { role: "jigasi-auth", tags: "jigasi-auth" }
