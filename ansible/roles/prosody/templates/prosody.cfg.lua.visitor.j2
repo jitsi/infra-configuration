@@ -319,7 +319,7 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% endif %}
 
 {% if secrets_jigasi_conference_A %}
-VirtualHost "jigasia.{{ prosody_domain_name }}"
+VirtualHost "jigasia.v{{ item }}.meet.jitsi"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
       "smacks";
@@ -331,7 +331,7 @@ VirtualHost "jigasia.{{ prosody_domain_name }}"
 {% endif %}
 
 {% if secrets_jigasi_conference_B %}
-VirtualHost "jigasib.{{ prosody_domain_name }}"
+VirtualHost "jigasib.v{{ item }}.meet.jitsi"
     modules_enabled = {
 {% if prosody_xmpp_resume %}
       "smacks";
