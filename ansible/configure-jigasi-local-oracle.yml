@@ -29,32 +29,6 @@
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
-    # enable vault agent
-    - name: Enable and start vault agent
-      ansible.builtin.service:
-        name: vault-agent
-        enabled: true
-        state: started
-      tags: "setup"
-      when: jigasi_vault_enabled
-
-    # fetch secrets from vault
-    - name: Retrieve jigasi secrets from vault
-      ansible.builtin.set_fact:
-        jigasi_secret_response: "{{ lookup('community.hashi_vault.vault_kv2_get', hcv_environment+'/jigasi/xmpp',
-          url=vault_agent_address, token_file='/var/lib/vault-agent/.vault-token') }}"
-      no_log: true
-      when: jigasi_vault_enabled
-      tags: "setup"
-
-    - name: Set jigasi variables from vault secrets
-      ansible.builtin.set_fact:
-        jigasi_xmpp_jid_username: "{{ jigasi_secret_response.secret.user }}"
-        jigasi_xmpp_password: "{{ jigasi_secret_response.secret.password }}"
-      when: jigasi_vault_enabled
-      no_log: true
-      tags: setup
-
     - name: Remove Ansible repository
       ansible.builtin.apt_repository:
         repo: "ppa:ansible/ansible"
