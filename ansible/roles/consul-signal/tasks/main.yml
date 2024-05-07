@@ -4,6 +4,7 @@
     mode: 0644
     src: "signal.json.j2"
     dest: "/etc/consul.d/signal.json"
+  notify: Restart consul for consul-signal
 
 - name: Install consul service enablement # noqa ignore-errors
   ansible.builtin.systemd:

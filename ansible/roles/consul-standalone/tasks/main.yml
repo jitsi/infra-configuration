@@ -4,6 +4,7 @@
     mode: 0644
     src: "standalone.json.j2"
     dest: "/etc/consul.d/standalone.json"
+  notify: Restart consul for consul-standalone
 
 - name: Enable consul service # noqa ignore-errors
   ansible.builtin.systemd:
