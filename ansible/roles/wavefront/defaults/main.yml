@@ -1,7 +1,7 @@
 ---
 datadog_extensions: "false"
 statsd_port: 8125
-telegraf_jicofo_filter: "jitsi_jicofo_conference_requests*"
+telegraf_jicofo_filter: "jitsi_jicofo_*"
 telegraf_jvb_filter: [
     "jitsi_jvb_active_endpoints",
     "jitsi_jvb_average_rtt",

@@ -26,7 +26,7 @@ jicofo_enable_source_signaling_delay: true
 # Enable additional logs for source-add, source-remove.
 jicofo_enable_ssrc_logs: false
 jicofo_enable_health: true
-jicofo_enable_stats: true
+jicofo_enable_stats: false
 jicofo_enable_vp8: true
 jicofo_enable_vp9: true
 jicofo_health_cron:
