@@ -65,6 +65,12 @@ s2s_whitelist = {
 {% if prosody_enable_guest_auth %}
     '{{ prosody_guest_domain_name }}';
 {% endif %}
+{% if secrets_jigasi_conference_A %}
+    'jigasia.v{{ item }}.meet.jitsi';
+{% endif %}
+{% if secrets_jigasi_conference_B %}
+    'jigasib.v{{ item }}.meet.jitsi';
+{% endif %}
 };
 
 {% if prosody_enable_mod_turncredentials %}
@@ -170,6 +176,12 @@ s2sout_override = {
     ["visitors.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
 {% if prosody_enable_guest_auth %}
     ["{{ prosody_guest_domain_name }}"] = "tcp://127.0.0.1:5269";
+{% endif %}
+{% if secrets_jigasi_conference_A %}
+    ["jigasia.v{{ item }}.meet.jitsi"] = "tcp://127.0.0.1:5269";
+{% endif %}
+{% if secrets_jigasi_conference_B %}
+    ["jigasib.v{{ item }}.meet.jitsi"] = "tcp://127.0.0.1:5269";
 {% endif %}
 }
 
