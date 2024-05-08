@@ -85,6 +85,15 @@ external_services = {
 
 muc_mapper_domain_base = 'v{{ item }}.meet.jitsi';
 main_domain = '{{ prosody_domain_name }}';
+main_domains = {
+    main_domain;
+{% if secrets_jigasi_conference_A %}
+    "jigasia.{{ prosody_domain_name }}";
+{% endif %}
+{% if secrets_jigasi_conference_B %}
+    "jigasib.{{ prosody_domain_name }}"
+{% endif %}
+};
 enable_domain_verification = true;
 asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},"{{ iss }}"{% endfor %} }
 asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{ aud }}"{% endfor %} }
