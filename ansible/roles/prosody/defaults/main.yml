@@ -207,6 +207,9 @@ prosody_muc_password_whitelist_jids:
   - "transcriber@recorder.{{ prosody_domain_name }}"
   - "transcribera@recorder.{{ prosody_domain_name }}"
   - "transcriberb@recorder.{{ prosody_domain_name }}"
+  - "jigasia.{{ prosody_domain_name }}"
+  - "jigasib.{{ prosody_domain_name }}"
+  - "sipjibri.{{ prosody_domain_name }}"
 prosody_muc_require_token_for_moderation: false
 # prosody 0.11 and later should always use epoll for scalability
 prosody_network_backend: epoll
