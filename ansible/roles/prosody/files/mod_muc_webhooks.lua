@@ -279,6 +279,8 @@ function handle_occupant_access(event, event_type)
         end
         payload.participantJid = occupant.bare_jid;
         payload.participantId = nick_resource;
+        payload.conference = internal_room_jid_match_rewrite(room.jid);
+
         -- dial check
         if dial_participants[occupant.jid] ~= nil then
             if DEBUG then module:log("debug", "dial participant %s leave room %s", occupant.jid, room.jid); end
@@ -487,10 +489,6 @@ function handle_occupant_access(event, event_type)
             else
                 payload.disconnectReason = 'left'
             end
-        end
-
-        if final_event_type == PARTICIPANT_JOINED then
-                payload.roomCreatedTimestamp = room.created_timestamp;
         end
 
         -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
