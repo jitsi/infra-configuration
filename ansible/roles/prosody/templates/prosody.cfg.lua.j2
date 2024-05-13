@@ -395,11 +395,7 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 
 {% else %}
-  {% if prosody_enable_plain_auth %}
-        authentication = "internal_hashed"
-  {% else %}
         authentication = "anonymous"
-  {% endif %}
 {% endif %}
         -- Assign this host a certificate for TLS, otherwise it would use the one
         -- set in the global section (if any).
