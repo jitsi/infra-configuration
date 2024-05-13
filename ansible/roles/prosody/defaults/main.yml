@@ -6,9 +6,6 @@ jitsi_meet_no_sharding: false
 # This check by default is false, but on configure time we check the installed version of jitsi-meet, whether the module
 # exist and if it is there we enable it in the client prosody config template
 mod_external_services_exists: false
-moderator_auth_domain_path: "/var/lib/prosody/{{ prosody_auth_domain_name | regex_replace('\\.', '%2e') }}/accounts/{{ moderator_auth_user }}.dat"
-moderator_auth_password: "replaceme"
-moderator_auth_user: "moderator"
 prosody_admins: "{{ prosody_focus_admins | list }}"
 prosody_amplitude_api_key: false
 prosody_apt_base_name: prosody
@@ -38,7 +35,6 @@ prosody_cancel_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call
 prosody_cloud_provider: "{{ cloud_provider | default('oracle') }}"
 prosody_conference_info_url: false
 prosody_configure_flag: true
-prosody_create_users: "{{ prosody_enable_plain_auth }}"
 prosody_disable_messaging: false
 prosody_disabled_modules: ["pubsub", "register"]
 prosody_disable_required_room_claim: false
@@ -87,8 +83,6 @@ prosody_enable_password_preset: false
 prosody_enable_password_waiting_for_host: false
 prosody_enable_persistent_lobby: false
 prosody_enable_end_meeting: false
-# don't enable authentication by default
-prosody_enable_plain_auth: false
 # flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
 prosody_enable_rate_limit: true
@@ -254,7 +248,7 @@ prosody_subversion: "{{ prosody_package_subversion if not prosody_install_from_a
 prosody_token_allow_empty: true
 prosody_visitor_token_allow_empty: true
 prosody_token_app_id: jitsi
-prosody_token_app_secret: replaceme
+prosody_token_app_secret: false
 # our networks and cloudflare ip-ranges (cloudflare ranges come from https://www.cloudflare.com/en-gb/ips/)
 prosody_trusted_proxies: [
   "127.0.0.1", "::1", "10.0.0.0/8", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14",

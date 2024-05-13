@@ -490,12 +490,6 @@
 - name: Ensure handlers are notified now to reload prosody if configuration changed
   ansible.builtin.meta: flush_handlers
 
-- name: Add moderator authentication
-  ansible.builtin.command: prosodyctl register {{ moderator_auth_user }} {{ prosody_domain_name }} "{{ moderator_auth_password }}"
-  args:
-    creates: "{{ moderator_auth_domain_path }}"
-  when: prosody_create_users
-
   # Run the health checker regularly
 - name: Enable prosody health check cron
   ansible.builtin.cron:

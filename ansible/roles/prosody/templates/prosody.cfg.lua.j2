@@ -380,7 +380,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_tokens %}
         authentication = "token"
         app_id = "{{ prosody_token_app_id }}";             -- application identifier
+        {% if prosody_token_app_secret %}
         app_secret = "{{ prosody_token_app_secret }}";     -- application secret known only to your token
+        {% endif %}
         allow_empty_token = {% if prosody_token_allow_empty -%}true{% else -%}false{% endif %}     -- tokens are verified only if they are supplied by the client
 {% if prosody_public_key_repo_url %}
         asap_key_server = "{{ prosody_public_key_repo_url }}"
@@ -393,11 +395,7 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 
 {% else %}
-  {% if prosody_enable_plain_auth %}
-        authentication = "internal_hashed"
-  {% else %}
         authentication = "anonymous"
-  {% endif %}
 {% endif %}
         -- Assign this host a certificate for TLS, otherwise it would use the one
         -- set in the global section (if any).

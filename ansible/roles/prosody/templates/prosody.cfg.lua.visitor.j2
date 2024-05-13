@@ -197,7 +197,9 @@ VirtualHost 'v{{ item }}.meet.jitsi'
 {% if prosody_enable_tokens %}
     authentication = "token"
     app_id = "{{ prosody_token_app_id }}";             -- application identifier
+    {% if prosody_token_app_secret %}
     app_secret = "{{ prosody_token_app_secret }}";     -- application secret known only to your token
+    {% endif %}
     allow_empty_token = {% if prosody_visitor_token_allow_empty -%}true{% else -%}false{% endif %}     -- tokens are verified only if they are supplied by the client
 {% if prosody_public_key_repo_url %}
     asap_key_server = "{{ prosody_public_key_repo_url }}"
