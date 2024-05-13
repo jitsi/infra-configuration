@@ -716,7 +716,7 @@ function handle_poll_created(pollData)
         ["eventType"] = POLL_CREATED,
         ["data"] = eventData
     }
-    module:log("debug", "Poll created event: %s", inspect(poll_created_event))
+    if DEBUG then module:log("debug", "Poll created event: %s", inspect(poll_created_event)); end
     event_count();
     http.request(EGRESS_URL, {
         headers = util.http_headers_no_auth,
