@@ -280,6 +280,7 @@ function handle_occupant_access(event, event_type)
         end
         payload.participantJid = occupant.bare_jid;
         payload.participantId = nick_resource;
+        payload.participantFullJid = occupant.jid;
         payload.conference = internal_room_jid_match_rewrite(room.jid);
 
         if (is_lobby) then
