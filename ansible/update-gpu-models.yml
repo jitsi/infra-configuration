@@ -10,6 +10,7 @@
     - secrets/ops-repo.yml
     - secrets/nomad.yml
     - config/vars.yml
+    - sites/{{hcv_environment}}/vars.yml
   roles:
     - role: "gpu-models"
       tags: "gpu-models"
