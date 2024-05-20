@@ -89,5 +89,14 @@
     jump: ACCEPT
     action: insert
     comment: Added via ansible post-launch configuration script
+- name: Open consul DNS UDP port 8600 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "8600"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
 - name: Save newly added iptable rules
   ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
