@@ -1,1 +1,2 @@
 ---
+consul_jigasi_shard_role: "{{ jigasi_shard_role | default('jigasi') }}"

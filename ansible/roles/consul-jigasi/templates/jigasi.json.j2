@@ -1,6 +1,6 @@
 {
   "service": {
-    "name": "jigasi",
+    "name": "{{ consul_jigasi_shard_role }}",
     "tags":["{{ hcv_environment }}"],
     "meta": {
         "environment":"{{ hcv_environment }}"
@@ -15,5 +15,19 @@
         "timeout": "1s"
       }
     ]
+{{- if consul_jigasi_shard_role == "jigasi-transcriber" }},
+    "connect": {
+      "sidecar_service": {
+        "proxy": {
+          "upstreams": [
+            {
+              "destination_name": "whisper-haproxy",
+              "local_bind_port": 8088
+            }
+          ]
+        }
+      }
+    }
+{{- end }}
   }
 }

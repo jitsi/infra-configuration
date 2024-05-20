@@ -12,3 +12,19 @@
     state: started
     enabled: true
   ignore_errors: true
+
+# flush handlers to restart consul in case of changes from above
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure systemd script for sidecar service
+  ansible.builtin.file:
+    mode: 0644
+    src: jigasi-transcriber-consul-envoy.systemd
+    dest: "/lib/systemd/system/jigasi-transcriber-consul-envoy.service"
+
+- name: Start server service and set it enabled
+  ansible.builtin.service:
+    name: "jigasi-transcriber-consul-envoy"
+    state: started
+    enabled: true
