@@ -43,7 +43,6 @@ jvb_enable_cryptex_endpoint: false
 jvb_enable_cryptex_relay: true
 jvb_enable_health_check_cron: true
 jvb_enable_message_transport_logs: false
-jvb_enable_multi_stream: true
 jvb_enable_multiple_shards: true
 jvb_enable_octo: true
 jvb_enable_pcap: false
