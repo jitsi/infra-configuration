@@ -188,6 +188,25 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
         end
 
         if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
+            if room._data.vpaas_guest_access then
+                -- make sure it is not authenticated user, a guest (no features are set)
+                origin.auth_token = nil;
+                origin.jitsi_meet_room = nil;
+                origin.jitsi_meet_domain = nil;
+                origin.jitsi_meet_str_tenant = nil;
+                origin.jitsi_meet_context_user = nil;
+                origin.jitsi_meet_context_group = nil;
+                origin.jitsi_meet_context_features = nil;
+                origin.jitsi_meet_context_room = nil;
+                origin.contextRequired = nil;
+                origin.public_key = nil;
+                origin.kid = nil;
+                -- let's mark this session that we cleared the token
+                origin.vpaas_guest_access = true;
+
+                return nil;
+            end
+
             module:log("warn", "VPAAS room %s is disabled for tenant %s", room_jid, tenant);
             origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for 8x8 users"));
             return true;

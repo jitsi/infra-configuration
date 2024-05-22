@@ -87,6 +87,8 @@ module:hook("muc-room-pre-create", function(event)
             else
                 room._data.disabled_access = false;
             end
+
+            room._data.vpaas_guest_access = jaas_actuator_res.unauthenticatedJoins;
         else
             module:log("warn", "External call to jaas-actuator failed, we do not set any disabled features")
             room._data.disabled_access = false;
