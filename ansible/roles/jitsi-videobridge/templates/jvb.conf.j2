@@ -154,6 +154,9 @@ videobridge {
 
   sctp {
     enabled = {{ jvb_enable_sctp }}
+{% if jvb_use_dcsctp %}
+   use_usrsctp = false
+{% endif %}
   }
 
   shutdown {
