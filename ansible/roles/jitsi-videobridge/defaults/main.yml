@@ -210,6 +210,7 @@ jvb_udp_buffer_size: 104857600
 jvb_ufrag_prefix: "{{ jvb_component_id }}"
 jvb_upgrade_flag: false
 jvb_use_cpu_for_stress: true
+jvb_use_dcsctp: false
 jvb_use_public_ip: false
 jvb_username: jvb
 jvb_websockets_advertise_port: 443
