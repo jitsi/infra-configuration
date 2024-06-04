@@ -31,7 +31,6 @@ jvb_data_channel_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
 jvb_disable_bwe: false
 jvb_disable_tcp: true
 jvb_domain_name: "{{ environment_domain_name }}"
-jvb_download_yourkit: false
 jvb_enable_all_timeseries: false
 jvb_enable_brctrl_timeseries: false
 jvb_enable_bwe_timeseries: false
@@ -224,9 +223,6 @@ jvb_ws_domain: "{{ environment_domain_name if jvb_colibri_proxy_enabled else jvb
 jvb_ws_domain_suffix: "jitsi.net"
 jvb_ws_relay_domain: "{{ jvb_server_prefix + '.' + jvb_ws_domain_suffix if jvb_colibri_proxy_enabled else false }}"
 jvb_xmpp_port: "{{ 6222 if prosody_jvb_configure_flag else 5222 }}"
-jvb_yourkit_agent_path: "{{ jvb_yourkit_base_path }}/bin/linux-arm-64/libyjpagent.so"
-jvb_yourkit_base_path: "/opt/YourKit-JavaProfiler-2023.9"
-jvb_yourkit_url: "https://download.yourkit.com/yjp/2023.9/YourKit-JavaProfiler-2023.9-b106-arm64.zip"
 path_to_health_script: "/usr/local/bin/jvb-health-check.sh"
 path_to_stats_python_script: "/usr/local/bin/jvb-stats.py"
 path_to_stats_script: "/usr/local/bin/jvb-stats.sh"
