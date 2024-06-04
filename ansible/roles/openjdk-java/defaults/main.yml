@@ -1,6 +1,9 @@
 ---
+java_17_flag: true
 java_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-java_alternatives_version: "{{ 'java-1.11.0-openjdk-' + java_architecture if java_use_11 else 'java-1.8.0-openjdk-' + java_architecture }}"
+java_alternatives_version: "{{ 'java-1.17.0-openjdk-' + java_architecture if java_use_17
+  else 'java-1.11.0-openjdk-' + java_architecture if java_use_11
+  else 'java-1.8.0-openjdk-' + java_architecture }}"
 java_from_apt: true
 java_install_flag: true
 java_package_prefix: openjdk-8
@@ -14,3 +17,4 @@ java_url_packages:
   - jdk
   - dbg
 java_use_11: true
+java_use_17: false
