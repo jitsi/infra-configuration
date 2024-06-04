@@ -236,18 +236,6 @@
     mode: 0755
     owner: "{{ jvb_username }}"
 
-- name: YourKit Installer
-  ansible.builtin.unarchive:
-    src: "{{ jvb_yourkit_url }}"
-    dest: /opt
-    remote_src: true
-  when: jvb_download_yourkit
-
-    # force restart of jitsi-videobridge even if not updated
-# - debug: trigger jitsi-videobridge
-#   notify: restart jitsi-videobridge
-#   changed_when: true
-
 - name: Copy pre-terminate collection script
   ansible.builtin.copy:
     src: "collect-pre-terminate-stats-jvb.sh"
