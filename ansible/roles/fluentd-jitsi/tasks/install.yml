@@ -31,6 +31,12 @@
     owner: "{{ fluentd_jitsi_username }}"
     group: "td-agent"
 
+# Install dependencies for fluentd ruby plugins
+- name: Install fluentd dependencies
+  ansible.builtin.apt:
+    name: "libyaml-dev"
+    state: present
+
 # ElasticSearch plugin
 - name: Install fluentd plugins # noqa no-changed-when
   ansible.builtin.command: td-agent-gem install fluent-plugin-cloudwatch-logs
