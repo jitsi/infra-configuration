@@ -158,6 +158,7 @@ function handle_occupant_access(event, event_type)
     end
     payload.participantJid = occupant.bare_jid;
     payload.participantFullJid = occupant.jid;
+    payload.isVisitor = true;
 
     local participant_access_event = {
         ['idempotencyKey'] = uuid_gen(),
