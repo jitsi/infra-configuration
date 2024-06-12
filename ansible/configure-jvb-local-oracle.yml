@@ -193,7 +193,7 @@
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jvb_java_11 }}", java_install_flag: false }
     - { role: "logrotate", tags: "logrotate", logrotate_rules_jvb_enabled: true}
     - { role: "journald", tags: "journald"}
-    - { role: "vector", tags: "vector", when: jvb_vector_enabled}
+    - { role: "vector", tags: "vector", when: jvb_vector_enabled, vector_install_flag: false }
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jvb_vector_enabled }
     - { role: "sshusers", tags: "ssh", ssh_users_config_flag: false, ssh_users_accounts_flag: false, ssh_users_system_flag: true }
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jvb_enable_fluentd }
