@@ -609,6 +609,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_wait_for_host %}
         "muc_wait_for_host";
 {% endif %}
+{% if prosody_visitors_enabled %}
+      "s2sout_override";
+{% endif %}
     }
 
 {% if prosody_enable_rate_limit %}
