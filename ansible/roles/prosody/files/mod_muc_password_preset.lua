@@ -302,6 +302,10 @@ local function queryForPassword(room)
                 room._data.visitors_enabled = conference_res.visitorsEnabled;
                 room_config_changed = true;
             end
+            if conference_res.visitorsLive ~= nil then
+                room._data.visitors_live = conference_res.visitorsLive;
+                room_config_changed = true;
+            end
 
             if room._data.starts_with_lobby then
                 room._data.lobby_type = conference_res.lobbyType or 'WAIT_FOR_APPROVAL'
