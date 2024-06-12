@@ -351,9 +351,10 @@ function handle_occupant_access(event, event_type)
         if is_vpaas(main_room) then
             participant_access_event["customerId"] = customer_id
         else
-            -- standalone customer
-            if session then
-                participant_access_event["customerId"] = session.jitsi_meet_context_group
+            if session and session.jitsi_meet_context_group then
+                participant_access_event["customerId"] = session.jitsi_meet_context_group;
+            else
+                participant_access_event["customerId"] = customer_id;
             end
         end
 
