@@ -43,6 +43,7 @@ export NAME_TAG="Name"
 export SHARD_TAG="shard"
 export SHARD_ROLE_TAG="shard-role"
 export GIT_BRANCH_TAG="git_branch"
+export EXCLUSIVE_TENANT_TAG="exclusive_tenant"
 export RELEASE_NUMBER_TAG="release_number"
 export JIBRI_RELEASE_NUMBER_TAG="jibri_release_number"
 export JVB_RELEASE_NUMBER_TAG="jvb_release_number"
@@ -87,6 +88,7 @@ export ENVIRONMENT=$(cat $CACHE_PATH | jq -r --arg ENVIRONMENT_TAG "$ENVIRONMENT
 export ENVIRONMENT_TYPE=$(cat $CACHE_PATH | jq -r --arg ENVIRONMENT_TYPE_TAG "$ENVIRONMENT_TYPE_TAG" ".[\"$ENVIRONMENT_TYPE_TAG\"]")
 export SHARD=$(cat $CACHE_PATH | jq -r --arg SHARD_TAG "$SHARD_TAG" ".[\"$SHARD_TAG\"]")
 export SHARD_ROLE=$(cat $CACHE_PATH | jq -r --arg SHARD_ROLE_TAG "$SHARD_ROLE_TAG" ".[\"$SHARD_ROLE_TAG\"]")
+export EXCLUSIVE_TENANT=$(cat $CACHE_PATH | jq -r --arg EXCLUSIVE_TENANT_TAG "$EXCLUSIVE_TENANT_TAG" ".[\"$EXCLUSIVE_TENANT_TAG\"]")
 export RELEASE_NUMBER=$(cat $CACHE_PATH | jq -r --arg RELEASE_NUMBER_TAG "$RELEASE_NUMBER_TAG" ".[\"$RELEASE_NUMBER_TAG\"]")
 export JIBRI_RELEASE_NUMBER=$(cat $CACHE_PATH | jq -r --arg JIBRI_RELEASE_NUMBER_TAG "$JIBRI_RELEASE_NUMBER_TAG" ".[\"$JIBRI_RELEASE_NUMBER_TAG\"]")
 export JVB_RELEASE_NUMBER=$(cat $CACHE_PATH | jq -r --arg JVB_RELEASE_NUMBER_TAG "$JVB_RELEASE_NUMBER_TAG" ".[\"$JVB_RELEASE_NUMBER_TAG\"]")
@@ -126,4 +128,8 @@ fi
 
 if [ "$JVB_POOL_MODE" == "null" ]; then
   export JVB_POOL_MODE=
+fi
+
+if [ "$EXCLUSIVE_TENANT" == "null" ]; then
+  export EXCLUSIVE_TENANT=
 fi

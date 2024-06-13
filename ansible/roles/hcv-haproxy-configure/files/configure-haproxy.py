@@ -110,6 +110,10 @@ def backend_from_service(consul_url,service,datacenter,local_datacenters):
     if 'http_backend_port' in service['ServiceMeta']:
         backend_port = int(service['ServiceMeta']['http_backend_port'])
 
+    exclusive_tenant = ''
+    if 'exclusive_tenant' in service['ServiceMeta']:
+        exclusive_tenant = service['ServiceMeta']['exclusive_tenant']
+
     if 'ServiceTaggedAddresses' in service:
         if 'lan' in service['ServiceTaggedAddresses']:
             private_ip = service['ServiceTaggedAddresses']['lan']['Address']
@@ -154,6 +158,7 @@ def backend_from_service(consul_url,service,datacenter,local_datacenters):
         'agent_port': agent_port,
         'backend_port': backend_port,
         'release_number': release_number,
+        'exclusive_tenant': exclusive_tenant,
     }
 
     if backend['datacenter'] in local_datacenters:
