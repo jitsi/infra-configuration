@@ -38,11 +38,11 @@ if f then
     ASAPKey = f:read("*all");
     f:close();
     if not ASAPKey then
-        module:log("warn", "No ASAP Key read, disabling muc_events plugin");
+        module:log("warn", "No ASAP Key read, disabling generate asap token");
         return
     end
 else
-    module:log("warn", "Error reading ASAP Key, disabling muc_events plugin");
+    module:log("warn", "Error reading ASAP Key, disabling generate asap token");
     return
 end
 
@@ -63,6 +63,10 @@ Util.http_headers_no_auth = {
 }
 
 function Util:generateToken(audience)
+    if not ASAPKey then
+        return ''
+    end
+
     audience = audience or ASAPAudience
     local t = os.time()
     local err
