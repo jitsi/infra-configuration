@@ -15,51 +15,12 @@ local event_count = module:measure("muc_events_rate", "rate")
 local event_count_failed = module:measure("muc_events_failed", "rate")
 local event_count_sent = module:measure("muc_events_sent", "rate")
 
-local ASAPKeyPath
-    = module:get_option_string("asap_key_path", '/etc/prosody/certs/asap.key');
-
-local ASAPKeyId
-    = module:get_option_string("asap_key_id", 'jitsi');
-
-local ASAPIssuer
-    = module:get_option_string("asap_issuer", 'jitsi');
-
-local ASAPAudience
-    = module:get_option_string("asap_audience", 'jitsi');
-
-local ASAPTTL
-    = module:get_option_number("asap_ttl", 3600);
-
-local ASAPTTL_THRESHOLD
-    = module:get_option_number("asap_ttl_threshold", 600);
-
-local ASAPKey;
-
--- Read ASAP key once on module startup
-local f = io.open(ASAPKeyPath, "r");
-if f then
-    ASAPKey = f:read("*all");
-    f:close();
-    if not ASAPKey then
-        module:log("warn", "No ASAP Key read, disabling muc_events plugin");
-        return
-    end
-else
-    module:log("warn", "Error reading ASAP Key, disabling muc_events plugin");
-    return
-end
-
 -- Cache for conference-related details: conf-details (muc_room_cache_size), conf-chat-history (muc_room_cache_size), conf-participants (maxParticipants*muc_room_cache_size), post-session-link (muc_room_cache_size)
 local confCacheSize = module:get_option_number("conference_cache_size", 530000);
 local function onConfCacheEvict(evictedKey, evictedValue)
     module:log("error", "Unexpected conference cache evict, this could lead to errors! For key %s, and value %s", evictedKey, evictedValue);
 end
 local confCache = require"util.cache".new(confCacheSize, onConfCacheEvict);
-
--- TODO: Figure out a less arbitrary default cache size.
-local jwtKeyCacheSize = module:get_option_number("jwt_pubkey_cache_size", 128);
-local jwtKeyCache = require"util.cache".new(jwtKeyCacheSize);
-
 
 -- option to ignore events about the focus and other components
 local blacklistPrefixes
@@ -132,45 +93,6 @@ local function shallow_copy(t)
         t2[k] = v
     end
     return t2
-end
-
-local function generateToken(audience)
-    audience = audience or ASAPAudience
-    local t = os.time()
-    local err
-    local exp_key = 'asap_exp.'..audience
-    local token_key = 'asap_token.'..audience
-    local exp = jwtKeyCache:get(exp_key)
-    local token = jwtKeyCache:get(token_key)
-
-    --if we find a token and it isn't too far from expiry, then use it
-    if token ~= nil and exp ~= nil then
-        exp = tonumber(exp)
-        if (exp - t) > ASAPTTL_THRESHOLD then
-            return token
-        end
-    end
-
-    --expiry is the current time plus TTL
-    exp = t + ASAPTTL
-    local payload = {
-        iss = ASAPIssuer,
-        aud = audience,
-        nbf = t,
-        exp = exp,
-    }
-
-    -- encode
-    local alg = "RS256"
-    token, err = jwt.encode(payload, ASAPKey, alg, {kid = ASAPKeyId})
-    if not err then
-        token = 'Bearer '..token
-        jwtKeyCache:set(exp_key,exp)
-        jwtKeyCache:set(token_key,token)
-        return token
-    else
-        return ''
-    end
 end
 
 local function round(num, numDecimalPlaces)
@@ -303,7 +225,7 @@ local function sendEvent(type ,room_address, participant, group, pdetails, cdeta
     if DEBUG then module:log("debug","Sending event %s",inspect(out_event)); end
 
     local headers = http_headers or {}
-    headers['Authorization'] = generateToken()
+    headers['Authorization'] = util.generateToken()
 
     if DEBUG then module:log("debug","Sending headers %s",inspect(headers)); end
 
@@ -341,7 +263,7 @@ local function sendChatHistory(room)
         ["timestamp"] = timestamp
     }
     local headers = http_headers or {}
-    headers['Authorization'] = generateToken()
+    headers['Authorization'] = util.generateToken()
 
     if DEBUG then module:log("debug", "Sending chat history %s to %s", inspect(body), voChatHistoryURL); end
     local request = http.request(voChatHistoryURL, {
@@ -604,7 +526,7 @@ local function handleBroadcastMessage(event)
             if transcription then
                 local request_body = json.encode(transcription);
                 local headers = http_headers or {};
-                headers['Authorization'] = generateToken();
+                headers['Authorization'] = util.generateToken();
                 http.request(transcriptionsURL, {
                     headers = headers,
                     method = "POST",
@@ -763,7 +685,7 @@ local function handleSpeakerStats(event)
         module:log("info", "Sending speaker stats for %s", event.room.jid);
         if DEBUG then module:log("debug", "Request body for speaker stats %s", inspect(requestBody)); end
         local headers = http_headers or {};
-        headers['Authorization'] = generateToken();
+        headers['Authorization'] = util.generateToken();
 
         http.request(speakerStatsURL, {
             headers = headers,
