@@ -9,9 +9,6 @@ local is_healthcheck_room = oss_util.is_healthcheck_room;
 local is_vpaas = oss_util.is_vpaas;
 local urlencode = require "util.http".urlencode;
 
-local ASAPAudience
-= module:get_option_string("asap_audience", 'jitsi');
-
 local http_headers = {
     ["User-Agent"] = "Prosody (" .. prosody.version .. "; " .. prosody.platform .. ")",
     ["Content-Type"] = "application/json",
@@ -99,7 +96,7 @@ module:hook("muc-room-pre-create", function(event)
     local jaas_actuator_customer_details_url = jaas_actuator_base_url .. "/v1/customers/" .. urlencode(customer_id);
 
     local headers = http_headers or {}
-    headers['Authorization'] = util.generateToken(ASAPAudience)
+    headers['Authorization'] = util.generateToken()
     if DEBUG then
         module:log("debug",
             "Requesting jaas actuator customer details: fqn %s customer id %s auth %s",

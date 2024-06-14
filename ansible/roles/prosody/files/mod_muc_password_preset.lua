@@ -18,6 +18,8 @@ local is_healthcheck_room = util.is_healthcheck_room;
 local starts_with = util.starts_with;
 local is_vpaas = util.is_vpaas;
 
+local util_internal = module:require "util.internal";
+
 local tostring = tostring;
 local neturl = require "net.url";
 local parse = neturl.parseQuery;
@@ -25,29 +27,6 @@ local jwt = module:require "luajwtjitsi";
 
 -- will be initialized once the main virtual host module is initialized
 local token_util;
-
--- TODO: Figure out a less arbitrary default cache size.
-local cacheSize = module:get_option_number("jwt_pubkey_cache_size", 128);
-local cache = require"util.cache".new(cacheSize);
-
-local ASAPKeyPath
-    = module:get_option_string("asap_key_path", '/etc/prosody/certs/asap.key');
-
-local ASAPKeyId
-    = module:get_option_string("asap_key_id", 'jitsi');
-
-local ASAPIssuer
-    = module:get_option_string("asap_issuer", 'jitsi');
-
-local ASAPAudience
-    = module:get_option_string("asap_audience", 'jitsi');
-
-local ASAPTTL
-    = module:get_option_number("asap_ttl", 3600);
-
-local ASAPTTL_THRESHOLD
-    = module:get_option_number("asap_ttl_threshold", 600);
-
 
 -- required parameter for custom muc component prefix,
 -- defaults to "conference"
@@ -206,51 +185,6 @@ function handle_get_room_password (event)
 
 end
 
-
-local function generateToken(audience)
-    audience = audience or ASAPAudience
-    local t = os.time()
-    local err
-    local exp_key = 'asap_exp.'..audience
-    local token_key = 'asap_token.'..audience
-    local exp = cache:get(exp_key)
-    local token = cache:get(token_key)
-
-    local f = io.open(ASAPKeyPath, "r");
-
-    local ASAPKey = f:read("*all");
-    f:close();
-
-    --if we find a token and it isn't too far from expiry, then use it
-    if token ~= nil and exp ~= nil then
-        exp = tonumber(exp)
-        if (exp - t) > ASAPTTL_THRESHOLD then
-            return token
-        end
-    end
-
-    --expiry is the current time plus TTL
-    exp = t + ASAPTTL
-    local payload = {
-        iss = ASAPIssuer,
-        aud = audience,
-        nbf = t,
-        exp = exp,
-    }
-
-    -- encode
-    local alg = "RS256"
-    token, err = jwt.encode(payload, ASAPKey, alg, {kid = ASAPKeyId})
-    if not err then
-        token = 'Bearer '..token
-        cache:set(exp_key,exp)
-        cache:set(token_key,token)
-        return token
-    else
-        return ''
-    end
-end
-
 -- Starts the query for password to the service
 -- adds a timeout so we do not force jicofo to wait a lot
 -- in case of no response or slow response we let participants through
@@ -363,7 +297,7 @@ local function queryForPassword(room)
     end
 
     local headers = http_headers or {}
-    headers['Authorization'] = generateToken()
+    headers['Authorization'] = util_internal.generateToken()
 
     if DEBUG then module:log("debug","Sending headers %s",inspect(headers)) end
 
