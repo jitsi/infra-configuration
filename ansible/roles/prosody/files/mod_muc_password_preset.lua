@@ -216,6 +216,7 @@ local function queryForPassword(room)
         end
 
         local room_config_changed = false;
+        local room_metadata_changed = false;
 
         local conference_res, error = json.decode(content_);
         if not conference_res then
@@ -235,6 +236,16 @@ local function queryForPassword(room)
             if conference_res.visitorsEnabled ~= nil then
                 room._data.visitors_enabled = conference_res.visitorsEnabled;
                 room_config_changed = true;
+            end
+            if conference_res.visitorsLive ~= nil then
+                if not room.jitsiMetadata then
+                    room.jitsiMetadata = {};
+                end
+                if not room.jitsiMetadata.visitors then
+                    room.jitsiMetadata.visitors = {};
+                end
+                room.jitsiMetadata.visitors.live = conference_res.visitorsLive;
+                room_metadata_changed = true;
             end
 
             if room._data.starts_with_lobby then
@@ -292,6 +303,9 @@ local function queryForPassword(room)
             msg:tag("status", {code = "104";}):up();
             msg:up();
             room:broadcast_message(msg);
+        end
+        if room_metadata_changed then
+            module:context(muc_domain):fire_event('room-metadata-changed', { room = room; });
         end
         clearJicofoPending(room)
     end
