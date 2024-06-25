@@ -406,3 +406,10 @@
     hour: "{{ jvb_health_check_cron.hour }}"
     job: "{{ jvb_health_check_cron.job }}"
   when: jvb_enable_health_check_cron
+
+- name: Copy list-large-conferences script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/list-large-conferences.sh"
+    src: "list-large-conferences.sh"
+    mode: 0755
+    owner: root
