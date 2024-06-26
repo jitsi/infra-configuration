@@ -46,6 +46,27 @@
     - collector
     - configure
 
+- name: Create systemd telegraf service overrides directory
+  ansible.builtin.file:
+    mode: 0755
+    path: /etc/systemd/system/telegraf.service.d
+    state: directory
+
+- name: Set systemd telegraf service overrides
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/telegraf.service.d/50-oomscoreadjust.conf
+    mode: 0644
+    owner: root
+    content: |
+      [Service]
+      OOMScoreAdjust=1000
+  register: systemd_telegraf_service_override
+
+- name: Run systemd daemon-reload if the telegraf service override was changed
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: systemd_telegraf_service_override.changed
+
 - name: Ensure telegraf is running
   ansible.builtin.service:
     name: telegraf
