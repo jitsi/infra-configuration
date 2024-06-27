@@ -79,4 +79,4 @@
           region: "{{ oracle_to_aws_region_map[region] }}"
           oracle_region: "{{ region }}"
           cloud: "oracle"
-    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}

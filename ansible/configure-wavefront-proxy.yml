@@ -29,4 +29,4 @@
         environment: "{{ hcv_environment }}"
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_install_flag: false, fluentd_configure_flag: true, when: wavefront_enable_fluentd }
-    - { role: "carbon-black", tags: "carbon-black", when: production_env_flag}
+    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
