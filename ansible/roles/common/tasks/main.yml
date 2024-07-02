@@ -134,6 +134,13 @@
     mode: "0755"
   when: common_cloud_provider == "oracle"
 
+- name: Install OCI boot certificate test script
+  ansible.builtin.copy:
+    src: "oci-testcert.py"
+    dest: "/usr/local/bin/oci-testcert.py"
+    mode: "0755"
+  when: common_cloud_provider == "oracle"
+
 - name: Install python-dev from apt
   ansible.builtin.apt:
     name: python-dev
