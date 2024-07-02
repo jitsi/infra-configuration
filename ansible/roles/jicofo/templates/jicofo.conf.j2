@@ -138,6 +138,10 @@ jicofo {
     max-visitors-per-node = {{ jicofo_visitors_max_visitors_per_node }}
     {% endif %}
     require-muc-config-flag = {{ jicofo_require_muc_config_flag }}
+
+    {% if jicofo_visitors_enable_live_room %}
+    enable-live-room = true
+    {% endif %}
   }
   {% endif %}
 

@@ -268,6 +268,7 @@ prosody_visitors_count: "{{ visitors_count | default(0) }}"
 prosody_visitors_always_supported: false
 prosody_visitors_auto_allow: false
 prosody_visitors_muc_max_occupants: false
+prosody_visitors_queue_service_url: false
 prosody_vpaas_public_key_repo_url: false
 # Enables SMACKS module in prosody and XMPP stream resume functionality in jitsi-meet
 prosody_xmpp_resume: true

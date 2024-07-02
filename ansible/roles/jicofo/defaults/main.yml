@@ -71,6 +71,7 @@ jicofo_stats_script_path: "/usr/local/bin/jicofo-stats.sh"
 jicofo_stress_threshold: 0.8
 jicofo_use_presence_for_jvb_health: false
 jicofo_visitors_enabled: "{{ visitors_enabled | default(false) }}"
+jicofo_visitors_enable_live_room: false
 jicofo_visitors_count: "{{ visitors_count | default(0) }}"
 jicofo_visitors_max_participants: false
 jicofo_visitors_max_visitors_per_node: false
