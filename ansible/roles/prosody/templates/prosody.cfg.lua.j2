@@ -215,6 +215,10 @@ prosody_password_public_key_repo_url = "{{ prosody_password_public_key_repo_url 
 {% endif %}
 {% endif %}
 
+{% if prosody_visitors_queue_service_url %}
+visitors_queue_service = '{{ prosody_visitors_queue_service_url }}'
+{% endif %}
+
 {% if prosody_xmpp_resume %}
 -- https://prosody.im/doc/modules/mod_smacks
 smacks_max_unacked_stanzas = 5;

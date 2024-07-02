@@ -309,6 +309,12 @@ var config = {
 {% if jitsi_meet_people_search_query_types %}
     peopleSearchQueryTypes: {{ jitsi_meet_people_search_query_types }},
 {% endif %}
+
+{% if jitsi_meet_visitors_queue_service_url %}
+    visitors: {
+        queueService: '{{ jitsi_meet_visitors_queue_service_url }}'
+    },
+{% endif %}
     startAudioMuted: {{ jitsi_meet_start_audio_muted_count }},
     startVideoMuted: {{ jitsi_meet_start_video_muted_count }},
     enableUserRolesBasedOnToken: {% if jitsi_meet_enable_user_roles_based_on_token %}true{% else %}false{% endif %},
