@@ -3,7 +3,7 @@
 # check a draft haproxy config and install if it's valid
 
 [ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/var/log/consul-template"
-[ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/template.log"
+[ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/haproxy-template.log"
 
 if [ ! -d "$TEMPLATE_LOGDIR" ]; then
   mkdir $TEMPLATE_LOGDIR
