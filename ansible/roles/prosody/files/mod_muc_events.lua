@@ -495,15 +495,16 @@ end
 
 -- used for jaas and vo
 local function handleBroadcastMessage(event)
+    local room = event.room;
     if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: Room %s Stanza %s",
-        event, event.room, event.stanza); end
+        event, room, event.stanza); end
 
     local subject = event.stanza:get_child("subject");
     if subject then
         if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: has subject %s, continue processing",
             event, subject:get_text()); end
-        local who = event.room:get_occupant_by_nick(event.stanza.attr.from);
-        processSubjectUpdate(who, event.room, subject:get_text());
+        local who = room:get_occupant_by_nick(event.stanza.attr.from);
+        processSubjectUpdate(who, room, subject:get_text());
         return;
     end
 
@@ -512,7 +513,7 @@ local function handleBroadcastMessage(event)
         if body then
             if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: has type %s, continue processing",
                 event, "groupchat"); end
-            local who = event.room:get_occupant_by_nick(event.stanza.attr.from);
+            local who = room:get_occupant_by_nick(event.stanza.attr.from);
             appendToChatHistory(event.stanza.attr.to, who.jid, who.bare_jid, body:get_text());
             return;
         else
@@ -522,16 +523,20 @@ local function handleBroadcastMessage(event)
                 return;
             end
 
-            local transcription = util.get_final_transcription(event);
-            if transcription then
-                local request_body = json.encode(transcription);
-                local headers = http_headers or {};
-                headers['Authorization'] = util.generateToken();
-                http.request(transcriptionsURL, {
-                    headers = headers,
-                    method = "POST",
-                    body = request_body;
-                }, cb);
+            -- send transcriptions only when backend recording(including transcription) is enabled
+            if room.jitsiMetadata and room.jitsiMetadata.recording
+                and room.jitsiMetadata.recording.isTranscribingEnabled == true then
+                local transcription = util.get_final_transcription(event);
+                if transcription then
+                    local request_body = json.encode(transcription);
+                    local headers = http_headers or {};
+                    headers['Authorization'] = util.generateToken();
+                    http.request(transcriptionsURL, {
+                        headers = headers,
+                        method = "POST",
+                        body = request_body;
+                    }, cb);
+                end
             end
         end
     end
