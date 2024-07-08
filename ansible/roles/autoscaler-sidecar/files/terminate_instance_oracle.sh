@@ -12,5 +12,17 @@ if [ -z "$INSTANCE_ID" ]; then
     INSTANCE_ID=$($CURL_BIN -s http://169.254.169.254/opc/v1/instance/ | $JQ_BIN .id -r)
 fi
 
-# terminate our instance; we enable debug to have more details in case of oci cli failures
-$OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
+function default_terminate() {
+    echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
+    $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
+    RET=$?
+    # infinite loop on failure
+    if [ $RET -gt 0 ]; then
+        echo "Failed to terminate instance, exit code: $RET, sleeping 10 then retrying"
+        sleep 10
+        default_terminate
+    fi
+}
+
+# now terminate our instance
+default_terminate
