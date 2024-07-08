@@ -18,5 +18,17 @@ sudo service consul stop
 $CURL_BIN -d '{}' -v localhost:6000/hook/v1/shutdown
 sleep 10
 
-# now terminate our instance; we enable debug to have more details in case of oci cli failures
-$OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
+function default_terminate() {
+    echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
+    $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
+    RET=$?
+    # infinite loop on failure
+    if [ $RET -gt 0 ]; then
+        echo "Failed to terminate instance, exit code: $RET, sleeping 10 then retrying"
+        sleep 10
+        default_terminate
+    fi
+}
+
+# now terminate our instance
+default_terminate
