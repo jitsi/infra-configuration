@@ -523,9 +523,17 @@ local function handleBroadcastMessage(event)
                 return;
             end
 
+            local should_send_hook = false;
+
+            if is_vpaas(room) then
+                should_send_hook = true;
+            else
+                should_send_hook = room.jitsiMetadata and room.jitsiMetadata.recording
+                   and room.jitsiMetadata.recording.isTranscribingEnabled == true;
+            end
+
             -- send transcriptions only when backend recording(including transcription) is enabled
-            if room.jitsiMetadata and room.jitsiMetadata.recording
-                and room.jitsiMetadata.recording.isTranscribingEnabled == true then
+            if should_send_hook then
                 local transcription = util.get_final_transcription(event);
                 if transcription then
                     local request_body = json.encode(transcription);
