@@ -40,7 +40,7 @@
     consul_template_templates:
       - name: "shards.json.template"
         dest: "/etc/jitsi/videobridge/shards.json"
-        cmd: "/usr/local/bin/configure-jvb-shards.sh"
+        cmd: "/usr/local/bin/configure-jvb-shards-wrapper.sh"
         perms: 0644
         backup: false
       - name: "xmpp.conf.template"
