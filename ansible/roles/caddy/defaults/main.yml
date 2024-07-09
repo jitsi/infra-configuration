@@ -1,0 +1,4 @@
+---
+caddy_keyring_path: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+caddy_keyring_url: "https://dl.cloudsmith.io/public/caddy/stable/gpg.key"
+caddy_repo: "deb [signed-by={{ caddy_keyring_path }}] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main"

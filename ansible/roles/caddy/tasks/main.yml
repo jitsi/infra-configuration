@@ -1,0 +1,23 @@
+---
+- name: Add Caddy repository key
+  ansible.builtin.apt_key:
+    url: "{{ caddy_keyring_url }}"
+    keyring: "{{ caddy_keyring_path }}"
+    state: present
+
+- name: Add Caddy repository
+  ansible.builtin.apt_repository:
+    repo: "{{ caddy_repo }}"
+    state: present
+    update_cache: true
+
+- name: Install Caddy
+  ansible.builtin.apt:
+    name: caddy
+    state: present
+
+- name: Remove Caddy repo
+  ansible.builtin.apt_repository:
+    repo: "{{ caddy_repo }}"
+    state: absent
+    update_cache: false
