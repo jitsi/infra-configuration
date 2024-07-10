@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [ -z "$SHARDS_LOGDIR" ] && SHARDS_LOGDIR="/var/log/jitsi/jvb-shards"
-[ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/haproxy-template.log"
+[ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/jvb-reconfigure.log"
 
 if [ ! -d "$TEMPLATE_LOGDIR" ]; then
   mkdir $TEMPLATE_LOGDIR
