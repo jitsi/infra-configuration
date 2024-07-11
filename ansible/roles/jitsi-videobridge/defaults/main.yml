@@ -68,6 +68,7 @@ jvb_host: localhost
 jvb_hostname: "{{ environment_domain_name }}"
 jvb_image_build_flag: false
 jvb_initial_drain_mode: false
+jvb_redact_remote_addresses: true
 jvb_install_flag: true
 jvb_installed_package: "{{ jitsi_videobridge_deb_pkg_name }}"
 jvb_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
