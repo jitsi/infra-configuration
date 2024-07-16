@@ -163,7 +163,7 @@ var config = {
 {% endif %}
 {% if jitsi_meet_video_quality %}
     videoQuality: {
-    enableAdaptiveMode: {% if jitsi_meet_enable_adaptive_mode %}true{% else %}false,
+    enableAdaptiveMode: {% if jitsi_meet_enable_adaptive_mode %}true{% else %}false{% endif %},
     {% if jitsi_meet_jvb_preferred_codecs %}
         codecPreferenceOrder: {{ jitsi_meet_jvb_preferred_codecs }},
     {% endif %}
