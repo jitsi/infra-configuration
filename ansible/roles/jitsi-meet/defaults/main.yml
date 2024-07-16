@@ -113,8 +113,10 @@ jitsi_meet_download_apps_url: false
 jitsi_meet_dropbox_app_key: false
 jitsi_meet_dump_transcript: false
 jitsi_meet_e2eping_enabled: false
+jitsi_meet_enable_adaptive_mode: false
 jitsi_meet_enable_av1: false
 jitsi_meet_enable_calendar: false
+jitsi_meet_enable_codec_selection_api: false
 jitsi_meet_enable_colibri_websockets: false
 jitsi_meet_enable_conference_request_http: false
 jitsi_meet_enable_dtx: false
