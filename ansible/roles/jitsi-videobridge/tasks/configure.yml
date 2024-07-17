@@ -39,6 +39,14 @@
     mode: 0755
     owner: root
 
+# provide bash script to capture logs and metrics on muc client reconfigure
+- name: Upload muc client reconfigure script wrapper
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/configure-jvb-shards-wrapper.sh"
+    src: "configure-jvb-shards-wrapper.sh"
+    mode: 0755
+    owner: root
+
 # provide bash script for muc client reconfigure
 - name: Upload reconfigure jvb script aws
   ansible.builtin.copy:
