@@ -33,7 +33,7 @@ global
   # TODO Mozilla recommends using their dhparam from https://ssl-config.mozilla.org/ffdhe2048.txt
   tune.ssl.default-dh-param 2048
 
-defaults
+defaults global_defaults
   log global
   mode http
   option dontlognull
@@ -70,14 +70,14 @@ peers mypeers
   peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}{% endraw %}{% endfor %}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
-listen admin
+listen admin from global_defaults
   bind *:8080
   monitor-uri /haproxy_health
   stats enable
   stats auth admin:admin
   stats uri /haproxy_stats
 
-frontend health
+frontend health from global_defaults
   bind *:8081
   http-request set-log-level silent
   http-request set-var(txn.is_up) str(up),map_str({{ haproxy_health_up_map_path }},false)
@@ -86,7 +86,7 @@ frontend health
   http-request deny deny_status 503 if !is_up
   default_backend local_health
 
-frontend www-http
+frontend www-http from global_defaults
 {% if haproxy_ssl_certificates %}
   bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
 
@@ -219,11 +219,11 @@ frontend www-http
 {% endif -%}
 
 {% if haproxy_jvb_colibri_proxy_enabled %}
-backend jvb-colibri-proxy
+backend jvb-colibri-proxy from global_defaults
   server jvb localhost:{{ haproxy_jvb_colibri_proxy_port }} id 1 no-check
 {% endif %}
 {% if haproxy_web_backend_enabled %}
-backend web
+backend web from global_defaults
   # set the Host header to the one the ingress expects
   http-request set-header Host {{ haproxy_web_backend }}
 {% if haproxy_enable_https_redirect %}
@@ -234,10 +234,10 @@ backend web
   server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
 {% endif %}
 
-backend local_health
+backend local_health from global_defaults
   server local 127.0.0.1:8080
 
-backend {{ haproxy_backend_name }}
+backend {{ haproxy_backend_name }} from global_defaults
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
@@ -270,7 +270,7 @@ backend {{ haproxy_backend_name }}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $shard := scratch.Get "shards" }}
-backend {{ $shard.ServiceMeta.shard }}
+backend {{ $shard.ServiceMeta.shard }} from global_defaults
 {% endraw %}
 {%- if haproxy_enable_https_redirect %}
   redirect scheme https if !{ ssl_fc }
@@ -278,7 +278,7 @@ backend {{ $shard.ServiceMeta.shard }}
   option forwardfor
   server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{{ range $release := scratch.MapValues "releases" }}
-backend release-{{ $release }}
+backend release-{{ $release }} from global_defaults
 {% endraw %}
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
