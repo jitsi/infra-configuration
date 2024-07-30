@@ -5,7 +5,8 @@ gpu_models_docker_image: "{{ gpu_models_docker_host }}/jitsi-vo/skynet:{{ gpu_mo
 gpu_models_docker_region: "us-west-2"
 gpu_models_docker_aws_account_id: replaceme
 gpu_models_docker_local_mirror_flag: false
-gpu_models_docker_mirror_host: "ops-prod-{{ gpu_models_region }}-registry.{{ gpu_models_dns_zone_name }}"
+gpu_models_docker_mirror_environment: "{{ hcv_environment if gpu_models_region=='ap-mumbai-1' else 'ops-prod' }}"
+gpu_models_docker_mirror_host: "{{ gpu_models_docker_mirror_environment }}-{{ gpu_models_region }}-registry.{{ gpu_models_dns_zone_name }}"
 gpu_models_docker_host: "{{ gpu_models_docker_mirror_host if gpu_models_docker_local_mirror_flag else  gpu_models_docker_ecr_host }}"
 gpu_models_docker_ecr_host: "{{ gpu_models_docker_aws_account_id }}.dkr.ecr.{{ gpu_models_docker_region }}.amazonaws.com"
 gpu_models_region: "{{ oracle_region | default('us-phoenix-1') }}"
