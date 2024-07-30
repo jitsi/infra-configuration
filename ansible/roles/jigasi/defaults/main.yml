@@ -34,9 +34,11 @@ jigasi_css_auth_pass: false
 jigasi_css_auth_url: false
 jigasi_css_auth_username: false
 jigasi_css_storage_service_url: false
+jigasi_local_datacenters_by_cloud: "{{ jigasi_transcriber_local_datacenters_by_cloud if jigasi_shard_role == 'jigasi-transcriber' \
+  else jigasi_sip_local_datacenters_by_cloud }}"
 # when jigasi_enable_local_datacenters, jigasis in phoenix/us-west-2 connect to shards in US, Tokyo and South America
 # while jigasis in the EU connect to shards in EU and mumbai
-jigasi_local_datacenters_by_cloud:
+jigasi_sip_local_datacenters_by_cloud:
   us-west-2-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
     'us-west-2-peer1',
