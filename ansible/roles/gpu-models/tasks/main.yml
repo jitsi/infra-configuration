@@ -94,7 +94,7 @@
 - name: Docker pull latest skynet
   ansible.builtin.command: docker --config /root/.docker pull {{ gpu_models_docker_image }}
   register: docker_pull_results
-  timeout: 900
+  timeout: 1800
   retries: 5
   until: docker_pull_results.rc == 0
   environment:
