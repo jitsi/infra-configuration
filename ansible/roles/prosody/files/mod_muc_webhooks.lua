@@ -452,9 +452,9 @@ function handle_occupant_access(event, event_type)
         end
 
         if not util.is_blacklisted(occupant) and is_vpaas(main_room)
-                and not event.origin.vpaas_guest_access
                 and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT)
-                and event.origin and not event.origin.auth_token then
+                and event.origin and not event.origin.auth_token
+                and not event.origin.vpaas_guest_access then
             local event = 'join';
             if final_event_type == PARTICIPANT_LEFT then
                 event = 'leave';
