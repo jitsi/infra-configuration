@@ -65,7 +65,8 @@ jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "https://"
 jitsi_meet_bosh_url: "{{ jitsi_meet_bosh_protocol }}{{ jitsi_meet_bosh_host }}/{{ jitsi_meet_bosh_path }}"
 jitsi_meet_branding_override: "jitsi-meet"
-jitsi_meet_cdn_base_url: "https://web-cdn.jitsi.net"
+jitsi_meet_cdn_base_url: "{{'https://'+environment_domain_name+'/v1/_cdn' if jitsi_meet_cdn_cloudflare_enabled else 'https://web-cdn.jitsi.net'}}"
+jitsi_meet_cdn_cloudflare_enabled: false
 jitsi_meet_cdn_deployment_enabled: false
 jitsi_meet_cdn_distribution_id: "E1CYRHC3DEPH0L"
 jitsi_meet_cdn_enabled: false
