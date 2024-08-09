@@ -19,6 +19,7 @@ jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix
 jigasi_brewery_muc_room: JigasiBrewery
 jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc
 jigasi_cloud_provider: "{{ cloud_provider | default('aws') }}"
+jigasi_cloud_compartment: "{{ cloud_compartment | default('jitsi') }}"
 # use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
 jigasi_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g3>_\\g<g4>') }}"
 jigasi_conferences_threshold: 80
