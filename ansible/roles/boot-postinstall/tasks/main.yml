@@ -1,0 +1,16 @@
+---
+# task to create directory for postinstall library
+- name: Create directory for postinstall
+  ansible.builtin.file:
+        path: "{{ boot_postinstall_path }}"
+        state: directory
+        mode: 0755
+
+# task to create script for postinstall library
+- name: Create script for postinstall
+  ansible.builtin.template:
+        src: postinstall-lib.sh.j2
+        dest: "{{ boot_postinstall_script }}"
+        mode: 0755
+        owner: root
+        group: root
