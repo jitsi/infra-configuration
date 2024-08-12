@@ -37,5 +37,6 @@
       changed_when: jitsi_meet_version_shell.rc != 0
 
   roles:
+    - { role: "boot-postinstall", tags: "boot-postinstall" }
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: true, jicofo_configure_flag: false }
     - { role: "clean-system", tags: "clean-system, build" }

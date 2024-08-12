@@ -47,6 +47,7 @@
 
   roles:
     - { role: "common", tags: "common" }
+    - { role: "boot-postinstall", tags: "boot-postinstall" }
     - { role: "ansible-install", tags: "ansible-install" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}
