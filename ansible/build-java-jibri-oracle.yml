@@ -25,6 +25,7 @@
   roles:
     - { role: "jibri-kernel", tags: "jibri-kernel"}
     - { role: "common", tags: "common"}
+    - { role: "boot-postinstall", tags: "boot-postinstall" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_sip_jibri_enabled: true}
