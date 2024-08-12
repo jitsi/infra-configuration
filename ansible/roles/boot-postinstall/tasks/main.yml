@@ -11,6 +11,6 @@
   ansible.builtin.copy:
         src: postinstall-lib.sh
         dest: "{{ boot_postinstall_script }}"
-        mode: 0755
+        mode: 0644
         owner: root
         group: root
