@@ -8,8 +8,8 @@
 
 # task to create script for postinstall library
 - name: Create script for postinstall
-  ansible.builtin.template:
-        src: postinstall-lib.sh.j2
+  ansible.builtin.copy:
+        src: postinstall-lib.sh
         dest: "{{ boot_postinstall_script }}"
         mode: 0755
         owner: root
