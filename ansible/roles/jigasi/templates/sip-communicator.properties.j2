@@ -224,7 +224,6 @@ org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_transcriber_auth_user }}@{{ jigasi_t
 org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_transcriber_auth_pass }}
 org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
 org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
-org.jitsi.jigasi.transcription.oci.compartmentId={{ jigasi_cloud_compartment }}
 {% elif jigasi_enable_bosh_auth %}
 org.jitsi.jigasi.xmpp.acc.USER_ID={{ jigasi_auth_conference_user }}@{{ jigasi_auth_conference_domain }}
 org.jitsi.jigasi.xmpp.acc.PASS={{ jigasi_auth_conference_pass }}
@@ -275,6 +274,12 @@ org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl={{ jigasi_transcribe
 org.jitsi.jigasi.transcription.whisper.private_key={{ jigasi_transcriber_whisper_private_key }}
 org.jitsi.jigasi.transcription.whisper.private_key_name={{ jigasi_transcriber_whisper_private_key_name }}
 org.jitsi.jigasi.transcription.whisper.websocket_url={{ jigasi_transcriber_whisper_websocket_url }}
+
+{% if jigasi_transcriber_oci_flag %}
+org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.OracleTranscriptionService
+org.jitsi.jigasi.transcription.oci.websocketUrl=wss://realtime.aiservice-preprod.us-phoenix-1.oci.oraclecloud.com
+org.jitsi.jigasi.transcription.oci.compartmentId={{ jigasi_cloud_compartment }}
+{% endif %}
 
 {% else %}
 
