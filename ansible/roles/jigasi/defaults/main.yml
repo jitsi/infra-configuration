@@ -103,6 +103,7 @@ jigasi_transcriber_local_datacenters_by_cloud:
     "{{ hcv_environment }}-ap-mumbai-1",
     'ap-south-1-peer1'
   ]
+jigasi_transcriber_oci_user_enabled: false
 jigasi_deb_pkg_name: "jigasi"
 jigasi_deb_pkg_version: "*"
 jigasi_default_sip_server: "jigasi.atlassian.n2.voximplant.com"

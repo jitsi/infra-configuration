@@ -113,6 +113,37 @@
   notify:
     - restart jigasi
 
+- name: Create transcriber OCI directory
+  ansible.builtin.file:
+    path: "/usr/share/jigasi/.oci/config"
+    state: directory
+    mode: 0700
+    owner: "jigasi"
+  when:
+    - jigasi_transcriber_oci_user_enabled
+    - jigasi_shard_role=='jigasi-transcriber'
+
+- name: Install transcriber OCI config
+  ansible.builtin.template:
+    src: config.oci.j2
+    dest: "/usr/share/jigasi/.oci/config"
+    mode: 0600
+    owner: "jigasi"
+  when:
+    - jigasi_transcriber_oci_user_enabled
+    - jigasi_shard_role=='jigasi-transcriber'
+
+- name: Install transcriber OCI key
+  ansible.builtin.copy:
+    content: "{{ jigasi_transcriber_oci_private_key }}"
+    dest: "/usr/share/jigasi/.oci/private.pem"
+    mode: 0600
+    owner: "{{ fluentd_jitsi_username }}"
+  when:
+    - jigasi_transcriber_oci_user_enabled
+    - jigasi_shard_role=='jigasi-transcriber'
+
+
 # set Jigasi open file limits again
 - name: Jigasi file open limits
   ansible.builtin.copy:
