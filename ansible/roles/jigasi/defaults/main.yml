@@ -19,6 +19,7 @@ jigasi_brewery_muc: "{{ jigasi_brewery_muc_room }}@{{ jigasi_internal_muc_prefix
 jigasi_brewery_muc_room: JigasiBrewery
 jigasi_call_control_muc_url: http://localhost:8788/configure/call-control-muc
 jigasi_cloud_provider: "{{ cloud_provider | default('aws') }}"
+jigasi_cloud_compartment: "{{ cloud_compartment | default('jitsi') }}"
 # use regexp to extract the last octet of the IP address and use it as the component ID for the JVB
 jigasi_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g3>_\\g<g4>') }}"
 jigasi_conferences_threshold: 80
@@ -181,6 +182,7 @@ jigasi_transcriber_enable_debug: false
 jigasi_transcriber_filter_silence: false
 jigasi_transcriber_custom_transcriber: false
 jigasi_transcriber_remote_select: "https://get-transcriber.jitsi.net"
+jigasi_transcriber_oci_flag: false
 jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
 jigasi_transcriber_whisper_websocket_url: "wss://{{ hcv_environment }}-{{ oracle_region }}-whisper.jitsi.net:443/streaming-whisper/ws/"
