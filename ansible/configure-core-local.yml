@@ -16,7 +16,6 @@
     procstat_visitor_units_str: "{% for i in range(visitors_count | int) %}prosody-v{{ i }}{% if not loop.last %},{% endif %}{% endfor %}"
     procstat_units: "{{ ['prosody', 'prosody-jvb', 'prosody-egress'] + procstat_visitor_units_str.split(',') if visitors_enabled
       else ['prosody', 'prosody-jvb', 'prosody-egress'] }}"
-    tcpdump_prosody_jvb_enabled: false
     telegraf_inputs_procstat_str: "[{% for unit in procstat_units %}{systemd_unit: {{ unit }}.service, cmdline_tag: false, pid_tag: false}
       {% if not loop.last %},{% endif %}{% endfor %}]"
     telegraf_inputs_procstat: "{{ telegraf_inputs_procstat_str | from_yaml }}"
@@ -211,7 +210,6 @@
           cloud_provider: "{{ core_cloud_provider }}"
     - { role: "jitsi-meet-branding", tags: "jitsi-meet" }
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true }
-    - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb" }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true }
     # enable java 11 if set for the environment
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jicofo_java_11 }}", java_install_flag: false }

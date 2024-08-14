@@ -38,7 +38,6 @@
     jvb_ws_domain: "{{ environment_domain_name }}"
     # disable egress health in standalone
     egress_enable_health_cron: false
-    tcpdump_prosody_jvb_enabled: false
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
@@ -238,7 +237,6 @@
         path: /usr/local/bin/dump-prosody-jvb.sh
         mode: 0644
       when:
-        - not tcpdump_prosody_jvb_enabled
         - cloud_provider == 'aws'
 
   roles:
@@ -295,7 +293,6 @@
     - { role: "consul-standalone", tags: "consul" }
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "prosody-egress", tags: "prosody-egress" }
-    - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb", when: tcpdump_prosody_jvb_enabled }
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: standalone_enable_fluentd}
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - role: "wavefront"
