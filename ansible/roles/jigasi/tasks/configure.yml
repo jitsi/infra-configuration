@@ -115,7 +115,7 @@
 
 - name: Create transcriber OCI directory
   ansible.builtin.file:
-    path: "/usr/share/jigasi/.oci/config"
+    path: "/usr/share/jigasi/.oci"
     state: directory
     mode: 0700
     owner: "jigasi"
