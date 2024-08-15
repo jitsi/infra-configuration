@@ -51,6 +51,7 @@ jibri_homedir: "/home/{{ jibri_username }}"
 jibri_install_flag: true
 jibri_jid_prefix: "auth."
 jibri_local_domain: "{{ environment_domain_name }}"
+jibri_log_file_count: 50
 jibri_max_usage: 61
 jibri_new_version_scheme: true
 jibri_nick: "{{ java_jibri_nick if not jibri_pjsua_flag else sip_jibri_nick }}"

@@ -57,6 +57,12 @@
     src: "environments.json.j2"
     dest: "/etc/jitsi/jibri/environments.json"
 
+- name: Jibri logging configuration
+  ansible.builtin.template:
+    mode: 0644
+    src: "logging.properties.j2"
+    dest: "/etc/jitsi/jibri/logging.properties"
+
 - name: Remove custom fact module for configure-jibri
   ansible.builtin.file:
     path: "/etc/ansible/facts.d/configure_jibri.fact"
