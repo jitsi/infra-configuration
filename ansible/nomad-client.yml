@@ -96,12 +96,12 @@
         executable: /bin/bash
       register: cpu_total_compute_result
       tags: setup
-      when: nomad_shape == "VM.Standard.A1.Flex"
+      when: nomad_shape | regex_search('^VM.Standard.A[0-9]+.Flex')
     - name: Set nomad cpu_total_compute fact
       ansible.builtin.set_fact:
         nomad_cpu_total_compute: "{{ cpu_total_compute_result.stdout }}"
       tags: setup
-      when: nomad_shape == "VM.Standard.A1.Flex"
+      when: nomad_shape | regex_search('^VM.Standard.A[0-9]+.Flex')
     - name: Get instance's Public IP from VNIC
       ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
       register: vnic_details_result
