@@ -104,7 +104,7 @@ function convertAuth0Token(auth0Token, callback) {
 }
 
 /**
- * Retrieves the jitsi token from api-vo.jitsi.net the '/v1/meeting/standalone-token' endpoint, using the auth0 token.
+ * Retrieves the jitsi token from api-vo.cloudflare.jitsi.net the '/v1/meeting/standalone-token' endpoint, using the auth0 token.
  * @param auth0Token
  */
 function retrieveJitsiToken(auth0Token, callback) {
