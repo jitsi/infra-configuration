@@ -89,7 +89,7 @@
 
 - name: Key file permissions
   ansible.builtin.file:
-    path: {{ jigasi_asap_key_path }}
+    path: "{{ jigasi_asap_key_path }}"
     owner: "jigasi"
     group: "jitsi"
     mode: 0600
