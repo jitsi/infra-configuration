@@ -138,7 +138,7 @@
     content: "{{ jigasi_transcriber_oci_private_key }}"
     dest: "/usr/share/jigasi/.oci/private.pem"
     mode: 0600
-    owner: "{{ fluentd_jitsi_username }}"
+    owner: "jigasi"
   when:
     - jigasi_transcriber_oci_user_enabled
     - jigasi_shard_role=='jigasi-transcriber'
