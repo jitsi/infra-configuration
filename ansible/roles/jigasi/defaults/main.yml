@@ -1,6 +1,7 @@
 ---
 default_jigasi_environments: []
 environment_domain_name: "jigasi"
+jigasi_asap_key_path: /etc/jitsi/jigasi/asap.pem
 jigasi_auth_conference_domain: "{{ 'jigasia' if jigasi_auth_type == 'A' else 'jigasib' }}.{{ environment_domain_name }}"
 jigasi_auth_conference_pass: "{{ secrets_jigasi_conference_A if jigasi_auth_type == 'A' else secrets_jigasi_conference_B }}"
 # With jitsi-shared-secret authentication any username is accepted (the domain is what controls whether to use account
@@ -105,6 +106,8 @@ jigasi_transcriber_local_datacenters_by_cloud:
     'ap-south-1-peer1'
   ]
 jigasi_transcriber_oci_user_enabled: false
+jigasi_visitors_enabled: false
+jigasi_visitors_queue_service_url: false
 jigasi_deb_pkg_name: "jigasi"
 jigasi_deb_pkg_version: "*"
 jigasi_default_sip_server: "jigasi.atlassian.n2.voximplant.com"
