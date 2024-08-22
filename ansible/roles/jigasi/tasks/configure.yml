@@ -82,6 +82,18 @@
   args:
     creates: "{{ jigasi_asap_key_path }}"
 
+- name: Remove temp key file
+  ansible.builtin.file:
+    path: "{{ jigasi_asap_key_path }}.key"
+    state: absent
+
+- name: Key file permissions
+  ansible.builtin.file:
+    path: {{ jigasi_asap_key_path }}
+    owner: "jigasi"
+    group: "jitsi"
+    mode: 0600
+
 - name: Install custom fact script for configure-jigasi
   ansible.builtin.copy:
     dest: "/usr/local/bin/configure-jigasi.py"
