@@ -70,6 +70,18 @@
     path: "/etc/ansible/facts.d/configure_jigasi.fact"
     state: absent
 
+- name: Install ASAP key
+  ansible.builtin.copy:
+    dest: "{{ jigasi_asap_key_path }}.key"
+    mode: 0644
+    content: "{{ asap_key['key'] }}"
+
+- name: Converts asap key to pem
+  ansible.builtin.command: "openssl pkcs8 -topk8 -inform pem -in {{ jigasi_asap_key_path }}.key -outform pem -nocrypt -out {{ jigasi_asap_key_path }}"
+  ignore_errors: true
+  args:
+    creates: "{{ jigasi_asap_key_path }}"
+
 - name: Install custom fact script for configure-jigasi
   ansible.builtin.copy:
     dest: "/usr/local/bin/configure-jigasi.py"
