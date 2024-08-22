@@ -50,7 +50,7 @@ sip_jibri_voximplant_region_key: "{{ ansible_ec2_placement_region if ansible_ec2
 sip_jibri_voximplant_region_users: "{{ sip_jibri_voximplant_env_users[sip_jibri_voximplant_region_key]|default({}) }}"
 sip_jibri_voximplant_user: "{{ sip_jibri_voximplant_region_users[sip_jibri_voximplant_user_id|int]|default({}) }}"
 sip_jibri_voximplant_user_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
-sip_jibri_ws_server_url: "{{ sip_jibri_ws_server_url | default('wss://api-vo-pilot.jitsi.net') }}"
+sip_jibri_ws_server_url: "{{ sip_jibri_ws_server_url | default('wss://api-vo-pilot.cloudflare.jitsi.net') }}"
 sip_jibri_xmpp_logins_enable: false
 sip_jibri_xmpp_login_map:
   inbound:
