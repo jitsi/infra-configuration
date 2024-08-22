@@ -46,7 +46,7 @@ prosody_dpkg_path: "/tmp/{{ prosody_package_filename }}"
 # https://packages.prosody.im/debian/pool/main/p/prosody-0.11/prosody-0.11_1nightly112-1~bionic_amd64.deb
 prosody_dpkg_url: "https://packages.prosody.im/debian/pool/main/p/{{ prosody_package_name }}/{{ prosody_package_filename }}"
 prosody_egress_url: http://127.0.0.1:8062/v1/events
-prosody_egress_fallback_url: https://api-vo-pilot.jitsi.net/vpaas-event-acceptor/v1/forward
+prosody_egress_fallback_url: https://api-vo-pilot.cloudflare.jitsi.net/vpaas-event-acceptor/v1/forward
 # flag to control whether to trigger call flow events
 prosody_enable_call_flow: false
 # Use mod_client_proxy instead of external component for "focus.".
@@ -156,7 +156,7 @@ prosody_meet_speaker_stats_url: false
 prosody_meet_transcriptions_url: false
 prosody_meet_webhooks_enabled: false
 prosody_meet_ban_auth_enabled: false
-jitsi_access_manager_url: https://api-vo.jitsi.net/jaccess/v2/access
+jitsi_access_manager_url: https://api-vo.cloudflare.jitsi.net/jaccess/v2/access
 prosody_missed_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/missed"
 prosody_mod_kick_endpoint: false
 prosody_mod_jigasi_invite_enabled: false
