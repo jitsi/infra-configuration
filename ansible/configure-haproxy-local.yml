@@ -72,10 +72,10 @@
       - src: roles/hcv-haproxy-configure/files/ban-prefix.map.template
       - src: roles/hcv-haproxy-configure/files/ban-substr.map.template
       - src: roles/hcv-haproxy-configure/files/unban-prefix.map.template
-    consul_template_template_templates_default:
-      - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     consul_template_template_templates_colibri_proxy:
       - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
+    consul_template_template_templates_default:
+      - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     consul_template_template_templates: "{{ consul_template_template_templates_default +
       (consul_template_template_templates_colibri_proxy if jvb_colibri_proxy_enabled else []) }}"
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
