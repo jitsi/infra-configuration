@@ -14,7 +14,13 @@
       CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
       ENVIRONMENT: "{{ hcv_environment }}"
       HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
-    consul_template_templates:
+    consul_template_templates_colibri_proxy:
+      - name: "colibri-nginx.site.template"
+        dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
+        cmd: "/usr/sbin/service nginx reload"
+        perms: 0644
+        backup: false
+    consul_template_templates_default:
       - name: "haproxy.cfg.template"
         dest: "/tmp/haproxy.cfg.test"
         cmd: "/usr/local/bin/check-install-haproxy-config.sh /tmp/haproxy.cfg.test false"
@@ -55,11 +61,8 @@
         cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_unban_prefix_map_path }}"
         perms: 0640
         backup: false
-      - name: "colibri-nginx.site.template"
-        dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
-        cmd: "/usr/sbin/service nginx reload"
-        perms: 0644
-        backup: false
+    consul_template_templates: "{{ consul_template_templates_default +
+      (consul_template_templates_colibri_proxy if jvb_colibri_proxy_enabled else []) }}"
 
     consul_template_template_files:
       - src: roles/hcv-haproxy-configure/files/live.map.template
@@ -69,9 +72,12 @@
       - src: roles/hcv-haproxy-configure/files/ban-prefix.map.template
       - src: roles/hcv-haproxy-configure/files/ban-substr.map.template
       - src: roles/hcv-haproxy-configure/files/unban-prefix.map.template
-    consul_template_template_templates:
-      - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
+    consul_template_template_templates_colibri_proxy:
       - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
+    consul_template_template_templates_default:
+      - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
+    consul_template_template_templates: "{{ consul_template_template_templates_default +
+      (consul_template_template_templates_colibri_proxy if jvb_colibri_proxy_enabled else []) }}"
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
     private_ip: "{{ ansible_default_ipv4.address }}"
     host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
