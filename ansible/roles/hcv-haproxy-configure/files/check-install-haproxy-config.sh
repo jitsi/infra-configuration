@@ -13,9 +13,13 @@ if [ ! -f "$TEMPLATE_LOGFILE" ]; then
   touch $TEMPLATE_LOGFILE
 fi
 
-TIMESTAMP=$(date --utc +%Y-%m-%d_%H:%M:%S.Z)
+alias timestamp="date --utc +%Y-%m-%d_%H:%M:%S.Z"
 
-echo "#### cihc: $TIMESTAMP starting check-install-haproxy-config.sh" >> $TEMPLATE_LOGFILE
+def log_msg() {
+  echo "$(timestamp) [$$] chic: $1" | tee -a $TEMPLATE_LOGFILE
+}
+
+log_msg "starting check-install-haproxy-config.sh"
 
 readonly PROGNAME=$(basename "$0")
 readonly LOCKFILE_DIR=/tmp
@@ -44,7 +48,7 @@ if [ -n "$2" ]; then
 fi
 
 if [ -z "$DRAFT_CONFIG" ]; then
-  echo "#### cihc: no DRAFT_CONFIG found, exiting..." >> $TEMPLATE_LOGFILE
+  log_msg "no DRAFT_CONFIG found, exiting..."
   exit 1
 fi
 
@@ -52,20 +56,20 @@ fi
 echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
 
 if [ ! -f "$DRAFT_CONFIG" ]; then
-    echo "#### cihc: draft haproxy config file $DRAFT_CONFIG does not exist" >> $TEMPLATE_LOGFILE
+    log_msg "draft haproxy config file $DRAFT_CONFIG does not exist"
     exit 1
 fi
 
 # validate the draft configuration
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
-    echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
+    log_msg "new haproxy config failed to validate"
     echo -n "jitsi.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
     # log a copy of the new config
     cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg.invalid
     exit 1
 else
-    echo "#### cihc: validated $DRAFT_CONFIG" >> $TEMPLATE_LOGFILE
+    log_msg "validated $DRAFT_CONFIG"
     echo -n "jitsi.haproxy.reconfig.failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
@@ -80,12 +84,12 @@ if [ "$DRY_RUN" == "false" ]; then
 
     if [[ "$?" -eq 0 ]]; then
         /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
-        echo "#### chic: haproxy-configurator.sh forked" >> $TEMPLATE_LOGFILE
+        log_msg "haproxy-configurator.sh forked"
         echo -n "jitsi.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
     else
-        echo "#### chic: haproxy_configurator.sh not started; there is already a fork running" >> $TEMPLATE_LOGFILE
+        log_msg "haproxy_configurator.sh not started; there is already a fork running"
         echo -n "jitsi.haproxy.configurator:0|c" | nc -4u -w1 localhost 8125
     fi
 else
-    echo "#### chic: in DRY_RUN mode" >> $TEMPLATE_LOGFILE
+    log_msg "in DRY_RUN mode"
 fi
