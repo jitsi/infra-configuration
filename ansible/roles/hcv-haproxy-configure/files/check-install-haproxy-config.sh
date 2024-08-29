@@ -62,13 +62,15 @@ if [ ! -f "$DRAFT_CONFIG" ]; then
     exit 1
 fi
 
+CONFIG_TIMESTAMP=$(timestamp)
+
 # validate the draft configuration
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
     log_msg "new haproxy config failed to validate"
     echo -n "jitsi.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
     # log a copy of the new config
-    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg.invalid
+    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-haproxy.cfg.invalid
     exit 1
 else
     log_msg "validated $DRAFT_CONFIG"
@@ -77,7 +79,7 @@ fi
 
 if [ "$DRY_RUN" == "false" ]; then
     # log a copy of the new config
-    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
+    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-haproxy.cfg
     # save new config as validated
     DRAFT_CONFIG_VALIDATED="${DRAFT_CONFIG}.validated"
     cp $DRAFT_CONFIG $DRAFT_CONFIG_VALIDATED
