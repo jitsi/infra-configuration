@@ -53,7 +53,7 @@ local asapKeyServer
 local conferenceInfoURL
     = module:get_option_string("muc_conference_info_url", "");
 
-local passwordTimeout
+    local passwordTimeout
     = module:get_option_number("muc_password_timeout", 3);
 
 local http_headers = {
@@ -106,7 +106,7 @@ function verify_token(token, room_address)
     -- if not token_util:verify_room(session, room_address) then
     --     log("warn", "Token %s not allowed to join: %s",
     --         tostring(token), tostring(room_address));
-    --     return false;
+     --     return false;
     -- end
 
     return true;
@@ -229,6 +229,13 @@ local function queryForPassword(room)
             room._data.moderator_id = conference_res.moderatorId;
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
             room._data.max_occupants = conference_res.maxOccupants;
+            if not room.jitsiMetadata then
+                room.jitsiMetadata = {};
+            end
+            if conference_res.transcriberType then
+                room.jitsiMetadata.transcriberType = conference_res.transcriberType;
+                room_metadata_changed = true;
+            end
             if conference_res.participantsSoftLimit ~= nil then
                 room._data.participants_soft_limit = conference_res.participantsSoftLimit;
                 room_config_changed = true;
@@ -238,9 +245,6 @@ local function queryForPassword(room)
                 room_config_changed = true;
             end
             if conference_res.visitorsLive ~= nil then
-                if not room.jitsiMetadata then
-                    room.jitsiMetadata = {};
-                end
                 if not room.jitsiMetadata.visitors then
                     room.jitsiMetadata.visitors = {};
                 end
