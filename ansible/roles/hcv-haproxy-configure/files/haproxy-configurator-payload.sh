@@ -16,7 +16,7 @@ function timestamp() {
 }
 
 function log_msg() {
-  echo "$(timestamp) [$$] chic: $1" | tee -a $TEMPLATE_LOGFILE
+  echo "$(timestamp) [$$] hap-cfg-payload: $1" | tee -a $TEMPLATE_LOGFILE
 }
 
 log_msg "entered haproxy-configurator-payload.sh"

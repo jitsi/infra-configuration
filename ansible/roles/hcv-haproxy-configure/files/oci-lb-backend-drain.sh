@@ -14,7 +14,7 @@ function timestamp() {
 }
 
 function log_msg() {
-  echo "$(timestamp) [$$] chic: $1" | tee -a $TEMPLATE_LOGFILE
+  echo "$(timestamp) [$$] lb-drain $1" | tee -a $LOGFILE
 }
 
 if [ -z "$INSTANCE_POOL" ]; then
