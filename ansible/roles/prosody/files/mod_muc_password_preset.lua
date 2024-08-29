@@ -250,6 +250,12 @@ local function queryForPassword(room)
                 end
                 room.jitsiMetadata.visitors.live = conference_res.visitorsLive;
                 room_metadata_changed = true;
+            else
+                if not room.jitsiMetadata.visitors then
+                    room.jitsiMetadata.visitors = {};
+                end
+                room.jitsiMetadata.visitors.live = true;
+                room_metadata_changed = true;
             end
 
             if room._data.starts_with_lobby then
