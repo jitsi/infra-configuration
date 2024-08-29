@@ -106,7 +106,7 @@ function verify_token(token, room_address)
     -- if not token_util:verify_room(session, room_address) then
     --     log("warn", "Token %s not allowed to join: %s",
     --         tostring(token), tostring(room_address));
-     --     return false;
+    --     return false;
     -- end
 
     return true;
