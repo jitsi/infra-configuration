@@ -1,0 +1,71 @@
+---
+# first create a user for the jitsi-meet docker compose service
+- name: Create jcompose user
+  ansible.builtin.user:
+    name: jcompose
+    comment: "Jitsi Meet Docker Compose Service Account"
+    shell: /bin/bash
+    home: /home/jcompose
+    state: present
+
+- name: Add jcompose user to docker group
+  ansible.builtin.user:
+    name: jcompose
+    groups: docker
+    append: true
+
+- name: Generate config directory root
+  ansible.builtin.file:
+    path: /home/jcompose/.jitsi-meet-cfg
+    owner: jcompose
+    state: directory
+    mode: 0755
+
+- name: Generate config directory root
+  ansible.builtin.file:
+    path: "/home/jcompose/.jitsi-meet-cfg/{{ item }}"
+    owner: jcompose
+    state: directory
+    mode: 0755
+  with_items:
+    - web
+    - transcripts
+    - prosody
+    - prosody/config
+    - prosody/prosody-plugins-custom
+    - jicofo
+    - jvb
+    - jigasi
+    - jibri
+
+- name: Clone docker-jitsi-meet into compose control directory # noqa latest[git]
+  ansible.builtin.git:
+    repo: https://github.com/jitsi/docker-jitsi-meet.git
+    dest: /home/jcompose/docker-jitsi-meet
+
+- name: Create env file for docker-jitsi-meet
+  ansible.builtin.command:
+    cmd: "cp /home/jcompose/docker-jitsi-meet/env.example /home/jcompose/docker-jitsi-meet/.env"
+  args:
+    creates: /home/jcompose/docker-jitsi-meet/.env
+  notify:
+    - Generate passwords
+
+- name: Update domain
+  ansible.builtin.lineinfile:
+    path: /home/jcompose/docker-jitsi-meet/.env
+    regexp: '^#PUBLIC_URL='
+    line: "PUBLIC_URL=https://{{ environment_domain_name }}"
+
+# flush force_handlers:
+- name: Flush handlers for .env file completion
+  ansible.builtin.meta: flush_handlers
+
+# docker-compose begin
+- name: Run docker-compose up
+  become: true
+  become_user: jcompose
+  ansible.builtin.command:
+    cmd: "docker-compose up -d"
+  args:
+    chdir: /home/jcompose/docker-jitsi-meet

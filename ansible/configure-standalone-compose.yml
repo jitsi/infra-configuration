@@ -1,0 +1,104 @@
+---
+- name: Wait for cloud-init
+  hosts: all
+  become: true
+  become_user: root
+  gather_facts: true
+  pre_tasks:
+    - name: Wait for ssh to come up
+      ansible.builtin.wait_for:
+        port: 22
+        timeout: 300
+        state: started
+        search_regex: OpenSSH
+      register: response
+      until: response
+      retries: 60
+      delay: 5
+    - name: Wait up to 30 minutes for cloud-init to finish
+      community.general.cloud_init_data_facts:
+        filter: status
+      register: res
+      until: "res.cloud_init_data_facts.status.v1.stage is defined and not res.cloud_init_data_facts.status.v1.stage"
+      retries: 360
+      delay: 5
+
+- name: Main
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  vars:
+  vars_files:
+    - secrets/ssh-users.yml
+    - secrets/ssl-certificates.yml
+    - secrets/jibri.yml
+    - secrets/jicofo.yml
+    - secrets/jigasi.yml
+    - secrets/asap-keys.yml
+    - secrets/wavefront.yml
+    - secrets/consul.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  pre_tasks:
+    - name: Clean apt cache
+      ansible.builtin.apt:
+        clean: true
+      tags: "provision"
+  roles:
+  # initial system pre-requisites
+#    - { role: "vault", tags: "vault", vault_install_flag: true, vault_configure_flag: true, vault_agent_startup: true }
+    # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
+    # - { role: "carbon-black", tags: "carbon-black" }
+    # - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
+    # - { role: "sshusers", tags: "ssh" }
+    # - { role: "unattended-upgrades", tags: "unattended-upgrades"}
+    # - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
+    # - { role: "journald", tags: "journald"}
+    # - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
+
+  # configure phase of jitsi components
+    - { role: "jitsi-meet-docker-compose", tags: "docker-compose" }
+    - { role: "docker-compose-proxy", tags: "docker-compose-proxy" }
+
+  # additional components here
+    #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
+#    - { role: "vector", tags: "vector"}
+#    - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
+#    - { role: "consul-standalone", tags: "consul" }
+#    - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
+#    - { role: "consul-telegraf", tags: "consul-telegraf" }
+    # - role: "wavefront"
+    #   tags: "telegraf"
+    #   telegraf_hostname: "{{ environment_domain_name }}"
+    #   wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+    #   wavefront_configure_collector: true
+    #   wavefront_install_collector: false
+    #   datadog_extensions: "true"
+    #   when: standalone_telegraf_enabled
+    #   vars:
+    #     telegraf_inputs:
+    #       nginx:
+    #         urls: ["http://localhost:888/nginx_status/"]
+    #       procstat:
+    #         - systemd_unit: "prosody.service"
+    #           cmdline_tag: false
+    #           pid_tag: false
+    #         - systemd_unit: "prosody-jvb.service"
+    #           cmdline_tag: false
+    #           pid_tag: false
+    #       nstat:
+    #         fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
+    #       prometheus:
+    #         urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics", "http://localhost:8080/metrics"]
+    #         namepass: "{{ telegraf_jvb_filter + ['http*', 'signal*'] + [ telegraf_jicofo_filter ] }}"
+    #     telegraf_tags:
+    #       shard-role: "all"
+    #       role: "all"
+    #       jvb_version: "{{ jitsi_videobridge_deb_pkg_version }}"
+    #       environment: "{{ hcv_environment }}"
+    #       shard: "{{ environment_domain_name }}"
+    #       region: "{{ cloud_region }}"
+    #       release_number: "{{ jitsi_meet_deb_pkg_version }}"
+    #       cloud: "{{ cloud_provider }}"
