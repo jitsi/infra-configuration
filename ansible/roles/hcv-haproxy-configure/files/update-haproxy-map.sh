@@ -58,4 +58,4 @@ fi
 
 echo -n "jitsi.haproxy.map_update:1|c" | nc -4u -w1 localhost 8125
 
-log_msg "succeeded to update $UPDATE_MAP" >> $TEMPLATE_LOGFILE
+log_msg "succeeded to update $UPDATE_MAP"

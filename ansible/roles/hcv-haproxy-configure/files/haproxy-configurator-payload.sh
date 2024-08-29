@@ -7,7 +7,7 @@ echo -n "jitsi.haproxy.reconfig_locked:1|c" | nc -4u -w1 localhost 8125
 if [ -n "$1" ]; then
     TEMPLATE_LOGFILE=$1
 else
-    echo "## hc: missing TEMPLATE_LOGFILE, exiting"
+    echo "hap-cfg-payload: missing TEMPLATE_LOGFILE, exiting"
     exit 1
 fi
 

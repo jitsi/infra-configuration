@@ -18,7 +18,7 @@ function timestamp() {
 }
 
 function log_msg() {
-  echo "$(timestamp) [$$] hap-ci-cfg: $1" | tee -a $TEMPLATE_LOGFILE
+  echo "$(timestamp) [$$] hap-check-cfg: $1" | tee -a $TEMPLATE_LOGFILE
 }
 
 log_msg "starting check-install-haproxy-config.sh"
