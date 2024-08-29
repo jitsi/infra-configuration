@@ -53,7 +53,7 @@ local asapKeyServer
 local conferenceInfoURL
     = module:get_option_string("muc_conference_info_url", "");
 
-    local passwordTimeout
+local passwordTimeout
     = module:get_option_number("muc_password_timeout", 3);
 
 local http_headers = {
