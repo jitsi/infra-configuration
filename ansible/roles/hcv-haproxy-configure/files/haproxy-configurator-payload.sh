@@ -11,10 +11,12 @@ else
     exit 1
 fi
 
-alias timestamp="date --utc +%Y-%m-%d_%H:%M:%S.Z"
+function timestamp() {
+  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
+}
 
-def log_msg() {
-  echo "$(timestamp) [$$] hcp: $1" | tee -a $TEMPLATE_LOGFILE
+function log_msg() {
+  echo "$(timestamp) [$$] chic: $1" | tee -a $TEMPLATE_LOGFILE
 }
 
 log_msg "entered haproxy-configurator-payload.sh"

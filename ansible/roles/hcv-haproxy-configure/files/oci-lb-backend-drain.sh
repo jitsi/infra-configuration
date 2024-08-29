@@ -9,10 +9,12 @@ if [ -n "$1" ]; then
     LOGFILE=$1
 fi
 
-alias timestamp="date --utc +%Y-%m-%d_%H:%M:%S.Z"
+function timestamp() {
+  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
+}
 
-def log_msg() {
-  echo "$(timestamp) [$$] olbd: $1" | tee -a $LOGFILE
+function log_msg() {
+  echo "$(timestamp) [$$] chic: $1" | tee -a $TEMPLATE_LOGFILE
 }
 
 if [ -z "$INSTANCE_POOL" ]; then

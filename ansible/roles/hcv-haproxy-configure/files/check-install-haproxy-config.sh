@@ -13,9 +13,11 @@ if [ ! -f "$TEMPLATE_LOGFILE" ]; then
   touch $TEMPLATE_LOGFILE
 fi
 
-alias timestamp="date --utc +%Y-%m-%d_%H:%M:%S.Z"
+function timestamp() {
+  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
+}
 
-def log_msg() {
+function log_msg() {
   echo "$(timestamp) [$$] chic: $1" | tee -a $TEMPLATE_LOGFILE
 }
 
