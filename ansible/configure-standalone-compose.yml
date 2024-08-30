@@ -56,11 +56,11 @@
     # - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     # - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
     # - { role: "journald", tags: "journald"}
-    # - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
+    - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
 
   # configure phase of jitsi components
-    - { role: "jitsi-meet-docker-compose", tags: "docker-compose" }
     - { role: "docker-compose-proxy", tags: "docker-compose-proxy" }
+    - { role: "jitsi-meet-docker-compose", tags: "docker-compose" }
 
   # additional components here
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
