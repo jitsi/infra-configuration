@@ -57,6 +57,12 @@
     regexp: '^#PUBLIC_URL='
     line: "PUBLIC_URL=https://{{ environment_domain_name }}"
 
+- name: Disable letsencrypt
+  ansible.builtin.lineinfile:
+    path: /home/jcompose/docker-jitsi-meet/.env
+    regexp: '^#ENABLE_LETSENCRYPT='
+    line: "ENABLE_LETSENCRYPT=0"
+
 # flush force_handlers:
 - name: Flush handlers for .env file completion
   ansible.builtin.meta: flush_handlers
