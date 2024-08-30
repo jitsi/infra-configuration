@@ -1,0 +1,69 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+server {
+    listen *:80  default_server;
+    return 301 https://$host$request_uri;
+}
+
+upstream docker {
+    zone upstreams 64K;
+    server 127.0.0.1:8000;
+    keepalive 2;
+}
+
+server {
+    proxy_connect_timeout       90s;
+    proxy_send_timeout          90s;
+    proxy_read_timeout          90s;
+    send_timeout                90s;
+
+    client_body_timeout 5s;
+    client_header_timeout 5s;
+
+    listen *:443 ssl  default_server;
+
+    #also listen on all 127.0.0.1 IPs
+    listen 127.0.0.1:443 ssl  default_server;
+
+    listen 127.0.0.1:80  default_server;
+
+
+    # server_name {{ environment_domain_name }};
+    ssl_certificate {{ docker_compose_proxy_ssl_dest_dir }}/{{ environment_domain_name }}.crt;
+    ssl_certificate_key {{ docker_compose_proxy_ssl_dest_dir }}/{{ environment_domain_name }}.key;
+    ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
+    ssl_prefer_server_ciphers on;
+
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 8.8.4.4 8.8.8.8 valid=300s;
+    resolver_timeout 10s;
+
+
+    location = /nginx_status {
+      stub_status on;
+      access_log   off;
+      allow 127.0.0.1;
+      deny all;
+    }
+
+    # DOCKER
+    location / {
+        proxy_pass      http://docker;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # proxy_set_header Host $http_host;
+
+        proxy_buffering off;
+        tcp_nodelay on;
+
+    }
+}
