@@ -287,7 +287,7 @@ org.jitsi.jigasi.transcription.whisper.websocket_url={{ jigasi_transcriber_whisp
 
 {% if jigasi_transcriber_oci_flag %}
 org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.OracleTranscriptionService
-org.jitsi.jigasi.transcription.oci.websocketUrl=wss://realtime.aiservice-preprod.us-phoenix-1.oci.oraclecloud.com
+org.jitsi.jigasi.transcription.oci.websocketUrl=wss://realtime.aiservice.{{ oracle_region }}.oci.oraclecloud.com
 org.jitsi.jigasi.transcription.oci.compartmentId={{ jigasi_cloud_compartment }}
 {% endif %}
 
