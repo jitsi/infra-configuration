@@ -149,7 +149,7 @@
         telegraf_tags:
           role: "{{ shard_role }}"
           environment: "{{ hcv_environment }}"
-          region: "{{ oracle_to_aws_region_map[oracle_region] }}"
+          region: "{{ oracle_region }}"
           oracle_region: "{{ oracle_region }}"
           cloud: "oracle"
           jibri_version: "{{ jibri_version.stdout }}"
