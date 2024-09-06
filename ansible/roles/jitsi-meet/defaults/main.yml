@@ -33,6 +33,7 @@ jitsi_meet_api_recoding_sharing_url: false
 jitsi_meet_api_screenshot_history_url: false
 jitsi_meet_api_screenshot_history_region_url: false
 jitsi_meet_api_sip_invite_url: false
+jitsi_meet_api_proxy_servername: api.jitsi.net
 jitsi_meet_api_url: https://api.jitsi.net
 jitsi_meet_apple_site_associations: |
   {
