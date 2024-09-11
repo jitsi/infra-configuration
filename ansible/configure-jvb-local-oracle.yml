@@ -223,7 +223,7 @@
           environment: "{{ hcv_environment }}"
           environment_type: "{{ environment_type|default('prod', True) }}"
           shard: "{{ shard_name }}"
-          region: "{{ oracle_to_aws_region_map[jvb_custom_region] }}"
+          region: "{{ jvb_custom_region }}"
           oracle_region: "{{ jvb_custom_region }}"
           release_number: "{{ jitsi_release_number }}"
           jvb_release_number: "{{ jvb_release_number }}"
