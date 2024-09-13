@@ -14,6 +14,7 @@ jicofo_colibri2_log_level: "INFO"
 jicofo_deb_pkg_name: "jicofo"
 jicofo_deb_pkg_version: "*"
 jicofo_disable_auto_owner: false
+jicofo_disable_moderator_checks: false
 jicofo_enable_av1: true
 jicofo_enable_colibri2: true
 jicofo_enable_h264: true
