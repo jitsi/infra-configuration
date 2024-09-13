@@ -577,9 +577,6 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if muc_meeting_id_exists.stat.exists %}
         "muc_meeting_id";
 {% endif %}
-{% if prosody_enable_transcription_filter %}
-        "muc_transcription_filter";
-{% endif %}
 {% if prosody_enable_rate_limit %}
         "rate_limit";
 {% endif %}
