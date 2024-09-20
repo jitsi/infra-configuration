@@ -57,6 +57,12 @@
     regexp: '^#PUBLIC_URL='
     line: "PUBLIC_URL=https://{{ environment_domain_name }}"
 
+- name: Enable load test client
+  ansible.builtin.lineinfile:
+    path: /home/jcompose/docker-jitsi-meet/.env
+    regexp: '^#ENABLE_LOAD_TEST_CLIENT='
+    line: "ENABLE_LOAD_TEST_CLIENT=true"
+
 - name: Disable letsencrypt
   ansible.builtin.lineinfile:
     path: /home/jcompose/docker-jitsi-meet/.env
