@@ -3,4 +3,4 @@ jibri_kernel_cloud_provider: "{{ cloud_provider | default('aws') }}"
 jibri_kernel_clean_aws: true
 jibri_kernel_headers_package: "linux-headers-{{ jibri_kernel_package_type }}"
 jibri_kernel_package: "linux-image-{{ jibri_kernel_package_type }}"
-jibri_kernel_package_type: virtual
+jibri_kernel_package_type: generic-hwe-22.04

@@ -4,7 +4,7 @@
   gather_facts: true
   become: true
   vars:
-    jibri_kernel_package_type: oracle
+    jibri_kernel_package_type: generic-hwe-22.04
     cloud_provider: oracle
   vars_files:
     - secrets/ssh-users.yml
