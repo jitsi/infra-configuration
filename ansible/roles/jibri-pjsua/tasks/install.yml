@@ -1,9 +1,4 @@
 ---
-- name: Install libbsd-dev
-  ansible.builtin.apt:
-    name: libbsd-dev
-    state: present
-
 # v4l2loopback dependency
 # Install v4l2 loopback directly from the internet,
 # as apt v4l2loopback-dkms results in errors on Oracle Ubuntu version https://github.com/umlaeute/v4l2loopback/issues/247,
