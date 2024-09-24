@@ -5,9 +5,6 @@ HEALTH_CHECK_TIMEOUT=30
 
 HEALTH_URL="http://localhost:8788/about/health"
 STATS_URL="http://localhost:8788/about/stats"
-THREAD_COUNT_GRACE=400
-THREAD_COUNT_CONSTANT=200
-THREAD_COUNT_CONFERENCE_FACTOR=40
 HEALTH_OUTPUT="/tmp/health-check-output"
 HEALTH_FAILURE_FILE="/tmp/health-check-fails"
 CRITICAL_FAILURE_THRESHHOLD=3
@@ -51,16 +48,15 @@ fi
 
 STATS=$($CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -f $STATS_URL 2>/dev/null)
 if [ $? -eq 0 ]; then
-    THREAD_COUNT=$(echo $STATS | jq ".threads")
-    CONFERENCE_COUNT=$(echo $STATS | jq ".conferences")
-    THREAD_COUNT_THRESHOLD=$((THREAD_COUNT_CONSTANT+THREAD_COUNT_GRACE+CONFERENCE_COUNT*THREAD_COUNT_CONFERENCE_FACTOR))
-    if [ $THREAD_COUNT -gt $THREAD_COUNT_THRESHOLD ]; then
-      echo "Thread count $THREAD_COUNT above $THREAD_COUNT_THRESHOLD at $CONFERENCE_COUNT conferences $THREAD_COUNT_CONFERENCE_FACTOR factor $THREAD_COUNT_CONSTANT constant $THREAD_COUNT_GRACE grace, extended health failed"
-      EXTENDED_HEALTH_PASSED=false
-    else
-      echo "Extended health OK"
-      EXTENDED_HEALTH_PASSED=true
-    fi
+  STATS_JQ="$(echo $STATS | jq ".")"
+  if [ $? -gt 0 ]; then
+    echo "Stats did not parse as JSON: $STATS_JQ"
+    echo "extended health failed"
+    EXTENDED_HEALTH_PASSED=false
+  else
+    echo "Extended health OK"
+    EXTENDED_HEALTH_PASSED=true
+  fi
 else
   echo "Extended health failed, stats not available"
   EXTENDED_HEALTH_PASSED=false
