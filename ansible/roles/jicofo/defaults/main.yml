@@ -14,7 +14,6 @@ jicofo_colibri2_log_level: "INFO"
 jicofo_deb_pkg_name: "jicofo"
 jicofo_deb_pkg_version: "*"
 jicofo_disable_auto_owner: false
-jicofo_disable_moderator_checks: false
 jicofo_enable_av1: true
 jicofo_enable_colibri2: true
 jicofo_enable_h264: true
@@ -27,6 +26,7 @@ jicofo_enable_source_signaling_delay: true
 # Enable additional logs for source-add, source-remove.
 jicofo_enable_ssrc_logs: false
 jicofo_enable_health: true
+jicofo_enable_stats: false
 jicofo_enable_vp8: true
 jicofo_enable_vp9: true
 jicofo_health_cron:
@@ -61,6 +61,13 @@ jicofo_sipjibri_skip_main_in_trusted_domains: false
 # No delay for conferences with <=25, 1 second for 25-50, etc.
 jicofo_source_signaling_delay: { 50: 1000, 100: 2000 }
 jicofo_ssrc_rewriting: false
+jicofo_stats_cron:
+  hour: "*"
+  job: "{{ jicofo_stats_script_path }} > /tmp/jicofo-stats-cron-output 2>&1"
+  minute: "*"
+jicofo_stats_cron_user: jicofo
+jicofo_stats_python_script_path: "/usr/local/bin/jicofo-stats.py"
+jicofo_stats_script_path: "/usr/local/bin/jicofo-stats.sh"
 jicofo_stress_threshold: 0.8
 jicofo_use_presence_for_jvb_health: false
 jicofo_visitors_enabled: "{{ visitors_enabled | default(false) }}"

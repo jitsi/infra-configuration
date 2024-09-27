@@ -129,7 +129,6 @@
       tags: setup
     - name: Set nomad instance variables
       ansible.builtin.set_fact:
-        cloud_compartment: "{{ instance_result.json.compartmentId }}"
         cloud_instance_id: "{{ instance_result.json.id }}"
         cloud_shape: "{{ instance_result.json.shape }}"
         cloud_availability_domain: "{{ instance_result.json.ociAdName }}"
@@ -187,7 +186,7 @@
         telegraf_tags:
           role: "{{ jigasi_shard_role }}"
           environment: "{{ hcv_environment }}"
-          region: "{{ oracle_region }}"
+          region: "{{ oracle_to_aws_region_map[oracle_region] }}"
           oracle_region: "{{ oracle_region }}"
           cloud: "oracle"
           jigasi_release_number: "{{ jigasi_release_number }}"

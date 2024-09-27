@@ -4,7 +4,7 @@
   gather_facts: true
   become: true
   vars:
-    jibri_kernel_package_type: generic
+    jibri_kernel_package_type: oracle
     cloud_provider: oracle
   vars_files:
     - secrets/ssh-users.yml
@@ -25,7 +25,6 @@
   roles:
     - { role: "jibri-kernel", tags: "jibri-kernel"}
     - { role: "common", tags: "common"}
-    - { role: "boot-postinstall", tags: "boot-postinstall" }
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_sip_jibri_enabled: true}

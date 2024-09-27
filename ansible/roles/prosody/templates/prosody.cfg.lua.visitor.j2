@@ -43,8 +43,6 @@ modules_enabled = {
 
       'secure_interfaces';
 
-      'admin_shell';
-
     -- jitsi
       'websocket';
       'bosh';
@@ -73,7 +71,6 @@ s2s_whitelist = {
 {% if secrets_jigasi_conference_B %}
     'jigasib.v{{ item }}.meet.jitsi';
 {% endif %}
-    'recorder.{{ prosody_domain_name }}';
 };
 
 {% if prosody_enable_mod_turncredentials %}
@@ -186,7 +183,6 @@ s2sout_override = {
 {% if secrets_jigasi_conference_B %}
     ["jigasib.v{{ item }}.meet.jitsi"] = "tcp://127.0.0.1:5269";
 {% endif %}
-    ["recorder.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
 }
 
 {% if prosody_limit_messages %}
@@ -235,9 +231,6 @@ VirtualHost 'v{{ item }}.meet.jitsi'
     {% endif %}
     {% if prosody_meet_conf_duration_enabled %}
       "conference_duration";
-    {% endif %}
-    {% if prosody_enable_filter_iq_rayo %}
-      "filter_iq_rayo";
     {% endif %}
     }
     main_muc = 'conference.v{{ item }}.meet.jitsi';

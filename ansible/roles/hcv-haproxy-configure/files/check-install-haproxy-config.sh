@@ -13,15 +13,9 @@ if [ ! -f "$TEMPLATE_LOGFILE" ]; then
   touch $TEMPLATE_LOGFILE
 fi
 
-function timestamp() {
-  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
-}
+TIMESTAMP=$(date --utc +%Y-%m-%d_%H:%M:%S.Z)
 
-function log_msg() {
-  echo "$(timestamp) [$$] hap-check-cfg: $1" | tee -a $TEMPLATE_LOGFILE
-}
-
-log_msg "starting check-install-haproxy-config.sh"
+echo "#### cihc: $TIMESTAMP starting check-install-haproxy-config.sh" >> $TEMPLATE_LOGFILE
 
 readonly PROGNAME=$(basename "$0")
 readonly LOCKFILE_DIR=/tmp
@@ -50,7 +44,7 @@ if [ -n "$2" ]; then
 fi
 
 if [ -z "$DRAFT_CONFIG" ]; then
-  log_msg "no DRAFT_CONFIG found, exiting..."
+  echo "#### cihc: no DRAFT_CONFIG found, exiting..." >> $TEMPLATE_LOGFILE
   exit 1
 fi
 
@@ -58,28 +52,26 @@ fi
 echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
 
 if [ ! -f "$DRAFT_CONFIG" ]; then
-    log_msg "draft haproxy config file $DRAFT_CONFIG does not exist"
+    echo "#### cihc: draft haproxy config file $DRAFT_CONFIG does not exist" >> $TEMPLATE_LOGFILE
     exit 1
 fi
-
-CONFIG_TIMESTAMP=$(timestamp)
 
 # validate the draft configuration
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
-    log_msg "new haproxy config failed to validate"
+    echo "#### cihc: new haproxy config failed to validate" >> $TEMPLATE_LOGFILE
     echo -n "jitsi.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
     # log a copy of the new config
-    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-haproxy.cfg.invalid
+    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg.invalid
     exit 1
 else
-    log_msg "validated $DRAFT_CONFIG"
+    echo "#### cihc: validated $DRAFT_CONFIG" >> $TEMPLATE_LOGFILE
     echo -n "jitsi.haproxy.reconfig.failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
 if [ "$DRY_RUN" == "false" ]; then
     # log a copy of the new config
-    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-haproxy.cfg
+    cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$TIMESTAMP-haproxy.cfg
     # save new config as validated
     DRAFT_CONFIG_VALIDATED="${DRAFT_CONFIG}.validated"
     cp $DRAFT_CONFIG $DRAFT_CONFIG_VALIDATED
@@ -88,12 +80,12 @@ if [ "$DRY_RUN" == "false" ]; then
 
     if [[ "$?" -eq 0 ]]; then
         /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
-        log_msg "haproxy-configurator.sh forked"
+        echo "#### chic: haproxy-configurator.sh forked" >> $TEMPLATE_LOGFILE
         echo -n "jitsi.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
     else
-        log_msg "haproxy_configurator.sh not started; there is already a fork running"
+        echo "#### chic: haproxy_configurator.sh not started; there is already a fork running" >> $TEMPLATE_LOGFILE
         echo -n "jitsi.haproxy.configurator:0|c" | nc -4u -w1 localhost 8125
     fi
 else
-    log_msg "in DRY_RUN mode"
+    echo "#### chic: in DRY_RUN mode" >> $TEMPLATE_LOGFILE
 fi

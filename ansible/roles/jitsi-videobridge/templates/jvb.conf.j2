@@ -8,8 +8,6 @@ videobridge {
 
   initial-drain-mode = {{ jvb_initial_drain_mode | to_json }}
 
-  redact-remote-addresses = {{ jvb_redact_remote_addresses | to_json }}
-
   load-management {
     average-participant-stress = {{ jvb_average_participant_stress }}
 

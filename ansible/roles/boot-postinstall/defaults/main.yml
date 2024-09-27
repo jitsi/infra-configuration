@@ -1,3 +1,0 @@
----
-boot_postinstall_path: /opt/jitsi/boot
-boot_postinstall_script: "{{ boot_postinstall_path }}/postinstall-lib.sh"

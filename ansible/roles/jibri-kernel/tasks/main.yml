@@ -30,7 +30,7 @@
   when: rebooting is changed
 
 - name: register latest kernel version for modules
-  shell: dpkg -l {{ jibri_kernel_package }} | tail -1 | awk '{split($3,a,"."); print a[1]"."a[2]"."a[3]"-"a[4]}' | cut -d'-' -f1,2
+  shell: dpkg -l {{ jibri_kernel_package }} | tail -1 | awk '{split($3,a,"."); print a[1]"."a[2]"."a[3]"-"a[4]}'
   register: apt_kernel_version
 
 - name: install latest kernel modules

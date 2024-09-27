@@ -9,21 +9,13 @@ if [ -n "$1" ]; then
     LOGFILE=$1
 fi
 
-function timestamp() {
-  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
-}
-
-function log_msg() {
-  echo "$(timestamp) [$$] lb-drain $1" | tee -a $LOGFILE
-}
-
 if [ -z "$INSTANCE_POOL" ]; then
-  echo "no instance pool found"
+  echo "#### olbd: no instance pool found" >> $LOGFILE
   exit 1
 fi
 
 if [ -z "$ORACLE_REGION" ]; then
-  echo "no oracle region found"
+  echo "#### olbd: no oracle region found" >> $LOGFILE
   exit 1
 fi
 
@@ -50,18 +42,18 @@ BACKEND_SET_NAME="$(echo "$LB_DETAILS" | jq -r '."backend-set-name"')"
 LB_ID="$(echo "$LB_DETAILS" | jq -r '."load-balancer-id"')"
 
 if [ -z "$BACKEND_SET_NAME" ]; then
-  log_msg "no backend set name found; exiting"
+  echo "#### olbd: no backend set name found" >> $LOGFILE
   exit 1
 fi
 
 if [ -z "$LB_ID" ]; then
-  log_msg "no load balancer id found; exiting"
+  echo "#### olbd: no load balancer id found" >> $LOGFILE
   exit 1
 fi
 
 MY_IP="$(curl -s curl http://169.254.169.254/opc/v1/vnics/ | jq -r .[0].privateIp)"
 MY_PORT=80
-log_msg "Setting instance $MY_IP to drain: $DRAIN_STATE in lb $LB_ID backend $BACKEND_SET_NAME"
+echo "#### oldb: Setting instance $MY_IP to drain: $DRAIN_STATE in lb $LB_ID backend $BACKEND_SET_NAME" >> $LOGFILE
 
 # edit the backend set to drain the instance
 WORK_REQUEST="$(oci lb backend update --load-balancer-id $LB_ID --backend-set-name $BACKEND_SET_NAME --backend-name "$MY_IP:$MY_PORT" --drain $DRAIN_STATE --weight 1 --backup false --offline false --auth instance_principal --region $ORACLE_REGION)"
@@ -69,15 +61,15 @@ WORK_REQUEST="$(oci lb backend update --load-balancer-id $LB_ID --backend-set-na
 WORK_REQUEST_TIMEOUT=300
 WAITED=0
 if [ $? -eq 0 ]; then
-    log_msg "successfully queued drain operation"
+    echo "#### olbd: successfully queued drain operation" >> $LOGFILE
     WORK_REQUEST_ID="$(echo "$WORK_REQUEST" | jq -r '."opc-work-request-id"')"
     STATE="QUEUED"
     # wait for the work request to complete
     while [[ "$STATE" == "ACCEPTED" || "$STATE" == "QUEUED" || "$STATE" == "IN_PROGRESS" ]]; do
-        log_msg "waiting for work request to complete"
+        echo "#### olbd: waiting for work request to complete" >> $LOGFILE
         WAITED=$((WAITED+5))
         if [[ $WAITED -gt $WORK_REQUEST_TIMEOUT ]]; then
-            log_msg "bd: work request timed out"
+            echo "#### olbd: work request timed out" >> $LOGFILE
             STATE="TIMEOUT"
         else
             sleep 5
@@ -86,9 +78,9 @@ if [ $? -eq 0 ]; then
         fi
     done
     if [[ "$STATE" == "SUCCEEDED" ]]; then
-        log_msg "successfully updated instance state"
+        echo "#### olbd: successfully updated instance state" >> $LOGFILE
     else
-        log_msg "failed to update instance state: $STATUS"
+        echo "#### olbd: failed to update instance state: $STATUS" >> $LOGFILE
         exit 1
     fi
 fi

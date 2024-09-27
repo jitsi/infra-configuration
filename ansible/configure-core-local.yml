@@ -210,6 +210,7 @@
           cloud_provider: "{{ core_cloud_provider }}"
     - { role: "jitsi-meet-branding", tags: "jitsi-meet" }
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true }
+    - { role: "tcpdump-prosody-jvb", tags: "tcpdump-prosody-jvb" }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true }
     # enable java 11 if set for the environment
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jicofo_java_11 }}", java_install_flag: false }

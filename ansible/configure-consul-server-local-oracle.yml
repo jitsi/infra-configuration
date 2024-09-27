@@ -128,12 +128,12 @@
         executable: /bin/bash
       register: cpu_total_compute_result
       tags: setup
-      when: nomad_shape | regex_search('^VM.Standard.A[0-9]+.Flex')
+      when: nomad_shape == "VM.Standard.A1.Flex"
     - name: Set nomad cpu_total_compute fact
       ansible.builtin.set_fact:
         nomad_cpu_total_compute: "{{ cpu_total_compute_result.stdout }}"
       tags: setup
-      when: nomad_shape | regex_search('^VM.Standard.A[0-9]+.Flex')
+      when: nomad_shape == "VM.Standard.A1.Flex"
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:

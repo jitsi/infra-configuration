@@ -96,12 +96,12 @@
         executable: /bin/bash
       register: cpu_total_compute_result
       tags: setup
-      when: nomad_shape | regex_search('^VM.Standard.A[0-9]+.Flex')
+      when: nomad_shape == "VM.Standard.A1.Flex"
     - name: Set nomad cpu_total_compute fact
       ansible.builtin.set_fact:
         nomad_cpu_total_compute: "{{ cpu_total_compute_result.stdout }}"
       tags: setup
-      when: nomad_shape | regex_search('^VM.Standard.A[0-9]+.Flex')
+      when: nomad_shape == "VM.Standard.A1.Flex"
     - name: Get instance's Public IP from VNIC
       ansible.builtin.command: "oci network vnic get --vnic-id {{ jvb_vnic }} --auth instance_principal"
       register: vnic_details_result
@@ -155,7 +155,7 @@
     - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
     - { role: "skynet-credentials", tags: "skynet-credentials", when: nomad_pool_type == "skynet" }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
-#    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
+    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
   tasks:
     - name: Consul service enablement
       ansible.builtin.systemd:

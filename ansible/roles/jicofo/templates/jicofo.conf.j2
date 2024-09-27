@@ -76,8 +76,6 @@ jicofo {
   conference {
     enable-auto-owner = {% if jicofo_disable_auto_owner %} false {% else %} true {% endif %}
 
-    enable-moderator-checks = {% if jicofo_disable_moderator_checks %} false {% else %} true {% endif %}
-
     max-audio-senders = {{ jicofo_max_audio_senders }}
     max-video-senders = {{ jicofo_max_video_senders }}
 

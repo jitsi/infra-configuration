@@ -1,0 +1,10 @@
+#!/bin/bash
+# pull in environment vars needed for reporting
+{% if cloud_provider == 'oracle' -%}
+. /usr/local/bin/oracle_cache.sh
+{% else -%}
+. /usr/local/bin/aws_cache.sh
+{% endif -%}
+
+# pull and report stats
+/usr/local/bin/jicofo-stats.py

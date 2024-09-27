@@ -55,7 +55,6 @@
 
   roles:
     - { role: "common", tags: "common" }
-    - { role: "boot-postinstall", tags: "boot-postinstall" }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos"}
     - { role: "sshusers", tags: "ssh" }
     - { role: "ntp", tags: "ntp"}

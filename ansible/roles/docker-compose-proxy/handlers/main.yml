@@ -1,6 +1,0 @@
----
-- name: Restart nginx for docker-compose-proxy
-  ansible.builtin.service:
-    name: nginx
-    state: restarted
-    enabled: true

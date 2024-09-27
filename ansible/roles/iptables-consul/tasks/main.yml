@@ -58,15 +58,5 @@
     action: insert
     comment: Added via ansible post-launch configuration script
 
-- name: Open telegraf prometheus port via iptables
-  ansible.builtin.iptables:
-    chain: INPUT
-    ctstate: NEW
-    protocol: tcp
-    destination_port: "9126"
-    jump: ACCEPT
-    action: insert
-    comment: Added via ansible post-launch configuration script
-
 - name: Save newly added iptable rules # noqa no-changed-when
   ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4

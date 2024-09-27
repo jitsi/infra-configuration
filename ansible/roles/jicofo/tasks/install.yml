@@ -70,6 +70,24 @@
     state: present
   when: (ansible_distribution_major_version | int) >= 20
 
+# add a stats script to wrap the dd->colibri script
+- name: Jicofo stats script upload
+  ansible.builtin.template:
+    dest: "{{ jicofo_stats_script_path }}"
+    src: "jicofo-stats.sh.j2"
+    mode: 0755
+    owner: root
+  when: jicofo_enable_stats
+
+# add a stats script to upload colibri stats to DataDog
+- name: Jicofo stats python script upload
+  ansible.builtin.copy:
+    dest: "{{ jicofo_stats_python_script_path }}"
+    src: "jicofo-stats.py"
+    mode: 0755
+    owner: root
+  when: jicofo_enable_stats
+
 - name: Jicofo health script upload
   ansible.builtin.copy:
     src: jicofo-health.sh

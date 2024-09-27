@@ -70,30 +70,6 @@
     path: "/etc/ansible/facts.d/configure_jigasi.fact"
     state: absent
 
-- name: Install ASAP key
-  ansible.builtin.copy:
-    dest: "{{ jigasi_asap_key_path }}.key"
-    mode: 0644
-    content: "{{ asap_key['key'] }}"
-
-- name: Converts asap key to pem
-  ansible.builtin.command: "openssl pkcs8 -topk8 -inform pem -in {{ jigasi_asap_key_path }}.key -outform pem -nocrypt -out {{ jigasi_asap_key_path }}"
-  ignore_errors: true
-  args:
-    creates: "{{ jigasi_asap_key_path }}"
-
-- name: Remove temp key file
-  ansible.builtin.file:
-    path: "{{ jigasi_asap_key_path }}.key"
-    state: absent
-
-- name: Key file permissions
-  ansible.builtin.file:
-    path: "{{ jigasi_asap_key_path }}"
-    owner: "jigasi"
-    group: "jitsi"
-    mode: 0600
-
 - name: Install custom fact script for configure-jigasi
   ansible.builtin.copy:
     dest: "/usr/local/bin/configure-jigasi.py"
@@ -136,37 +112,6 @@
   when: jigasi_enable_css_integration
   notify:
     - restart jigasi
-
-- name: Create transcriber OCI directory
-  ansible.builtin.file:
-    path: "/usr/share/jigasi/.oci"
-    state: directory
-    mode: 0700
-    owner: "jigasi"
-  when:
-    - jigasi_transcriber_oci_user_enabled
-    - jigasi_shard_role=='jigasi-transcriber'
-
-- name: Install transcriber OCI config
-  ansible.builtin.template:
-    src: config.oci.j2
-    dest: "/usr/share/jigasi/.oci/config"
-    mode: 0600
-    owner: "jigasi"
-  when:
-    - jigasi_transcriber_oci_user_enabled
-    - jigasi_shard_role=='jigasi-transcriber'
-
-- name: Install transcriber OCI key
-  ansible.builtin.copy:
-    content: "{{ jigasi_transcriber_oci_private_key }}"
-    dest: "/usr/share/jigasi/.oci/private.pem"
-    mode: 0600
-    owner: "jigasi"
-  when:
-    - jigasi_transcriber_oci_user_enabled
-    - jigasi_shard_role=='jigasi-transcriber'
-
 
 # set Jigasi open file limits again
 - name: Jigasi file open limits

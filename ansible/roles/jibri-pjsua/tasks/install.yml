@@ -1,9 +1,9 @@
 ---
-# v4l2loopback dependency
+#v4l2loopback dependency
 # Install v4l2 loopback directly from the internet,
 # as apt v4l2loopback-dkms results in errors on Oracle Ubuntu version https://github.com/umlaeute/v4l2loopback/issues/247,
 # such as this error at modprobe: ERROR: could not insert 'v4l2loopback': Bad address
 - name: Install v4l2loopback package from the internet
-  ansible.builtin.apt:
+  apt:
     deb: "{{ jibri_pjsua_v4l2_download_url }}"
-    state: present
+

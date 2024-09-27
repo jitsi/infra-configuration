@@ -33,7 +33,7 @@ global
   # TODO Mozilla recommends using their dhparam from https://ssl-config.mozilla.org/ffdhe2048.txt
   tune.ssl.default-dh-param 2048
 
-defaults global_defaults
+defaults
   log global
   mode http
   option dontlognull
@@ -70,14 +70,14 @@ peers mypeers
   peer {{ $haproxy.ServiceMeta.hostname }} {{ $haproxy.Address }}:{{ $haproxy.Port }}{{ end }}{% endraw %}{% endfor %}
 
 # setup haproxy stats ui and a health check uri for haproxy itself
-listen admin from global_defaults
+listen admin
   bind *:8080
   monitor-uri /haproxy_health
   stats enable
   stats auth admin:admin
   stats uri /haproxy_stats
 
-frontend health from global_defaults
+frontend health
   bind *:8081
   http-request set-log-level silent
   http-request set-var(txn.is_up) str(up),map_str({{ haproxy_health_up_map_path }},false)
@@ -86,7 +86,7 @@ frontend health from global_defaults
   http-request deny deny_status 503 if !is_up
   default_backend local_health
 
-frontend www-http from global_defaults
+frontend www-http
 {% if haproxy_ssl_certificates %}
   bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
 
@@ -107,7 +107,7 @@ frontend www-http from global_defaults
   http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
   default_backend {{ haproxy_backend_name }}{% else %}
   # detect if we're a health check, if so do not put it in access log
-  acl is_healthcheck url /about/health /_health
+  acl is_healthcheck url /about/health
   http-request set-log-level silent if is_healthcheck
 
   # detect if we find the room name in the URL
@@ -117,7 +117,7 @@ frontend www-http from global_defaults
   acl not_room path_end config.js interface_config.js favicon.ico http-bind http-pre-bind xmpp-websocket conference-request/v1 /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock /_health pwa-worker.js manifest.json
   acl not_room path_beg /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
   acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
-  acl not_room path_beg /about/health /_health
+  acl not_room path_beg /about/health
   # whitelist includes any paths which start with a group but still contain our whitelist string
   acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
   acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|conference-request/v1|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|_health|pwa-worker.js|manifest.json)$
@@ -126,7 +126,7 @@ frontend www-http from global_defaults
   # if the path should go to a shard
   acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request/v1 /room /room-size /room-password /_unlock /_health
   acl not_web hdr_beg(host) -i signal-api-
-  acl not_web path_beg /about/health /_health
+  acl not_web path_beg /about/health
 
   # if the path has at least one subdirectory, we assume it's a group
   acl has_group path_reg ^/([^/]+)/(.*)
@@ -135,7 +135,7 @@ frontend www-http from global_defaults
   acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|conference-request|.well-known)/(.*)
 
   # if the path is about/health it is not a group
-  acl not_group path_beg /about/health /_health
+  acl not_group path_beg /about/health
 
   # we assume the path is a room if we have all renderable characters
   acl is_room path_reg ^/([[:graph:]]+)$
@@ -219,11 +219,11 @@ frontend www-http from global_defaults
 {% endif -%}
 
 {% if haproxy_jvb_colibri_proxy_enabled %}
-backend jvb-colibri-proxy from global_defaults
+backend jvb-colibri-proxy
   server jvb localhost:{{ haproxy_jvb_colibri_proxy_port }} id 1 no-check
 {% endif %}
 {% if haproxy_web_backend_enabled %}
-backend web from global_defaults
+backend web
   # set the Host header to the one the ingress expects
   http-request set-header Host {{ haproxy_web_backend }}
 {% if haproxy_enable_https_redirect %}
@@ -234,10 +234,10 @@ backend web from global_defaults
   server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
 {% endif %}
 
-backend local_health from global_defaults
+backend local_health
   server local 127.0.0.1:8080
 
-backend {{ haproxy_backend_name }} from global_defaults
+backend {{ haproxy_backend_name }}
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
 
@@ -270,7 +270,7 @@ backend {{ haproxy_backend_name }} from global_defaults
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $shard := scratch.Get "shards" }}
-backend {{ $shard.ServiceMeta.shard }} from global_defaults
+backend {{ $shard.ServiceMeta.shard }}
 {% endraw %}
 {%- if haproxy_enable_https_redirect %}
   redirect scheme https if !{ ssl_fc }
@@ -278,7 +278,7 @@ backend {{ $shard.ServiceMeta.shard }} from global_defaults
   option forwardfor
   server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{{ range $release := scratch.MapValues "releases" }}
-backend release-{{ $release }} from global_defaults
+backend release-{{ $release }}
 {% endraw %}
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+

@@ -29,15 +29,6 @@ org.jitsi.jigasi.CONFERENCES_THRESHOLD={{ jigasi_conferences_threshold }}
 # detects sip tls socket close with sip to re-register
 net.java.sip.communicator.impl.protocol.sip.FORCE_REGISTER_ON_TLS_CLOSE=true
 
-{% if jigasi_visitors_enabled %}
-org.jitsi.jigasi.ENABLE_SIP_VISITORS=true
-{% if jigasi_visitors_queue_service_url %}
-org.jitsi.jigasi.VISITOR_QUEUE_SERVICE_PRIVATE_KEY_PATH={{ jigasi_asap_key_path }}
-org.jitsi.jigasi.VISITOR_QUEUE_SERVICE_PRIVATE_KEY_ID={{ asap_key['id'] }}
-org.jitsi.jigasi.VISITOR_QUEUE_SERVICE={{ jigasi_visitors_queue_service_url }}
-{% endif %}
-{% endif %}
-
 {% if jigasi_shard_role=='jigasi' %}
 
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647=acc1403273890647
@@ -65,7 +56,6 @@ net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_DOMAIN_B
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_DOMAIN_TENANT_HEADER_NAME=X-Domain-Tenant
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_AUTH_TOKEN_HEADER_NAME=X-Auth-Token
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_AUTH_USER_ID_HEADER_NAME=X-User-ID-Token
-net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_VISITOR_HEADER_NAME=X-Visitor
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.JITSI_MEET_ANSWER_EMPTY_INFO=true
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.SERVER_ADDRESS={{ jigasi_sip_server }}
 net.java.sip.communicator.impl.protocol.sip.acc1403273890647.USER_ID={{ jigasi_sip_username }}@{{ jigasi_sip_server }}
@@ -284,12 +274,6 @@ org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl={{ jigasi_transcribe
 org.jitsi.jigasi.transcription.whisper.private_key={{ jigasi_transcriber_whisper_private_key }}
 org.jitsi.jigasi.transcription.whisper.private_key_name={{ jigasi_transcriber_whisper_private_key_name }}
 org.jitsi.jigasi.transcription.whisper.websocket_url={{ jigasi_transcriber_whisper_websocket_url }}
-
-{% if jigasi_transcriber_oci_flag %}
-org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.OracleTranscriptionService
-org.jitsi.jigasi.transcription.oci.websocketUrl=wss://realtime.aiservice.{{ oracle_region }}.oci.oraclecloud.com
-org.jitsi.jigasi.transcription.oci.compartmentId={{ jigasi_cloud_compartment }}
-{% endif %}
 
 {% else %}
 

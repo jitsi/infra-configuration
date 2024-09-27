@@ -1,5 +1,0 @@
-- name: Generate passwords
-  ansible.builtin.command:
-    cmd: "/home/jcompose/docker-jitsi-meet/gen-passwords.sh"
-  args:
-    chdir: /home/jcompose/docker-jitsi-meet

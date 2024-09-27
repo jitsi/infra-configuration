@@ -45,8 +45,8 @@ firewall_scripts = {
 
 modules_disabled = {
     "offline",
-    "register";
-    "s2s";
+    "component",
+	"s2s";
 };
 modules_enabled = {
     -- Generally required
@@ -55,7 +55,9 @@ modules_enabled = {
       "tls";
       "disco";
       "posix";
+      "version";
       "secure_interfaces";
+      "adhoc";
       "admin_telnet";
 {% if prosody_enable_log_slow_events %}
       "log_slow_events";

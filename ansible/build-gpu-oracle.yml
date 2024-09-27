@@ -36,7 +36,6 @@
       tags: clean-system
 
   roles:
-    - { role: "boot-postinstall", tags: "boot-postinstall" }
     - { role: "nvidia-cuda", tags: "nvidia-cuda" }
     - { role: "nvidia-docker", tags: "nvidia-docker" }
     - { role: "gpu-models", tags: "gpu-models" }

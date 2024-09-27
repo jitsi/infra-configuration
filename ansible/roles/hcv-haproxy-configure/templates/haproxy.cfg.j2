@@ -110,7 +110,7 @@ frontend www-http
    default_backend {{ haproxy_backend_name }}
 {% else %}
    # detect if we're a health check, if so do not put it in access log
-   acl is_healthcheck url /about/health /_health
+   acl is_healthcheck url /about/health
    http-request set-log-level silent if is_healthcheck
 
    # detect if we find the room name in the URL
@@ -120,7 +120,7 @@ frontend www-http
    acl not_room path_end config.js interface_config.js favicon.ico http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password external_api.min.js external_api.min.map external_api.js analytics.js apple-app-site-association assetlinks.json close.html close.js close2.html close3.html dialininfo.html robots.txt /_unlock /_health pwa-worker.js manifest.json
    acl not_room path_beg /static/ /images/ /img/ /css/ /fonts/ /libs/ /connection_optimization/ /sounds/ /.well-known/
    acl not_room path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
-   acl not_room path_beg /about/health /_health
+   acl not_room path_beg /about/health
    # whitelist includes any paths which start with a group but still contain our whitelist string
    acl not_room path_reg ^/([^/]+)/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
    acl not_room path_reg ^/([^/]+)/(config.js|interface_config.js|favicon.ico|http-bind|http-pre-bind|xmpp-websocket|conference-request|room|room-size|room-password|external_api.min.js|external_api.min.map|external_api.js|analytics.js|apple-app-site-association|assetlinks.json|_unlock|_health|pwa-worker.js|manifest.json)$
@@ -129,7 +129,7 @@ frontend www-http
    # if the path should go to a shard
    acl not_web path_end config.js http-bind http-pre-bind xmpp-websocket conference-request /room /room-size /room-password /_unlock /_health
    acl not_web hdr_beg(host) -i signal-api-
-   acl not_web path_beg /about/health /_health
+   acl not_web path_beg /about/health
 
    # if the path has at least one subdirectory, we assume it's a group
    acl has_group path_reg ^/([^/]+)/(.*)
@@ -138,7 +138,7 @@ frontend www-http
    acl not_group path_reg ^/(libs|css|static|images|fonts|lang|sounds|connection_optimization|.well-known)/(.*)
 
    # if the path is about/health it is not a group
-   acl not_group path_beg /about/health /_health
+   acl not_group path_beg /about/health
 
    # we assume the path is a room if we have all renderable characters
    acl is_room path_reg ^/([[:graph:]]+)$

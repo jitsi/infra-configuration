@@ -1,3 +1,0 @@
----
-docker_compose_proxy_ssl_dest_dir: /etc/nginx/ssl
-docker_compose_proxy_install_flag: true

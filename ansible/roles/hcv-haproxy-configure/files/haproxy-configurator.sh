@@ -5,64 +5,56 @@
 if [ -n "$1" ]; then
     TEMPLATE_LOGFILE=$1
 else
-    echo "haproxy-configurator: missing TEMPLATE_LOGFILE, exiting"
+    echo "## hc: missing TEMPLATE_LOGFILE, exiting"
     exit 1
 fi
 
-function timestamp() {
-  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
-}
-
-function log_msg() {
-  echo "$(timestamp) [$$] hap-cfg: $1" | tee -a $TEMPLATE_LOGFILE
-}
-
-log_msg "entered haproxy-configurator.sh"
+echo "#### hc: entered haproxy-configurator.sh" >> $TEMPLATE_LOGFILE
 
 FINAL_EXIT=0
 
 if [ -n "$2" ]; then
     DRAFT_CONFIG_VALIDATED=$2
 else
-    log_msg "missing DRAFT_CONFIG_VALIDATED, exiting"
+    echo "## hc: missing DRAFT_CONFIG_VALIDATED, exiting" >> $TEMPLATE_LOGFILE
     FINAL_EXIT=1
 fi
 
 if [ ! -f "$DRAFT_CONFIG_VALIDATED" ] && [ "$FINAL_EXIT" == "0" ]; then
-    log_msg "draft haproxy config file $DRAFT_CONFIG_VALIDATED does not exist, exiting"
+    echo "#### hc: draft haproxy config file $DRAFT_CONFIG_VALIDATED does not exist, exiting" >> $TEMPLATE_LOGFILE
     exit 1
 fi
 
 diff $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
 if [ $? -eq 0 ]; then
-    log_msg "$DRAFT_CONFIG_VALIDATED is identical to /etc/haproxy/haproxy.cfg, exiting configurator"
+    echo "#### hc: $DRAFT_CONFIG_VALIDATED is identical to /etc/haproxy/haproxy.cfg, exiting configurator " >> $TEMPLATE_LOGFILE
     exit 0
 fi
 
 if [ "$FINAL_EXIT" == "0" ]; then
-    log_msg "waiting a minute for the validated configuration file to stabilize..."
+    echo "#### hc: waiting a minute for the validated configuration file to stabilize..." >> $TEMPLATE_LOGFILE
     while true; do
         UNIX_TIME_OF_VALIDATED_CONFIG_FILE=$(stat -c %Y $DRAFT_CONFIG_VALIDATED)
         UNIX_TIME=$(date +%s)
         if (( $UNIX_TIME > $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 60 )); then
-            log_msg "validated config file has been stable for 60 seconds, initiating reload"
+            echo "#### hc: validated config file has been stable for 60 seconds, initiating reload" >> $TEMPLATE_LOGFILE
             grep 'up true' /etc/haproxy/maps/up.map
             if [ $? -eq 0 ]; then
                 consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
                 if [ $? -eq 0 ]; then
-                    log_msg "haproxy-configurator-payload.sh exited with zero"
+                    echo "#### hc: haproxy-configurator-payload.sh exited with zero" >> $TEMPLATE_LOGFILE
                 else
-                    log_msg "haproxy-configurator-payload.sh exited with non-zero"
+                    echo "#### hc: haproxy-configurator-payload.sh exited with non-zero" >> $TEMPLATE_LOGFILE
                     echo -n "jitsi.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
                     FINAL_EXIT=1
                 fi
                 echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
             else
-                log_msg "haproxy is not up, skipping consul lock and immediately reloading"
+                echo "#### hc: haproxy is not up, skipping consul lock and immediately reloading" >> $TEMPLATE_LOGFILE
                 cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
                 service haproxy reload
                 if [[ $? -gt 0 ]]; then
-                    log_msg "haproxy failed to reload when down"
+                    echo "#### hc: haproxy failed to reload when down" >> $TEMPLATE_LOGFILE
                     FINAL_EXIT=1
                 fi
             fi

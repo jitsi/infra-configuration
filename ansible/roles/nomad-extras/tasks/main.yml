@@ -17,16 +17,6 @@
     dest: /var/nomad/plugins/
     mode: 0755
 
-# ensure br_netfilter is loaded
-- name: Load br_netfilter
-  community.general.system.modprobe:
-    name: br_netfilter
-
-- name: Enable br_netfilter module on boot
-  ansible.builtin.lineinfile:
-    dest: "/etc/modules"
-    line: "br_netfilter"
-
 # sysctl for bridge-nf-call-iptables
 - name: Update sysctl for bridge-nf-call-iptables
   ansible.posix.sysctl:

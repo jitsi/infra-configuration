@@ -12,7 +12,6 @@ jvb_average_participant_stress: "{{ jvb_average_participant_stress_by_shape[jvb_
   if jvb_shape in jvb_average_participant_stress_by_shape else jvb_average_participant_stress_by_shape['default'] }}"
 jvb_average_participant_stress_by_shape:
   "VM.Standard.A1.Flex": 0.005
-  "VM.Standard.A2.Flex": 0.004
   "VM.Standard.E3.Flex": 0.005
   "VM.Standard.E4.Flex": 0.004
   "default": 0.01
@@ -69,7 +68,6 @@ jvb_host: localhost
 jvb_hostname: "{{ environment_domain_name }}"
 jvb_image_build_flag: false
 jvb_initial_drain_mode: false
-jvb_redact_remote_addresses: true
 jvb_install_flag: true
 jvb_installed_package: "{{ jitsi_videobridge_deb_pkg_name }}"
 jvb_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
@@ -79,7 +77,6 @@ jvb_last_n_limits: 25
 jvb_load_threshold: "{{ jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default'] }}"
 jvb_load_threshold_by_shape:
   "VM.Standard.A1.Flex": 85000
-  "VM.Standard.A2.Flex": 100000
   "VM.Standard.E3.Flex": 81250
   "VM.Standard.E4.Flex": 100000
   "default": 50000
@@ -93,7 +90,6 @@ jvb_loss_experiment_probability: 0
 jvb_memory: "{{ jvb_memory_by_shape[jvb_shape] if jvb_shape in jvb_memory_by_shape else jvb_memory_by_shape['default'] }}"
 jvb_memory_by_shape:
   "VM.Standard.A1.Flex": "6g"
-  "VM.Standard.A2.Flex": "6g"
   "VM.Standard.E3.Flex": "6g"
   "VM.Standard.E4.Flex": "6g"
   "default": "3072m"

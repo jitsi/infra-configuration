@@ -134,9 +134,7 @@ set +x
 set -x
 fi
 
-[[ "$DOCKER_COMPOSE_FLAG" == "true" ]] && PLAYBOOK="configure-standalone-compose.yml" || PLAYBOOK="configure-standalone.yml"
-
-ansible-playbook -v $LOCAL_PATH/../ansible/$PLAYBOOK -i "$PRIVATE_IP," \
+ansible-playbook -v $LOCAL_PATH/../ansible/configure-standalone.yml -i "$PRIVATE_IP," \
 --extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN shard_name=$SHARD_BASE-$ORACLE_REGION-$UNIQUE_ID" \
 -e "ansible_python_interpreter=/usr/bin/python" \
 -e "jitsi_videobridge_deb_pkg_version=$JVB_VERSION" \
