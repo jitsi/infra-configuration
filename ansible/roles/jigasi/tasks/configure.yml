@@ -418,6 +418,18 @@
     mode: 0755
     owner: root
 
+- name: Replace reconfigure-jigasi script if consul-template is enabled
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      echo "Consul-template enabled, skipping reconfigure-jigasi"
+    dest: "/usr/local/bin/reconfigure-jigasi.sh"
+    mode: 0755
+    owner: root
+  when:
+    - jigasi_enable_consul_template
+    - not jigasi_configure_only_flag
+
 # Enable and run service if we are not building an AMI
 - name: Enable Jigasi service
   ansible.builtin.service:
