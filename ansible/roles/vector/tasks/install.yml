@@ -1,0 +1,22 @@
+- name: Install datadog apt keys
+  ansible.builtin.apt_key:
+    url: "https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public"
+    state: present
+
+- name: Install vector apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ vector_apt_repo }}"
+    state: present
+    filename: "vector"
+    update_cache: true
+
+- name: Install vector
+  ansible.builtin.apt:
+    name: vector
+    state: present
+
+- name: Remove vector apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ vector_apt_repo }}"
+    state: absent
+    filename: "vector"

@@ -1,0 +1,71 @@
+---
+- name: Create vector configuration directory
+  ansible.builtin.file:
+    path: /etc/vector
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create vector configuration file
+  ansible.builtin.template:
+    src: vector.yaml.j2
+    dest: /etc/vector/vector.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart vector
+
+- name: Check if jitsi group exists
+  ansible.builtin.getent:
+    database: group
+    key: jitsi
+    fail_key: false
+  register: jitsi_group_result
+
+- name: Add vector to jitsi group
+  ansible.builtin.user:
+    name: vector
+    groups: ["jitsi"]
+    append: true
+  when:
+    - ansible_facts.getent_group['jitsi'] is defined
+    - ansible_facts.getent_group['jitsi']
+
+- name: Check if prosody group exists
+  ansible.builtin.getent:
+    database: group
+    key: prosody
+    fail_key: false
+  register: prosody_group_result
+
+- name: Add vector to prosody group
+  ansible.builtin.user:
+    name: vector
+    groups: ["prosody"]
+    append: true
+  when:
+    - ansible_facts.getent_group['prosody'] is defined
+    - ansible_facts.getent_group['prosody']
+
+- name: Check if vault group exists
+  ansible.builtin.getent:
+    database: group
+    key: vault
+    fail_key: false
+  register: vault_group_result
+
+- name: Add vector to vault group
+  ansible.builtin.user:
+    name: vector
+    groups: ["vault"]
+    append: true
+  when:
+    - ansible_facts.getent_group['vault'] is defined
+    - ansible_facts.getent_group['vault']
+
+- name: Start vector
+  ansible.builtin.service:
+    name: vector
+    state: started
+    enabled: true
