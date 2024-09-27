@@ -120,72 +120,6 @@ net.java.sip.communicator.impl.protocol.sip.acc1403273890647.HEARTBEAT_SECONDS={
 {% endif %}
 
 net.java.sip.communicator.impl.protocol.sip.SKIP_REINVITE_ON_FOCUS_CHANGE_PROP=true
-###############
-
-
-{% for server in jigasi_servers %}
-
-
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}=acc-{{ server['id'] }}
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ACCOUNT_UID=Jabber:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}
-net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTION.Jabber\:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}=true
-
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USER_ID={{ server['jid'] }}
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_SERVER_OVERRIDDEN=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_ADDRESS={{ server['xmpp_host_private_ip_address'] }}
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ server['host_port'] if server['host_port'] is defined else jigasi_xmpp_port }}
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_SECURE=true
-#base64 AES keyLength:256 or 128
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_brewery_auth_pass|b64encode }}
-
-#net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=jigasi
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE_PRIORITY=30
-
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_METHOD=XEP-0199
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_INTERVAL=20
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.CALLING_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.JINGLE_NODES_ENABLED=false
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_CARBON_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.DEFAULT_ENCRYPTION=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_ICE=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_ACCOUNT_DISABLED=false
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_PREFERRED_PROTOCOL=false
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_DISCOVER_JINGLE_NODES=false
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PROTOCOL=Jabber
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_UPNP=false
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IM_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_STORED_INFO_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_FILE_TRANSFER_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USE_DEFAULT_STUN_SERVER=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL.DTLS-SRTP=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.OVERRIDE_ENCODINGS=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.G722/8000=705
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.GSM/8000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.H263-1998/90000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.H264/90000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.PCMA/8000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.PCMU/8000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/12000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/16000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/24000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/8000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.VP8/90000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.iLBC/8000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.opus/48000=750
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/16000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/32000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/8000=0
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.BREWERY={{ jigasi_brewery_muc_room }}@{{ server['xmpp_muc'] }}
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.BOSH_URL_PATTERN={{ server['url'] | default(jigasi_bosh_url_pattern) }}
-
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.DOMAIN_BASE={{ server['xmpp_domain'] }}
-
-
-{% endfor %}
-
-#######
 
 {% if jigasi_muc_join_timeout %}
 org.jitsi.jigasi.MUC_JOIN_TIMEOUT={{ jigasi_muc_join_timeout }}
@@ -348,3 +282,69 @@ org.jitsi.jigasi.ENABLE_SIP_STARTMUTED=true
 {% endif %}
 
 org.jitsi.jigasi.LOCAL_REGION={{ jigasi_region }}
+
+###############
+
+{% for server in jigasi_servers %}
+
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}=acc-{{ server['id'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ACCOUNT_UID=Jabber:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}
+net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTION.Jabber\:{{ server['jid'] }}@{{ server['xmpp_host_private_ip_address'] }}=true
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USER_ID={{ server['jid'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_SERVER_OVERRIDDEN=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_ADDRESS={{ server['xmpp_host_private_ip_address'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_PORT={{ server['host_port'] if server['host_port'] is defined else jigasi_xmpp_port }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_SECURE=true
+#base64 AES keyLength:256 or 128
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_brewery_auth_pass|b64encode }}
+
+#net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=jigasi
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE_PRIORITY=30
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_METHOD=XEP-0199
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_INTERVAL=20
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.CALLING_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.JINGLE_NODES_ENABLED=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_CARBON_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.DEFAULT_ENCRYPTION=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_ICE=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_ACCOUNT_DISABLED=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_PREFERRED_PROTOCOL=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_DISCOVER_JINGLE_NODES=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PROTOCOL=Jabber
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_UPNP=false
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IM_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_STORED_INFO_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_FILE_TRANSFER_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USE_DEFAULT_STUN_SERVER=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL.DTLS-SRTP=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.OVERRIDE_ENCODINGS=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.G722/8000=705
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.GSM/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.H263-1998/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.H264/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.PCMA/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.PCMU/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/12000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/16000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/24000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.SILK/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.VP8/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.iLBC/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.opus/48000=750
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/16000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/32000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.Encodings.speex/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.BREWERY={{ jigasi_brewery_muc_room }}@{{ server['xmpp_muc'] }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.BOSH_URL_PATTERN={{ server['url'] | default(jigasi_bosh_url_pattern) }}
+
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.DOMAIN_BASE={{ server['xmpp_domain'] }}
+
+
+{% endfor %}
+
+#######
