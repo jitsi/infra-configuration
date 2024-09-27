@@ -53,10 +53,10 @@ if [ "$FINAL_EXIT" == "0" ]; then
                     log_msg "haproxy-configurator-payload.sh exited with zero"
                 else
                     log_msg "haproxy-configurator-payload.sh exited with non-zero"
-                    echo -n "jitsi.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
+                    echo -n "jitsi.config.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
                     FINAL_EXIT=1
                 fi
-                echo -n "jitsi.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
+                echo -n "jitsi.config.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
             else
                 log_msg "haproxy is not up, skipping consul lock and immediately reloading"
                 cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg

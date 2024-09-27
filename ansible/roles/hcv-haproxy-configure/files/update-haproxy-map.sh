@@ -50,12 +50,12 @@ done < "${UPDATE_MAP}"
 echo "commit map @$PREPARE_VERSION $UPDATE_MAP" | socat /var/run/haproxy/admin.sock stdio
 if [ $? -gt 0 ]; then
     log_msg "commit map failed for $UPDATE_MAP"
-    echo -n "jitsi.haproxy.map_update_failed:1|c" | nc -4u -w1 localhost 8125
+    echo -n "jitsi.config.haproxy.map_update_failed:1|c" | nc -4u -w1 localhost 8125
     exit 1
 else
-    echo -n "jitsi.haproxy.map_update_failed:0|c" | nc -4u -w1 localhost 8125
+    echo -n "jitsi.config.haproxy.map_update_failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
-echo -n "jitsi.haproxy.map_update:1|c" | nc -4u -w1 localhost 8125
+echo -n "jitsi.config.haproxy.map_update:1|c" | nc -4u -w1 localhost 8125
 
 log_msg "succeeded to update $UPDATE_MAP"

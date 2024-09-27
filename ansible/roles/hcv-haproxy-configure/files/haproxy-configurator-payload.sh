@@ -2,7 +2,7 @@
 
 # payload of the haproxy-configurator, assumed to be an operation protected by a consul lock
 
-echo -n "jitsi.haproxy.reconfig_locked:1|c" | nc -4u -w1 localhost 8125
+echo -n "jitsi.config.haproxy.reconfig_locked:1|c" | nc -4u -w1 localhost 8125
 
 if [ -n "$1" ]; then
     TEMPLATE_LOGFILE=$1
@@ -53,10 +53,10 @@ if [[ "$FINAL_EXIT" -eq 0 ]]; then
     service haproxy reload
     if [[ $? -gt 0 ]]; then
         log_Msg "haproxy failed to reload"
-        echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
+        echo -n "jitsi.config.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
         FINAL_EXIT=1
     else
-        echo -n "jitsi.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
+        echo -n "jitsi.config.haproxy.reconfig:1|c" | nc -4u -w1 localhost 8125
     fi
 fi
 
@@ -84,10 +84,10 @@ if [ $? -ne 0 ]; then
 fi
 
 if [[ $FINAL_EXIT -gt 0 ]]; then
-    echo -n "jitsi.haproxy.reconfig_failed:1|c" | nc -4u -w1 localhost 8125
+    echo -n "jitsi.config.haproxy.reconfig_failed:1|c" | nc -4u -w1 localhost 8125
     exit 1
 else
-    echo -n "jitsi.haproxy.reconfig_failed:0|c" | nc -4u -w1 localhost 8125
+    echo -n "jitsi.config.haproxy.reconfig_failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
 exit $FINAL_EXIT
