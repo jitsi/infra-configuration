@@ -1,0 +1,58 @@
+- name: Setup apt repository for openjdk
+  ansible.builtin.apt_repository:
+    repo: "ppa:openjdk-r/ppa"
+    update_cache: true
+  when: java_from_apt
+
+- name: Install java 11
+  ansible.builtin.apt:
+    name: openjdk-11-jdk
+    state: present
+    update_cache: true
+  when: java_from_apt
+
+- name: Install java 17
+  ansible.builtin.apt:
+    name: openjdk-17-jdk
+    state: present
+    update_cache: true
+  when:
+    - java_from_apt
+    - java_17_flag
+
+- name: Install java 11 debug
+  ansible.builtin.apt:
+    name: openjdk-11-dbg
+    state: present
+    update_cache: true
+  when: java_from_apt
+
+- name: Install java 17 debug
+  ansible.builtin.apt:
+    name: openjdk-17-dbg
+    state: present
+    update_cache: true
+  when:
+    - java_from_apt
+    - java_17_flag
+
+- name: Download java packages from URL
+  ansible.builtin.get_url:
+    mode: 0644
+    url: "{{ java_url_base }}/{{ java_package_prefix }}-{{ item }}_{{ java_package_version }}{{ java_package_suffix }}"
+    dest: "/tmp/{{ java_package_prefix }}-{{ item }}_{{ java_package_version }}{{ java_package_suffix }}"
+  loop: "{{ java_url_packages }}"
+  when: not java_from_apt
+
+- name: Install java packages from file
+  ansible.builtin.apt:
+    deb: "/tmp/{{ java_package_prefix }}-{{ item }}_{{ java_package_version }}{{ java_package_suffix }}"
+    force: true
+  loop: "{{ java_url_packages }}"
+  when: not java_from_apt
+
+- name: Remove apt repository for openjdk
+  ansible.builtin.apt_repository:
+    repo: "ppa:openjdk-r/ppa"
+    state: absent
+  when: java_from_apt
