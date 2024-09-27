@@ -209,7 +209,8 @@
     - { role: "consul-jigasi", tags: "consul-jigasi", when: jigasi_shard_role == 'jigasi'}
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "jigasi", tags: "jigasi", jigasi_install_flag: false, jigasi_configure_flag: true}
-    - { role: "consul-template", tags: "consul-template", when: jigasi_enable_consul_template }
+    - { role: "consul-template", tags: "consul-template",
+        when: jigasi_enable_consul_template and (jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber') }
     - { role: "tcpdump-jigasi", tags: "tcpdump-jigasi", when: jigasi_enable_tcpdump }
     - { role: "jigasi-web", tags: "jigasi-web", jigasi_web_install_flag: false }
     - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent",
