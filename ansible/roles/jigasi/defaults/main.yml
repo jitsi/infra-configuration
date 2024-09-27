@@ -13,6 +13,7 @@ jigasi_auth_type: 'A'
 jigasi_bosh_host_override: false
 jigasi_bosh_url_pattern: "https://{host}{subdomain}/http-bind?room={roomName}"
 jigasi_brewery_auth_pass: "{{ secrets_jigasi_brewery_A if jigasi_brewery_auth_type == 'A' else secrets_jigasi_brewery_B }}"
+jigasi_auth_jid: "{{ jigasi_brewery_auth_user }}@{{ jigasi_auth_prefix }}.{{ jigasi_xmpp_domain }}"
 # Either "A" or "B"
 jigasi_brewery_auth_type: "A"
 jigasi_brewery_auth_user: "{{ 'jigasia' if jigasi_brewery_auth_type == 'A' else 'jigasib' }}"
@@ -43,39 +44,24 @@ jigasi_local_datacenters_by_cloud: "{{ jigasi_transcriber_local_datacenters_by_c
 jigasi_sip_local_datacenters_by_cloud:
   us-east-1-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
-    'us-west-2-peer1',
     "{{ hcv_environment }}-us-ashburn-1",
-    'us-east-1-peer1',
     "{{ hcv_environment }}-ap-tokyo-1",
-    'ap-ne-1-peer1',
     "{{ hcv_environment }}-sa-saopaulo-1",
-    'sa-east-1-peer1',
     "{{ hcv_environment }}-ap-sydney-1",
-    'ap-se-2-peer1',
-    "{{ hcv_environment }}-ca-toronto-1",
-    'ca-central-1-peer1'
+    "{{ hcv_environment }}-ca-toronto-1"
   ]
   us-west-2-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
-    'us-west-2-peer1',
     "{{ hcv_environment }}-us-ashburn-1",
-    'us-east-1-peer1',
     "{{ hcv_environment }}-ap-tokyo-1",
-    'ap-ne-1-peer1',
     "{{ hcv_environment }}-sa-saopaulo-1",
-    'sa-east-1-peer1',
     "{{ hcv_environment }}-ap-sydney-1",
-    'ap-se-2-peer1',
-    "{{ hcv_environment }}-ca-toronto-1",
-    'ca-central-1-peer1'
+    "{{ hcv_environment }}-ca-toronto-1"
   ]
   eu-central-1-peer1: [
     "{{ hcv_environment }}-uk-london-1",
-    'eu-west-2-peer1',
     "{{ hcv_environment }}-eu-frankfurt-1",
-    'eu-central-1-peer1',
-    "{{ hcv_environment }}-ap-mumbai-1",
-    'ap-south-1-peer1'
+    "{{ hcv_environment }}-ap-mumbai-1"
   ]
 
 # when jigasi_enable_local_datacenters, transcribers in phoenix/us-west-2 connect to shards in US, Tokyo and South America
@@ -83,27 +69,18 @@ jigasi_sip_local_datacenters_by_cloud:
 jigasi_transcriber_local_datacenters_by_cloud:
   us-west-2-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
-    'us-west-2-peer1',
     "{{ hcv_environment }}-us-ashburn-1",
-    'us-east-1-peer1',
     "{{ hcv_environment }}-ap-tokyo-1",
-    'ap-ne-1-peer1',
     "{{ hcv_environment }}-sa-saopaulo-1",
-    'sa-east-1-peer1',
     "{{ hcv_environment }}-ap-sydney-1",
-    'ap-se-2-peer1',
     "{{ hcv_environment }}-ca-toronto-1",
-    'ca-central-1-peer1'
   ]
   eu-central-1-peer1: [
     "{{ hcv_environment }}-uk-london-1",
-    'eu-west-2-peer1',
-    "{{ hcv_environment }}-eu-frankfurt-1",
-    'eu-central-1-peer1',
+    "{{ hcv_environment }}-eu-frankfurt-1"
   ]
   ap-south-1-peer1: [
-    "{{ hcv_environment }}-ap-mumbai-1",
-    'ap-south-1-peer1'
+    "{{ hcv_environment }}-ap-mumbai-1"
   ]
 jigasi_transcriber_oci_user_enabled: false
 jigasi_visitors_enabled: false
