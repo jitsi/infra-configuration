@@ -209,7 +209,7 @@
     owner: jigasi
   notify: Restart jigasi
 
-- name: Install jigasi sip communicator properties file
+- name: Install full jigasi sip communicator properties file
   ansible.builtin.template:
     src: sip-communicator.properties.j2
     dest: /etc/jitsi/jigasi/sip-communicator.properties
@@ -218,7 +218,7 @@
   notify: Restart jigasi
   when: not jigasi_enable_consul_template
 
-- name: Install jigasi base sip communicator properties file
+- name: Install base jigasi sip communicator properties file
   ansible.builtin.template:
     src: base-sip-communicator.properties.j2
     dest: /etc/jitsi/jigasi/base-sip-communicator.properties
@@ -226,7 +226,7 @@
     mode: 0640
   when: jigasi_enable_consul_template
 
-- name: Install base as initial jigasi sip communicator properties file
+- name: Install base as initial full jigasi sip communicator properties file
   ansible.builtin.template:
     src: base-sip-communicator.properties.j2
     dest: /etc/jitsi/jigasi/sip-communicator.properties
