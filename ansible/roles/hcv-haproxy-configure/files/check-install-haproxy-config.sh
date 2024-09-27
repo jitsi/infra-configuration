@@ -55,7 +55,7 @@ if [ -z "$DRAFT_CONFIG" ]; then
 fi
 
 # always emit at least a 0 to metrics
-echo -n "jitsi.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
+echo -n "jitsi.config.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
 
 if [ ! -f "$DRAFT_CONFIG" ]; then
     log_msg "draft haproxy config file $DRAFT_CONFIG does not exist"
@@ -68,13 +68,13 @@ CONFIG_TIMESTAMP=$(timestamp)
 haproxy -c -f "$DRAFT_CONFIG" >/dev/null
 if [ $? -gt 0 ]; then
     log_msg "new haproxy config failed to validate"
-    echo -n "jitsi.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
+    echo -n "jitsi.config.haproxy.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
     # log a copy of the new config
     cp "$DRAFT_CONFIG" $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-haproxy.cfg.invalid
     exit 1
 else
     log_msg "validated $DRAFT_CONFIG"
-    echo -n "jitsi.haproxy.reconfig.failed:0|c" | nc -4u -w1 localhost 8125
+    echo -n "jitsi.config.haproxy.reconfig.failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
 if [ "$DRY_RUN" == "false" ]; then
@@ -89,10 +89,10 @@ if [ "$DRY_RUN" == "false" ]; then
     if [[ "$?" -eq 0 ]]; then
         /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
         log_msg "haproxy-configurator.sh forked"
-        echo -n "jitsi.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
+        echo -n "jitsi.config.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
     else
         log_msg "haproxy_configurator.sh not started; there is already a fork running"
-        echo -n "jitsi.haproxy.configurator:0|c" | nc -4u -w1 localhost 8125
+        echo -n "jitsi.config.haproxy.configurator:0|c" | nc -4u -w1 localhost 8125
     fi
 else
     log_msg "in DRY_RUN mode"
