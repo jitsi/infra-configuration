@@ -17,7 +17,7 @@ echo "$(date --utc +%Y-%m-%d_%H:%M:%S.Z) starting configure-jvb-shards.sh" >> $T
 /usr/local/bin/configure-jvb-shards.sh >> $TEMPLATE_LOGFILE
 RET=$?
 
-if [ $? -gt 0 ]; then
+if [ $RET -gt 0 ]; then
     echo "$(date --utc +%Y-%m-%d_%H:%M:%S.Z) jvb shards update failed" >> $TEMPLATE_LOGFILE
     echo -n "jitsi.config.jvb.shards_update_update_failed:1|c" | nc -4u -w1 localhost 8125
     exit 1
