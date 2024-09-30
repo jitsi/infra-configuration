@@ -10,6 +10,16 @@
     adrl: "{{ ansible_distribution_release | lower }}"
     cloud_provider: oracle
     cloud_instance_id: "{{ ansible_fqdn }}"
+    consul_template_template_templates:
+      - src: roles/jigasi/templates/xmpp-sip-communicator.properties.template.j2
+    consul_template_templates:
+      - name: "xmpp-sip-communicator.properties.template"
+        dest: "/etc/jitsi/jigasi/xmpp-sip-communicator.properties"
+        cmd: "/usr/local/bin/reconfigure-jigasi-wrapper.sh"
+        user: "root"
+        group: "jitsi"
+        perms: 0644
+        backup: false
     jigasi_enable_consul: true
     shard_role: "{{ jigasi_shard_role | default('jigasi') }}"
   vars_files:
@@ -168,7 +178,8 @@
     - { role: "vector", tags: "vector", when: jigasi_vector_enabled, vector_install_flag: false}
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jigasi_vector_enabled}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
-    - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true, when: jigasi_shard_role == 'jigasi-transcriber'}
+    - { role: "google-cloud", tags: "google-cloud", google_cloud_install_flag: false, google_cloud_configure_flag: true,
+        when: jigasi_shard_role == 'jigasi-transcriber'}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jigasi_enable_fluentd }
     - role: "wavefront"
@@ -198,6 +209,8 @@
     - { role: "consul-jigasi", tags: "consul-jigasi", when: jigasi_shard_role == 'jigasi'}
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "jigasi", tags: "jigasi", jigasi_install_flag: false, jigasi_configure_flag: true}
+    - { role: "consul-template", tags: "consul-template",
+        when: jigasi_enable_consul_template and (jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber') }
     - { role: "tcpdump-jigasi", tags: "tcpdump-jigasi", when: jigasi_enable_tcpdump }
     - { role: "jigasi-web", tags: "jigasi-web", jigasi_web_install_flag: false }
     - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent",

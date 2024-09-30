@@ -209,26 +209,50 @@
     owner: jigasi
   notify: Restart jigasi
 
-- name: Install jigasi sip communicator properties file
+- name: Install full jigasi sip communicator properties file
   ansible.builtin.template:
     src: sip-communicator.properties.j2
     dest: /etc/jitsi/jigasi/sip-communicator.properties
     group: jitsi
     mode: 0640
   notify: Restart jigasi
+  when: not jigasi_enable_consul_template
+
+- name: Install base jigasi sip communicator properties file
+  ansible.builtin.template:
+    src: base-sip-communicator.properties.j2
+    dest: /etc/jitsi/jigasi/base-sip-communicator.properties
+    group: jitsi
+    mode: 0640
+  when: jigasi_enable_consul_template
+
+- name: Install base as initial full jigasi sip communicator properties file
+  ansible.builtin.template:
+    src: base-sip-communicator.properties.j2
+    dest: /etc/jitsi/jigasi/sip-communicator.properties
+    group: jitsi
+    mode: 0640
+  notify: Restart jigasi
+  when:
+    - not jigasi_configure_only_flag
+    - jigasi_enable_consul_template
 
 - name: Clear shard details dir
   ansible.builtin.file:
     path: /tmp/jigasi_shards
     state: absent
-  when: jigasi_configure_only_flag
+  when:
+    - jigasi_configure_only_flag
+    - not jigasi_enable_consul_template
 
 - name: Create shard details dir
   ansible.builtin.file:
     mode: 0755
     path: /tmp/jigasi_shards
     state: directory
-  when: jigasi_configure_only_flag
+  when:
+    - jigasi_configure_only_flag
+    - not jigasi_enable_consul_template
 
 - name: Create shard details files
   ansible.builtin.template:
@@ -236,7 +260,9 @@
     src: "call-control-muc.json.j2"
     dest: "/tmp/jigasi_shards/{{ item['id'] }}.json"
   with_items: "{{ jigasi_servers }}"
-  when: jigasi_configure_only_flag
+  when:
+    - jigasi_configure_only_flag
+    - not jigasi_enable_consul_template
 
 - name: Update jigasi with new shard details
   ansible.builtin.uri:
@@ -247,7 +273,9 @@
     src: "/tmp/jigasi_shards/{{ item['id'] }}.json"
     remote_src: true
   with_items: "{{ jigasi_servers }}"
-  when: jigasi_configure_only_flag
+  when:
+    - jigasi_configure_only_flag
+    - not jigasi_enable_consul_template
 
 - name: Update jigasi removing old shards
   ansible.builtin.uri:
@@ -259,13 +287,17 @@
         {"id":"{{ item }}"}
     remote_src: true
   with_items: "{{ jigasi_servers_to_remove }}"
-  when: jigasi_configure_only_flag
+  when:
+    - jigasi_configure_only_flag
+    - not jigasi_enable_consul_template
 
 - name: Clear shard details dir again
   ansible.builtin.file:
     path: /tmp/jigasi_shards
     state: absent
-  when: jigasi_configure_only_flag
+  when:
+    - jigasi_configure_only_flag
+    - not jigasi_enable_consul_template
 
 # provide script for managing the auto-scale group lifecycle queue
 - name: Upload lifecyle script
@@ -378,6 +410,25 @@
     dest: "/usr/local/bin/graceful-shutdown-wrapper-jigasi.sh"
     mode: 0755
     owner: root
+
+- name: Copy Jigasi reconfigure wrapper script
+  ansible.builtin.copy:
+    src: "reconfigure-jigasi-wrapper.sh"
+    dest: "/usr/local/bin/reconfigure-jigasi-wrapper.sh"
+    mode: 0755
+    owner: root
+
+- name: Replace reconfigure-jigasi script if consul-template is enabled
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      echo "Consul-template enabled, skipping reconfigure-jigasi"
+    dest: "/usr/local/bin/reconfigure-jigasi.sh"
+    mode: 0755
+    owner: root
+  when:
+    - jigasi_enable_consul_template
+    - not jigasi_configure_only_flag
 
 # Enable and run service if we are not building an AMI
 - name: Enable Jigasi service
