@@ -6,11 +6,14 @@
 [ -z "$XMPP_SIP_COMMUNICATOR_PATH" ] && XMPP_SIP_COMMUNICATOR_PATH="$CONFIG_BASE_PATH/xmpp-sip-communicator.properties"
 
 [ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/var/log/jitsi/jigasi-shards"
+
+[ -d "$TEMPLATE_LOGDIR" ] || mkdir -p $TEMPLATE_LOGDIR
 [ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/jigasi-reconfigure.log"
 
 echo "$(date --utc +%Y-%m-%d_%H:%M:%S.Z) starting configure-jigasi-wrapper.sh" >> $TEMPLATE_LOGFILE
 
 cat $BASE_SIP_COMMUNICATOR_PATH $XMPP_SIP_COMMUNICATOR_PATH > $SIP_COMMUNICATOR_PATH
+cp $SIP_COMMUNICATOR_PATH $TEMPLATE_LOGDIR/sip-communicator.properties.$(date --utc +%Y-%m-%d_%H:%M:%S.Z)
 
 CONFIG_PATH="$SIP_COMMUNICATOR_PATH" /usr/share/jigasi/reconfigure_xmpp.sh >> $TEMPLATE_LOGFILE
 RET=$?
