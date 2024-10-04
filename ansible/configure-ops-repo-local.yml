@@ -31,7 +31,6 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog"}
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: haproxy_enable_fluentd }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

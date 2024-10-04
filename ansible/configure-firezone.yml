@@ -32,5 +32,4 @@
     - { role: "docker", tags: "docker"}
     - { role: "iptables-firezone", tags: "iptables"}
     - { role: "firezone", tags: "firezone"}
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: firezone_enable_fluentd }
     - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
