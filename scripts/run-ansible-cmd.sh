@@ -21,15 +21,20 @@ fi
 
 [ -z "$ANSIBLE_SSH_USER" ] && ANSIBLE_SSH_USER="$(whoami)"
 
-[ -z "$BATCH_INVENTORY_FILE" ] && BATCH_INVENTORY_FILE="./batch-inventory"
+[ -z "$BATCH_INVENTORY_FILE" ] && BATCH_INVENTORY_FILE="./ansible-cmd-batch.inventory"
 
 if [ -f "$BATCH_INVENTORY_FILE" ]; then
     echo "## using existing inventory file $BATCH_INVENTORY_FILE"
 else
     echo "## building inventory file $BATCH_INVENTORY_FILE"
-    echo '[all]' > ./batch-inventory
-    $LOCAL_PATH/node.py --role $ROLE --environment $ENVIRONMENT --oracle --oracle_only --region $ORACLE_REGION --batch > $BATCH_INVENTORY_FILE
+    echo '[all]' > $BATCH_INVENTORY_FILE
+    $LOCAL_PATH/node.py --role $ROLE --environment $ENVIRONMENT --oracle --oracle_only --region $ORACLE_REGION --batch >> $BATCH_INVENTORY_FILE
+    if [[ $? -ne 0 ]]; then
+        echo "## ERROR in run-ansible-cmd.sh failed to build inventory file"
+        exit 2
+    fi
 fi
 
 NODE_CMD="$*"
-ansible -i ./batch-inventory all -a "$NODE_CMD" -u $ANSIBLE_SSH_USER --become --become-user root
+echo "## Running command: $NODE_CMD"
+ansible -i $BATCH_INVENTORY_FILE all -a "$NODE_CMD" -u $ANSIBLE_SSH_USER --become --become-user root
