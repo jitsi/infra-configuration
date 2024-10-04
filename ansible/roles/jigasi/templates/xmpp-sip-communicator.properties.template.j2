@@ -1,7 +1,7 @@
 ######
 
 {% raw %}
-{{ range $dcidx, $dc := {% endraw %}{{ (jigasi_local_datacenters if jigasi_enable_local_datacenters else [hcv_environment+'-'+oracle_region])|to_json }}{% raw %} -}}
+{{ range $dcidx, $dc := (`{% endraw %}{{ (jigasi_local_datacenters if jigasi_enable_local_datacenters else [hcv_environment+'-'+oracle_region])|to_json }}{% raw %}` | parseJSON) -}}
   {{ $service := print "signal@" $dc -}}
     {{ range $index, $item := service $service -}}
         {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
