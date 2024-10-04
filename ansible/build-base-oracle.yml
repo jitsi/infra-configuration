@@ -65,7 +65,6 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: true, autoscaler_configure_flag: false}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: true, fluentd_jitsi_configure_flag: false}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_install_collector: true

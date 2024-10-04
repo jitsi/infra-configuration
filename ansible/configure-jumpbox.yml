@@ -29,5 +29,4 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog"}
-    - { role: "fluentd-jitsi", tags: "fluentd", fluentd_jitsi_install_flag: false, fluentd_jitsi_configure_flag: true, when: jumpbox_enable_fluentd }
     - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
