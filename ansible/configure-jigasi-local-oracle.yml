@@ -220,7 +220,7 @@
     - { role: "consul-template", tags: "consul-template",
         when: jigasi_enable_consul_template and (jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber') }
     - { role: "tcpdump-jigasi", tags: "tcpdump-jigasi", when: jigasi_enable_tcpdump }
-    - { role: "jigasi-web", tags: "jigasi-web", jigasi_web_install_flag: false }
+    - { role: "jigasi-web", tags: "jigasi-web", jigasi_web_install_flag: false, when: jigasi_shard_role == 'jigasi' }
     - { role: "jigasi-haproxy-agent", tags: "jigasi-haproxy-agent",
         jigasi_haproxy_agent_install_flag: false, jigasi_haproxy_agent_configure_flag: true, when: jigasi_shard_role == 'jigasi'}
     - { role: "jigasi-rtcstats-push", tags: "rtcstats-push",
