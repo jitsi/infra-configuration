@@ -38,9 +38,6 @@ local speakerStatsURL
 local transcriptionsURL
     = module:get_option_string("muc_transcriptions_url");
 
-local eventAPIKey
-    = module:get_option_string("muc_events_api_key", 'replaceme');
-
 local muc_domain_prefix
     = module:get_option_string("muc_mapper_domain_prefix", "conference");
 
@@ -78,7 +75,6 @@ end
 
 local http_headers = {
     ["User-Agent"] = "Prosody ("..prosody.version.."; "..prosody.platform..")",
-    ["x-api-key"] = eventAPIKey,
     ["Content-Type"] = "application/json"
 };
 
