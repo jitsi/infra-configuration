@@ -230,34 +230,6 @@
     owner: root
   when: jvb_cloud_provider == "aws"
 
-# temporarily include this to install on existing JVBs
-# add a stats script to wrap the dd->colibri script
-- name: JVB stats script upload aws
-  ansible.builtin.copy:
-    dest: "{{ path_to_stats_script }}"
-    src: "jvb-stats.sh"
-    mode: 0755
-    owner: root
-  when: jvb_cloud_provider == "aws" and jvb_enable_stats_cron
-
-- name: JVB stats script upload oracle
-  ansible.builtin.copy:
-    dest: "{{ path_to_stats_script }}"
-    src: "jvb-stats-oracle.sh"
-    mode: 0755
-    owner: root
-  when: jvb_cloud_provider == "oracle" and jvb_enable_stats_cron
-
-# temporarily include this to install on existing JVBs
-# add a stats script to upload colibri stats to DataDog
-- name: JVB stats python script upload
-  ansible.builtin.copy:
-    dest: "{{ path_to_stats_python_script }}"
-    src: "jvb-stats.py"
-    mode: 0755
-    owner: root
-  when: jvb_enable_stats_cron
-
 - name: Copy terminate instance script oracle
   ansible.builtin.template:
     src: "terminate_instance_oracle.j2"
