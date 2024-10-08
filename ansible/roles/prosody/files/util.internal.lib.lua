@@ -26,7 +26,6 @@ local ASAPAudience = module:get_option_string("asap_audience", 'jitsi');
 local ASAPTTL_THRESHOLD = module:get_option_number("asap_ttl_threshold", 600);
 local ASAPTTL = module:get_option_number("asap_ttl", 3600);
 local ASAPIssuer = module:get_option_string("asap_issuer", 'jitsi');
-local eventAPIKey = module:get_option_string("muc_events_api_key", 'replaceme');
 local ASAPKeyId = module:get_option_string("asap_key_id", 'jitsi');
 
 local jwtKeyCacheSize = module:get_option_number("jwt_pubkey_cache_size", 128);
@@ -53,7 +52,6 @@ Util.FIRST_TRANSCRIPT_MESSAGE_POS = 1;
 
 Util.http_headers = {
     ["User-Agent"] = "Prosody (" .. prosody.version .. "; " .. prosody.platform .. ")",
-    ["x-api-key"] = eventAPIKey,
     ["Content-Type"] = "application/json"
 };
 
