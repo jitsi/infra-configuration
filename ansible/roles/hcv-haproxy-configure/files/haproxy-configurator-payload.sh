@@ -21,6 +21,8 @@ function log_msg() {
 
 log_msg "entered haproxy-configurator-payload.sh"
 
+[ -z "$DRAFT_CONFIG" ] && DRAFT_CONFIG="/tmp/haproxy.cfg.test"
+
 if [ -n "$2" ]; then
     DRAFT_CONFIG_VALIDATED=$2
 else
@@ -72,10 +74,10 @@ fi
 log_msg "reloaded haproxy with new config"
 
 # copy the live config over test config and kick off consul-template to make sure there are not any new changes
-diff /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.test
+diff /etc/haproxy/haproxy.cfg $DRAFT_CONFIG
 if [ $? -ne 0 ]; then
     log_msg "live config is different than test config; reloading consul-template"
-    cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.test
+    cp /etc/haproxy/haproxy.cfg $DRAFT_CONFIG
     service consul-template reload
     if [[ $? -gt 0 ]]; then
         log_Msg "consul-template failed to reload"
