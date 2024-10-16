@@ -169,7 +169,10 @@ jigasi_transcriber_auth_user: "{{ 'transcribera' if jigasi_transcriber_auth_type
 jigasi_transcriber_enable_debug: false
 jigasi_transcriber_filter_silence: false
 jigasi_transcriber_custom_transcriber: false
-jigasi_transcriber_remote_select: "https://get-transcriber.jitsi.net"
+jigasi_transcriber_remote_select: "https://api-vo-pilot.jitsi.net/passcode/v1/settings"
+jigasi_transcriber_remote_select_key: "replaceme"
+jigasi_transcriber_remote_select_aud: "jitsi"
+jigasi_transcriber_remote_select_kid: "jigasi_private_key"
 jigasi_transcriber_oci_flag: false
 jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
