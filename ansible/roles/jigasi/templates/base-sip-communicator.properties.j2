@@ -210,7 +210,9 @@ org.jitsi.jigasi.transcription.customService={{ jigasi_transcriber_custom_transc
 org.jitsi.jigasi.transcription.FILTER_SILENCE = true
 {% endif %}
 
+{% if jigasi_transcriber_remote_select %}
 org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl={{ jigasi_transcriber_remote_select }}
+{% endif %}
 org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl.keyPath={{ jigasi_asap_key_path }}
 org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl.kid={{ asap_key['id'] }}
 org.jitsi.jigasi.transcription.remoteTranscriptionConfigUrl.aud={{ jigasi_transcriber_remote_select_aud }}
