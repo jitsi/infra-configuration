@@ -111,7 +111,6 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-        release: "{{ vector_release_number }}"
   loki_prosody:
     remove_timestamp: false
     type: "loki"
@@ -129,7 +128,6 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-        release: "{{ vector_release_number }}"
   loki_vault_audit:
     remove_timestamp: false
     type: "loki"
@@ -164,7 +162,6 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-        release: "{{ vector_release_number }}"
   loki_jigasi:
     remove_timestamp: false
     type: "loki"
@@ -182,7 +179,6 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-        release: "{{ vector_release_number }}"
   loki_jibri:
     remove_timestamp: false
     type: "loki"
@@ -200,7 +196,6 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-        release: "{{ vector_release_number }}"
   loki_jibri_components:
     remove_timestamp: false
     type: "loki"
@@ -218,7 +213,6 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-        release: "{{ vector_release_number }}"
 transforms:
   vault_audit_to_structure:
     type: "remap"
