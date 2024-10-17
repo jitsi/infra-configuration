@@ -335,13 +335,6 @@ log = {
 
   {% if prosody_enable_wait_for_host %}
     {
-         -- Add timestamps to log entries
-        timestamps = "%Y-%m-%d %X";
-        to = "file",
-        filename = "/var/log/prosody/prosody.log",
-        levels = { "audit" }
-    };
-    {
         timestamps = "%Y-%m-%d %X";
         to = "file",
         filename = "/var/log/prosody/prosody.audit.log",
