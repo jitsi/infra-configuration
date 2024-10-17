@@ -34,9 +34,15 @@ sources:
             - "/var/log/jitsi/jicofo.log"
     prosody:
         type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: continue_through
+            condition_pattern: "^\t"
+            start_pattern: "^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) "
         include:
             - "/var/log/prosody/prosody.log"
             - "/var/log/prosody/prosody.err"
+            - "/var/log/prosody/prosody.audit.log"
     jibri:
         type: "file"
         multiline:
@@ -105,10 +111,11 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+        release: "{{ vector_release_number }}"
   loki_prosody:
     remove_timestamp: false
     type: "loki"
-    inputs: ["prosody"]
+    inputs: ["prosody_to_structure"]
     endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
@@ -122,6 +129,7 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+        release: "{{ vector_release_number }}"
   loki_vault_audit:
     remove_timestamp: false
     type: "loki"
@@ -156,6 +164,7 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+        release: "{{ vector_release_number }}"
   loki_jigasi:
     remove_timestamp: false
     type: "loki"
@@ -173,6 +182,7 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+        release: "{{ vector_release_number }}"
   loki_jibri:
     remove_timestamp: false
     type: "loki"
@@ -190,6 +200,7 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+        release: "{{ vector_release_number }}"
   loki_jibri_components:
     remove_timestamp: false
     type: "loki"
@@ -207,6 +218,7 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+        release: "{{ vector_release_number }}"
 transforms:
   vault_audit_to_structure:
     type: "remap"
@@ -270,5 +282,14 @@ transforms:
         structured =
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+  prosody_to_structure:
+    type: "remap"
+    inputs: ["prosody"]
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<datetime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)

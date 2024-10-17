@@ -307,9 +307,21 @@ storage = "internal" -- Default is "internal" (Debian: "sql" requires one of the
 --  Logs info and higher to /var/log
 --  Logs errors to syslog also
 log = {
+    {
+         -- Add timestamps to log entries
+        timestamps = "%Y-%m-%d %X";
+        to = "file",
+        filename = "/var/log/prosody/prosody.log",
 	-- Log files (change 'info' to 'debug' for debug logs):
-	{{ prosody_log_level }} = "/var/log/prosody/prosody.log";
-	error = "/var/log/prosody/prosody.err";
+        levels = { min = "{{ prosody_log_level }}" }
+    };
+    {
+         -- Add timestamps to log entries
+        timestamps = "%Y-%m-%d %X";
+        to = "file",
+        filename = "/var/log/prosody/prosody.err",
+        levels = { "error" }
+    };
 	-- Syslog:
 	{% if prosody_log_syslog_enabled %}
   warn = "*syslog";
@@ -323,6 +335,7 @@ log = {
 
   {% if prosody_enable_wait_for_host %}
     {
+        timestamps = "%Y-%m-%d %X";
         to = "file",
         filename = "/var/log/prosody/prosody.audit.log",
         levels = { "audit" }
