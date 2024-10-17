@@ -37,8 +37,8 @@ sources:
         multiline:
             timeout_ms: 300
             mode: continue_through
-            condition_pattern: "^\t"
-            start_pattern: "^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) "
+            condition_pattern: "^\\t"
+            start_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) "
         include:
             - "/var/log/prosody/prosody.log"
             - "/var/log/prosody/prosody.err"
