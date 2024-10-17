@@ -34,6 +34,11 @@ sources:
             - "/var/log/jitsi/jicofo.log"
     prosody:
         type: "file"
+        multiline:
+            timeout_ms: 300
+            mode: continue_through
+            condition_pattern: "^\t"
+            start_pattern: "^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) "
         include:
             - "/var/log/prosody/prosody.log"
             - "/var/log/prosody/prosody.err"
@@ -108,7 +113,7 @@ sinks:
   loki_prosody:
     remove_timestamp: false
     type: "loki"
-    inputs: ["prosody"]
+    inputs: ["prosody_to_structure"]
     endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
@@ -270,5 +275,14 @@ transforms:
         structured =
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
+            {}
+        . = merge(., structured)
+  prosody_to_structure:
+    type: "remap"
+    inputs: ["prosody"]
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<datetime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
