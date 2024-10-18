@@ -106,12 +106,14 @@
   register: facts_result
   when:
     - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
+    - not jigasi_enable_consul_template
 
 - name: Set jigasi facts from results
   ansible.builtin.set_fact:
     configure_jigasi: "{{ facts_result.stdout | from_json }}"
   when:
     - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
+    - not jigasi_enable_consul_template
 
 - name: Set XMPP hostname and domain from dynamic facts if available
   ansible.builtin.set_fact:
@@ -120,6 +122,7 @@
     - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
     - configure_jigasi is defined
     - configure_jigasi.hosts is defined
+    - not jigasi_enable_consul_template
 
 - name: Set shards to remove
   ansible.builtin.set_fact:
@@ -128,6 +131,8 @@
     - jigasi_enable_dial_out or jigasi_shard_role=='jigasi-transcriber'
     - configure_jigasi is defined
     - configure_jigasi.remove_hosts is defined
+    - not jigasi_enable_consul_template
+
 
 - name: Install css integration package
   ansible.builtin.apt:
