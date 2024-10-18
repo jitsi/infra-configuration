@@ -28,7 +28,9 @@ if [ -f "$BATCH_INVENTORY_FILE" ]; then
 else
     echo "## building inventory file $BATCH_INVENTORY_FILE"
     echo '[all]' > $BATCH_INVENTORY_FILE
-    $LOCAL_PATH/node.py --role $ROLE --environment $ENVIRONMENT --oracle --oracle_only --region $ORACLE_REGION --batch >> $BATCH_INVENTORY_FILE
+    POOL_TYPE_PARAM=
+    [ -n "$POOL_TYPE" ] && POOL_TYPE_PARAM="--pool_type $POOL_TYPE"
+    $LOCAL_PATH/node.py --role $ROLE $POOL_TYPE_PARAM --environment $ENVIRONMENT --oracle --oracle_only --region $ORACLE_REGION --batch >> $BATCH_INVENTORY_FILE
     if [[ $? -ne 0 ]]; then
         echo "## ERROR in run-ansible-cmd.sh failed to build inventory file"
         exit 2
