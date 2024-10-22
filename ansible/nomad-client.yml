@@ -152,6 +152,7 @@
     - { role: "docker-daemon-config", tags: "docker-daemon-config" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
+    - { role: "gpu-docker-pull", tags: "gpu-docker", when: nvidia_docker_flag }
     - { role: "skynet-credentials", tags: "skynet-credentials", when: nomad_pool_type == "skynet" }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
 #    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
