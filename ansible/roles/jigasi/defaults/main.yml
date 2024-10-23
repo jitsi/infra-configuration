@@ -47,16 +47,14 @@ jigasi_sip_local_datacenters_by_cloud:
     "{{ hcv_environment }}-us-ashburn-1",
     "{{ hcv_environment }}-ap-tokyo-1",
     "{{ hcv_environment }}-sa-saopaulo-1",
-    "{{ hcv_environment }}-ap-sydney-1",
-    "{{ hcv_environment }}-ca-toronto-1"
+    "{{ hcv_environment }}-ap-sydney-1"
   ]
   us-west-2-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
     "{{ hcv_environment }}-us-ashburn-1",
     "{{ hcv_environment }}-ap-tokyo-1",
     "{{ hcv_environment }}-sa-saopaulo-1",
-    "{{ hcv_environment }}-ap-sydney-1",
-    "{{ hcv_environment }}-ca-toronto-1"
+    "{{ hcv_environment }}-ap-sydney-1"
   ]
   eu-central-1-peer1: [
     "{{ hcv_environment }}-uk-london-1",
@@ -72,16 +70,14 @@ jigasi_transcriber_local_datacenters_by_cloud:
     "{{ hcv_environment }}-us-ashburn-1",
     "{{ hcv_environment }}-ap-tokyo-1",
     "{{ hcv_environment }}-sa-saopaulo-1",
-    "{{ hcv_environment }}-ap-sydney-1",
-    "{{ hcv_environment }}-ca-toronto-1",
+    "{{ hcv_environment }}-ap-sydney-1"
   ]
   us-east-1-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
     "{{ hcv_environment }}-us-ashburn-1",
     "{{ hcv_environment }}-ap-tokyo-1",
     "{{ hcv_environment }}-sa-saopaulo-1",
-    "{{ hcv_environment }}-ap-sydney-1",
-    "{{ hcv_environment }}-ca-toronto-1",
+    "{{ hcv_environment }}-ap-sydney-1"
   ]
   eu-central-1-peer1: [
     "{{ hcv_environment }}-uk-london-1",
