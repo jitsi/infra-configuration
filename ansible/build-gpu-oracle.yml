@@ -23,10 +23,6 @@
     - name: Upgrade packages
       ansible.builtin.apt:
         upgrade: true
-    - name: Upgrade to the latest kernel image # noqa package-latest
-      ansible.builtin.apt:
-        name: linux-oracle
-        state: latest
 
   post_tasks:
     - name: Cleanup nomad data directory
