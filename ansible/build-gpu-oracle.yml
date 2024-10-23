@@ -40,4 +40,7 @@
     - { role: "nvidia-cuda", tags: "nvidia-cuda" }
     - { role: "nvidia-docker", tags: "nvidia-docker" }
     - { role: "gpu-models", tags: "gpu-models" }
+# docker pull most recent running version of skynet and whisper
+    - { role: "gpu-docker-pull", tags: "gpu-docker", gpu_docker_type: "skynet" }
+    - { role: "gpu-docker-pull", tags: "gpu-docker", gpu_docker_type: "whisper" }
     - { role: "clean-system", tags: "clean-system, build" }

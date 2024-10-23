@@ -1,14 +1,5 @@
 ---
 gpu_models_bucket: ops-repo
-gpu_models_dns_zone_name: "{{ dns_zone_name | default('example.com') }}"
-gpu_models_docker_image: "{{ gpu_models_docker_host }}/jitsi-vo/skynet:{{ gpu_models_skynet_version | default('latest') }}"
-gpu_models_docker_region: "us-west-2"
-gpu_models_docker_aws_account_id: replaceme
-gpu_models_docker_local_mirror_flag: true
-gpu_models_docker_mirror_environment: "{{ hcv_environment if gpu_models_region=='ap-mumbai-1' else 'ops-prod' }}"
-gpu_models_docker_mirror_host: "{{ gpu_models_docker_mirror_environment }}-{{ gpu_models_region }}-registry.{{ gpu_models_dns_zone_name }}"
-gpu_models_docker_host: "{{ gpu_models_docker_mirror_host if gpu_models_docker_local_mirror_flag else  gpu_models_docker_ecr_host }}"
-gpu_models_docker_ecr_host: "{{ gpu_models_docker_aws_account_id }}.dkr.ecr.{{ gpu_models_docker_region }}.amazonaws.com"
 gpu_models_region: "{{ oracle_region | default('us-phoenix-1') }}"
 gpu_models_s3_namespace: "{{ oracle_s3_namespace | default('replaceme') }}"
 gpu_models_s3fs_credentials: "{{ ops_repo_s3fs_credentials | default('replaceme') }}"
@@ -16,7 +7,6 @@ gpu_models_s3fs_credentials_path: /etc/.s3fs-passwd
 gpu_models_skynet_version: latest
 gpu_models_local_dir: /opt/models
 gpu_models_mount_point: /mnt/models
-gpu_models_job_name: "{{ nomad_pool_type | default('skynet') }}-{{ gpu_models_region }}"
 gpu_models_s3fs_options: "_netdev,passwd_file={{ gpu_models_s3fs_credentials_path }},\
 url=https://{{ gpu_models_s3_namespace }}.compat.objectstorage.{{ gpu_models_region }}.oraclecloud.com,\
 nomultipart,use_path_request_style,endpoint={{ gpu_models_region }},allow_other,umask=000"

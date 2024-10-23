@@ -14,3 +14,5 @@
   roles:
     - role: "gpu-models"
       tags: "gpu-models"
+    - role: "gpu-docker-pull"
+      tags: "gpu-docker"
