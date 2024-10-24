@@ -30,7 +30,6 @@ jvb_custom_region: "{{ oracle_region | default('default') }}"
 jvb_data_channel_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
 jvb_data_channel_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
 jvb_disable_bwe: false
-jvb_disable_tcp: true
 jvb_domain_name: "{{ environment_domain_name }}"
 jvb_enable_all_timeseries: false
 jvb_enable_brctrl_timeseries: false

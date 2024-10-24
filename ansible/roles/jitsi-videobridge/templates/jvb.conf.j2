@@ -61,12 +61,6 @@ videobridge {
   }
 
   ice {
-    tcp {
-      {%- if jvb_disable_tcp -%}
-      enabled = false
-      {%- endif -%}
-    }
-    
     udp {
       port = {{ jvb_single_harvester_port }}
     }
