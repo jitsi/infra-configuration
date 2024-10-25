@@ -5,10 +5,30 @@
   become_user: root
   become: true
   vars_files:
+    - secrets/repo.yml
+    - secrets/consul.yml
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
   roles:
     - { role: "iptables-jenkins", tags: "iptables"}
     - { role: "jenkins", tags: "jenkins"}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
+    - role: "wavefront"
+      tags: "telegraf"
+      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
+      wavefront_configure_collector: true
+      wavefront_install_collector: false
+      datadog_extensions: "true"
+      vars:
+        telegraf_inputs:
+          nginx:
+            urls: ["http://localhost:888/nginx_status/"]
+        telegraf_tags:
+          role: "jenkins"
+          environment: "{{ hcv_environment }}"
+          region: "{{ cloud_region }}"
+          cloud: "{{ cloud_provider }}"
+    - { role: "consul-telegraf", tags: "consul-telegraf"}
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
