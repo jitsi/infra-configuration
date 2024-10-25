@@ -132,8 +132,7 @@ end
 
 local function extract_occupant_details(occupant)
     local occupant_jid =  occupant.jid;
-    local cachedPDetails = load_from_cache(occupant_jid);
-    local r = cachedPDetails.identity or {};
+    local r = load_from_cache(occupant_jid) or {};
     r['jid'] = occupant.jid;
     r['bare_jid'] = occupant.bare_jid;
     if is_visitor_prosody then
@@ -147,10 +146,6 @@ local function extract_occupant_details(occupant)
         t = extract_field(occupant,'email');
         if t then
             r['email'] = t;
-        else
-            if cachedPDetails ~= nil then
-                r['email'] = cachedPDetails['email'];
-            end
         end
     end
 
@@ -158,10 +153,6 @@ local function extract_occupant_details(occupant)
         t = extract_field(occupant,'nick',NICK_NS);
         if t then
             r['name'] = t;
-        else
-            if cachedPDetails ~= nil then
-                r['name'] = cachedPDetails['name']
-            end
         end
     end
     if not r['name'] then
@@ -289,19 +280,19 @@ local function appendToChatHistory(room_jid, occupant_jid, occupant_bare_jid, co
         "Adding chat message to history for room %s: msgdetails %s", room_jid, inspect(msgdetails)); end
 end
 
-local function processEvent(type,event)
+local function processJoinLeftEvent(type,event)
     if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local who = event.occupant;
 
     -- search bare_jid for blacklisted prefixes before sending events
     if isBlacklisted(who) then
-        if DEBUG then module:log("debug", "processEvent: occupant is blacklisted %s", who); end
+        if DEBUG then module:log("debug", "processJoinLeftEvent: occupant is blacklisted %s", who); end
         return;
     end
 
     -- search room jid for tenancy prefixes before sending events
     if is_vpaas(event.room) then
-        if DEBUG then module:log("debug", "processEvent: room tenant is droplisted %s", event.room.jid); end
+        if DEBUG then module:log("debug", "processJoinLeftEvent: room tenant is droplisted %s", event.room.jid); end
         return;
     end
 
@@ -354,7 +345,6 @@ local function handleOccupantJoined(event)
         return;
     end
 
-    local event_type = "Joined";
     local session = event.origin;
     local occupant_jid = event.occupant.jid;
     if session ~= nil then
@@ -363,16 +353,14 @@ local function handleOccupantJoined(event)
         if identity ~= nil then
             identity.group = session.jitsi_meet_context_group;
 
-            local pdetails = load_from_cache(occupant_jid);
-            pdetails.identity = identity;
-            store_in_cache(occupant_jid, pdetails);
+            store_in_cache(occupant_jid, identity);
         end
     end
 
     -- we skip sending event for main participant on a visitor prosody
     if is_visitor_prosody then
         if event.occupant.role == 'visitor' then
-            processEvent(event_type, event);
+            processJoinLeftEvent("Joined", event);
         else
             -- we need that to be able to match flipping visitor to a main participant,
             -- to pass through without asking for password
@@ -380,7 +368,7 @@ local function handleOccupantJoined(event)
             store_in_cache(occupant_jid, identity);
         end
     else
-        processEvent(event_type, event);
+        processJoinLeftEvent("Joined", event);
     end
 end
 
@@ -393,8 +381,7 @@ local function handleOccupantLeft(event)
         return;
     end
 
-    local event_type = "Left";
-    processEvent(event_type, event);
+    processJoinLeftEvent("Left", event);
     local occupant_jid = event.occupant.jid;
     remove_from_cache(occupant_jid);
 end
