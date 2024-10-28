@@ -260,16 +260,17 @@ local function sendChatHistory(room)
     }, cb);
 end
 
-local function appendToChatHistory(room_jid, occupant_jid, occupant_bare_jid, content)
+local function appendToChatHistory(room_jid, occupant_jid, occupant_bare_jid, content, details)
     local msgdetails = {};
     msgdetails['jid'] = occupant_jid;
     msgdetails['bare_jid'] = occupant_bare_jid;
     msgdetails['timestamp'] = round(socket.gettime() * 1000);
     msgdetails['content'] = content;
 
-    local pdetails = load_from_cache(occupant_jid);
-    msgdetails['name'] = pdetails['name'];
-    msgdetails['email'] = pdetails['email'];
+    if (details) then
+        msgdetails['name'] = details['name'];
+        msgdetails['email'] = details['email'];
+    end
 
     local chatHistoryKey = getChatHistoryKey(room_jid);
     local messages = load_from_cache(chatHistoryKey);
@@ -497,7 +498,8 @@ local function handleBroadcastMessage(event)
             if DEBUG then module:log("debug", "handleBroadcastMessage Event %s: has type %s, continue processing",
                 event, "groupchat"); end
             local who = room:get_occupant_by_nick(event.stanza.attr.from);
-            appendToChatHistory(event.stanza.attr.to, who.jid, who.bare_jid, body:get_text());
+            local pdetails = extract_occupant_details(who);
+            appendToChatHistory(event.stanza.attr.to, who.jid, who.bare_jid, body:get_text(), pdetails);
             return;
         else
             --handle transcription messages
