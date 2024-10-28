@@ -142,14 +142,14 @@ local function extract_occupant_details(occupant)
     end
 
     local t;
-    if not r['email'] then
+    if not r['email'] or r['email'] == '' then
         t = extract_field(occupant,'email');
         if t then
             r['email'] = t;
         end
     end
 
-    if not r['name'] then
+    if not r['name'] or r['name'] == '' then
         t = extract_field(occupant,'nick',NICK_NS);
         if t then
             r['name'] = t;
