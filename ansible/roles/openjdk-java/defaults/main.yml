@@ -1,7 +1,9 @@
 ---
 java_17_flag: true
+java_21_flag: false
 java_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-java_alternatives_version: "{{ 'java-1.17.0-openjdk-' + java_architecture if java_use_17
+java_alternatives_version: "{{ 'java-1.21.0-openjdk-' + java_architecture if java_use_21
+  else 'java-1.17.0-openjdk-' + java_architecture if java_use_17
   else 'java-1.11.0-openjdk-' + java_architecture if java_use_11
   else 'java-1.8.0-openjdk-' + java_architecture }}"
 java_from_apt: true
@@ -18,3 +20,4 @@ java_url_packages:
   - dbg
 java_use_11: false
 java_use_17: true
+java_use_21: false

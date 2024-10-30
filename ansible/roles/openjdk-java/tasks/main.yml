@@ -25,6 +25,15 @@
     - java_install_flag
     - java_17_flag
 
+- name: Install java 21
+  ansible.builtin.apt:
+    name: openjdk-21-jdk
+    state: present
+    update_cache: true
+  when:
+    - java_from_apt
+    - java_install_flag
+    - java_21_flag
 
 - name: Install java 11 debug
   ansible.builtin.apt:
@@ -44,6 +53,16 @@
     - java_from_apt
     - java_install_flag
     - java_17_flag
+
+- name: Install java 21 debug
+  ansible.builtin.apt:
+    name: openjdk-21-dbg
+    state: present
+    update_cache: true
+  when:
+    - java_from_apt
+    - java_install_flag
+    - java_21_flag
 
 - name: Download java packages from URL
   ansible.builtin.get_url:
