@@ -30,5 +30,6 @@ server {
 
     location /static/turn_creds {
         alias {{ testrtc_creds_path }};
+        add_header Access-Control-Allow-Origin https://{{ environment_domain_name }};
     }
 }
