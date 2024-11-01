@@ -36,7 +36,7 @@ cd {{ jitsi_torture_path }}
 {% endif %}
 
 mvn test \
- -Dthreadcount=2 \
+ -Dthreadcount=4 \
  -Dorg.jitsi.meet.test.util.blip_script=$BLIP_SCRIPT \
  -Dorg.jitsi.malleus.max_disrupted_bridges_pct={{ jitsi_malleus_max_disrupted_bridges_pct }} \
  -Dorg.jitsi.malleus.conferences={{ jitsi_malleus_conferences }} \
