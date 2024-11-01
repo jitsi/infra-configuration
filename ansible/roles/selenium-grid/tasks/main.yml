@@ -246,7 +246,7 @@
         minute="{{ selenium_grid_update_check_cron.minute }}"
         hour="{{ selenium_grid_update_check_cron.hour }}"
         job="{{ selenium_grid_update_check_cron.job }}"
-  when: selenium_grid_configure_flag and selenium_grid_enable_update_check_cron
+  when: selenium_grid_configure_flag and selenium_grid_enable_update_check_cron and selenium_grid_role == 'node'
 
 # Run the updater on boot(on configure), as we had updated to the latest chrome, so let's update and to the latest drivers
 - name: Run update-node.sh to update the drivers.
