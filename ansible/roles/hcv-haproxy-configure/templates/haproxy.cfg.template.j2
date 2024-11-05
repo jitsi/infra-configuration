@@ -88,7 +88,7 @@ frontend health from global_defaults
 frontend prometheus
   bind :8405
   mode http
-  http-request use-service prometheus-exporter
+  http-request use-service prometheus-exporter if { path /metrics }
   no log
 
 frontend www-http from global_defaults
