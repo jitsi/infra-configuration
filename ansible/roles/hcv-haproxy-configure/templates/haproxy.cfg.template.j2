@@ -82,9 +82,14 @@ frontend health from global_defaults
   http-request set-log-level silent
   http-request set-var(txn.is_up) str(up),map_str({{ haproxy_health_up_map_path }},false)
   acl is_up var(txn.is_up) -m sub true
-
   http-request deny deny_status 503 if !is_up
   default_backend local_health
+
+frontend prometheus
+  bind :8405
+  mode http
+  http-request use-service prometheus-exporter
+  no log
 
 frontend www-http from global_defaults
 {% if haproxy_ssl_certificates %}
