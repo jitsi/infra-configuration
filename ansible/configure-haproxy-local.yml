@@ -85,6 +85,20 @@
     hostname_component: "{{ hcv_environment }}-haproxy-{{ ip_component }}"
     full_hostname: "{{ hostname_component }}.{{ environment_domain_name }}"
     telegraf_hostname: "{{ full_hostname }}"
+    telegraf_inputs_default:
+      haproxy:
+        # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
+        # fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr", "wredis"]
+        fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response_*"]
+        servers: ["http://localhost:8080/haproxy_stats"]
+        username: "admin"
+        password: "admin"
+      nstat:
+        fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+    telegraf_inputs_nginx:
+      nginx:
+        urls: ["http://localhost:888/nginx_status/"]
+
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
@@ -189,18 +203,7 @@
       datadog_extensions: "true"
       when: telegraf_enabled
       vars:
-        telegraf_inputs:
-          nginx:
-            urls: ["http://localhost:888/nginx_status/"]
-          haproxy:
-            # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
-            # fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr", "wredis"]
-            fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response_*"]
-            servers: ["http://localhost:8080/haproxy_stats"]
-            username: "admin"
-            password: "admin"
-          nstat:
-            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+        telegraf_inputs: "{{dict(telegraf_inputs_default | items | list + (telegraf_inputs_nginx if jvb_colibri_proxy_enabled else {} | items | list)) }}"
         telegraf_tags:
           role: "haproxy"
           environment: "{{ hcv_environment }}"
