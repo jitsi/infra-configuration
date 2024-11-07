@@ -195,7 +195,8 @@
           haproxy:
             # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
             # fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr", "wredis"]
-            fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response_*"]
+            fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response.1xx", "http_response.2xx",
+                        "http_response.3xx", "http_response.4xx", "http_response.5xx", "http_response.other"]
             servers: ["http://localhost:8080/haproxy_stats"]
             username: "admin"
             password: "admin"
