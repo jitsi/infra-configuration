@@ -228,6 +228,13 @@
     mode: 0755
   when: jibri_cloud_provider == "oracle"
 
+- name: Upload jibri configurator script consul-template
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconfigure-jibri-wrapper.sh"
+    src: "reconfigure-jibri-wrapper.sh"
+    mode: 0755
+    owner: root
+
 # aws credentials for oracle to send stats to cloudwatch
 - name: Create directory for AWS credentials for CloudWatch
   ansible.builtin.file:
