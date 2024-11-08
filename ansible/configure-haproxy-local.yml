@@ -192,14 +192,16 @@
         telegraf_inputs:
           nginx:
             urls: ["http://localhost:888/nginx_status/"]
-          haproxy:
+          haproxy_stats:
             # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
-            # fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr", "wredis"]
             fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response.1xx", "http_response.2xx",
                         "http_response.3xx", "http_response.4xx", "http_response.5xx", "http_response.other"]
             servers: ["http://localhost:8080/haproxy_stats"]
             username: "admin"
             password: "admin"
+          haproxy_prom:
+            fieldpass: ["haproxy_frontend*", "haproxy_backend*", "haproxy_server*","haproxy_stick_table*"]
+            servers: ["http://localhost:8405/metrics"]
           nstat:
             fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
         telegraf_tags:
