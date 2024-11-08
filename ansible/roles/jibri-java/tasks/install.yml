@@ -70,6 +70,13 @@
     owner: root
   when: jibri_cloud_provider == "oracle"
 
+- name: Upload jibri configurator script consul-template
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconfigure-jibri-wrapper.sh"
+    src: "reconfigure-jibri-wrapper.sh"
+    mode: 0755
+    owner: root
+
 # script to handle stats to cloudwatch
 - name: Copy status cloudwatch script aws
   ansible.builtin.copy:

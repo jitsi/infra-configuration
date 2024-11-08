@@ -36,7 +36,7 @@
     consul_template_templates:
       - name: "xmpp.conf.template"
         dest: "/etc/jitsi/jibri/xmpp.conf"
-        cmd: "/usr/sbin/service jibri reload"
+        cmd: "/usr/local/bin/reconfigure-jibri-wrapper.sh"
         user: "root"
         group: "jitsi"
         perms: 0640
