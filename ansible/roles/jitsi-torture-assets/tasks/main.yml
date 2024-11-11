@@ -1,7 +1,7 @@
 ---
 - name: Ensure directory for assets
   ansible.builtin.file:
-    path: "{{ jitsi_torture_assets_path }}"
+    path: "{{ jitsi_torture_assets_path }}/resources"
     state: directory
     mode: 0755
     recurse: true
