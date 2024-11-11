@@ -1,4 +1,10 @@
 ---
+- name: Pull torture test
+  ansible.builtin.git:
+    repo: "{{ jitsi_torture_assets_git_repo }}"
+    version: "{{ jitsi_torture_assets_git_branch }}"
+    dest: "{{ jitsi_torture_assets_path }}"
+
 - name: Ensure directory for assets
   ansible.builtin.file:
     path: "{{ jitsi_torture_assets_path }}/resources"
