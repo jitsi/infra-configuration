@@ -1,0 +1,33 @@
+---
+- name: Ensure directory for assets
+  ansible.builtin.file:
+    path: "{{ jitsi_torture_assets_path }}/resources"
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: Check torture file 60fps
+  ansible.builtin.stat:
+    path: "{{ jitsi_torture_assets_path }}/resources/FourPeople_1280x720_60.y4m"
+  register: torture_file_check_60
+
+- name: Check torture file check 30fps
+  ansible.builtin.stat:
+    path: "{{ jitsi_torture_assets_path }}/resources/FourPeople_1280x720_30.y4m"
+  register: torture_file_check_30
+
+- name: Pull the four people video 60fps from object storage
+  ansible.builtin.command:
+    oci os object get --region {{ jitsi_torture_assets_region }} \
+    --bucket-name {{ jitsi_torture_assets_bucket_name }} --name resources/FourPeople_1280x720_60.y4m \
+    --file {{ jitsi_torture_assets_path }}/resources/FourPeople_1280x720_60.y4m --auth instance_principal
+  when:
+    - not torture_file_check_60.stat.exists
+
+- name: Pull the four people video 30fps from object storage
+  ansible.builtin.command:
+    oci os object get --region {{ jitsi_torture_assets_region }} \
+    --bucket-name {{ jitsi_torture_assets_bucket_name }} --name resources/FourPeople_1280x720_30.y4m \
+    --file {{ jitsi_torture_assets_path }}/resources/FourPeople_1280x720_30.y4m --auth instance_principal
+  when:
+    - not torture_file_check_30.stat.exists
