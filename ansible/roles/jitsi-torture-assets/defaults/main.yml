@@ -1,4 +1,6 @@
 ---
+jitsi_torture_assets_git_branch: 'master'
+jitsi_torture_assets_git_repo: https://github.com/jitsi/jitsi-meet-torture.git
 jitsi_torture_assets_region: "{{ oracle_region | default('us-phoenix-1') }}"
 jitsi_torture_assets_bucket_name: "jvb-images-{{ jitsi_torture_oracle_environment }}"
 jitsi_torture_assets_path: /opt/jitsi/jitsi-torture
