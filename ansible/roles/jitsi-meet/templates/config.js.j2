@@ -481,9 +481,6 @@ whiteboard: {
         }
     },
     testing: {
-    {% if jitsi_meet_enable_av1 %}
-        enableAv1Support: {{ jitsi_meet_enable_av1 | to_json }},
-    {% endif %}
     {% if jitsi_meet_enable_codec_selection_api %}
         enableCodecSelectionAPI: true,
     {% endif %}
