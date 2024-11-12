@@ -173,9 +173,13 @@ jicofo {
       # intentional until we are able to have SIP Jibris login to one of the authenticated domains (otherwise SIP Jibris will
       # not be recognized by jicofo leading to "mute all" affecting them).
 {% endif %}
-      trusted-domains = [ "{{ prosody_auth_domain_name }}", "recorder.{{ environment_domain_name }}",
+      trusted-domains = [
+        "{{ prosody_auth_domain_name }}",
+        "recorder.{{ environment_domain_name }}",
+        "jigasia.{{ environment_domain_name }}",
+        "jigasib.{{ environment_domain_name }}"
 {% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
-        "{{ environment_domain_name }}"
+        ,"{{ environment_domain_name }}"
 {% endif %}
     ]
 {% if jicofo_visitors_enabled %}
