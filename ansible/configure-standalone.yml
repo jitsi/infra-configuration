@@ -299,7 +299,6 @@
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"
-      when: standalone_telegraf_enabled
       vars:
         telegraf_inputs:
           nginx:
