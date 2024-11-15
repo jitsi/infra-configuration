@@ -234,6 +234,7 @@ prosody_rate_limit_host_whitelist:
   - "recorder.{{ prosody_domain_name }}"
 prosody_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
+prosody_recording_rate_per_minute_per_ip: false
 prosody_server_public_key_repo_url: false
 prosody_slow_events_threshold: 0.5
 prosody_ssh_key_crt_local_path: jitsi.example.com.crt
