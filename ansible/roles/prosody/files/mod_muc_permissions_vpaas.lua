@@ -16,7 +16,7 @@ local http_headers = {
 };
 
 local jaas_actuator_base_url
-= module:get_option_string("muc_prosody_jaas_actuator_url", "https://api-vo-pilot.cloudflare.jitsi.net/jaas-actuator");
+= module:get_option_string("muc_prosody_jaas_actuator_url", "https://api-vo-pilot.jitsi.net/jaas-actuator");
 
 -- Module that gets the disabled features based on room customer id
 -- and add it to session for imposing further restrictions
