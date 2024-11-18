@@ -156,7 +156,7 @@ prosody_meet_speaker_stats_url: false
 prosody_meet_transcriptions_url: false
 prosody_meet_webhooks_enabled: false
 prosody_meet_ban_auth_enabled: false
-jitsi_access_manager_url: https://api-vo.cloudflare.jitsi.net/jaccess/v2/access
+jitsi_access_manager_url: https://api-vo.jitsi.net/jaccess/v2/access
 prosody_missed_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/missed"
 prosody_mod_kick_endpoint: false
 prosody_mod_jigasi_invite_enabled: false
