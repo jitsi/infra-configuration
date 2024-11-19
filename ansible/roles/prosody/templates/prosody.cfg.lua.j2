@@ -508,6 +508,10 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_visitors_enabled %}
         visitors_ignore_list = { "recorder.{{ prosody_domain_name }}" }
 {% endif %}
+{% if prosody_recording_rate_per_minute_per_ip %}
+        -- attempts to record or livestream
+        max_number_ip_attempts_per_minute = {{ prosody_recording_rate_per_minute_per_ip }}
+{% endif %}
 
 {% if prosody_enable_guest_auth %}
 VirtualHost "{{ prosody_guest_domain_name }}"
