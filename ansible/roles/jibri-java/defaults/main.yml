@@ -8,7 +8,7 @@ jibri_asap_issuer: "jibri"
 jibri_asap_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
 jibri_asap_key_path: "/etc/jitsi/jibri/asap.key"
 # Either "A", "B", or "legacy". Just used to select the correct username/password used for login.
-jibri_auth_type: "legacy"
+jibri_auth_type: "B"
 jibri_auth_call_user: "{{ 'jibria' if jibri_auth_type == 'A' else ('jibrib' if jibri_auth_type == 'B' else 'recorder') }}"
 jibri_auth_call_pass: "{{ secrets_jibri_selenium_A if jibri_auth_type == 'A' else (secrets_jibri_selenium_B if jibri_auth_type == 'B' else jibri_selenium_auth_password) }}"
 jibri_auth_control_user: "{{ 'jibria' if jibri_auth_type == 'A' else ('jibrib' if jibri_auth_type == 'B' else 'jibri') }}"
