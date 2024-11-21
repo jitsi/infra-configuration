@@ -14,8 +14,8 @@
     mode: 0755
 
 - name: Cleanup script
-  ansible.builtin.copy:
-    src: tcpdumper-cleanup.sh
+  ansible.builtin.template:
+    src: tcpdumper-cleanup.sh.j2
     dest: /usr/local/bin/tcpdumper-cleanup.sh
     mode: 0755
     owner: root

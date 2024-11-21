@@ -1,4 +1,5 @@
 ---
-tcpdumper_interface: "lo"
-tcpdumper_filter: "port 5222"
 tcpdumper_enabled: false
+tcpdumper_filter: "port 5222"
+tcpdumper_interface: "lo"
+tcpdumper_retain_minutes: 300
