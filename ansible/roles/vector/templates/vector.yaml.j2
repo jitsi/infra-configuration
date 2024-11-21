@@ -95,9 +95,9 @@ sinks:
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
         level: "{{ '{{' }} .severity }}"
-{%- if vector_release_number %}
+{% if vector_release_number %}
         release: "{{ vector_release_number }}"
-{%- endif %}
+{% endif %}
   loki_jicofo:
     remove_timestamp: false
     type: "loki"
@@ -115,9 +115,9 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-{%- if vector_release_number %}
+{% if vector_release_number %}
         release: "{{ vector_release_number }}"
-{%- endif %}
+{% endif %}
         level: "{{ '{{' }} .level }}"
   loki_prosody:
     remove_timestamp: false
@@ -136,9 +136,9 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-{%- if vector_release_number %}
+{% if vector_release_number %}
         release: "{{ vector_release_number }}"
-{%- endif %}
+{% endif %}
         level: "{{ '{{' }} .level }}"
   loki_vault_audit:
     remove_timestamp: false
@@ -174,9 +174,9 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
-{%- if vector_release_number %}
+{% if vector_release_number %}
         release: "{{ vector_release_number }}"
-{%- endif %}
+{% endif %}
         level: "{{ '{{' }} .level }}"
   loki_jigasi:
     remove_timestamp: false
