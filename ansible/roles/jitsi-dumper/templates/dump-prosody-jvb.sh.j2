@@ -2,7 +2,7 @@
 
 # check for any health-related changes
 TRACEBACK_DIR="/var/lib/prosody-jvb"
-TCPDUMP_PROSODY_JVB_PATH="/var/lib/tcpdump-prosody-jvb"
+TCPDUMP_PROSODY_JVB_PATH="/var/lib/tcpdumper"
 # wait up to 2 minutes for traceback file
 TRACEBACK_WAIT_TIMEOUT=120
 
@@ -67,8 +67,8 @@ if [ -n "$RINGBUFFER_PATH" ]; then
 fi
 
 if [ -e "$TCPDUMP_PROSODY_JVB_PATH" ]; then
-    mkdir $TMP_DIR/tcpdump-prosody-jvb
-    cp $TCPDUMP_PROSODY_JVB_PATH/*.pcap $TMP_DIR/tcpdump-prosody-jvb
+    mkdir $TMP_DIR/tcpdumper
+    cp $TCPDUMP_PROSODY_JVB_PATH/*.pcap $TMP_DIR/tcpdumper
 fi
 
 # look for files in TMP_DIR

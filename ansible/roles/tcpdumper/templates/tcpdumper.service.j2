@@ -1,0 +1,20 @@
+[Unit]
+Description=run tcpdump and save to a rotating file
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/var/lib/tcpdumper
+ExecStart=/usr/bin/tcpdump -ni {{ tcpdumper_interface }} -G 1800 -w /var/lib/tcpdumper/trace-%%Y-%%m-%%d_%%H.%%M.%%S.pcap {{ tcpdumper_filter }}
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+NotifyAccess=all
+SyslogIdentifier=tcpdumper
+
+[Install]
+WantedBy=multi-user.target
+
