@@ -7,7 +7,7 @@
 
 - name: Create storage folder
   ansible.builtin.file:
-    path: /var/lib/tcpdump-prosody-jvb
+    path: /var/lib/tcpdumper
     state: directory
     owner: tcpdump
     group: root
@@ -15,29 +15,30 @@
 
 - name: Cleanup script
   ansible.builtin.copy:
-    src: tcpdump-prosody-jvb-cleanup.sh
-    dest: /usr/local/bin/tcpdump-prosody-jvb-cleanup.sh
+    src: tcpdumper-cleanup.sh
+    dest: /usr/local/bin/tcpdumper-cleanup.sh
     mode: 0755
     owner: root
 
 - name: Service definition
   ansible.builtin.template:
     mode: 0644
-    src: tcpdump-prosody-jvb.service.j2
-    dest: /lib/systemd/system/tcpdump-prosody-jvb.service
+    src: tcpdumper.service.j2
+    dest: /lib/systemd/system/tcpdumper.service
 
 - name: Start service and set it enabled
   ansible.builtin.service:
-    name: tcpdump-prosody-jvb
+    name: tcpdumper
     state: started
     enabled: true
+  when: tcpdumper_enabled
 
 # Run the cleanup script regularly
 - name: Cleanup cron
   ansible.builtin.cron:
     user: root
     state: present
-    name: "tcpdump-prosody-jvb cleanup script"
+    name: "tcpdumper cleanup script"
     minute: "0,30"
     hour: "*"
-    job: "/usr/local/bin/tcpdump-prosody-jvb-cleanup.sh > /tmp/tcpdump-prosody-jvb-cron-output 2>&1"
+    job: "/usr/local/bin/tcpdumper-cleanup.sh > /tmp/tcpdumper-cron-output 2>&1"
