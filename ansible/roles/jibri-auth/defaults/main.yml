@@ -1,18 +1,4 @@
 ---
-jibri_auth_domain: "auth.{{ environment_domain_name }}"
-jibri_auth_domain_path: "/var/lib/prosody/{{ jibri_auth_domain | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/{{ jibri_auth_user }}.dat"
-jibri_auth_password: "jibri"
-jibri_auth_prosody_jvb_domain_path: "/var/lib/prosody-jvb/{{ jibri_prosody_jvb_auth_domain_name | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_auth_user }}.dat"
-jibri_auth_user: "jibri"
-jibri_prosody_jvb_auth_domain_name: "auth.jvb.{{ environment_domain_name }}"
-jibri_selenium_auth_domain: "recorder.{{ environment_domain_name }}"
-jibri_selenium_auth_domain_path: "/var/lib/prosody/{{ jibri_selenium_auth_domain | regex_replace('\\.', '%2e') |
-  regex_replace('-', '%2d') }}/accounts/{{ jibri_selenium_auth_user }}.dat"
-jibri_selenium_auth_password: "replaceme"
-jibri_selenium_auth_user: "recorder"
-jibri_legacy_auth: true
-# Different than the legacy username because we want to provision new accounts.
 # Note: avoid capital letters and special chars because prosody lowers/encodes them in the filename.
 jibri_brewery_domain: "auth.{{ environment_domain_name }}"
 jibri_brewery_username_A: jibria
