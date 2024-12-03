@@ -126,12 +126,14 @@ plugin_paths = { "{{ prosody_plugins_path }}/" }
 VirtualHost "{{ prosody_jvb_auth_domain_name }}"
     modules_enabled = {
       "ping";
+      "smacks";
     }
     authentication = "internal_hashed"
     ssl = {
         key = "/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.key";
         certificate = "/etc/prosody/certs/{{ prosody_jvb_auth_domain_name }}.crt";
     }
+    smacks_hibernation_time = 15;
 
 Component "{{ prosody_jvb_muc_name }}" "muc"
     modules_enabled = {

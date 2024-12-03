@@ -534,12 +534,14 @@ VirtualHost "{{ prosody_auth_domain_name }}"
     {% if prosody_enable_muc_events %}
           "jibri_session";
     {% endif %}
+        "smacks";
     }
     authentication = "internal_hashed"
     ssl = {
         key = "/etc/prosody/certs/{{ prosody_auth_domain_name }}.key";
         certificate = "/etc/prosody/certs/{{ prosody_auth_domain_name }}.crt";
     }
+    smacks_hibernation_time = 15;
 
 VirtualHost "recorder.{{ prosody_domain_name }}"
     modules_enabled = {
