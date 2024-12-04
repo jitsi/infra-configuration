@@ -74,7 +74,6 @@ local main_muc_service;
 local NICK_NS = "http://jabber.org/protocol/nick";
 local JIGASI_CALL_DIRECTION_ATTR_NAME = "JigasiCallDirection";
 local TRANSCRIBER_PREFIXES = { 'transcriber@recorder.', 'transcribera@recorder.', 'transcriberb@recorder.' };
-local RECORDER_PREFIXES = { 'recorder@recorder.', 'jibria@recorder.', 'jibrib@recorder.' };
 
 local event_count = module:measure("muc_webhooks_rate", "rate")
 local event_count_failed = module:measure("muc_webhooks_failed", "rate")
@@ -363,7 +362,7 @@ function handle_occupant_access(event, event_type)
     end
 
     -- live stream/recording
-    if oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES) then
+    if oss_util.is_jibri(occupant) then
         local recorderType = event.room._data.recorderType;
         if final_event_type == PARTICIPANT_JOINED then
             if DEBUG then module:log("debug", "Recorder %s joined", event.occupant.jid); end
@@ -456,7 +455,7 @@ function handle_occupant_access(event, event_type)
     end
 
     if not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES)
-            and not oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)
+            and not oss_util.is_jibri(occupant)
             and not oss_util.is_sip_jibri_join(stanza)
             and not oss_util.is_sip_jigasi(stanza)
             and is_vpaas(main_room)
@@ -526,7 +525,7 @@ function handle_occupant_access(event, event_type)
     -- send MAU usage for normal participants and dial calls only
     -- live stream/recording/sip calls are billed based on duration and not MAU
     if not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES)
-       and not oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)
+       and not oss_util.is_jibri(occupant)
        and not oss_util.is_sip_jibri_join(stanza)
         and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
         local is_sip_jibri_event = final_event_type == SIP_CALL_IN_STARTED or final_event_type == SIP_CALL_OUT_STARTED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED

@@ -117,7 +117,7 @@ module:hook("muc-occupant-pre-join", function(event)
         or is_admin(occupant_jid)
         or oss_util.is_sip_jigasi(stanza)
         or oss_util.is_transcriber_jigasi(stanza)
-        or util_internal.is_jibri(occupant)
+        or oss_util.is_jibri(occupant)
         or oss_util.is_sip_jibri_join(stanza) then
         return;
     end

@@ -663,13 +663,10 @@ local function handleSpeakerStats(event)
     end
     for user_jid, speakerTime in pairs(event.roomSpeakerStats) do
         if (user_jid ~= "dominantSpeakerId" and user_jid ~= "sessionId" and user_jid ~= "isBreakout" and user_jid ~= "breakoutRoomId") then
-            -- we skip, focus, recorder, and transcriber TODO: fix this in jitsi-meet if we need to
-            if not util.is_blacklisted(user_jid) then
-                if speakerTime.context_user ~= nil then
-                    requestBody.speakerStats[user_jid] = { time = speakerTime.totalDominantSpeakerTime; name = speakerTime.context_user.name; email = speakerTime.context_user.email; id = speakerTime.context_user.id; };
-                else
-                    requestBody.speakerStats[user_jid] = { time = speakerTime.totalDominantSpeakerTime;};
-                end
+            if speakerTime.context_user ~= nil then
+                requestBody.speakerStats[user_jid] = { time = speakerTime.totalDominantSpeakerTime; name = speakerTime.context_user.name; email = speakerTime.context_user.email; id = speakerTime.context_user.id; };
+            else
+                requestBody.speakerStats[user_jid] = { time = speakerTime.totalDominantSpeakerTime;};
             end
         end
     end

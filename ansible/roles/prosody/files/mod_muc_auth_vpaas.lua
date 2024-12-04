@@ -180,7 +180,7 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
         or util.is_transcriber_jigasi(stanza)
 
         -- is jibri
-        or util_internal.is_jibri(occupant)
+        or util.is_jibri(occupant)
 
         -- Let Sip Jibri pass through
         or util.is_sip_jibri_join(stanza) then
