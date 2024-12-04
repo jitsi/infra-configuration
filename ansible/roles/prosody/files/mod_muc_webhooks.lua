@@ -254,281 +254,283 @@ function handle_occupant_access(event, event_type)
     local final_event_type = event_type
     local dial_participants = room._data.dial_participants or {};
 
-    if not is_healthcheck_room(room.jid) and (not util.is_blacklisted(occupant) or oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) or oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)) then
-        if DEBUG then
-            module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)",
-                occupant.jid, room.jid, is_breakout, main_room.jid);
-        end
-        local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
-        local _, _, nick_resource = split_jid(occupant.nick);
-        local session = event.origin;
-        local payload = {};
+    if is_healthcheck_room(room.jid) or (util.is_blacklisted(occupant) and not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) and not oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)) then
+        return;
+    end
 
-        if session and session.auth_token then
-            -- replace user name from the jwt claim with the name from the pre-join screen
-            local occupant_nick = stanza:get_child('nick', NICK_NS);
-            if occupant_nick then
-                local pre_join_screen_name = occupant_nick:get_text()
-                if pre_join_screen_name and session.jitsi_meet_context_user then
-                    session.jitsi_meet_context_user["name"] = pre_join_screen_name;
+    if DEBUG then
+        module:log("debug", "Will send participant event %s for room %s is_breakout (%s, main room jid:%s)",
+            occupant.jid, room.jid, is_breakout, main_room.jid);
+    end
+    local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
+    local _, _, nick_resource = split_jid(occupant.nick);
+    local session = event.origin;
+    local payload = {};
+
+    if session and session.auth_token then
+        -- replace user name from the jwt claim with the name from the pre-join screen
+        local occupant_nick = stanza:get_child('nick', NICK_NS);
+        if occupant_nick then
+            local pre_join_screen_name = occupant_nick:get_text()
+            if pre_join_screen_name and session.jitsi_meet_context_user then
+                session.jitsi_meet_context_user["name"] = pre_join_screen_name;
+            end
+        end
+        payload = type(session.jitsi_meet_context_user) == "table" and util.shallow_copy(session.jitsi_meet_context_user) or {}
+        if session.jitsi_meet_context_group then
+            payload.group = session.jitsi_meet_context_group;
+        end
+    end
+    payload.participantJid = occupant.bare_jid;
+    payload.participantId = nick_resource;
+    payload.participantFullJid = occupant.jid;
+    payload.conference = internal_room_jid_match_rewrite(room.jid);
+
+    if (is_lobby) then
+        -- manually extract participantId from jid, because the nick resource is different for lobby
+        payload.participantId = occupant.jid:match("^(.-)-");
+    end
+    -- dial check
+    if dial_participants[occupant.jid] ~= nil then
+        if DEBUG then module:log("debug", "dial participant %s leave room %s", occupant.jid, room.jid); end
+        if dial_participants[occupant.jid] == "in" then
+            final_event_type = DIAL_IN_ENDED;
+        elseif dial_participants[occupant.jid] == "out" then
+            final_event_type = DIAL_OUT_ENDED
+        end
+    end
+    local initiator;
+    if stanza then
+        initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
+        if initiator and stanza.attr.type ~= 'unavailable' then
+            if DEBUG then module:log("debug", "dial participant %s joined room %s", occupant.jid, room.jid); end
+            local nick = stanza:get_child('nick', NICK_NS);
+            if nick then
+                payload.nick = nick:get_text();
+            end
+            local call_direction;
+            initiator:maptags(function(tag)
+                if tag.name == "header" and tag.attr.name == JIGASI_CALL_DIRECTION_ATTR_NAME then
+                    call_direction = tag.attr.value;
                 end
-            end
-            payload = type(session.jitsi_meet_context_user) == "table" and util.shallow_copy(session.jitsi_meet_context_user) or {}
-            if session.jitsi_meet_context_group then
-                payload.group = session.jitsi_meet_context_group;
+                return tag;
+            end);
+            payload.direction = call_direction;
+            room._data.dial_participants = room._data.dial_participants or {}
+            room._data.dial_participants[occupant.jid] = call_direction;
+            if call_direction == "in" then
+                final_event_type = DIAL_IN_STARTED
+            elseif call_direction == "out" then
+                final_event_type = DIAL_OUT_STARTED
             end
         end
-        payload.participantJid = occupant.bare_jid;
-        payload.participantId = nick_resource;
-        payload.participantFullJid = occupant.jid;
-        payload.conference = internal_room_jid_match_rewrite(room.jid);
+    end
 
-        if (is_lobby) then
-            -- manually extract participantId from jid, because the nick resource is different for lobby
-            payload.participantId = occupant.jid:match("^(.-)-");
+    -- transcriber check
+    if stanza and oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) then
+        local presence_type = stanza.attr.type;
+        if not presence_type then
+            if DEBUG then module:log("debug", "Transcriber %s join the room %s", occupant.jid, room.jid); end
+            final_event_type = TRANSCRIPTION_STARTED
+        elseif presence_type == 'unavailable' then
+            if DEBUG then module:log("debug", "Transcriber %s leave the room %s", occupant.jid, room.jid); end
+            final_event_type = TRANSCRIPTION_ENDED
         end
-        -- dial check
-        if dial_participants[occupant.jid] ~= nil then
-            if DEBUG then module:log("debug", "dial participant %s leave room %s", occupant.jid, room.jid); end
-            if dial_participants[occupant.jid] == "in" then
-                final_event_type = DIAL_IN_ENDED;
-            elseif dial_participants[occupant.jid] == "out" then
-                final_event_type = DIAL_OUT_ENDED
-            end
-        end
-        local initiator;
-        if stanza then
-            initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
-            if initiator and stanza.attr.type ~= 'unavailable' then
-                if DEBUG then module:log("debug", "dial participant %s joined room %s", occupant.jid, room.jid); end
-                local nick = stanza:get_child('nick', NICK_NS);
-                if nick then
-                    payload.nick = nick:get_text();
-                end
-                local call_direction;
-                initiator:maptags(function(tag)
-                    if tag.name == "header" and tag.attr.name == JIGASI_CALL_DIRECTION_ATTR_NAME then
-                        call_direction = tag.attr.value;
-                    end
-                    return tag;
-                end);
-                payload.direction = call_direction;
-                room._data.dial_participants = room._data.dial_participants or {}
-                room._data.dial_participants[occupant.jid] = call_direction;
-                if call_direction == "in" then
-                    final_event_type = DIAL_IN_STARTED
-                elseif call_direction == "out" then
-                    final_event_type = DIAL_OUT_STARTED
-                end
-            end
-        end
+    end
 
-        -- transcriber check
-        if stanza and oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) then
-            local presence_type = stanza.attr.type;
-            if not presence_type then
-                if DEBUG then module:log("debug", "Transcriber %s join the room %s", occupant.jid, room.jid); end
-                final_event_type = TRANSCRIPTION_STARTED
-            elseif presence_type == 'unavailable' then
-                if DEBUG then module:log("debug", "Transcriber %s leave the room %s", occupant.jid, room.jid); end
-                final_event_type = TRANSCRIPTION_ENDED
-            end
-        end
+    if not is_lobby then
+        payload.isBreakout = is_breakout;
+        payload.breakoutRoomId = breakout_room_id;
+    end
 
-        if not is_lobby then
-            payload.isBreakout = is_breakout;
-            payload.breakoutRoomId = breakout_room_id;
-        end
-
-        local participant_access_event = {
-            ["idempotencyKey"] = uuid_gen(),
-            ["sessionId"] = main_room._data.meetingId,
-            ["created"] = util.round(socket.gettime() * 1000),
-            ["meetingFqn"] = meeting_fqn,
-            ["eventType"] = final_event_type,
-            ["data"] = payload
-        }
-        if is_vpaas(main_room) then
-            participant_access_event["customerId"] = customer_id
+    local participant_access_event = {
+        ["idempotencyKey"] = uuid_gen(),
+        ["sessionId"] = main_room._data.meetingId,
+        ["created"] = util.round(socket.gettime() * 1000),
+        ["meetingFqn"] = meeting_fqn,
+        ["eventType"] = final_event_type,
+        ["data"] = payload
+    }
+    if is_vpaas(main_room) then
+        participant_access_event["customerId"] = customer_id
+    else
+        if session and session.jitsi_meet_context_group then
+            participant_access_event["customerId"] = session.jitsi_meet_context_group;
         else
-            if session and session.jitsi_meet_context_group then
-                participant_access_event["customerId"] = session.jitsi_meet_context_group;
-            else
-                participant_access_event["customerId"] = customer_id;
+            participant_access_event["customerId"] = customer_id;
+        end
+    end
+
+    -- live stream/recording
+    if oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES) then
+        local recorderType = event.room._data.recorderType;
+        if final_event_type == PARTICIPANT_JOINED then
+            if DEBUG then module:log("debug", "Recorder %s joined", event.occupant.jid); end
+            if recorderType == 'recorder' then
+                participant_access_event["eventType"] = RECORDING_STARTED
+            elseif recorderType == 'live_stream' then
+                participant_access_event["eventType"] = LIVE_STREAM_STARTED
+            end
+        elseif final_event_type == PARTICIPANT_LEFT then
+            if DEBUG then module:log("debug", "Recorder %s left", event.occupant.jid); end
+            if recorderType == 'recorder' then
+                participant_access_event["eventType"] = RECORDING_ENDED
+            elseif recorderType == 'live_stream' then
+                participant_access_event["eventType"] = LIVE_STREAM_ENDED
             end
         end
+        local rec_payload = {}
+        rec_payload.conference = internal_room_jid_match_rewrite(room.jid);
+        participant_access_event["data"] = rec_payload
+    end
 
-        -- live stream/recording
-        if oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES) then
-            local recorderType = event.room._data.recorderType;
-            if final_event_type == PARTICIPANT_JOINED then
-                if DEBUG then module:log("debug", "Recorder %s joined", event.occupant.jid); end
-                if recorderType == 'recorder' then
-                    participant_access_event["eventType"] = RECORDING_STARTED
-                elseif recorderType == 'live_stream' then
-                    participant_access_event["eventType"] = LIVE_STREAM_STARTED
-                end
-            elseif final_event_type == PARTICIPANT_LEFT then
-                if DEBUG then module:log("debug", "Recorder %s left", event.occupant.jid); end
-                if recorderType == 'recorder' then
-                    participant_access_event["eventType"] = RECORDING_ENDED
-                elseif recorderType == 'live_stream' then
-                    participant_access_event["eventType"] = LIVE_STREAM_ENDED
-                end
+    -- sip call
+    -- sip participant will send at least 2 presence events on each join
+    -- one for the first join, containing basic info
+    -- another one shortly after, containing additional info, such as the participant's sip_address
+    -- multiple other presence updates can be sent apart from the 2 mandatory presences
+    -- we process only the first presence containing the sip address
+    if event_type == PARTICIPANT_JOINED and oss_util.is_sip_jibri_join(stanza) then
+        room._data.sip_participants_events = room._data.sip_participants_events or {}
+        -- we must send sip address on the webhook
+        local sip_address = stanza:get_child_text('sip_address');
+        local is_new_sip_participant = (not room._data.sip_participants_events[occupant.jid]) or (room._data.sip_participants_events[occupant.jid] == SIP_PARTICIPANT_NOT_JOINED_YET);
+
+        if sip_address and is_new_sip_participant then
+            local sip_jibri_prefix = util.get_sip_jibri_prefix(stanza);
+
+            if oss_util.starts_with_one_of(sip_jibri_prefix, util.INBOUND_SIP_JIBRI_PREFIXES) then
+                participant_access_event["eventType"] = SIP_CALL_IN_STARTED;
+                final_event_type = SIP_CALL_IN_STARTED;
+            elseif oss_util.starts_with_one_of(sip_jibri_prefix, util.OUTBOUND_SIP_JIBRI_PREFIXES) then
+                participant_access_event["eventType"] = SIP_CALL_OUT_STARTED;
+                final_event_type = SIP_CALL_OUT_STARTED;
             end
-            local rec_payload = {}
-            rec_payload.conference = internal_room_jid_match_rewrite(room.jid);
-            participant_access_event["data"] = rec_payload
-        end
 
-        -- sip call
-        -- sip participant will send at least 2 presence events on each join
-        -- one for the first join, containing basic info
-        -- another one shortly after, containing additional info, such as the participant's sip_address
-        -- multiple other presence updates can be sent apart from the 2 mandatory presences
-        -- we process only the first presence containing the sip address
-        if event_type == PARTICIPANT_JOINED and oss_util.is_sip_jibri_join(stanza) then
-            room._data.sip_participants_events = room._data.sip_participants_events or {}
-            -- we must send sip address on the webhook
-            local sip_address = stanza:get_child_text('sip_address');
-            local is_new_sip_participant = (not room._data.sip_participants_events[occupant.jid]) or (room._data.sip_participants_events[occupant.jid] == SIP_PARTICIPANT_NOT_JOINED_YET);
-
-            if sip_address and is_new_sip_participant then
-                local sip_jibri_prefix = util.get_sip_jibri_prefix(stanza);
-
-                if oss_util.starts_with_one_of(sip_jibri_prefix, util.INBOUND_SIP_JIBRI_PREFIXES) then
-                    participant_access_event["eventType"] = SIP_CALL_IN_STARTED;
-                    final_event_type = SIP_CALL_IN_STARTED;
-                elseif oss_util.starts_with_one_of(sip_jibri_prefix, util.OUTBOUND_SIP_JIBRI_PREFIXES) then
-                    participant_access_event["eventType"] = SIP_CALL_OUT_STARTED;
-                    final_event_type = SIP_CALL_OUT_STARTED;
-                end
-
-                participant_access_event["data"]["sipAddress"] = sip_address
-                local nick = stanza:get_child('nick', NICK_NS);
-                if nick then
-                    participant_access_event["data"]["nick"] = nick:get_text();
-                end
-
-                room._data.sip_participants_events[occupant.jid] = participant_access_event["eventType"];
-                module:log("info", "%s: sip participant %s joined the room %s", participant_access_event["eventType"], occupant.jid, room.jid)
-            elseif sip_address and not is_new_sip_participant then
-                if DEBUG then
-                    module:log("debug", "Ignoring the sip participant %s presence update for room %s",
-                        occupant.jid, room.jid);
-                end
-                final_event_type = SIP_PARTICIPANT_ALREADY_JOINED;
-            else
-                -- no sip_address
-                if DEBUG then
-                    module:log("debug", "Ignoring the sip participant %s presence for room %s, as it has no sip address",
-                        occupant.jid, room.jid);
-                end
-                final_event_type = SIP_PARTICIPANT_NOT_JOINED_YET;
-                room._data.sip_participants_events[occupant.jid] = SIP_PARTICIPANT_NOT_JOINED_YET;
+            participant_access_event["data"]["sipAddress"] = sip_address
+            local nick = stanza:get_child('nick', NICK_NS);
+            if nick then
+                participant_access_event["data"]["nick"] = nick:get_text();
             end
-        elseif event_type == PARTICIPANT_LEFT and room._data.sip_participants_events and room._data.sip_participants_events[occupant.jid] then
-            if room._data.sip_participants_events[occupant.jid] == SIP_CALL_IN_STARTED then
-                participant_access_event["eventType"] = SIP_CALL_IN_ENDED;
-                final_event_type = SIP_CALL_IN_ENDED;
-            elseif room._data.sip_participants_events[occupant.jid] == SIP_CALL_OUT_STARTED then
-                participant_access_event["eventType"] = SIP_CALL_OUT_ENDED;
-                final_event_type = SIP_CALL_OUT_ENDED;
-            elseif room._data.sip_participants_events[occupant.jid] == SIP_PARTICIPANT_NOT_JOINED_YET then
-                final_event_type = SIP_PARTICIPANT_NOT_JOINED_YET;
-            end
-            room._data.sip_participants_events[occupant.jid] = nil
-            if not (final_event_type == SIP_PARTICIPANT_NOT_JOINED_YET) then
-                module:log("info", "%s: sip participant %s left the room %s", participant_access_event["eventType"], occupant.jid, room.jid)
-            end
-        end
 
-        if final_event_type == SIP_PARTICIPANT_NOT_JOINED_YET or final_event_type == SIP_PARTICIPANT_ALREADY_JOINED then
+            room._data.sip_participants_events[occupant.jid] = participant_access_event["eventType"];
+            module:log("info", "%s: sip participant %s joined the room %s", participant_access_event["eventType"], occupant.jid, room.jid)
+        elseif sip_address and not is_new_sip_participant then
             if DEBUG then
-                module:log("debug", "Ignoring sip event %s, the event either does not contain the sip_address, or is a presence update which we don't send as webhook: %s",
-                    event_type, stanza);
+                module:log("debug", "Ignoring the sip participant %s presence update for room %s",
+                    occupant.jid, room.jid);
             end
-            return
-        end
-
-        if not util.is_blacklisted(occupant) and is_vpaas(main_room)
-                and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT)
-                and event.origin and not event.origin.auth_token
-                and not event.origin.vpaas_guest_access then
-            local event = 'join';
-            if final_event_type == PARTICIPANT_LEFT then
-                event = 'leave';
+            final_event_type = SIP_PARTICIPANT_ALREADY_JOINED;
+        else
+            -- no sip_address
+            if DEBUG then
+                module:log("debug", "Ignoring the sip participant %s presence for room %s, as it has no sip address",
+                    occupant.jid, room.jid);
             end
-            module:log("warn", "Occupant %s tried to %s a jaas room %s without a token", occupant.jid, event, room.jid);
-            -- do not send join/left/usage events for JaaS participants without a jwt.
-            return;
+            final_event_type = SIP_PARTICIPANT_NOT_JOINED_YET;
+            room._data.sip_participants_events[occupant.jid] = SIP_PARTICIPANT_NOT_JOINED_YET;
         end
+    elseif event_type == PARTICIPANT_LEFT and room._data.sip_participants_events and room._data.sip_participants_events[occupant.jid] then
+        if room._data.sip_participants_events[occupant.jid] == SIP_CALL_IN_STARTED then
+            participant_access_event["eventType"] = SIP_CALL_IN_ENDED;
+            final_event_type = SIP_CALL_IN_ENDED;
+        elseif room._data.sip_participants_events[occupant.jid] == SIP_CALL_OUT_STARTED then
+            participant_access_event["eventType"] = SIP_CALL_OUT_ENDED;
+            final_event_type = SIP_CALL_OUT_ENDED;
+        elseif room._data.sip_participants_events[occupant.jid] == SIP_PARTICIPANT_NOT_JOINED_YET then
+            final_event_type = SIP_PARTICIPANT_NOT_JOINED_YET;
+        end
+        room._data.sip_participants_events[occupant.jid] = nil
+        if not (final_event_type == SIP_PARTICIPANT_NOT_JOINED_YET) then
+            module:log("info", "%s: sip participant %s left the room %s", participant_access_event["eventType"], occupant.jid, room.jid)
+        end
+    end
 
-        -- lobby events
-        if is_lobby then
-            if final_event_type == PARTICIPANT_JOINED then
-                if DEBUG then module:log("debug", "Occupant %s joined lobby room %s", occupant.jid, room.jid); end
-                if main_room:get_affiliation(occupant.bare_jid) == 'owner' or occupant.role == "moderator" then
-                    moderator_occupants_in_lobby[occupant.bare_jid] = 'owner';
-                    return;
-                end
-                participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
-            elseif final_event_type == PARTICIPANT_LEFT then
-                if DEBUG then module:log("debug", "Occupant %s left lobby room %s", occupant.jid, room.jid); end
-                if moderator_occupants_in_lobby[occupant.bare_jid] ~= nil then
-                    -- clear from list
-                    moderator_occupants_in_lobby[occupant.bare_jid] = nil;
-                    return;
-                end
-                participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
+    if final_event_type == SIP_PARTICIPANT_NOT_JOINED_YET or final_event_type == SIP_PARTICIPANT_ALREADY_JOINED then
+        if DEBUG then
+            module:log("debug", "Ignoring sip event %s, the event either does not contain the sip_address, or is a presence update which we don't send as webhook: %s",
+                event_type, stanza);
+        end
+        return
+    end
+
+    if not util.is_blacklisted(occupant) and is_vpaas(main_room)
+            and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT)
+            and event.origin and not event.origin.auth_token
+            and not event.origin.vpaas_guest_access then
+        local event = 'join';
+        if final_event_type == PARTICIPANT_LEFT then
+            event = 'leave';
+        end
+        module:log("warn", "Occupant %s tried to %s a jaas room %s without a token", occupant.jid, event, room.jid);
+        -- do not send join/left/usage events for JaaS participants without a jwt.
+        return;
+    end
+
+    -- lobby events
+    if is_lobby then
+        if final_event_type == PARTICIPANT_JOINED then
+            if DEBUG then module:log("debug", "Occupant %s joined lobby room %s", occupant.jid, room.jid); end
+            if main_room:get_affiliation(occupant.bare_jid) == 'owner' or occupant.role == "moderator" then
+                moderator_occupants_in_lobby[occupant.bare_jid] = 'owner';
+                return;
             end
+            participant_access_event["eventType"] = PARTICIPANT_JOINED_LOBBY;
+        elseif final_event_type == PARTICIPANT_LEFT then
+            if DEBUG then module:log("debug", "Occupant %s left lobby room %s", occupant.jid, room.jid); end
+            if moderator_occupants_in_lobby[occupant.bare_jid] ~= nil then
+                -- clear from list
+                moderator_occupants_in_lobby[occupant.bare_jid] = nil;
+                return;
+            end
+            participant_access_event["eventType"] = PARTICIPANT_LEFT_LOBBY;
         end
+    end
 
-        -- add reason for participant left
-        if final_event_type == PARTICIPANT_LEFT or final_event_type == DIAL_OUT_ENDED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED then
-            -- check if the participant switch the main for the breakout room or vice versa
-            local status_tag = stanza and stanza:get_child('status') or nil;
-            if status_tag and status_tag:get_text() == 'switch_room' then
-                payload.disconnectReason = 'switch_room'
-            elseif status_tag and status_tag:get_text() == 'unrecoverable_error' then
-                payload.disconnectReason = 'unrecoverable_error'
-            elseif KICKED_PARTICIPANTS_NICK[nick_resource] then
-                payload.disconnectReason = 'kicked'
-                KICKED_PARTICIPANTS_NICK[nick_resource] = nil
-            elseif DISCONNECTED_PARTICIPANTS_JID[occupant.jid] then
-                payload.disconnectReason = 'unknown'
-                DISCONNECTED_PARTICIPANTS_JID[occupant.jid] = nil
+    -- add reason for participant left
+    if final_event_type == PARTICIPANT_LEFT or final_event_type == DIAL_OUT_ENDED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED then
+        -- check if the participant switch the main for the breakout room or vice versa
+        local status_tag = stanza and stanza:get_child('status') or nil;
+        if status_tag and status_tag:get_text() == 'switch_room' then
+            payload.disconnectReason = 'switch_room'
+        elseif status_tag and status_tag:get_text() == 'unrecoverable_error' then
+            payload.disconnectReason = 'unrecoverable_error'
+        elseif KICKED_PARTICIPANTS_NICK[nick_resource] then
+            payload.disconnectReason = 'kicked'
+            KICKED_PARTICIPANTS_NICK[nick_resource] = nil
+        elseif DISCONNECTED_PARTICIPANTS_JID[occupant.jid] then
+            payload.disconnectReason = 'unknown'
+            DISCONNECTED_PARTICIPANTS_JID[occupant.jid] = nil
+        else
+            payload.disconnectReason = 'left'
+        end
+    end
+
+    -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
+    decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
+
+    if DEBUG then module:log("debug", "Participant event %s", inspect(participant_access_event)); end
+
+    event_count();
+    http.request(EGRESS_URL, {
+        headers = util.http_headers_no_auth,
+        method = "POST",
+        body = json.encode(participant_access_event);
+    }, cb);
+
+    -- send MAU usage for normal participants and dial calls only
+    -- live stream/recording/sip calls are billed based on duration and not MAU
+    if not util.is_blacklisted(occupant) and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
+        local is_sip_jibri_event = final_event_type == SIP_CALL_IN_STARTED or final_event_type == SIP_CALL_OUT_STARTED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED
+        if not is_breakout then
+            if not is_sip_jibri_event then
+                local participants = room._data.participants_jid or {};
+                table.insert(participants, occupant.bare_jid);
+                room._data.participants_jid = participants;
+                local current_usage_item = get_current_event_usage(session, nick_resource, customer_id, final_event_type, payload.nick, payload.direction);
+                handle_usage_update(main_room, meeting_fqn, current_usage_item, breakout_room_id, is_sip_jibri_event);
             else
-                payload.disconnectReason = 'left'
-            end
-        end
-
-        -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
-        decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
-
-        if DEBUG then module:log("debug", "Participant event %s", inspect(participant_access_event)); end
-
-        event_count();
-        http.request(EGRESS_URL, {
-            headers = util.http_headers_no_auth,
-            method = "POST",
-            body = json.encode(participant_access_event);
-        }, cb);
-
-        -- send MAU usage for normal participants and dial calls only
-        -- live stream/recording/sip calls are billed based on duration and not MAU
-        if not util.is_blacklisted(occupant) and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
-            local is_sip_jibri_event = final_event_type == SIP_CALL_IN_STARTED or final_event_type == SIP_CALL_OUT_STARTED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED
-            if not is_breakout then
-                if not is_sip_jibri_event then
-                    local participants = room._data.participants_jid or {};
-                    table.insert(participants, occupant.bare_jid);
-                    room._data.participants_jid = participants;
-                    local current_usage_item = get_current_event_usage(session, nick_resource, customer_id, final_event_type, payload.nick, payload.direction);
-                    handle_usage_update(main_room, meeting_fqn, current_usage_item, breakout_room_id, is_sip_jibri_event);
-                else
-                    handle_usage_update(main_room, meeting_fqn, nil, breakout_room_id, is_sip_jibri_event)
-                end
+                handle_usage_update(main_room, meeting_fqn, nil, breakout_room_id, is_sip_jibri_event)
             end
         end
     end
