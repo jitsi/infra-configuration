@@ -57,7 +57,8 @@ telegraf_jvb_filter: [
     "jitsi_jvb_startup_time",
     "jitsi_jvb_stress",
     "jitsi_jvb_thread_count",
-    "jitsi_jvb_video_milliseconds_received_total"
+    "jitsi_jvb_video_milliseconds_received_total",
+    "jitsi_jvb_xmpp_disconnects"
 ]
 telegraf_additional_config_dir: "{{ telegraf_config_dir }}/telegraf.d"
 # telegraf variables
