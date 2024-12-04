@@ -16,7 +16,7 @@ if not muc_domain_base then
 end
 
 local blacklist_prefix = module:get_option_array("muc_events_blacklist_prefixes", { 'focus@auth.', 'recorder@recorder.','jibria@recorder', 'jibrib@recorder', 'jvb@auth.', 'jibri@auth.','jibria@auth.','jibrib@auth.', 'transcriber@recorder.','transcribera@recorder.','transcriberb@recorder.', 'jigasi@auth.', 'jigasia@auth.','jigasib@auth.' });
-local blacklist_domain_prefix = module:get_option_array("muc_events_blacklist_domain_prefixes", {'jigasia.', 'jigasib.' });
+local blacklist_domain_prefix = module:get_option_array("muc_events_blacklist_domain_prefixes", {});
 
 -- The "real" MUC domain that we are proxying to
 local muc_domain = module:get_option_string("muc_mapper_domain", muc_domain_prefix .. "." .. muc_domain_base);
