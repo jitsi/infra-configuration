@@ -9,8 +9,11 @@ local socket = require "socket";
 local uuid_gen = require "util.uuid".generate;
 local jwt = module:require "luajwtjitsi";
 local util = module:require "util.internal";
-local is_healthcheck_room = module:require "util".is_healthcheck_room;
-local is_vpaas = module:require "util".is_vpaas;
+local oss_util = module:require "util";
+local is_healthcheck_room = oss_util.is_healthcheck_room;
+local is_jibri = oss_util.is_jibri;
+local is_vpaas = oss_util.is_vpaas;
+local is_transcriber_jigasi = oss_util.is_transcriber_jigasi;
 
 local event_count = module:measure("muc_events_rate", "rate")
 local event_count_failed = module:measure("muc_events_failed", "rate")
@@ -22,10 +25,6 @@ local function onConfCacheEvict(evictedKey, evictedValue)
     module:log("error", "Unexpected conference cache evict, this could lead to errors! For key %s, and value %s", evictedKey, evictedValue);
 end
 local confCache = require"util.cache".new(confCacheSize, onConfCacheEvict);
-
--- option to ignore events about the focus and other components
-local blacklistPrefixes
-    = module:get_option_array("muc_events_blacklist_prefixes", {'focus@auth.','recorder@recorder.','jibria@recorder.','jibrib@','jvb@auth.','jibri@auth.','jibria@auth.','jibrib@auth.','transcriber@recorder.', 'transcribera@recorder.', 'transcriberb@recorder.'});
 
 local eventURL
     = module:get_option_string("muc_events_url", 'http://127.0.0.1:9880/');
@@ -167,17 +166,6 @@ local function extract_occupant_details(occupant)
     return r;
 end
 
-local function isBlacklisted(occupant)
-    for i, bPrefix in ipairs(blacklistPrefixes) do
-        if string.sub(occupant.bare_jid,1,string.len(bPrefix)) == bPrefix then
-            if DEBUG then module:log("debug","Blacklist prefix: %s found in %s ", bPrefix, occupant); end
-            return true;
-        end
-    end
-
-    return false;
-end
-
 local function cb(content_, code_, response_, request_)
     if code_ == 200 or code_ == 204 then
         if DEBUG then module:log("debug", "URL Callback: Code %s, Content %s, Request (host %s, path %s, body %s), Response: %s",
@@ -290,15 +278,10 @@ local function processJoinLeftEvent(type,event)
     if DEBUG then module:log("debug", "%s keys in confCache", confCache:count()); end
     local who = event.occupant;
 
-    -- search bare_jid for blacklisted prefixes before sending events
-    if isBlacklisted(who) then
-        if DEBUG then module:log("debug", "processJoinLeftEvent: occupant is blacklisted %s", who); end
-        return;
-    end
-
-    -- search room jid for tenancy prefixes before sending events
-    if is_vpaas(event.room) then
-        if DEBUG then module:log("debug", "processJoinLeftEvent: room tenant is droplisted %s", event.room.jid); end
+    if is_admin(who.bare_jid)
+        or is_vpaas(event.room)
+        or is_jibri(who)
+        or is_transcriber_jigasi(event.stanza) then
         return;
     end
 
@@ -400,15 +383,10 @@ local function handleBroadcastPresence(event)
     local occupant_jid = occupant.jid;
     local room_jid = event.room.jid;
 
-    -- search bare_jid for blacklisted prefixes before broadcasting events
-    if isBlacklisted(occupant) then
-        if DEBUG then module:log("debug", "handleBroadcastPresence: occupant is blacklisted %s", occupant.bare_jid); end
-        return;
-    end
-
-    -- search room jid for tenancy prefixes before sending events
-    if is_vpaas(event.room) then
-        if DEBUG then module:log("debug", "handleBroadcastPresence: room tenant is droplisted %s", room_jid); end
+    if is_admin(occupant.bare_jid)
+        or is_vpaas(event.room)
+        or is_jibri(occupant)
+        or is_transcriber_jigasi(event.stanza) then
         return;
     end
 
@@ -449,8 +427,8 @@ end
 -- used only for vo
 local function processSubjectUpdate(occupant, room, new_subject)
     local room_jid = room.jid;
-    if is_vpaas(room) then
-        if DEBUG then module:log("debug", "processSubjectUpdate: room tenant is droplisted %s", room_jid); end
+
+    if is_admin(occupant.bare_jid) or is_vpaas(room) then
         return;
     end
 
@@ -466,12 +444,6 @@ local function processSubjectUpdate(occupant, room, new_subject)
     local pdetails = load_from_cache(occupant_jid);
     pdetails['jid'] = occupant.jid;
     pdetails['bare_jid'] = occupant.bare_jid;
-
-    -- search bare_jid for blacklisted prefixes before sending events
-    if isBlacklisted(occupant) then
-        if DEBUG then module:log("debug", "processSubjectUpdate occupant is blacklisted %s", occupant); end
-        return;
-    end
 
     local cdetails = load_from_cache(room_jid);
     cdetails["subject"] = new_subject;
