@@ -1,3 +1,4 @@
+-- loaded for the muc components (the main, lobby and breakout room)
 local util = module:require "util.internal";
 local uuid_gen = require "util.uuid".generate;
 local inspect = require('inspect');
@@ -254,7 +255,7 @@ function handle_occupant_access(event, event_type)
     local final_event_type = event_type
     local dial_participants = room._data.dial_participants or {};
 
-    if is_healthcheck_room(room.jid) or (util.is_blacklisted(occupant) and not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) and not oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)) then
+    if is_healthcheck_room(room.jid) or is_admin(occupant.bare_jid) then
         return;
     end
 
@@ -301,7 +302,7 @@ function handle_occupant_access(event, event_type)
     end
     local initiator;
     if stanza then
-        initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
+        initiator = oss_util.is_sip_jigasi(stanza);
         if initiator and stanza.attr.type ~= 'unavailable' then
             if DEBUG then module:log("debug", "dial participant %s joined room %s", occupant.jid, room.jid); end
             local nick = stanza:get_child('nick', NICK_NS);
@@ -454,7 +455,11 @@ function handle_occupant_access(event, event_type)
         return
     end
 
-    if not util.is_blacklisted(occupant) and is_vpaas(main_room)
+    if not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES)
+            and not oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)
+            and not oss_util.is_sip_jibri_join(stanza)
+            and not oss_util.is_sip_jigasi(stanza)
+            and is_vpaas(main_room)
             and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT)
             and event.origin and not event.origin.auth_token
             and not event.origin.vpaas_guest_access then
@@ -520,7 +525,10 @@ function handle_occupant_access(event, event_type)
 
     -- send MAU usage for normal participants and dial calls only
     -- live stream/recording/sip calls are billed based on duration and not MAU
-    if not util.is_blacklisted(occupant) and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
+    if not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES)
+       and not oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)
+       and not oss_util.is_sip_jibri_join(stanza)
+        and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
         local is_sip_jibri_event = final_event_type == SIP_CALL_IN_STARTED or final_event_type == SIP_CALL_OUT_STARTED or final_event_type == SIP_CALL_IN_ENDED or final_event_type == SIP_CALL_OUT_ENDED
         if not is_breakout then
             if not is_sip_jibri_event then
