@@ -3,6 +3,8 @@ local jid = require "util.jid";
 local json = require "cjson";
 local inspect = require('inspect');
 
+local oss_util = module:require "util";
+
 local Util = {}
 
 -- required parameter for custom muc component prefix,
@@ -14,6 +16,8 @@ if not muc_domain_base then
     module:log("warn", "No 'muc_domain_base' option set, disabling automated remapping of mucs");
     muc_domain_base = ""
 end
+
+local RECORDER_PREFIXES = { 'recorder@recorder.', 'jibria@recorder.', 'jibrib@recorder.' };
 
 local blacklist_prefix = module:get_option_array("muc_events_blacklist_prefixes", {
     'focus@auth.',
@@ -175,6 +179,10 @@ function Util.get_sip_jibri_prefix(stanza)
 
     local email = stanza:get_child_text('email');
     return get_sip_jibri_email_prefix(email);
+end
+
+function Util.is_jibri(occupant)
+    return oss_util.starts_with_one_of(occupant.jid, RECORDER_PREFIXES)
 end
 
 local function extract_field_text(o, field, ns)

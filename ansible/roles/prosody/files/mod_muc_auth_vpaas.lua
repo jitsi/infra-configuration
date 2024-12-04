@@ -1,9 +1,12 @@
+-- Loaded only under main muc module
 local json_safe = require "cjson.safe";
 local basexx = require "basexx";
 local cache = require "util.cache";
 
 local st = require "util.stanza";
 local timer = require "util.timer";
+
+local um_is_admin = require "core.usermanager".is_admin;
 
 local inspect = require('inspect');
 
@@ -43,6 +46,10 @@ end
 local token_util = module:require "token/util".new(parentCtx);
 
 local DEBUG = false;
+
+local function is_admin(jid)
+    return um_is_admin(jid, module.host);
+end
 
 function invalidate_cache()
     token_util:clear_asap_cache()
@@ -161,62 +168,64 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
     local room_jid = room.jid;
     local token = origin.auth_token;
     local tenant = origin.jitsi_meet_domain;
-    if not is_healthcheck_room(room_jid) and not util_internal.is_blacklisted(occupant) then
-        local initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
-        if initiator then
-            if DEBUG then module:log("debug", "Let Jigasi pass throw"); end
+
+    if is_healthcheck_room(room_jid)
+        or is_admin(occupant.bare_jid)
+
+        -- Skip VPAAS related verifications for non VPAAS room
+        or not is_vpaas(room)
+
+        -- Let Jigasi or transcriber pass throw
+        or util.is_sip_jigasi(stanza)
+        or util.is_transcriber_jigasi(stanza)
+
+        -- is jibri
+        or util_internal.is_jibri(occupant)
+
+        -- Let Sip Jibri pass through
+        or util.is_sip_jibri_join(stanza) then
+        return nil;
+    end
+
+    if DEBUG then module:log("debug",
+        "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant); end
+
+    -- we allow participants from the main prosody to connect without token to the visitor one
+    if token == nil and origin.type ~= 's2sin' then
+        module:log("warn", "VPAAS room %s does not have a token", room_jid);
+        origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for guests"));
+        return true;
+    end
+
+    if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
+        if room._data.vpaas_guest_access then
+            -- make sure it is not authenticated user, a guest (no features are set)
+            origin.auth_token = nil;
+            origin.jitsi_meet_room = nil;
+            origin.jitsi_meet_domain = nil;
+            origin.jitsi_meet_str_tenant = nil;
+            origin.jitsi_meet_context_user = nil;
+            origin.jitsi_meet_context_group = nil;
+            origin.jitsi_meet_context_features = nil;
+            origin.jitsi_meet_context_room = nil;
+            origin.contextRequired = nil;
+            origin.public_key = nil;
+            origin.kid = nil;
+            -- let's mark this session that we cleared the token
+            origin.vpaas_guest_access = true;
+
             return nil;
         end
 
-        if util.is_sip_jibri_join(stanza) then
-            module:log("info", "Let Sip Jibri pass through %s", occupant);
-            return nil;
-        end
+        module:log("warn", "VPAAS room %s is disabled for tenant %s", room_jid, tenant);
+        origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for 8x8 users"));
+        return true;
+    end
 
-        if not is_vpaas(room) then
-            if DEBUG then module:log("debug", "Skip VPAAS related verifications for non VPAAS room %s", room_jid); end
-            return nil;
-        end
-
-        if DEBUG then module:log("debug",
-            "Will verify if VPAAS room: %s has token on user %s pre-join", room_jid, occupant); end
-        -- we allow participants from the main prosody to connect without token to the visitor one
-        if token == nil and origin.type ~= 's2sin' then
-            module:log("warn", "VPAAS room %s does not have a token", room_jid);
-            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for guests"));
-            return true;
-        end
-
-        if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
-            if room._data.vpaas_guest_access then
-                -- make sure it is not authenticated user, a guest (no features are set)
-                origin.auth_token = nil;
-                origin.jitsi_meet_room = nil;
-                origin.jitsi_meet_domain = nil;
-                origin.jitsi_meet_str_tenant = nil;
-                origin.jitsi_meet_context_user = nil;
-                origin.jitsi_meet_context_group = nil;
-                origin.jitsi_meet_context_features = nil;
-                origin.jitsi_meet_context_room = nil;
-                origin.contextRequired = nil;
-                origin.public_key = nil;
-                origin.kid = nil;
-                -- let's mark this session that we cleared the token
-                origin.vpaas_guest_access = true;
-
-                return nil;
-            end
-
-            module:log("warn", "VPAAS room %s is disabled for tenant %s", room_jid, tenant);
-            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled for 8x8 users"));
-            return true;
-        end
-
-        if room_disabled_access then
-            module:log("warn", "VPAAS room %s has access disabled due to blocked or deleted tenant %s", room_jid, tenant);
-            origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled due to blocked or deleted tenant"));
-            return true;
-        end
+    if room_disabled_access then
+        module:log("warn", "VPAAS room %s has access disabled due to blocked or deleted tenant %s", room_jid, tenant);
+        origin.send(st.error_reply(stanza, "cancel", "not-allowed", "VPAAS room disabled due to blocked or deleted tenant"));
+        return true;
     end
 
     return nil;
