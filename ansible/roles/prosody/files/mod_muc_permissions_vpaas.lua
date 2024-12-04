@@ -113,6 +113,8 @@ module:hook("muc-occupant-pre-join", function(event)
     local room, session, stanza = event.room, event.origin, event.stanza;
     local occupant_jid = stanza.attr.from;
 
+    -- we should execute this only for participants, ignore any jigasi, jibri or jicofo
+    -- TODO
     if is_healthcheck_room(room.jid) or util.is_blacklisted(occupant_jid) then
         return;
     end

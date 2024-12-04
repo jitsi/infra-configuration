@@ -1,5 +1,6 @@
 module:set_global();
 
+local um_is_admin = require "core.usermanager".is_admin;
 local jid = require "util.jid";
 local http = require "net.http";
 local json = require "cjson";
@@ -60,6 +61,10 @@ local escaped_muc_domain_prefix = muc_domain_prefix:gsub("%p", "%%%1");
 -- (e.g. extract 'foo' from 'foo.muc.example.com')
 local target_subdomain_pattern
     = "^"..escaped_muc_domain_prefix..".([^%.]+)%."..escaped_muc_domain_base;
+
+local function is_admin(jid)
+    return um_is_admin(jid, module.host);
+end
 
 local function remove_from_cache(key)
     confCache:set(key, nil);
@@ -658,6 +663,7 @@ local function handleSpeakerStats(event)
     end
     for user_jid, speakerTime in pairs(event.roomSpeakerStats) do
         if (user_jid ~= "dominantSpeakerId" and user_jid ~= "sessionId" and user_jid ~= "isBreakout" and user_jid ~= "breakoutRoomId") then
+            -- we skip, focus, recorder, and transcriber TODO: fix this in jitsi-meet if we need to
             if not util.is_blacklisted(user_jid) then
                 if speakerTime.context_user ~= nil then
                     requestBody.speakerStats[user_jid] = { time = speakerTime.totalDominantSpeakerTime; name = speakerTime.context_user.name; email = speakerTime.context_user.email; id = speakerTime.context_user.id; };
