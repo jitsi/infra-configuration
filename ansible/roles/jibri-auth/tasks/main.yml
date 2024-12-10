@@ -1,16 +1,4 @@
 ---
-- name: Add jibri authentication
-  ansible.builtin.command: prosodyctl register {{ jibri_auth_user }} {{ jibri_auth_domain }} {{ jibri_auth_password }}
-  args:
-    creates: "{{ jibri_auth_domain_path }}"
-  when: jibri_legacy_auth and jibri_auth_password and jibri_auth_password != 'replaceme'
-
-- name: Add jibri selenium authentication
-  ansible.builtin.command: prosodyctl register {{ jibri_selenium_auth_user }} {{ jibri_selenium_auth_domain }} {{ jibri_selenium_auth_password }}
-  args:
-    creates: "{{ jibri_selenium_auth_domain_path }}"
-  when: jibri_legacy_auth and jibri_selenium_auth_password and jibri_selenium_auth_password != 'replaceme'
-
 - name: Add jibri account A for XMPP brewery
   ansible.builtin.command: prosodyctl adduser "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
   args:
