@@ -162,7 +162,7 @@ var config = {
 {% endif %}
 {% if jitsi_meet_video_quality %}
     videoQuality: {
-    enableAdaptiveMode: {% if jitsi_meet_enable_adaptive_mode %}true{% else %}false{% endif %},
+    enableAdaptiveMode: true,
     {% if jitsi_meet_jvb_preferred_codecs %}
         codecPreferenceOrder: {{ jitsi_meet_jvb_preferred_codecs }},
     {% endif %}
@@ -481,9 +481,7 @@ whiteboard: {
         }
     },
     testing: {
-    {% if jitsi_meet_enable_codec_selection_api %}
         enableCodecSelectionAPI: true,
-    {% endif %}
     {% if jitsi_meet_mobile_xmpp_ws_threshold %}
         mobileXmppWsThreshold: {{ jitsi_meet_mobile_xmpp_ws_threshold }},
     {% endif %}
