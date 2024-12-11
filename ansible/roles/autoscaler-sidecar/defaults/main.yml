@@ -16,6 +16,7 @@ autoscaler_force_shutdown_command_by_type:
   'jigasi': 'service jigasi stop'
   'sip-jibri': 'service jibri stop'
   'nomad': 'nomad node drain -self -enable -force -detach -yes'
+  'streaming-whisper': 'nomad node drain -self -enable -force -detach -yes'
 autoscaler_git_repo: https://github.com/jitsi/jitsi-autoscaler-sidecar.git
 autoscaler_graceful_shutdown_script: "{{
   autoscaler_graceful_shutdown_scripts[autoscaler_instance_type]
@@ -26,6 +27,7 @@ autoscaler_graceful_shutdown_scripts:
   'jigasi': /usr/local/bin/graceful-shutdown-wrapper-jigasi.sh
   'sip-jibri': /opt/jitsi/jibri/wait_graceful_shutdown.sh
   'nomad': /usr/local/bin/nomad_graceful_shutdown.sh
+  'streaming-whisper': /usr/local/bin/streaming-whisper-graceful-shutdown.sh
 autoscaler_graceful_shutdown_wrapper: /usr/local/bin/graceful_shutdown_wrapper.sh
 autoscaler_group: "default"
 autoscaler_groupname: jsidecar
@@ -80,6 +82,7 @@ autoscaler_stats_retrieve_urls:
   'jibri': http://localhost:2222/jibri/api/v1.0/health
   'jigasi': http://localhost:8788/about/stats
   'sip-jibri': http://localhost:2222/jibri/api/v1.0/health
+  'streaming-whisper': http://localhost:8003/state
 autoscaler_status_url: "https://{{ autoscaler_server_host }}/sidecar/status"
 autoscaler_shutdown_url: "https://{{ autoscaler_server_host }}/sidecar/shutdown"
 autoscaler_terminate_script: '/usr/local/bin/terminate_instance.sh'
