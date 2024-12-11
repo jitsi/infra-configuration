@@ -39,5 +39,4 @@
 # docker pull most recent running version of skynet and whisper
     - { role: "gpu-docker-pull", tags: "gpu-docker", gpu_docker_type: "skynet" }
     - { role: "gpu-docker-pull", tags: "gpu-docker", gpu_docker_type: "whisper" }
-    - { role: "whisper", tags: "gpu-docker" }
     - { role: "clean-system", tags: "clean-system, build" }
