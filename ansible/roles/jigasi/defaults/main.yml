@@ -170,7 +170,7 @@ jigasi_transcriber_remote_select_aud: "jitsi"
 jigasi_transcriber_oci_flag: false
 jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
-jigasi_transcriber_whisper_websocket_url: "wss://{{ hcv_environment }}-{{ oracle_region }}-whisper.jitsi.net:443/streaming-whisper/ws/"
+jigasi_transcriber_whisper_websocket_url: "wss://{{ hcv_environment }}-{{ oracle_region }}-whisper.jitsi.net:443/whisper/ws/"
 jigasi_transcription_path: /var/lib/jigasi/transcripts
 jigasi_trusted_domains: false
 jigasi_udp_buffer_max_backlog: 2000

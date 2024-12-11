@@ -39,7 +39,5 @@
 # docker pull most recent running version of skynet and whisper
     - { role: "gpu-docker-pull", tags: "gpu-docker", gpu_docker_type: "skynet" }
     - { role: "gpu-docker-pull", tags: "gpu-docker", gpu_docker_type: "whisper" }
-    - { role: "streaming-whisper", tags: "gpu-docker", gpu_docker_type: "whisper" }
-    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "streaming-whisper", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
+    - { role: "whisper", tags: "gpu-docker" }
     - { role: "clean-system", tags: "clean-system, build" }
