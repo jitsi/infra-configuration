@@ -35,7 +35,8 @@ autoscaler_health_script: "/usr/local/bin/autoscaler-sidecar-health.sh"
 autoscaler_health_url: "http://localhost:{{ autoscaler_express_port }}/health"
 autoscaler_install_flag: true
 autoscaler_instance_id: "{{
-  ansible_ec2_instance_id if ansible_ec2_instance_id is defined
+  cloud_instance_id if cloud_instance_id is defined
+  else ansible_ec2_instance_id if ansible_ec2_instance_id is defined
   else oracle_instance_id if oracle_instance_id is defined else 'default' }}"
 autoscaler_instance_type: 'JVB'
 autoscaler_key_id: "{{ asap_key['id'] if asap_key['id'] is defined else 'default' }}"
