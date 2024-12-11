@@ -3,6 +3,8 @@ local jid = require "util.jid";
 local json = require "cjson";
 local inspect = require('inspect');
 
+local oss_util = module:require "util";
+
 local Util = {}
 
 -- required parameter for custom muc component prefix,
@@ -14,9 +16,6 @@ if not muc_domain_base then
     module:log("warn", "No 'muc_domain_base' option set, disabling automated remapping of mucs");
     muc_domain_base = ""
 end
-
-local blacklist_prefix = module:get_option_array("muc_events_blacklist_prefixes", { 'focus@auth.', 'recorder@recorder.','jibria@recorder', 'jibrib@recorder', 'jvb@auth.', 'jibri@auth.','jibria@auth.','jibrib@auth.', 'transcriber@recorder.','transcribera@recorder.','transcriberb@recorder.', 'jigasi@auth.', 'jigasia@auth.','jigasib@auth.' });
-local blacklist_domain_prefix = module:get_option_array("muc_events_blacklist_domain_prefixes", {});
 
 -- The "real" MUC domain that we are proxying to
 local muc_domain = module:get_option_string("muc_mapper_domain", muc_domain_prefix .. "." .. muc_domain_base);
@@ -136,36 +135,6 @@ end
 function Util.round(num, numDecimalPlaces)
     local mult = 10 ^ (numDecimalPlaces or 0)
     return math.floor(num * mult + 0.5) / mult
-end
-
--- Check if the occupant is a regular user
--- @param occupant from event or occupant jid
-function Util.is_blacklisted(occupant)
-    local occupant_jid;
-    if not occupant then
-        return false;
-    end
-
-    if not occupant.bare_jid then
-        occupant_jid = occupant
-    else
-        occupant_jid = occupant.bare_jid;
-    end
-
-    for _, prefix in ipairs(blacklist_prefix) do
-        if string.sub(occupant_jid, 1, string.len(prefix)) == prefix then
-            module:log("debug", "Occupant %s is blacklisted ", occupant_jid);
-            return true;
-        end
-    end
-    local occupant_domain = jid.host(occupant_jid);
-    for _, prefix in ipairs(blacklist_domain_prefix) do
-        if string.sub(occupant_domain, 1, string.len(prefix)) == prefix then
-            module:log("debug", "Occupant %s is blacklisted by domain", occupant_jid);
-            return true;
-        end
-    end
-    return false;
 end
 
 function Util.get_sip_jibri_prefix(stanza)
