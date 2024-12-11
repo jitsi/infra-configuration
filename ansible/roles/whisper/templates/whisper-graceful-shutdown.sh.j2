@@ -9,11 +9,11 @@
 #               Defaults to 100.
 # STATE_URL:    The URL of the whisper state endpoint. Defaults to http://localhost:8003/state.
 
-# Example usage: ./shutdown_script.sh 100 http://localhost:8003/state
+# Example usage: ./shutdown_script.sh 100 http://<local ip>:8003/state
 
 
 WAIT_SECONDS=100
-STATE_URL="http://localhost:8003/state"
+STATE_URL="http://{{ ansible_default_ipv4.address }}:8003/state"
 
 [[ -z $1 ]] && echo "Parameter WAIT_SECONDS not set, using default $WAIT_SECONDS" || WAIT_SECONDS=$1
 [[ -z $2 ]] && echo "Parameter STATE_URL not set, using default $STATE_URL" || STATE_URL=$2
