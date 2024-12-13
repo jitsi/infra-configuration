@@ -214,6 +214,7 @@ jvb_upgrade_flag: false
 jvb_use_cpu_for_stress: true
 jvb_use_dcsctp: false
 jvb_use_public_ip: false
+jvb_use_vla_target_bitrate: false
 jvb_username: jvb
 jvb_websockets_advertise_port: 443
 jvb_websockets_port: "{{ 9090 if jvb_nginx_ssl_enabled else 443 }}"

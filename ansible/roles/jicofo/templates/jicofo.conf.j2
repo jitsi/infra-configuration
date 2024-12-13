@@ -50,6 +50,11 @@ jicofo {
     }
   }
   codec {
+    rtp-extensions {
+      video-layers-allocation {
+        enabled = {{ jicofo_enable_video_layers_allocation }}
+      }
+    }
     video {
       vp8 {
         enabled={{ jicofo_enable_vp8 | to_json }}

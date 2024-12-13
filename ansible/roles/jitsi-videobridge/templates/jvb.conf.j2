@@ -44,6 +44,10 @@ videobridge {
     {% if jvb_assumed_bandwidth_limit %}
     assumed-bandwidth-limit = {{ jvb_assumed_bandwidth_limit }}
     {% endif %}
+
+    {% if jvb_use_vla_target_bitrate %}
+    use-vla-target-bitrate = true
+    {% endif %}
   }
   cryptex {
     {% if jvb_enable_cryptex_endpoint %}
