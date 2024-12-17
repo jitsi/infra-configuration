@@ -37,11 +37,9 @@ jigasi_css_auth_pass: false
 jigasi_css_auth_url: false
 jigasi_css_auth_username: false
 jigasi_css_storage_service_url: false
-jigasi_local_datacenters_by_cloud: "{{ jigasi_transcriber_local_datacenters_by_cloud if jigasi_shard_role == 'jigasi-transcriber' \
-  else jigasi_sip_local_datacenters_by_cloud }}"
 # when jigasi_enable_local_datacenters, jigasis in phoenix/us-west-2 and ashburn/us-east-1 connect to shards in US, Tokyo and South America
 # while jigasis in the EU connect to shards in EU and mumbai
-jigasi_sip_local_datacenters_by_cloud:
+jigasi_local_datacenters_by_cloud:
   us-east-1-peer1: [
     "{{ hcv_environment }}-us-phoenix-1",
     "{{ hcv_environment }}-us-ashburn-1",
@@ -62,30 +60,6 @@ jigasi_sip_local_datacenters_by_cloud:
     "{{ hcv_environment }}-ap-mumbai-1"
   ]
 
-# when jigasi_enable_local_datacenters, transcribers in phoenix/us-west-2 connect to shards in US, Tokyo and South America
-# while transcribers in the EU connect to shards in EU, and transcribers in Mumbai connect to Mumbai.
-jigasi_transcriber_local_datacenters_by_cloud:
-  us-west-2-peer1: [
-    "{{ hcv_environment }}-us-phoenix-1",
-    "{{ hcv_environment }}-us-ashburn-1",
-    "{{ hcv_environment }}-ap-tokyo-1",
-    "{{ hcv_environment }}-sa-saopaulo-1",
-    "{{ hcv_environment }}-ap-sydney-1"
-  ]
-  us-east-1-peer1: [
-    "{{ hcv_environment }}-us-phoenix-1",
-    "{{ hcv_environment }}-us-ashburn-1",
-    "{{ hcv_environment }}-ap-tokyo-1",
-    "{{ hcv_environment }}-sa-saopaulo-1",
-    "{{ hcv_environment }}-ap-sydney-1"
-  ]
-  eu-central-1-peer1: [
-    "{{ hcv_environment }}-uk-london-1",
-    "{{ hcv_environment }}-eu-frankfurt-1"
-  ]
-  ap-south-1-peer1: [
-    "{{ hcv_environment }}-ap-mumbai-1"
-  ]
 jigasi_transcriber_oci_user_enabled: false
 jigasi_visitors_enabled: false
 jigasi_visitors_queue_service_url: false
