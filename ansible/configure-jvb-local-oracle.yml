@@ -39,7 +39,7 @@
       - src: roles/jitsi-videobridge/files/xmpp.conf.template
     consul_template_templates:
       - name: "shards.json.template"
-        dest: "/etc/jitsi/videobridge/shards.json"
+        dest: "/etc/jitsi/videobridge/shards-candidate.json"
         cmd: "/usr/local/bin/configure-jvb-shards-wrapper.sh"
         perms: 0644
         backup: false
