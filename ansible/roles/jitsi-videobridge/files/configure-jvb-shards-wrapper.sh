@@ -14,6 +14,14 @@ function log_msg() {
   echo "$(timestamp) [$$] jvb-check-cfg: $1" | tee -a $TEMPLATE_LOGFILE
 }
 
+if [ ! -d "$TEMPLATE_LOGDIR" ]; then
+  mkdir $TEMPLATE_LOGDIR
+fi
+
+if [ ! -f "$TEMPLATE_LOGFILE" ]; then
+  touch $TEMPLATE_LOGFILE
+fi
+
 log_msg "starting configure-jvb-shards-wrapper.sh"
 
 readonly PROGNAME=$(basename "$0")
@@ -34,13 +42,6 @@ function lock() {
         || return 1
 }
 
-if [ ! -d "$TEMPLATE_LOGDIR" ]; then
-  mkdir $TEMPLATE_LOGDIR
-fi
-
-if [ ! -f "$TEMPLATE_LOGFILE" ]; then
-  touch $TEMPLATE_LOGFILE
-fi
 
 # always emit at least a 0 to metrics
 echo -n "jitsi.config.jvb.reconfig:0|c" | nc -4u -w1 localhost 8125
@@ -48,7 +49,7 @@ echo -n "jitsi.config.jvb.reconfig:0|c" | nc -4u -w1 localhost 8125
 CONFIG_TIMESTAMP=$(timestamp)
 
 # validate the draft configuration
-jq "$CONSUL_TEMPLATE_SHARDS_JSON" >/dev/null
+cat "$CONSUL_TEMPLATE_SHARDS_JSON" | jq '.'  >/dev/null
 if [ $? -gt 0 ]; then
     log_msg "new JVB shards json failed to validate"
     echo -n "jitsi.config.jvb.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
