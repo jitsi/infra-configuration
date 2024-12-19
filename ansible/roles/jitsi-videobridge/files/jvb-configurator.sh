@@ -35,12 +35,6 @@ if [ ! -f "$DRAFT_CONFIG_VALIDATED" ] && [ "$FINAL_EXIT" == "0" ]; then
     exit 1
 fi
 
-diff $DRAFT_CONFIG_VALIDATED $LIVE_SHARD_JSON
-if [ $? -eq 0 ]; then
-    log_msg "$DRAFT_CONFIG_VALIDATED is identical to $LIVE_SHARD_JSON, exiting configurator"
-    exit 0
-fi
-
 if [ "$FINAL_EXIT" == "0" ]; then
     log_msg "waiting 10 seconds for the validated configuration file to stabilize..."
     while true; do
@@ -48,6 +42,12 @@ if [ "$FINAL_EXIT" == "0" ]; then
         UNIX_TIME=$(date +%s)
         if (( $UNIX_TIME > $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 10 )); then
             log_msg "validated shards json file has been stable for 10 seconds, initiating processing"
+            diff $DRAFT_CONFIG_VALIDATED $LIVE_SHARD_JSON
+            if [ $? -eq 0 ]; then
+                log_msg "$DRAFT_CONFIG_VALIDATED is identical to $LIVE_SHARD_JSON, exiting configurator"
+                break;
+            fi
+
             cp $DRAFT_CONFIG_VALIDATED $LIVE_SHARD_JSON
             /usr/local/bin/configure-jvb-shards.sh | tee -a $TEMPLATE_LOGFILE
             RET=$?
