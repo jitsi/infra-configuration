@@ -3,6 +3,17 @@
 [ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/var/log/jitsi/jvb-shards"
 [ -z "$TEMPLATE_LOGFILE" ] && TEMPLATE_LOGFILE="$TEMPLATE_LOGDIR/jvb-reconfigure.log"
 
+CONSUL_TEMPLATE_SHARDS_JSON="/etc/jitsi/videobridge/shards-candidate.json"
+DRAFT_CONFIG_VALIDATED="/etc/jitsi/videobridge/shards-validated.json"
+
+function timestamp() {
+  echo $(date --utc +%Y-%m-%d_%H:%M:%S.Z)
+}
+
+function log_msg() {
+  echo "$(timestamp) [$$] jvb-check-cfg: $1" | tee -a $TEMPLATE_LOGFILE
+}
+
 if [ ! -d "$TEMPLATE_LOGDIR" ]; then
   mkdir $TEMPLATE_LOGDIR
 fi
@@ -11,22 +22,54 @@ if [ ! -f "$TEMPLATE_LOGFILE" ]; then
   touch $TEMPLATE_LOGFILE
 fi
 
-cp /etc/jitsi/videobridge/shards.json /var/log/jitsi/jvb-shards/$(date --utc +%Y-%m-%d_%H:%M:%S.Z)-shards.json
+log_msg "starting configure-jvb-shards-wrapper.sh"
 
-echo "$(date --utc +%Y-%m-%d_%H:%M:%S.Z) starting configure-jvb-shards.sh" >> $TEMPLATE_LOGFILE
-/usr/local/bin/configure-jvb-shards.sh >> $TEMPLATE_LOGFILE
-RET=$?
+readonly PROGNAME=$(basename "$0")
+readonly LOCKFILE_DIR=/tmp
+readonly LOCK_FD=200
 
-if [ $RET -gt 0 ]; then
-    echo "$(date --utc +%Y-%m-%d_%H:%M:%S.Z) jvb shards update failed" >> $TEMPLATE_LOGFILE
-    echo -n "jitsi.config.jvb.shards_update_update_failed:1|c" | nc -4u -w1 localhost 8125
+function lock() {
+    local prefix=$1
+    local fd=${2:-$LOCK_FD}
+    local lock_file=$LOCKFILE_DIR/$prefix.lock
+
+    # create lock file
+    eval "exec $fd>$lock_file"
+
+    # aquire the lock
+    flock -n $fd \
+        && return 0 \
+        || return 1
+}
+
+
+# always emit at least a 0 to metrics
+echo -n "jitsi.config.jvb.reconfig:0|c" | nc -4u -w1 localhost 8125
+
+CONFIG_TIMESTAMP=$(timestamp)
+
+# validate the draft configuration
+cat "$CONSUL_TEMPLATE_SHARDS_JSON" | jq '.'  >/dev/null
+if [ $? -gt 0 ]; then
+    log_msg "new JVB shards json failed to validate"
+    echo -n "jitsi.config.jvb.reconfig.failed:1|c" | nc -4u -w1 localhost 8125
+    # log a copy of the new config
+    cp "$CONSUL_TEMPLATE_SHARDS_JSON" $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-shards.json.invalid
     exit 1
 else
-    echo -n "jitsi.config.jvb.shards_update_failed:0|c" | nc -4u -w1 localhost 8125
+    cp $CONSUL_TEMPLATE_SHARDS_JSON $DRAFT_CONFIG_VALIDATED
+    cp /etc/jitsi/videobridge/shards.json $TEMPLATE_LOGDIR/$CONFIG_TIMESTAMP-shards.json
+    log_msg "validated $CONSUL_TEMPLATE_SHARDS_JSON"
+    echo -n "jitsi.config.jvb.reconfig.failed:0|c" | nc -4u -w1 localhost 8125
 fi
 
-echo -n "jitsi.config.jvb.shards_update:1|c" | nc -4u -w1 localhost 8125
+lock $PROGNAME
 
-echo "$(date --utc +%Y-%m-%d_%H:%M:%S.Z) jvb shards reconfiguration complete" >> $TEMPLATE_LOGFILE
-
-exit $RET
+if [[ "$?" -eq 0 ]]; then
+    /usr/local/bin/jvb-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
+    log_msg "jvb-configurator.sh forked"
+    echo -n "jitsi.config.jvb.configurator:1|c" | nc -4u -w1 localhost 8125
+else
+    log_msg "jvb-configurator.sh not started; there is already a fork running"
+    echo -n "jitsi.config.jvb.configurator:0|c" | nc -4u -w1 localhost 8125
+fi

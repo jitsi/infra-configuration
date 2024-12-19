@@ -47,6 +47,14 @@
     mode: 0755
     owner: root
 
+# provide bash script to reconfigure on after a delay
+- name: Upload jvb reconfigurator
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/jvb-configurator.sh"
+    src: "jvb-configurator.sh"
+    mode: 0755
+    owner: root
+
 # provide bash script for muc client reconfigure
 - name: Upload reconfigure jvb script aws
   ansible.builtin.copy:
