@@ -519,6 +519,12 @@ VirtualHost "{{ prosody_guest_domain_name }}"
         {% if prosody_xmpp_resume %}
            "smacks";
         {% endif %}
+{% if prosody_enable_filter_iq_rayo %}
+          "filter_iq_rayo";
+{% endif %}
+{% if prosody_enable_filter_iq_jibri %}
+          "filter_iq_jibri";
+{% endif %}
         }
         authentication = "jitsi-anonymous"
 {% if prosody_visitors_enabled %}
