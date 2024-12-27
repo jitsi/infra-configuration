@@ -72,7 +72,7 @@
     state: "{{ item.state }}"
     update_password: "on_create"
   with_items: "{{ ssh_users }}"
-  no_log: true
+#  no_log: true
   when: ssh_users_accounts_flag
 
 - name: Deploy ssh keys
