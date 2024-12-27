@@ -28,7 +28,9 @@
   ansible.builtin.pip:
     name: setuptools
     version: "51.3.3"
-  when: (ansible_distribution_major_version | int) >= 20
+  when:
+    - (ansible_distribution_major_version | int) >= 20
+    - (ansible_distribution_major_version | int) < 24
 
 - name: Install pyopenssl==38.0.4 module from pip for focal
   ansible.builtin.pip:
@@ -57,6 +59,7 @@
 - name: Install bcrypt module from pip for jammy and above
   ansible.builtin.pip:
     name: bcrypt
+    break_system_packages: true
   when: (ansible_distribution_major_version | int) > 20
 
 # Get the AWS CLI from pip, latest version is required for lifecycle management, temporary credentials
