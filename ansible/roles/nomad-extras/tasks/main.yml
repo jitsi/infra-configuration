@@ -19,7 +19,7 @@
 
 # ensure br_netfilter is loaded
 - name: Load br_netfilter
-  community.general.system.modprobe:
+  community.general.modprobe:
     name: br_netfilter
 
 - name: Enable br_netfilter module on boot
