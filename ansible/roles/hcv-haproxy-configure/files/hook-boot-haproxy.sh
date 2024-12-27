@@ -55,9 +55,11 @@ export AWS_DEFAULT_REGION=$CURRENT_EC2_REGION
 #if there's still no git branch set, assume master
 [ -z "$GIT_BRANCH" ] && GIT_BRANCH="master"
 
+AWS_BIN="$(which aws)"
+
 #ensure files are present for access to encrypted vault and private repository
-[ -e "/root/.vault-password" ] || /usr/local/bin/aws s3 cp s3://$S3_BUCKET/vault-password /root/.vault-password
-[ -e "/root/.ssh/id_rsa" ] || /usr/local/bin/aws s3 cp s3://$S3_BUCKET/id_rsa_jitsi_deployment /root/.ssh/id_rsa
+[ -e "/root/.vault-password" ] || $AWS_BIN s3 cp s3://$S3_BUCKET/vault-password /root/.vault-password
+[ -e "/root/.ssh/id_rsa" ] || $AWS_BIN s3 cp s3://$S3_BUCKET/id_rsa_jitsi_deployment /root/.ssh/id_rsa
 chmod 400 /root/.ssh/id_rsa
 
 #unless specified, run all tags

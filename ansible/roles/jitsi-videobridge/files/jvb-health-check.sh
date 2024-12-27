@@ -31,7 +31,7 @@ SLEEP_INTERVAL=60
 GRACEFUL_SHUTDOWN_FILE="/tmp/graceful-shutdown-output"
 
 CURL_BIN="/usr/bin/curl"
-AWS_BIN="/usr/local/bin/aws"
+AWS_BIN="$(which aws)"
 
 CURRENT_EC2_REGION=$($CURL_BIN -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq .region -r)
 export AWS_DEFAULT_REGION=$CURRENT_EC2_REGION

@@ -19,7 +19,7 @@ SLEEP_MAX=$((3600*12))
 SLEEP_INTERVAL=60
 
 CURL_BIN="/usr/bin/curl"
-AWS_BIN="/usr/local/bin/aws"
+AWS_BIN="$(which aws)"
 PIDOF_BIN="/bin/pidof"
 
 . /usr/local/bin/aws_cache.sh

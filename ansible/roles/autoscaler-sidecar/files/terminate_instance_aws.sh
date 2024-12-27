@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CURL_BIN="/usr/bin/curl"
-AWS_BIN="/usr/local/bin/aws"
+AWS_BIN="$(which aws)"
 JQ_BIN="/usr/bin/jq"
 
 if [ -z "$INSTANCE_ID" ]; then
