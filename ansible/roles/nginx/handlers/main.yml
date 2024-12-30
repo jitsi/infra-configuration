@@ -9,3 +9,8 @@
   ansible.builtin.service:
     name: nginx
     state: stopped
+
+- name: Restart rsyslog for nginx
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
