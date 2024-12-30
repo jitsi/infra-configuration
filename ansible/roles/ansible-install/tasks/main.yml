@@ -20,7 +20,7 @@
 
 - name: Install ansible client install via pip
   ansible.builtin.command:
-    cmd: /usr/bin/pip3 install --break-system-packages ansible==9.0.1
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} ansible==9.0.1"
   when: ansible_install_from_pip
 
 - name: Perform ansible client install cleanup via pip

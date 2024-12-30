@@ -70,11 +70,11 @@
 # # Get the AWS CLI from pip, latest version is required for lifecycle management, temporary credentials
 - name: Install awscli module from pip, used later for videobridge configuration
   ansible.builtin.command:
-    cmd: /usr/bin/pip3 install --break-system-packages awscli
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} awscli"
 
 - name: Install oci-cli module from pip, used later for videobridge configuration
   ansible.builtin.command:
-    cmd: /usr/bin/pip3 install --break-system-packages oci-cli
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} oci-cli"
   when: common_cloud_provider == "oracle"
 
 # - name: Install hvac module from pip used for hashicorp vault access inside ansible
