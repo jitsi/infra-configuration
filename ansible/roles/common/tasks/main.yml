@@ -62,7 +62,7 @@
   when: (ansible_distribution_major_version | int) == 22
 
 # Get the AWS CLI from apt, latest version is required for lifecycle management, temporary credentials
-- name: Install awscli from apt
+- name: Install python aws-related libraries from apt
   ansible.builtin.apt:
     name: ['python3-boto3', 'python3-botocore', 'python3-yaml', 'python3-urllib3', 'python3-requests', 'python3-hvac']
     state: present
@@ -105,14 +105,6 @@
   ansible.builtin.file:
     path: /etc/cron.weekly/apt-xapian-index
     state: absent
-
-# prep ansible install for old installs
-- name: Ansible repository install
-  ansible.builtin.apt_repository:
-    repo: "ppa:ansible/ansible"
-    state: present
-    update_cache: true
-  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_major_version | int) >= 20)
 
 - name: Install download.sh helper script
   ansible.builtin.copy:
@@ -169,10 +161,3 @@
     mode: 0755
     owner: root
   when: common_cloud_provider == "oracle"
-
-# remove ansible ppa after using
-- name: Remove Ansible repository
-  ansible.builtin.apt_repository:
-    repo: "ppa:ansible/ansible"
-    state: absent
-  when: ansible_distribution == 'Ubuntu' and ((ansible_distribution_major_version | int) >= 20)
