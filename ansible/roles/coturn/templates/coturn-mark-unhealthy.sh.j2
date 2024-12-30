@@ -1,5 +1,5 @@
 #!/bin/bash
-aws="/usr/local/bin/aws"
+aws="$(which aws)"
 instance_id=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 region=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document|grep region|awk -F\" '/region/ {print $4}')
 instance_name=$($aws ec2 describe-tags --region $region --filters Name=resource-id,Values=$instance_id Name=key,Values=Name --query Tags[].Value --output text)

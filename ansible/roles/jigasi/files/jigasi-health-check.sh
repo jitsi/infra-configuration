@@ -20,7 +20,7 @@ SLEEP_MAX=$((3600*6))
 SLEEP_INTERVAL=60
 
 CURL_BIN="/usr/bin/curl"
-AWS_BIN="/usr/local/bin/aws"
+AWS_BIN="$(which aws)"
 EC2_METADATA_BIN="/usr/bin/ec2metadata"
 
 EC2_AVAIL_ZONE=`$CURL_BIN -s http://169.254.169.254/latest/meta-data/placement/availability-zone`

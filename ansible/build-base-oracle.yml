@@ -29,7 +29,7 @@
         upgrade: true
     - name: Upgrade to the latest kernel image # noqa package-latest
       ansible.builtin.apt:
-        name: linux-generic-hwe-22.04
+        name: "linux-generic-hwe-{{ ansible_distribution_version }}"
         state: latest
 
   post_tasks:

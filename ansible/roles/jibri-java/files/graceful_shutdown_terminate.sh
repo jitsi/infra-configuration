@@ -1,7 +1,7 @@
 #!/bin/bash
 GRACEFUL_SHUTDOWN="/opt/jitsi/jibri/wait_graceful_shutdown.sh"
 
-AWS_BIN="/usr/local/bin/aws"
+AWS_BIN="$(which aws)"
 CURL_BIN="/usr/bin/curl"
 
 EC2_INSTANCE_ID=$(/usr/bin/ec2metadata --instance-id)

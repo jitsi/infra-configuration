@@ -1,5 +1,5 @@
 ---
-aws_bin_path: "/usr/local/bin/aws"
+aws_bin_path: "/usr/bin/aws"
 coturn_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 coturn_cloud_provider: "{{ cloud_provider | default('aws') }}"
 coturn_cloudwatch_alarm_actions: ["{{ coturn_health_sns_topic }}"]

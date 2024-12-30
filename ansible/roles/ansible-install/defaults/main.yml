@@ -1,3 +1,4 @@
 ---
-ansible_install_from_apt: false
-ansible_install_from_pip: true
+# install from apt if ubuntu is 24 or greater
+ansible_install_from_apt: "{{ true if ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24 else false }}"
+ansible_install_from_pip: "{{ false if ansible_install_from_apt else true }}"

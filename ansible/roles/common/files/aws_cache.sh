@@ -25,7 +25,7 @@ function build_cache(){
 
 export EC2_INSTANCE_ID=$(ec2metadata --instance-id)
 
-export AWS_BIN="/usr/local/bin/aws"
+export AWS_BIN="$(which aws)"
 
 export ENVIRONMENT_TAG="environment"
 export DOMAIN_TAG="domain"

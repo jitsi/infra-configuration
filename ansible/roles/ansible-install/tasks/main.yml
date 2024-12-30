@@ -19,14 +19,14 @@
   when: not ansible_install_from_apt
 
 - name: Install ansible client install via pip
-  ansible.builtin.pip:
-    name: ansible
-    version: 9.0.1
-    state: present
+  ansible.builtin.command:
+    cmd: /usr/bin/pip3 install --break-system-packages ansible==9.0.1
   when: ansible_install_from_pip
 
 - name: Perform ansible client install cleanup via pip
   ansible.builtin.pip:
     name: ['ansible', 'ansible-core']
     state: absent
-  when: not ansible_install_from_pip
+  when:
+    - not ansible_install_from_pip
+    - ansible_distribution_major_version | int < 24

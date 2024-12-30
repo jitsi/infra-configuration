@@ -30,7 +30,7 @@ SNS_TOPIC_ARN="arn:aws:sns:us-west-2:103425057857:JVB-Dumps"
 TRACEBACK_SLEEP_INTERVAL=10
 
 CURL_BIN="/usr/bin/curl"
-AWS_BIN="/usr/local/bin/aws"
+AWS_BIN="$(which aws)"
 
 export AWS_DEFAULT_REGION="us-west-2"
 #source variables come from aws_cache.sh sourced above
