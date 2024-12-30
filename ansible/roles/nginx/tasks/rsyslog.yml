@@ -12,8 +12,5 @@
     path: /etc/rsyslog.d/47-nginx.conf
     state: absent
   register: syslog_template
+  notify: Restart rsyslog for nginx
   when: not nginx_log_syslog_enabled
-
-- name: Restart syslog after nginx rules applied
-  ansible.builtin.service: name=rsyslog state=restarted
-  when: syslog_template.changed
