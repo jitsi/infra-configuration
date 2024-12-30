@@ -31,6 +31,10 @@
       ansible.builtin.apt:
         name: "linux-generic-hwe-{{ ansible_distribution_version }}"
         state: latest
+    - name: Remove oracle linux
+      ansible.builtin.apt:
+        name: ['linux-oracle', 'linux-image-*-oracle']
+        state: absent
 
   post_tasks:
     - name: Cleanup nomad data directory
