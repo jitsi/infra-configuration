@@ -27,4 +27,6 @@
   ansible.builtin.pip:
     name: ['ansible', 'ansible-core']
     state: absent
-  when: not ansible_install_from_pip
+  when:
+    - not ansible_install_from_pip
+    - ansible_distribution_major_version | int < 24
