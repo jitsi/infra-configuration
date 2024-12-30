@@ -100,21 +100,19 @@
 
 # pip preqs for stats
 - name: Install monitoring pip prereqs - decorator
-  ansible.builtin.pip:
-    name: decorator
+  ansible.builtin.apt:
+    name: python3-decorator
     state: present
   when: (ansible_distribution_major_version | int) >= 20
 
 - name: Install stats script pip pre reqs
-  ansible.builtin.pip:
-    name: datadog
-    state: present
+  ansible.builtin.command:
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} datadog"
   when: (ansible_distribution_major_version | int) >= 20
 
 - name: Install configuration pip prereqs
-  ansible.builtin.pip:
-    name: pyjavaproperties
-    state: present
+  ansible.builtin.command:
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} pyjavaproperties"
 
 # provide script for managing the auto-scale group lifecycle queue
 - name: Upload lifecyle script upload

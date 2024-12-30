@@ -1,23 +1,16 @@
 ---
 - name: Check pip install click
-  ansible.builtin.pip:
-    name: click
+  ansible.builtin.apt:
+    name: python3-click
     state: present
 
 - name: Check pip install datadog
-  ansible.builtin.pip:
-    name: datadog
-    state: present
+  ansible.builtin.command:
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} datadog"
 
 - name: Check pip install haproxyadmin
-  ansible.builtin.pip:
-    name: haproxyadmin
-    state: present
-
-- name: Check pip install requests
-  ansible.builtin.pip:
-    name: datadog
-    state: present
+  ansible.builtin.command:
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} haproxyadmin"
 
 - name: Install haproxy_tenant_sync.py daemon script
   ansible.builtin.copy:

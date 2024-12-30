@@ -65,7 +65,7 @@
   when: (ansible_distribution_major_version | int) >= 20
 
 - name: Freeze stats script pre reqs
-  ansible.builtin.command::
+  ansible.builtin.command:
     cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} datadog"
   when: (ansible_distribution_major_version | int) >= 20
 
