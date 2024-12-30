@@ -68,7 +68,7 @@
   register: standza_router_patch_exists
 - name: Apply stanza_router_no-log.patch
   ansible.posix.patch:
-    basedir: /usr/share/lua/5.1/prosody/
+    basedir: "{{ jitsi_meet_prosody_path }}"
     src: "/usr/share/jitsi-meet/prosody-plugins/stanza_router_no-log.patch"
     strip: 1
     remote_src: true

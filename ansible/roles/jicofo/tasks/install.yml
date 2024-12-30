@@ -58,16 +58,15 @@
   when: jicofo_install_flag and not jicofo_configure_flag
   register: jicofoservice
 
-- name: Install monitoring pip prereqs - decorator
-  ansible.builtin.pip:
-    name: decorator
+- name: Install monitoring prereqs - decorator
+  ansible.builtin.apt:
+    name: python3-decorator
     state: present
   when: (ansible_distribution_major_version | int) >= 20
 
 - name: Freeze stats script pre reqs
-  ansible.builtin.pip:
-    name: datadog
-    state: present
+  ansible.builtin.command:
+    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} datadog"
   when: (ansible_distribution_major_version | int) >= 20
 
 - name: Jicofo health script upload

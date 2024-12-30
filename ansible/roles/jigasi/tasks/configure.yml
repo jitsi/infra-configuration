@@ -61,8 +61,8 @@
     state: directory
 
 - name: Install configuration pip prereqs
-  ansible.builtin.pip:
-    name: pyjavaproperties
+  ansible.builtin.apt:
+    name: python3-pyjavaproperties
     state: present
 
 - name: Remove custom fact module for configure-jigasi

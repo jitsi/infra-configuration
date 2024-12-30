@@ -139,10 +139,6 @@
         dest: "/etc/ssl/{{ item.name }}.pem"
       with_items: "{{ haproxy_ssl_certificates }}"
 
-    - name: Install pip boto3
-      ansible.builtin.pip:
-        name: boto3
-        state: present
     - name: Ensure custom facts directory exists
       ansible.builtin.file:
         mode: 0755
