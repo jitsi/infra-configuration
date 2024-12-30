@@ -299,22 +299,26 @@ function handle_occupant_access(event, event_type)
             final_event_type = DIAL_OUT_ENDED
         end
     end
-    local initiator;
+
     if stanza then
-        initiator = oss_util.is_sip_jigasi(stanza);
-        if initiator and stanza.attr.type ~= 'unavailable' then
+        if oss_util.is_sip_jigasi(stanza) and stanza.attr.type ~= 'unavailable' then
             if DEBUG then module:log("debug", "dial participant %s joined room %s", occupant.jid, room.jid); end
             local nick = stanza:get_child('nick', NICK_NS);
             if nick then
                 payload.nick = nick:get_text();
             end
+
             local call_direction;
-            initiator:maptags(function(tag)
-                if tag.name == "header" and tag.attr.name == JIGASI_CALL_DIRECTION_ATTR_NAME then
-                    call_direction = tag.attr.value;
-                end
-                return tag;
-            end);
+            local initiator = stanza:get_child('initiator', 'http://jitsi.org/protocol/jigasi');
+            if initiator then
+                initiator:maptags(function(tag)
+                    if tag.name == "header" and tag.attr.name == JIGASI_CALL_DIRECTION_ATTR_NAME then
+                        call_direction = tag.attr.value;
+                    end
+                    return tag;
+                end);
+            end
+
             payload.direction = call_direction;
             room._data.dial_participants = room._data.dial_participants or {}
             room._data.dial_participants[occupant.jid] = call_direction;
