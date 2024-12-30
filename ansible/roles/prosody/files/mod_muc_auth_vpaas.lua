@@ -197,6 +197,7 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
         return true;
     end
 
+    -- This is the case when a participant with a valid token (8x8) access a jaas room, we want it to join as a guest
     if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
         if room._data.vpaas_guest_access then
             -- make sure it is not authenticated user, a guest (no features are set)
