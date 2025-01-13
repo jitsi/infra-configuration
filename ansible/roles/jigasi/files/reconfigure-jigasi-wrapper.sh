@@ -5,6 +5,8 @@
 [ -z "$BASE_SIP_COMMUNICATOR_PATH" ] && BASE_SIP_COMMUNICATOR_PATH="$CONFIG_BASE_PATH/base-sip-communicator.properties"
 [ -z "$XMPP_SIP_COMMUNICATOR_PATH" ] && XMPP_SIP_COMMUNICATOR_PATH="$CONFIG_BASE_PATH/xmpp-sip-communicator.properties"
 
+[ -f "$XMPP_SIP_COMMUNICATOR_PATH" ] || touch $XMPP_SIP_COMMUNICATOR_PATH
+
 [ -z "$TEMPLATE_LOGDIR" ] && TEMPLATE_LOGDIR="/var/log/jitsi/jigasi-shards"
 
 [ -d "$TEMPLATE_LOGDIR" ] || mkdir -p $TEMPLATE_LOGDIR
