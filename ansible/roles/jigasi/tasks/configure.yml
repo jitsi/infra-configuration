@@ -231,15 +231,6 @@
     mode: 0640
   when: jigasi_enable_consul_template
 
-- name: Install  jigasi xmpp-sip-communicator.properties file
-  copy:
-    content: ""
-    dest: /etc/jitsi/jigasi/xmpp-sip-communicator.properties
-    force: false
-    group: jitsi
-    mode: 0640
-  when: jigasi_enable_consul_template
-
 - name: Install base as initial full jigasi sip communicator properties file
   ansible.builtin.template:
     src: base-sip-communicator.properties.j2
