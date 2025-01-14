@@ -146,7 +146,7 @@ jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
 jigasi_transcriber_whisper_websocket_url: "wss://{{ hcv_environment }}-{{ oracle_region }}-whisper.jitsi.net:443/streaming-whisper/ws/"
 jigasi_transcription_path: /var/lib/jigasi/transcripts
-jigasi_trusted_domains: false
+jigasi_trusted_domains: true
 jigasi_udp_buffer_max_backlog: 2000
 # temporarily increase buffer size until performance work is completed
 jigasi_udp_buffer_size: 2097152
