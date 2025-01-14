@@ -131,7 +131,7 @@ org.jitsi.jigasi.BREWERY_ENABLED=true
 
 {% if jigasi_trusted_domains %}
 # when checking other participants whether they are jibri/jigasi we can also check the the domain they use for connecting
-org.jitsi.jigasi.TRUSTED_DOMAINS=["recorder.{{ prosody_domain_name }}", "{{ jigasi_transcriber_auth_user }}@{{ jigasi_transcriber_auth_domain }}", "jigasia.{{ prosody_domain_name }}", "jigasib.{{ prosody_domain_name }}"]
+org.jitsi.jigasi.TRUSTED_DOMAINS=["recorder.{{ prosody_domain_name }}", "jigasia.{{ prosody_domain_name }}", "jigasib.{{ prosody_domain_name }}"]
 {% endif %}
 
 {% if jigasi_enable_external_mixing %}
