@@ -145,92 +145,19 @@
     prosody_minor_version: "{{ prosody_version_shell.stdout.split('.')[1] }}"
   when: prosody_subversion == ''
 
-# now patch prosody if necessary
-- name: Copy muc_owner_allow_kick patch 0.11
-  ansible.builtin.copy:
-    mode: 0644
-    src: "muc_owner_allow_kick.patch"
-    dest: "/tmp/muc_owner_allow_kick.patch"
-  when: (prosody_minor_version | int) == 11
-
-- name: Copy muc_owner_allow_kick patch 0.12
-  ansible.builtin.copy:
-    mode: 0644
-    src: "muc_owner_allow_kick-0.12.patch"
-    dest: "/tmp/muc_owner_allow_kick.patch"
-  when:
-    - (prosody_minor_version | int) == 12
-    - (prosody_subversion | int) < 1
-
-- name: Apply muc_owner_allow_kick patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody/modules/muc
-    remote_src: true
-    src: "/tmp/muc_owner_allow_kick.patch"
-  when:
-    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 1) or (prosody_minor_version | int) == 11
-
-
 - name: Apply muc_lib_visitor_broadcast patch
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules/muc
     src: "muc_lib_visitor_broadcast.patch"
   when:
-    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 4)
-
-- name: Apply mod_smacks_session_close patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody/modules
-    src: "mod_smacks_session_close.patch"
-    strip: 2
-  when:
-    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) < 3) or (prosody_minor_version | int) == 11
-
-- name: Apply mod_websocket_auth_token patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody/modules
-    src: "mod_websocket_auth_token.patch"
-  when:
-    - (prosody_minor_version | int) == 11
-    - (prosody_subversion | int) <= 5
-
-- name: Apply mod_websocket_smacks patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody/modules
-    src: "mod_websocket_smacks.patch"
-  when:
-    - (prosody_minor_version | int) == 11
-    - (prosody_subversion | int) <= 6
-
-- name: Apply mod_http CIDR patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody/modules
-    src: "mod_http_support_cidr.patch"
-    strip: 2
-  when: (prosody_minor_version | int) == 11
+    - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 4)
 
 - name: Apply mod_http parse IP patch
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules
     src: "mod_http_parse_ip.patch"
     strip: 2
-  when: (prosody_minor_version | int) == 12 and (prosody_subversion | int) < 5
-
-- name: Apply mod_websocket session IP patch for prosody 0.11
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody
-    src: "mod_websocket_session_ip.patch"
-    strip: 1
-  when: (prosody_minor_version | int) == 11
-
-- name: Apply expat memory leak patch
-  ansible.posix.patch:
-    basedir: /usr/lib/prosody
-    src: "expat_memory_leak.patch"
-    strip: 1
-  when:
-    - (prosody_minor_version | int) == 11
-    - (prosody_subversion | int) == 12
+  when: (prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 5
 
 - name: Copy systemd file for nightly if it does not exist
   ansible.builtin.copy:
