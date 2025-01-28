@@ -446,8 +446,7 @@ whiteboard: {
         envType: '{{ jitsi_meet_environment_type }}',
         releaseNumber: '{{ jitsi_release_number }}',
         shard: '<!--# echo var="jitsi_shard" default="" -->',
-        region: '<!--# echo var="jitsi_region" default="" -->',
-        userRegion: '<!--# echo var="user_region" default="" -->'
+        region: '<!--# echo var="jitsi_region" default="" -->'
     },
     e2eping: {
         enabled: {{ jitsi_meet_e2eping_enabled | to_json }}
