@@ -108,6 +108,7 @@ jitsi_meet_disable_reactions: false
 jitsi_meet_disable_reactions_moderation: false
 jitsi_meet_disable_record_audio_notification: false
 jitsi_meet_disable_speaker_stats_search: false
+jitsi_meet_disable_ssrc_rewriting: false
 jitsi_meet_disable_stage_filmstrip: false
 jitsi_meet_disable_vp9_scalability_mode: false
 jitsi_meet_domain_name: "{{ environment_domain_name }}"
@@ -146,7 +147,6 @@ jitsi_meet_enable_simulcast: true
 jitsi_meet_enable_simulcast_av1: false
 jitsi_meet_enable_simulcast_vp9: false
 jitsi_meet_enable_source_name_signaling: false
-jitsi_meet_enable_ssrc_rewriting: false
 jitsi_meet_enable_stereo: false
 jitsi_meet_enable_transcription: false
 jitsi_meet_enable_turn_udp_jvb: false
