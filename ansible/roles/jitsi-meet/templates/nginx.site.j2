@@ -1,7 +1,7 @@
 map $http_upgrade $connection_upgrade {
     default upgrade;
     '' close;
-}    
+}
 map $http_x_proxy_region $user_region {
     default '';
     us-west-2 us-west-2;
@@ -456,6 +456,8 @@ server {
         proxy_set_header Connection "";
         # proxy_set_header Host $http_host;
         proxy_set_header Host {{ jitsi_meet_xmpp_domain_name }};
+        # override using the mapping
+        proxy_set_header X-Proxy-Region $user_region;
 
         proxy_buffering off;
         tcp_nodelay on;
@@ -594,6 +596,8 @@ server {
         proxy_set_header Connection $connection_upgrade;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host {{ jitsi_meet_xmpp_domain_name }};
+        # override using the mapping
+        proxy_set_header X-Proxy-Region $user_region;
 {% if jitsi_meet_nginx_ws_timeout %}
         proxy_read_timeout {{ jitsi_meet_nginx_ws_timeout }};
 {% endif %}
