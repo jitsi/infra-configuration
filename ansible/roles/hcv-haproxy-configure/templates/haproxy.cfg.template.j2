@@ -85,7 +85,7 @@ frontend health from global_defaults
   http-request deny deny_status 503 if !is_up
   default_backend local_health
 
-frontend prometheus
+frontend prometheus from global_defaults
   bind :8405
   mode http
   http-request use-service prometheus-exporter if { path /metrics }
