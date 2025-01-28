@@ -164,13 +164,13 @@ local function validate_vpaas_token(session)
     return nil
 end
 
-local function deny_access(origin, stanza, room_disabled_access, room, occupant)
+local function deny_access(origin, stanza, room_disabled_access, room, occupant_jid)
     local room_jid = room.jid;
     local token = origin.auth_token;
     local tenant = origin.jitsi_meet_domain;
 
     if is_healthcheck_room(room_jid)
-        or is_admin(occupant.bare_jid)
+        or is_admin(occupant_jid)
 
         -- Skip VPAAS related verifications for non VPAAS room
         or not is_vpaas(room)
@@ -180,7 +180,7 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant)
         or util.is_transcriber_jigasi(stanza)
 
         -- is jibri
-        or util.is_jibri(occupant)
+        or util.is_jibri(occupant_jid)
 
         -- Let Sip Jibri pass through
         or util.is_sip_jibri_join(stanza) then
