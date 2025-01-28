@@ -1,4 +1,4 @@
 - name: Install chromium and assorted drivers
   ansible.builtin.apt:
-    name: ['chromium-browser', 'chromium-driver', 'chromium-sandbox']
+    name: ['chromium-browser', 'chromium-chromedriver']
     state: present
