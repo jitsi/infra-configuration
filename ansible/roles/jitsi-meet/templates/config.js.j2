@@ -155,7 +155,9 @@ var config = {
         sourceNameSignaling: {% if jitsi_meet_enable_source_name_signaling %}true{% else %}false{% endif %},
         sendMultipleVideoStreams: {% if jitsi_meet_enable_send_multiple_streams %}true{% else %}false{% endif %},
         receiveMultipleVideoStreams: true,
-        ssrcRewritingEnabled: {% if jitsi_meet_enable_ssrc_rewriting %}true{% else %}false{% endif %},
+    {% if jitsi_meet_disable_ssrc_rewriting %}
+        ssrcRewritingEnabled: false,
+    {% endif %}
     },
 {% if jitsi_meet_restrict_HD_tile_view_jvb %}
     maxFullResolutionParticipants: 1,
