@@ -138,6 +138,7 @@
         content: "{{ item.content }}"
         dest: "/etc/ssl/{{ item.name }}.pem"
       with_items: "{{ haproxy_ssl_certificates }}"
+      tags: common
 
     - name: Ensure custom facts directory exists
       ansible.builtin.file:
