@@ -62,7 +62,7 @@ local target_subdomain_pattern
     = "^"..escaped_muc_domain_prefix..".([^%.]+)%."..escaped_muc_domain_base;
 
 local function is_admin(jid)
-    return um_is_admin(jid, module.host);
+    return um_is_admin(jid);
 end
 
 local function remove_from_cache(key)
