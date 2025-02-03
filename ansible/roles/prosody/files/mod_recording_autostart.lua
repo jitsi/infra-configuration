@@ -33,48 +33,71 @@ module:hook('muc-occupant-joined', function (event)
     local occupant = event.occupant;
     local token = session.auth_token;
 
-    if room.recording_auto_started or is_healthcheck_room(room.jid) or is_admin(occupant.jid) or not token then
+    if is_healthcheck_room(room.jid) or is_admin(occupant.jid) or not token then
         return;
     end
 
+    -- TODO drop this, this is 8x8 for prod and testing tenant on stage
     local tenant = session.jitsi_web_query_prefix;
-
-
-    if tenant ~= '8x8' then
+    if tenant ~= '8x8' and tenant ~= 'meetteam' then
         return;
+    else
+        room._data.auto_transcriptions = true;
+        room._data.auto_video_recording = true;
     end
 
-    -- TODO for jaas we need to start everything after jaas_actuator response (mod_muc_permissions_vpaas.lua)
+    if not room.transcription_auto_started and room._data.auto_transcriptions then
+        -- TODO for jaas we need to start everything after jaas_actuator response (mod_muc_permissions_vpaas.lua)
 
-    local is_session_allowed = is_feature_allowed(
-        'transcription',
-        session.jitsi_meet_context_features,
-        session.granted_jitsi_meet_context_features,
-        room:get_affiliation(stanza.attr.from) == 'owner');
+        local is_session_allowed = is_feature_allowed(
+            'transcription',
+            session.jitsi_meet_context_features,
+            session.granted_jitsi_meet_context_features,
+            room:get_affiliation(stanza.attr.from) == 'owner');
 
-    if not token_util:verify_room(session, room.jid) or not is_session_allowed then
-        return;
+        if not token_util:verify_room(session, room.jid) or not is_session_allowed then
+            return;
+        end
+
+        module:log('info', 'Auto-transcribing the meeting %s', room.jid);
+
+        if not room.jitsiMetadata then
+            room.jitsiMetadata = {};
+        end
+        if not room.jitsiMetadata.recording then
+            room.jitsiMetadata.recording = {};
+        end
+        room.jitsiMetadata.recording.isTranscribingEnabled = true;
+        module:context(module.host):fire_event('room-metadata-changed', { room = room; });
+
+        local room_jid_str = internal_room_jid_match_rewrite(room.jid)
+
+        room.transcription_auto_started = true;
+
+        room:route_stanza(st.iq({ type = 'set', id = uuid() .. ':sendIQ', from = occupant.jid, to =  room.jid..'/focus' })
+            :tag('dial', { xmlns = 'urn:xmpp:rayo:1', from = 'fromnumber', to = 'jitsi_meet_transcribe' })
+            :tag('header', { xmlns = 'urn:xmpp:rayo:1', name = 'JvbRoomName', value = room_jid_str }):up()
+            :tag('header', { xmlns = 'urn:xmpp:rayo:1', name = 'auto-started', value = 'true' })
+        );
     end
 
-    module:log('info', 'Auto-recording the meeting %s', room.jid);
+    if not room.recording_auto_started and room._data.auto_video_recording then
+        local is_session_allowed = is_feature_allowed(
+            'recording',
+            session.jitsi_meet_context_features,
+            session.granted_jitsi_meet_context_features,
+            room:get_affiliation(stanza.attr.from) == 'owner');
 
-    if not room.jitsiMetadata then
-        room.jitsiMetadata = {};
+        if not token_util:verify_room(session, room.jid) or not is_session_allowed then
+            return;
+        end
+
+        module:log('info', 'Auto-recording the meeting %s', room.jid);
+
+        room.recording_auto_started = true;
+
+        room:route_stanza(st.iq({ type = 'set', id = uuid() .. ':sendIQ', from = occupant.jid, to =  room.jid..'/focus' })
+            :tag('jibri', { xmlns = 'http://jitsi.org/protocol/jibri', action = 'start', recording_mode = 'file',
+                app_data = '{"file_recording_metadata":{"share":true}}'}));
     end
-    if not room.jitsiMetadata.recording then
-        room.jitsiMetadata.recording = {};
-    end
-    room.jitsiMetadata.recording.isTranscribingEnabled = true;
-    module:context(module.host):fire_event('room-metadata-changed', { room = room; });
-
-    local room_jid_str = internal_room_jid_match_rewrite(room.jid)
-
-    room.recording_auto_started = true;
-
-    room:route_stanza(st.iq({ type = 'set', id = uuid() .. ':sendIQ', from = occupant.jid, to =  room.jid..'/focus' })
-        :tag('dial', { xmlns = 'urn:xmpp:rayo:1', from = 'fromnumber', to = 'jitsi_meet_transcribe' })
-        :tag('header', { xmlns = 'urn:xmpp:rayo:1', name = 'JvbRoomName', value = room_jid_str }):up()
-        :tag('header', { xmlns = 'urn:xmpp:rayo:1', name = 'auto-started', value = 'true' })
-    );
 end, -10) -- make sure we are last in the chain so all moderator adjustments are done
-

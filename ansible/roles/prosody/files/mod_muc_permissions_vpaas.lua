@@ -67,6 +67,14 @@ module:hook("muc-room-pre-create", function(event)
                         end
                     end
                 end
+
+                if room._data.disabled_features['recording'] then
+                    room._data.auto_video_recording = false;
+                    room._data.auto_audio_recording = false;
+                end
+                if room._data.disabled_features['transcription'] then
+                    room._data.auto_transcriptions = false;
+                end
             end
 
             if jaas_actuator_res.status ~= nil and (jaas_actuator_res.status == "BLOCKED" or jaas_actuator_res.status == "DELETED") then
