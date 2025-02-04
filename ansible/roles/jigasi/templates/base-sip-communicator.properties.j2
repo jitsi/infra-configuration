@@ -230,6 +230,12 @@ org.jitsi.jigasi.transcription.whisper.websocket_url={{ jigasi_transcriber_whisp
 org.jitsi.jigasi.transcription.customService=org.jitsi.jigasi.transcription.OracleTranscriptionService
 org.jitsi.jigasi.transcription.oci.websocketUrl=wss://realtime.aiservice.{{ oracle_region }}.oci.oraclecloud.com
 org.jitsi.jigasi.transcription.oci.compartmentId={{ jigasi_cloud_compartment }}
+{% if jigasi_transcriber_oci_final_threshold %}
+org.jitsi.jigasi.transcription.oci.finalThresholdMs={{ jigasi_transcriber_oci_final_threshold }}
+{% endif %}
+{% if jigasi_transcriber_oci_interim_threshold %}
+org.jitsi.jigasi.transcription.oci.interimThresholdMs={{ jigasi_transcriber_oci_interim_threshold }}
+{% endif %}
 {% endif %}
 
 {% else %}

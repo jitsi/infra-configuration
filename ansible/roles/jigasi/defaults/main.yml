@@ -142,6 +142,8 @@ jigasi_transcriber_custom_transcriber: false
 jigasi_transcriber_remote_select: false
 jigasi_transcriber_remote_select_aud: "jitsi"
 jigasi_transcriber_oci_flag: false
+jigasi_transcriber_oci_final_threshold: false
+jigasi_transcriber_oci_interim_threshold: false
 jigasi_transcriber_whisper_private_key: "replaceme"
 jigasi_transcriber_whisper_private_key_name: "replaceme"
 jigasi_transcriber_whisper_websocket_url: "wss://{{ hcv_environment }}-{{ oracle_region }}-whisper.jitsi.net:443/streaming-whisper/ws/"
