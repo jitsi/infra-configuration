@@ -229,6 +229,9 @@ local function queryForPassword(room)
             room._data.moderator_id = conference_res.moderatorId;
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
             room._data.max_occupants = conference_res.maxOccupants;
+            room._data.auto_video_recording = conference_res.autoVideoRecording or false;
+            room._data.auto_audio_recording = conference_res.autoAudioRecording or false;
+            room._data.auto_transcriptions = conference_res.autoTranscriptions or false;
             if not room.jitsiMetadata then
                 room.jitsiMetadata = {};
             end
