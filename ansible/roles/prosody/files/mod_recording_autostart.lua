@@ -1,7 +1,8 @@
 -- enable this under the main muc component
 
 local st = require('util.stanza');
-local uuid = require 'util.uuid'.generate
+local uuid = require 'util.uuid'.generate;
+local json = require 'cjson.safe';
 
 local util = module:require 'util';
 local get_focus_occupant = util.get_focus_occupant;
@@ -96,8 +97,25 @@ module:hook('muc-occupant-joined', function (event)
 
         room.recording_auto_started = true;
 
-        room:route_stanza(st.iq({ type = 'set', id = uuid() .. ':sendIQ', from = occupant.jid, to =  room.jid..'/focus' })
-            :tag('jibri', { xmlns = 'http://jitsi.org/protocol/jibri', action = 'start', recording_mode = 'file',
-                app_data = '{"file_recording_metadata":{"share":true}}'}));
+        local metadata = {
+            file_recording_metadata = {
+                share = true;
+                initiator = {
+                    id =  session.jitsi_meet_context_user.id;
+                    group = session.jitsi_meet_context_group;
+                };
+            };
+        };
+        room:route_stanza(st.iq({
+                type = 'set',
+                id = uuid() .. ':sendIQ',
+                from = occupant.jid,
+                to =  room.jid..'/focus'
+            }):tag('jibri', {
+                xmlns = 'http://jitsi.org/protocol/jibri',
+                action = 'start',
+                recording_mode = 'file',
+                app_data = json.encode(metadata)
+            }));
     end
 end, -10) -- make sure we are last in the chain so all moderator adjustments are done
