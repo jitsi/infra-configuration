@@ -635,6 +635,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_visitors_enabled %}
       "s2sout_override";
 {% endif %}
+{% if prosody_recording_autostart_enabled %}
+      "recording_autostart";
+{% endif %}
     }
 
 {% if prosody_enable_rate_limit %}
