@@ -87,6 +87,7 @@ module:hook('muc-occupant-joined', function (event)
         module:log('info', 'Auto-recording the meeting %s', room.jid);
 
         room.recording_auto_started = true;
+        room._data.recorderType = 'recorder';
 
         local metadata = {
             file_recording_metadata = {
