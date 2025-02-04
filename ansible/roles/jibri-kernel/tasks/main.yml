@@ -10,6 +10,10 @@
   apt: name="linux*aws" state=absent purge=true
   when: jibri_kernel_clean_aws
 
+- name: purge oracle kernel if found
+  apt: name="linux*oracle" state=absent purge=true
+  when: jibri_kernel_clean_oracle
+
 - name: Check for reboot hint.
   shell: if [ $(readlink -f /vmlinuz) != /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi
   ignore_errors: true
