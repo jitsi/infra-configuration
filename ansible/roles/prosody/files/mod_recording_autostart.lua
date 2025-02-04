@@ -38,15 +38,6 @@ module:hook('muc-occupant-joined', function (event)
         return;
     end
 
-    -- TODO drop this, this is 8x8 for prod and testing tenant on stage
-    local tenant = session.jitsi_web_query_prefix;
-    if tenant ~= '8x8' and tenant ~= 'meetteam' then
-        return;
-    else
-        room._data.auto_transcriptions = true;
-        room._data.auto_video_recording = true;
-    end
-
     if not room.transcription_auto_started and room._data.auto_transcriptions then
         -- TODO for jaas we need to start everything after jaas_actuator response (mod_muc_permissions_vpaas.lua)
 
