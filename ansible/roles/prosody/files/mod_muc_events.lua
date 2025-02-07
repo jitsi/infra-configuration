@@ -478,37 +478,33 @@ local function handleBroadcastMessage(event)
             local pdetails = extract_occupant_details(who);
             appendToChatHistory(event.stanza.attr.to, who.jid, who.bare_jid, body:get_text(), pdetails);
             return;
-        else
-            --handle transcription messages
-            if transcriptionsURL == nil or transcriptionsURL == "" then
-                if DEBUG then module:log("debug", "Transcriptions is disabled for room %s", event.room.jid); end
-                return;
-            end
-
-            local should_send_hook = false;
-
-            if is_vpaas(room) then
-                should_send_hook = true;
-            else
-                should_send_hook = room.jitsiMetadata and room.jitsiMetadata.recording
-                   and room.jitsiMetadata.recording.isTranscribingEnabled == true;
-            end
-
-            -- send transcriptions only when backend recording(including transcription) is enabled
-            if should_send_hook then
-                local transcription = util.get_final_transcription(event);
-                if transcription then
-                    local request_body = json.encode(transcription);
-                    local headers = http_headers or {};
-                    headers['Authorization'] = util.generateToken();
-                    http.request(transcriptionsURL, {
-                        headers = headers,
-                        method = "POST",
-                        body = request_body;
-                    }, cb);
-                end
-            end
         end
+    end
+
+end
+
+--handle transcription messages
+local function handle_transcription(event)
+    local room, transcription = event.room, event.transcription;
+    local should_send_hook = false;
+
+    if is_vpaas(room) then
+        should_send_hook = true;
+    else
+        should_send_hook = room.jitsiMetadata and room.jitsiMetadata.recording
+           and room.jitsiMetadata.recording.isTranscribingEnabled == true;
+    end
+
+    -- send transcriptions only when backend recording(including transcription) is enabled
+    if should_send_hook then
+        local request_body = json.encode(transcription);
+        local headers = http_headers or {};
+        headers['Authorization'] = util.generateToken();
+        http.request(transcriptionsURL, {
+            headers = headers,
+            method = "POST",
+            body = request_body;
+        }, cb);
     end
 end
 
@@ -718,6 +714,11 @@ function module.add_host(host_module)
     if not is_visitor_prosody then
         host_module:hook("pre-iq/host", attachMachineUid);
         host_module:hook("muc-broadcast-message", handleBroadcastMessage);
+
+        if transcriptionsURL ~= nil and transcriptionsURL ~= '' then
+            host_module:hook('jitsi-transcript-received', handle_transcription);
+        end
+
         host_module:hook("send-speaker-stats", handleSpeakerStats);
 
         host_module:hook("muc-add-history", handleVisitorsMessage);
