@@ -73,7 +73,6 @@ local main_muc_service;
 
 local NICK_NS = "http://jabber.org/protocol/nick";
 local JIGASI_CALL_DIRECTION_ATTR_NAME = "JigasiCallDirection";
-local TRANSCRIBER_PREFIXES = { 'transcriber@recorder.', 'transcribera@recorder.', 'transcriberb@recorder.' };
 
 local event_count = module:measure("muc_webhooks_rate", "rate")
 local event_count_failed = module:measure("muc_webhooks_failed", "rate")
@@ -331,7 +330,7 @@ function handle_occupant_access(event, event_type)
     end
 
     -- transcriber check
-    if stanza and oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES) then
+    if stanza and oss_util.is_transcriber(occupant.jid) then
         local presence_type = stanza.attr.type;
         if not presence_type then
             if DEBUG then module:log("debug", "Transcriber %s join the room %s", occupant.jid, room.jid); end
@@ -403,10 +402,10 @@ function handle_occupant_access(event, event_type)
         if sip_address and is_new_sip_participant then
             local sip_jibri_prefix = util.get_sip_jibri_prefix(stanza);
 
-            if oss_util.starts_with_one_of(sip_jibri_prefix, util.INBOUND_SIP_JIBRI_PREFIXES) then
+            if oss_util.starts_with_one_of(sip_jibri_prefix, oss_util.INBOUND_SIP_JIBRI_PREFIXES) then
                 participant_access_event["eventType"] = SIP_CALL_IN_STARTED;
                 final_event_type = SIP_CALL_IN_STARTED;
-            elseif oss_util.starts_with_one_of(sip_jibri_prefix, util.OUTBOUND_SIP_JIBRI_PREFIXES) then
+            elseif oss_util.starts_with_one_of(sip_jibri_prefix, oss_util.OUTBOUND_SIP_JIBRI_PREFIXES) then
                 participant_access_event["eventType"] = SIP_CALL_OUT_STARTED;
                 final_event_type = SIP_CALL_OUT_STARTED;
             end
@@ -458,7 +457,7 @@ function handle_occupant_access(event, event_type)
         return
     end
 
-    if not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES)
+    if not oss_util.is_transcriber(occupant.jid)
             and not oss_util.is_jibri(occupant)
             and not oss_util.is_sip_jibri_join(stanza)
             and not oss_util.is_sip_jigasi(stanza)
@@ -528,7 +527,7 @@ function handle_occupant_access(event, event_type)
 
     -- send MAU usage for normal participants and dial calls only
     -- live stream/recording/sip calls are billed based on duration and not MAU
-    if not oss_util.starts_with_one_of(occupant.jid, TRANSCRIBER_PREFIXES)
+    if not oss_util.is_transcriber(occupant.jid)
        and not oss_util.is_jibri(occupant)
        and not oss_util.is_sip_jibri_join(stanza)
         and is_vpaas(main_room) and event_type == PARTICIPANT_JOINED then
@@ -965,46 +964,39 @@ local function handle_subject_changed(event, new_subject)
 end
 
 local function handle_transcription_chunk(event)
-    if event.stanza.attr.type == "groupchat" then
-        local body = event.stanza:get_child("body")
-        if body then
-            return;
+    local transcription = event.transcription;
+    if transcription then
+        local participant = {
+            ["name"] = transcription["participant"]["name"],
+            ["userId"] = transcription["participant"]["identity_id"],
+            ["id"] = transcription["participant"]["id"],
+            ["avatarUrl"] = transcription["participant"]["avatar_url"],
+            ["email"] = transcription["participant"]["email"]
+        }
+        local data = {
+            ["messageID"] = transcription["message_id"],
+            ["participant"] = participant,
+            ["language"] = transcription["language"],
+            ["final"] = transcription["transcript"][util.FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
+        }
+        local transcription_chunk_received_event = {
+            ["idempotencyKey"] = uuid_gen(),
+            ["sessionId"] = transcription["session_id"],
+            ["customerId"] = transcription["customer_id"],
+            ["created"] = util.round(socket.gettime() * 1000),
+            ["meetingFqn"] = transcription["fqn"],
+            ["eventType"] = TRANSCRIPTION_CHUNK_RECEIVED,
+            ["data"] = data
+        }
+        if DEBUG then
+            module:log("debug", "Transcription chunk received event: %s", inspect(transcription_chunk_received_event));
         end
-
-        local transcription = util.get_final_transcription(event)
-        if transcription then
-            local participant = {
-                ["name"] = transcription["participant"]["name"],
-                ["userId"] = transcription["participant"]["identity_id"],
-                ["id"] = transcription["participant"]["id"],
-                ["avatarUrl"] = transcription["participant"]["avatar_url"],
-                ["email"] = transcription["participant"]["email"]
-            }
-            local data = {
-                ["messageID"] = transcription["message_id"],
-                ["participant"] = participant,
-                ["language"] = transcription["language"],
-                ["final"] = transcription["transcript"][util.FIRST_TRANSCRIPT_MESSAGE_POS]["text"]
-            }
-            local transcription_chunk_received_event = {
-                ["idempotencyKey"] = uuid_gen(),
-                ["sessionId"] = transcription["session_id"],
-                ["customerId"] = transcription["customer_id"],
-                ["created"] = util.round(socket.gettime() * 1000),
-                ["meetingFqn"] = transcription["fqn"],
-                ["eventType"] = TRANSCRIPTION_CHUNK_RECEIVED,
-                ["data"] = data
-            }
-            if DEBUG then
-                module:log("debug", "Transcription chunk received event: %s", inspect(transcription_chunk_received_event));
-            end
-            event_count();
-            http.request(EGRESS_URL, {
-                headers = util.http_headers_no_auth,
-                method = "POST",
-                body = json.encode(transcription_chunk_received_event);
-            }, cb);
-        end
+        event_count();
+        http.request(EGRESS_URL, {
+            headers = util.http_headers_no_auth,
+            method = "POST",
+            body = json.encode(transcription_chunk_received_event);
+        }, cb);
     end
 end
 
@@ -1066,6 +1058,8 @@ module:hook("muc-broadcast-message", function(event)
         handle_subject_changed(event, subject:get_text());
         return;
     end
-    handle_transcription_chunk(event)
 end, -1);
 
+module:hook('jitsi-transcript-received', function(event)
+    handle_transcription_chunk(event);
+end);
