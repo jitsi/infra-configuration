@@ -35,8 +35,8 @@ function updateFirefox() {
     echo "Updating ${DEST}"
 
     cd /tmp
-    wget -O ff.tar.bz2 ${URL}
-    tar xvf ff.tar.bz2 > /dev/null
+    wget -O ff.tar.xz ${URL}
+    tar xvf ff.tar.xz > /dev/null
 
     rm -rf /opt/mozilla/${DEST}
     mv firefox /opt/mozilla/${DEST}
