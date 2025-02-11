@@ -33,7 +33,7 @@
         state: latest
     - name: Remove oracle linux
       ansible.builtin.apt:
-        name: ['linux-oracle', 'linux-image-*-oracle']
+        name: ['linux*oracle']
         state: absent
 
   post_tasks:
