@@ -39,4 +39,5 @@ vault_server_storage_config: |
     "s3": {
       "bucket": "{{ vault_bucket_name }}",
       "region": "{{ oracle_region }}"
+    }
   }
