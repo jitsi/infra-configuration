@@ -10,9 +10,9 @@ listener "tcp" {
 log_level = "INFO"
 max_lease_ttl = "30m"
 
-seal "{{ vault_server_seal_type }}" {{ vault_server_seal_config }}
+seal "{{ vault_server_seal_type }}" {{ vault_server_seal_config | to_json }}
 
-storage "{{ vault_server_storage_type }}" {{ vault_server_storage_config }}
+storage "{{ vault_server_storage_type }}" {{ vault_server_storage_config | to_json }}
 
 ui = "true"
 
