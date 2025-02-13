@@ -1,0 +1,4 @@
+---
+jibri_instance_id: "{{ cloud_instance_id | default('default') }}"
+jibri_version: false
+jibri_docker_version: "{{ 'jibri-' + jibri_version if jibri_version else 'unstable' }}"

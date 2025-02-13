@@ -1,0 +1,103 @@
+---
+# first create a user for the jibri docker compose service
+- name: Create jibricompose user
+  ansible.builtin.user:
+    name: jibricompose
+    comment: "Jitsi Meet Docker Compose Service Account"
+    shell: /bin/bash
+    home: /home/jibricompose
+    state: present
+
+- name: Add jibricompose user to docker group
+  ansible.builtin.user:
+    name: jibricompose
+    groups: docker
+    append: true
+
+- name: Generate config directory root
+  ansible.builtin.file:
+    path: /home/jibricompose/.jitsi-meet-cfg
+    owner: jibricompose
+    state: directory
+    mode: 0755
+
+- name: Generate config directory root
+  ansible.builtin.file:
+    path: "/home/jibricompose/.jitsi-meet-cfg/{{ item }}"
+    owner: jibricompose
+    state: directory
+    mode: 0755
+  with_items:
+    - jibri
+
+- name: Create jibri compose directory
+  ansible.builtin.file:
+    path: /home/jibricompose/jibri
+    owner: jibricompose
+    state: directory
+    mode: 0755
+
+- name: Create jibri compose scripts directory
+  ansible.builtin.file:
+    path: /home/jibricompose/jibri/scripts
+    owner: jibricompose
+    state: directory
+    mode: 0755
+
+- name: Place startup script
+  ansible.builtin.copy:
+    src: "custom-start.sh"
+    dest: "/home/jibricompose/jibri/scripts/11-custom-start"
+    owner: jibricompose
+    mode: 0755
+
+- name: Place empty xmpp config
+  ansible.builtin.copy:
+    content: ""
+    dest: "/home/jibricompose/jibri/xmpp.conf"
+    owner: jibricompose
+    mode: 0644
+
+- name: Generate env file for docker-compose
+  ansible.builtin.template:
+    src: "env.j2"
+    dest: "/home/jibricompose/jibri/.env"
+    owner: jibricompose
+    mode: 0644
+
+- name: Place docker-compose.yml file
+  ansible.builtin.copy:
+    src: "docker-compose.yml"
+    dest: "/home/jibricompose/jibri/docker-compose.yml"
+    owner: jibricompose
+    mode: 0644
+
+- name: Place reconfigure-jibri-wrapper.sh
+  ansible.builtin.copy:
+    src: "reconfigure-jibri-wrapper.sh"
+    dest: "/usr/local/bin/reconfigure-jibri-wrapper.sh"
+    owner: root
+    mode: 0755
+
+- name: Place systemd file for jibri service
+  ansible.builtin.copy:
+    src: "jibri.service"
+    dest: "/etc/systemd/system/jibri.service"
+    owner: root
+    mode: 0644
+
+
+# update systemd to start jibri on boot
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+# flush force_handlers:
+- name: Flush handlers for .env file completion
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable jibri service
+  ansible.builtin.systemd:
+    name: jibri
+    enabled: true
+    state: started
