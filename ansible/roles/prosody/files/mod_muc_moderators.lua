@@ -93,12 +93,17 @@ local function check_for_moderator_rights(event)
             if DEBUG then module:log("debug", "User with id %s is not moderator for vpaas room", identity.id); end
         end
     elseif event.room._data.moderator_id == nil then
-        if DEBUG then module:log("debug", "Room %s is not moderated", room_jid); end
-        joining_moderator_participants[occupant.bare_jid] = identity;
+        -- only for non '/' tenants where url tenant is not matching the token tenant
+        if session.jitsi_meet_tenant_mismatch and session.jitsi_web_query_prefix ~= '' then
+            util.clear_auth(session);
+        else
+            if DEBUG then module:log("debug", "Room %s is not moderated", room_jid); end
+            joining_moderator_participants[occupant.bare_jid] = identity;
+        end
     else
         -- Check if the occupant is moderator
         -- using moderator_id attribute set in the muc_password_preset plugin
-        if identity ~= nil and (identity.id == event.room._data.moderator_id or identity.group == event.room._data.moderator_id) then
+        if identity.id == event.room._data.moderator_id or identity.group == event.room._data.moderator_id then
             identity.single_moderator = identity.id == event.room._data.moderator_id;
             joining_moderator_participants[occupant.bare_jid] = identity;
         end

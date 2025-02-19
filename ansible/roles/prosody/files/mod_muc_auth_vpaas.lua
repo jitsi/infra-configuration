@@ -200,18 +200,7 @@ local function deny_access(origin, stanza, room_disabled_access, room, occupant_
     -- This is the case when a participant with a valid token (8x8) access a jaas room, we want it to join as a guest
     if token ~= nil and not starts_with(tenant, VPAAS_PREFIX) then
         if room._data.vpaas_guest_access then
-            -- make sure it is not authenticated user, a guest (no features are set)
-            origin.auth_token = nil;
-            origin.jitsi_meet_room = nil;
-            origin.jitsi_meet_domain = nil;
-            origin.jitsi_meet_str_tenant = nil;
-            origin.jitsi_meet_context_user = nil;
-            origin.jitsi_meet_context_group = nil;
-            origin.jitsi_meet_context_features = nil;
-            origin.jitsi_meet_context_room = nil;
-            origin.contextRequired = nil;
-            origin.public_key = nil;
-            origin.kid = nil;
+            util_internal.clear_auth(origin);
             -- let's mark this session that we cleared the token
             origin.vpaas_guest_access = true;
 
