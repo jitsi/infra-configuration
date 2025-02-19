@@ -215,7 +215,7 @@ frontend www-http from global_defaults
 
   # shard-specific backends
 {%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}|any" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
-  use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ }{{ end }}{% endraw %}
+  use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ } OR { hdr(X-Room) -m end _{{ $shard.ServiceMeta.shard }} }{{ end }}{% endraw %}
 
   # use tenant pin if there are servers, otherwise use the GA (live) backend
   use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
