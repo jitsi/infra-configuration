@@ -186,4 +186,19 @@ function Util.extract_occupant_identity_user(occupant)
     return r;
 end
 
+function Util.clear_auth(session)
+    -- make sure it is not authenticated user, a guest (no features are set)
+    session.auth_token = nil;
+    session.jitsi_meet_room = nil;
+    session.jitsi_meet_domain = nil;
+    session.jitsi_meet_str_tenant = nil;
+    session.jitsi_meet_context_user = nil;
+    session.jitsi_meet_context_group = nil;
+    session.jitsi_meet_context_features = nil;
+    session.jitsi_meet_context_room = nil;
+    session.contextRequired = nil;
+    session.public_key = nil;
+    session.kid = nil;
+end
+
 return Util;
