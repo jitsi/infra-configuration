@@ -20,6 +20,7 @@
   vars:
     cloud_provider: oracle
     cloud_instance_id: "{{ ansible_fqdn }}"
+    jibri_docker_compose_flag: false
     fluentd_jitsi_region: us-west-2
     fluentd_jitsi_log_group_role: jibri
     fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
@@ -38,7 +39,7 @@
         dest: "/etc/jitsi/jibri/xmpp.conf"
         cmd: "/usr/local/bin/reconfigure-jibri-wrapper.sh"
         user: "root"
-        group: "jitsi"
+        group: "{{ 1000 if jibri_docker_compose_flag else 'jitsi' }}" # uses 1000 for jitsi group in docker image
         perms: 0640
         backup: false
 
@@ -78,33 +79,7 @@
         executable: /bin/bash
       register: jibri_version
       changed_when: jibri_version.rc != 0
-    - name: Remove Ansible repository
-      ansible.builtin.apt_repository:
-        repo: "ppa:ansible/ansible"
-        state: absent
-        update_cache: false
-    - name: Remove OpenJDK repository
-      ansible.builtin.apt_repository:
-        repo: "ppa:openjdk-r/ppa"
-        state: absent
-        update_cache: false
-    - name: Remove rsyslog apt repo
-      ansible.builtin.apt_repository:
-        repo: "ppa:adiscon/v8-stable"
-        state: absent
-        update_cache: false
-    - name: Remove old jitsi repo
-      ansible.builtin.apt_repository:
-        repo: "deb [trusted=yes] {{ jitsi_auth_url }} unstable/"
-        state: absent
-        update_cache: false
-      tags: setup
-    - name: Remove old jitsi trusted repo
-      ansible.builtin.apt_repository:
-        repo: "deb [trusted=yes] {{ jitsi_auth_url_old }} unstable/"
-        state: absent
-        update_cache: false
-      tags: setup
+      when: not jibri_docker_compose_flag
     - name: Setup new repo template file
       ansible.builtin.template:
         dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
@@ -112,21 +87,6 @@
         owner: root
         mode: 0600
       tags: setup
-    - name: Remove deprecated old repo
-      ansible.builtin.apt_repository:
-        repo: "deb [trusted=yes] {{ jitsi_repo_url_old }} unstable/"
-        state: absent
-      tags: setup
-    - name: Remove NodeSource deb repository
-      ansible.builtin.apt_repository:
-        repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
-        state: absent
-        update_cache: false
-    - name: Remove NodeSource deb-src repository
-      ansible.builtin.apt_repository:
-        repo: 'deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
-        state: absent
-        update_cache: false
 
   post_tasks:
     - name: Restart rsyslog
@@ -154,7 +114,7 @@
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
         upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
-        upload_customizations_install_flag: false, upload_customizations_configure_flag: true }
+        upload_customizations_install_flag: "{{ jibri_docker_compose_flag }}", upload_customizations_configure_flag: true }
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
         autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
@@ -163,7 +123,8 @@
     - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "vector", tags: "vector", when: jibri_vector_enabled, vector_install_flag: false, vector_configure_flag: true}
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jibri_vector_enabled}
-    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true}
+    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: not jibri_docker_compose_flag}
+    - { role: "jibri-docker-compose", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: jibri_docker_compose_flag}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
     - { role: "consul-template", tags: "consul-template", when: jibri_enable_consul_template and not jibri_pjsua_flag }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
