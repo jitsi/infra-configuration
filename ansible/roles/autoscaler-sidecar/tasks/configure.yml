@@ -11,7 +11,10 @@
 - name: Set autoscaler instance version fact
   ansible.builtin.set_fact:
     autoscaler_sidecar_instance_version: "{{ autoscaler_sidecar_instance_version_shell.stdout }}"
-  when: autoscaler_sidecar_instance_version_shell is defined
+  when:
+    - (autoscaler_sidecar_instance_version_command | length) > 0
+    - autoscaler_sidecar_instance_version_shell is defined
+    - autoscaler_sidecar_instance_version_shell.stdout is defined
 
 - name: Copy autoscaler signing key file
   ansible.builtin.copy:
