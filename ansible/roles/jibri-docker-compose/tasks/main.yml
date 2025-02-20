@@ -87,7 +87,7 @@
     mode: 0644
 
 - name: Copy all jars from /usr/bin to /usr/local/bin for use in jibri
-  ansible.builtin.command: "cp /usr/bin/*.jar /usr/local/bin"
+  ansible.builtin.shell: "cp /usr/bin/*.jar /usr/local/bin"
 
 # update systemd to start jibri on boot
 - name: Reload systemd
