@@ -4,6 +4,15 @@ api:
     address: "0.0.0.0:8686"
     playground: true
 sources:
+    boot:
+        type: "file"
+        include:
+            - "/var/log/cloud-init-output.log"
+            - "/var/log/cloud-init.log"
+            - "/var/log/cloud-init-output.log.1"
+            - "/var/log/cloud-init.log.1"
+            - "/var/log/postinstall-ansible.log"
+            - "/var/log/bootstrap.log"
     jvb:
         type: "file"
         multiline:
@@ -80,7 +89,7 @@ sinks:
   loki_syslog:
     remove_timestamp: false
     type: "loki"
-    inputs: ["syslog"]
+    inputs: ["syslog","boot"]
     endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
