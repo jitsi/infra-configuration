@@ -9,7 +9,7 @@ services:
             - /home/jibricompose/jibri/scripts/11-custom-start:/etc/cont-init.d/11-custom-start
             - /home/jibricompose/jibri/xmpp.conf:/defaults/xmpp.conf # empty xmpp.conf
             - /etc/jitsi/jibri/xmpp.conf:/etc/jitsi/jibri/custom-jibri.conf # custom config with dynamic inventory
-            - /etc/jitsi/vo-meet-agent-config.yml:/etc/jitsi/vo-meet-agent-config.yml
+            - /etc/jitsi/vo-meet-agent-config.yml:/opt/vo-meet-agent/vo-meet-agent-config.yml
             - /usr/bin/jitsi-recording-service.sh:/usr/bin/jitsi-recording-service.sh
             - /usr/local/bin:/usr/local/bin
         shm_size: '2gb'
@@ -33,6 +33,7 @@ services:
             - DISPLAY=:0
             - ENABLE_STATS_D
             - IGNORE_CERTIFICATE_ERRORS
+            - FAILED_UPLOAD_DIR=/config/recordings/failed
             - JIBRI_WEBHOOK_SUBSCRIBERS
             - JIBRI_INSTANCE_ID
             - JIBRI_ENABLE_PROMETHEUS
