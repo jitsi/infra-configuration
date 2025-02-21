@@ -111,7 +111,7 @@ else
           sleep $SLEEP_INTERVAL
           ST=$(($ST+$SLEEP_INTERVAL))
 
-          PID=$(/bin/systemctl show -p MainPID jitsi-videobridge | cut -d '=' -f2)
+          PID=$(/bin/systemctl show -p MainPID jibri | cut -d '=' -f2)
           if [[ $PID > 0 ]]; then
             sudo -u $JAVA_USER kill -0 $PID
 

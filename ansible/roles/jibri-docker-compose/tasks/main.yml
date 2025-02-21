@@ -89,6 +89,43 @@
 - name: Copy all jars from /usr/bin to /usr/local/bin for use in jibri
   ansible.builtin.shell: "cp /usr/bin/*.jar /usr/local/bin"
 
+# script to handle stats to telegraf
+- name: Copy status telegraf script oracle
+  ansible.builtin.template:
+    src: "roles/jibri-java/templates/jibri-status-oracle.j2"
+    dest: "/usr/local/bin/jibri-status.sh"
+    owner: "root"
+    mode: 0755
+
+  # script to handle health check failures
+- name: Copy terminate instance script oracle
+  ansible.builtin.template:
+    src: "roles/jibri-java/templates/terminate_instance_oracle.j2"
+    dest: "/usr/local/bin/terminate_instance.sh"
+    owner: "root"
+    mode: 0755
+
+- name: Copy health check script oracle
+  ansible.builtin.template:
+    src: "roles/jibri-java/templates/jibri-health-oracle.j2"
+    dest: "/usr/local/bin/jibri-health.sh"
+    owner: "root"
+    mode: 0755
+
+# scripts to handle configuration and reconfiguration of jibri
+- name: Copy termination monitor script
+  ansible.builtin.copy:
+    src: "roles/jibri-java/files/wait_graceful_shutdown.sh"
+    dest: "{{ jibri_scripts_dir }}/wait_graceful_shutdown.sh"
+    mode: 0755
+
+# scripts to handle configuration and reconfiguration of jibri
+- name: Copy graceful termination script oracle
+  ansible.builtin.template:
+    src: "roles/jibri-java/templates/graceful_shutdown_terminate_oracle.j2"
+    dest: "/usr/local/bin/graceful_shutdown_terminate.sh"
+    mode: 0755
+
 # update systemd to start jibri on boot
 - name: Reload systemd
   ansible.builtin.systemd:
@@ -103,3 +140,24 @@
     name: jibri
     enabled: true
     state: started
+
+  # Run the metric reporting script regularly
+- name: Jibri status script cron
+  ansible.builtin.cron:
+    user: "ubuntu"
+    state: present
+    name: "Jibri status script"
+    minute: "*"
+    hour: "*"
+    job: "/usr/local/bin/jibri-status.sh > /tmp/status-cron-output 2>&1"
+
+
+# Run the metric reporting script regularly
+- name: Jibri health script cron
+  ansible.builtin.cron:
+    user: root
+    state: present
+    name: "Jibri health script"
+    minute: "*"
+    hour: "*"
+    job: "/usr/local/bin/jibri-health.sh > /tmp/status-cron-output 2>&1"
