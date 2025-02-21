@@ -14,25 +14,23 @@
     groups: docker
     append: true
 
-- name: Generate config directory root
-  ansible.builtin.file:
-    path: /home/jibricompose/.jitsi-meet-cfg
-    owner: jibricompose
-    state: directory
-    mode: 0755
-
-- name: Generate config directory root
-  ansible.builtin.file:
-    path: "/home/jibricompose/.jitsi-meet-cfg/{{ item }}"
-    owner: jibricompose
-    state: directory
-    mode: 0755
-  with_items:
-    - jibri
-
 - name: Create jibri compose directory
   ansible.builtin.file:
     path: /home/jibricompose/jibri
+    owner: jibricompose
+    state: directory
+    mode: 0755
+
+- name: Generate config directory root
+  ansible.builtin.file:
+    path: /home/jibricompose/jibri/config
+    owner: jibricompose
+    state: directory
+    mode: 0755
+
+- name: Generate config directory for jibri service
+  ansible.builtin.file:
+    path: /home/jibricompose/jibri/config/jibri
     owner: jibricompose
     state: directory
     mode: 0755
