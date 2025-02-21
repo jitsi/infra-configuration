@@ -160,4 +160,4 @@
     name: "Jibri health script"
     minute: "*"
     hour: "*"
-    job: "/usr/local/bin/jibri-health.sh > /tmp/status-cron-output 2>&1"
+    job: "/usr/local/bin/jibri-health.sh > /tmp/health-cron-output 2>&1"
