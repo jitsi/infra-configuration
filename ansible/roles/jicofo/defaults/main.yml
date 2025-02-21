@@ -18,6 +18,7 @@ jicofo_disable_moderator_checks: false
 jicofo_enable_av1: true
 jicofo_enable_colibri2: true
 jicofo_enable_h264: true
+jicofo_enable_ice_failure_detection: true
 jicofo_enable_octo: true
 jicofo_enable_opus_red: false
 # This needs to be kept in sync with jvb_enable_sctp

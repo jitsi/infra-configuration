@@ -48,6 +48,10 @@ jicofo {
     health-checks {
       use-presence = {{ jicofo_use_presence_for_jvb_health | to_json }}
     }
+
+    ice-failure-detection {
+        enabled = {{ jicofo_enable_ice_failure_detection }}
+    }
   }
   codec {
     rtp-extensions {
