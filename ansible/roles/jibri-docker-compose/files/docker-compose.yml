@@ -11,6 +11,7 @@ services:
             - /etc/jitsi/jibri/xmpp.conf:/etc/jitsi/jibri/custom-jibri.conf # custom config with dynamic inventory
             - /etc/jitsi/vo-meet-agent-config.yml:/opt/vo-meet-agent/vo-meet-agent-config.yml
             - /usr/bin/jitsi-recording-service.sh:/usr/bin/jitsi-recording-service.sh
+            - /usr/bin/jitsi-recording-upload-failure.sh:/usr/bin/jitsi-recording-upload-failure.sh
             - /usr/local/bin:/usr/local/bin
         shm_size: '2gb'
         cap_add:
