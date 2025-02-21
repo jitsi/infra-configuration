@@ -78,7 +78,12 @@
         dpkg -s jibri | grep -E '^Version:' | awk '{print $2}' | sed -e 's/\-g.*//'
       args:
         executable: /bin/bash
-      register: jibri_version
+      register: jibri_version_cmd
+      changed_when: jibri_version.rc != 0
+      when: not jibri_docker_compose_flag
+    - name: Set jibri_version fact from installed jibri package
+      ansible.builtin.set_fact:
+        jibri_version: "{{ jibri_version_cmd.stdout }}"
       changed_when: jibri_version.rc != 0
       when: not jibri_docker_compose_flag
     - name: Setup new repo template file
@@ -110,7 +115,7 @@
           region: "{{ oracle_region }}"
           oracle_region: "{{ oracle_region }}"
           cloud: "oracle"
-          jibri_version: "{{ jibri_version.stdout }}"
+          jibri_version: "{{ jibri_version }}"
 
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
         upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
