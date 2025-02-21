@@ -122,6 +122,7 @@
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
+    - { role: "docker-daemon-config", tags: "docker-daemon-config", when: jibri_docker_compose_flag}
     - { role: "vector", tags: "vector", when: jibri_vector_enabled, vector_install_flag: false, vector_configure_flag: true}
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jibri_vector_enabled}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: not jibri_docker_compose_flag}
