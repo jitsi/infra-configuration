@@ -1,4 +1,6 @@
 #!/bin/bash
+apt-get -y update && apt-get -y install python3-pip
+pip install oci-cli --break-system-packages
 cp /usr/local/bin/*.jar /usr/bin
 cp /etc/jitsi/jibri/* /config
 mkdir -p /etc/jitsi
