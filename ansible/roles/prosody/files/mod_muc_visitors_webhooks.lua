@@ -5,6 +5,7 @@ local json = require 'cjson';
 local uuid_gen = require 'util.uuid'.generate;
 local util = module:require 'util.internal';
 local oss_util = module:require 'util';
+local is_admin = oss_util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local is_vpaas = oss_util.is_vpaas;
 
@@ -14,11 +15,6 @@ local PARTICIPANT_JOINED = 'PARTICIPANT_JOINED';
 local PARTICIPANT_LEFT = 'PARTICIPANT_LEFT';
 local ROOM_CREATED = 'ROOM_CREATED';
 local USAGE = "USAGE";
-
-local um_is_admin = require 'core.usermanager'.is_admin;
-local function is_admin(jid)
-    return um_is_admin(jid, module.host);
-end
 
 local EGRESS_URL = module:get_option_string('muc_prosody_egress_url', 'http://127.0.0.1:8062/v1/events');
 local EGRESS_FALLBACK_URL = module:get_option_string('muc_prosody_egress_fallback_url');
