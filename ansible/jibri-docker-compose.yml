@@ -1,0 +1,15 @@
+---
+- name: Main
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  strategy: free
+  vars_files:
+    - secrets/jibri.yml
+    - config/vars.yml
+    - roles/jibri-java/defaults/main.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  roles:
+    - { role: "jibri-docker-compose", tags: "jibri-docker-compose" }

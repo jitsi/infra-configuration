@@ -1,0 +1,14 @@
+[Unit]
+Description=Jibri Docker Compose Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+User=jibricompose
+WorkingDirectory=/home/jibricompose/jibri
+ExecStart=/usr/local/bin/docker-compose up
+ExecStop=/usr/local/bin/docker-compose down
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
