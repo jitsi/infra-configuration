@@ -7,8 +7,7 @@ services:
             - ${CONFIG}/jibri:/config:Z
             - /home/jibricompose/jibri/scripts:/scripts:Z
             - /home/jibricompose/jibri/scripts/11-custom-start:/etc/cont-init.d/11-custom-start
-            - /home/jibricompose/jibri/xmpp.conf:/defaults/xmpp.conf # empty xmpp.conf
-            - /etc/jitsi/jibri/xmpp.conf:/etc/jitsi/jibri/custom-jibri.conf # custom config with dynamic inventory
+            - /etc/jitsi/jibri:/etc/jitsi/jibri # custom config with dynamic inventory
             - /etc/jitsi/vo-meet-agent-config.yml:/opt/vo-meet-agent/vo-meet-agent-config.yml
             - /usr/bin/jitsi-recording-service.sh:/usr/bin/jitsi-recording-service.sh
             - /usr/bin/jitsi-recording-upload-failure.sh:/usr/bin/jitsi-recording-upload-failure.sh
