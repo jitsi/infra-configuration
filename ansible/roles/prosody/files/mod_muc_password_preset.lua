@@ -1,6 +1,5 @@
 module:set_global();
 
-local um_is_admin = require 'core.usermanager'.is_admin;
 local urlencode = require "util.http".urlencode;
 local json = require "cjson.safe";
 local async_handler_wrapper = module:require "util".async_handler_wrapper;
@@ -12,6 +11,7 @@ local it = require "util.iterators";
 local st = require "util.stanza";
 
 local util = module:require "util";
+local is_admin = util.is_admin;
 local room_jid_match_rewrite = util.room_jid_match_rewrite;
 local internal_room_jid_match_rewrite = util.internal_room_jid_match_rewrite;
 local is_healthcheck_room = util.is_healthcheck_room;
@@ -68,10 +68,6 @@ local enableWaitingForHost = module:get_option_boolean("enable_password_waiting_
 if conferenceInfoURL == "" then
     module:log("warn", "No 'muc_conference_info_url' option set, disabling preset passwords");
     return
-end
-
-local function is_admin(jid)
-    return um_is_admin(jid);
 end
 
 local DEBUG = false;

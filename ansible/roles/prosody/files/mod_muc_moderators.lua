@@ -2,9 +2,9 @@ local filters = require 'util.filters';
 local jid_bare = require "util.jid".bare;
 local jid_host = require "util.jid".host;
 local inspect = require('inspect');
-local um_is_admin = require "core.usermanager".is_admin;
 local util = module:require "util.internal";
 local oss_util = module:require "util";
+local oss_is_admin = util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local presence_check_status = oss_util.presence_check_status;
 local is_vpaas = oss_util.is_vpaas;
@@ -14,10 +14,6 @@ local lobby_muc_component_config = 'lobby.' .. module:get_option_string("muc_map
 if lobby_muc_component_config == nil then
     module:log('error', 'lobby not enabled missing lobby_muc config');
     return ;
-end
-
-local function is_admin(jid)
-    return um_is_admin(jid, module.host);
 end
 
 local LOBBY_TYPES = { WAIT_FOR_APPROVAL = 'WAIT_FOR_APPROVAL', WAIT_FOR_MODERATOR = 'WAIT_FOR_MODERATOR', }

@@ -6,12 +6,11 @@ local cache = require "util.cache";
 local st = require "util.stanza";
 local timer = require "util.timer";
 
-local um_is_admin = require "core.usermanager".is_admin;
-
 local inspect = require('inspect');
 
 local util_internal = module:require "util.internal";
 local util = module:require "util";
+local is_admin = util.is_admin;
 local is_healthcheck_room = util.is_healthcheck_room;
 local is_vpaas = util.is_vpaas;
 local starts_with = util.starts_with;
@@ -46,10 +45,6 @@ end
 local token_util = module:require "token/util".new(parentCtx);
 
 local DEBUG = false;
-
-local function is_admin(jid)
-    return um_is_admin(jid, module.host);
-end
 
 function invalidate_cache()
     token_util:clear_asap_cache()
