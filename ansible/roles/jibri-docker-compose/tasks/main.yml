@@ -148,13 +148,14 @@
     state: started
 
 # wait until the service is actually up by checking the status URL
-- name: Wait for jibri service to start
-  ansible.builtin.wait_for:
-    host: "localhost"
-    port: 2222
-    delay: 10
-    timeout: 300
-    state: started
+- name: Wait for jibri to come up
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:2222/jibri/api/v1.0/health"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 3
 
   # Run the metric reporting script regularly
 - name: Jibri status script cron
