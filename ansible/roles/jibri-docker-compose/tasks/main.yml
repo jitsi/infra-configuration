@@ -63,6 +63,7 @@
     name: vector
     groups: [2, 997, "jibricompose"]
     append: true
+  notify: Restart vector for jibri docker compose
 
 - name: Link jibri config log directory to var log jitsi jibri
   ansible.builtin.file:
