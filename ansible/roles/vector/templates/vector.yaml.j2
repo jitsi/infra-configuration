@@ -68,9 +68,9 @@ sources:
         multiline:
             timeout_ms: 300
             mode: halt_before
-            # regexp to match pattern eg: 2024-02-12 21:23:53.552 INFO: [99386] net.java.sip.communicator.plugin.reconnectplugin.PPReconnectWrapper.cancelReconnect: Cancel reconnect ReconnectTask [delay=300000, provider=ProtocolProviderServiceJabberImpl(Jabber:jigasi@auth.beta.meet.jit.si@10.82.184.35)]
-            condition_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
-            start_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+            # regexp to match pattern eg: Jibri 2024-02-12 21:23:53.552 INFO: [99386] net.java.sip.communicator.plugin.reconnectplugin.PPReconnectWrapper.cancelReconnect: Cancel reconnect ReconnectTask [delay=300000, provider=ProtocolProviderServiceJabberImpl(Jabber:jigasi@auth.beta.meet.jit.si@10.82.184.35)]
+            condition_pattern: "^Jibri "
+            start_pattern: "^Jibri "
         include:
             - "/var/log/jitsi/jibri/browser.0.txt"
             - "/var/log/jitsi/jibri/ffmpeg.0.txt"
@@ -292,6 +292,8 @@ transforms:
     # then fall back to this: 2024-02-23 12:10:38.879 blah blah blah
     source: |
         structured =
+            parse_regex(.message, r'^(?P<app>Jibri) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<app>Jibri) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             {}
