@@ -1,0 +1,5 @@
+---
+- name: Restart vector for jibri docker compose
+  ansible.builtin.service:
+    name: "vector"
+    state: restarted
