@@ -43,6 +43,20 @@
     state: directory
     mode: 0755
 
+- name: Generate log directory for jibri service
+  ansible.builtin.file:
+    path: /var/log/jitsi/jibri
+    owner: 999
+    group: jitsi
+    state: directory
+    mode: 0755
+
+- name: Link jibri config log directory to var log jitsi jibri
+  ansible.builtin.file:
+    src: /var/log/jitsi/jibri
+    dest: /home/jibricompose/jibri/config/jibri/logs
+    state: link
+
 - name: Create jibri compose scripts directory
   ansible.builtin.file:
     path: /home/jibricompose/jibri/scripts
