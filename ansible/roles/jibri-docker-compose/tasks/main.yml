@@ -46,7 +46,7 @@
 - name: Generate config log directory for jibri service
   ansible.builtin.file:
     path: /home/jibricompose/jibri/config/jibri/logs
-    owner: jibricompose
+    owner: 999
     state: directory
     mode: 0755
 
