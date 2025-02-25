@@ -58,6 +58,12 @@
     state: directory
     mode: 0755
 
+- name: Add the vector user to group 2 and 997 for logging to loki
+  ansible.builtin.user:
+    name: vector
+    groups: [2, 997]
+    append: true
+
 - name: Link jibri config log directory to var log jitsi jibri
   ansible.builtin.file:
     src: /home/jibricompose/jibri/config/jibri/logs
