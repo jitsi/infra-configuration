@@ -5,6 +5,7 @@
     name: jitsi/jibri
     tag: "{{ jibri_docker_version }}"
     source: pull
+    state: present
 
 # first create a user for the jibri docker compose service
 - name: Create jibricompose user
