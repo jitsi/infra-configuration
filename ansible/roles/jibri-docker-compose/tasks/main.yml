@@ -1,4 +1,11 @@
 ---
+# pull docker image for jibri version
+- name: Pull jibri docker image
+  community.docker.docker_image:
+    name: jitsi/jibri
+    tag: "{{ jibri_docker_version }}"
+    source: pull
+
 # first create a user for the jibri docker compose service
 - name: Create jibricompose user
   ansible.builtin.user:
