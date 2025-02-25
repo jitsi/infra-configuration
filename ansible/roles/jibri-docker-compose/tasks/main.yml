@@ -1,4 +1,12 @@
 ---
+# pull docker image for jibri version
+- name: Pull jibri docker image
+  community.docker.docker_image:
+    name: jitsi/jibri
+    tag: "{{ jibri_docker_version }}"
+    source: pull
+    state: present
+
 # first create a user for the jibri docker compose service
 - name: Create jibricompose user
   ansible.builtin.user:
@@ -34,6 +42,33 @@
     owner: jibricompose
     state: directory
     mode: 0755
+
+- name: Generate config log directory for jibri service
+  ansible.builtin.file:
+    path: /home/jibricompose/jibri/config/jibri/logs
+    owner: 999
+    state: directory
+    mode: 0755
+
+- name: Generate var log directory for jibri service
+  ansible.builtin.file:
+    path: /var/log/jitsi
+    owner: root
+    group: jitsi
+    state: directory
+    mode: 0755
+
+- name: Add the vector user to group 2 and 997 for logging to loki
+  ansible.builtin.user:
+    name: vector
+    groups: [2, 997, "jibricompose"]
+    append: true
+
+- name: Link jibri config log directory to var log jitsi jibri
+  ansible.builtin.file:
+    src: /home/jibricompose/jibri/config/jibri/logs
+    dest: /var/log/jitsi/jibri
+    state: link
 
 - name: Create jibri compose scripts directory
   ansible.builtin.file:
@@ -138,6 +173,16 @@
     name: jibri
     enabled: true
     state: started
+
+# wait until the service is actually up by checking the status URL
+- name: Wait for jibri to come up
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:2222/jibri/api/v1.0/health"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 3
 
   # Run the metric reporting script regularly
 - name: Jibri status script cron
