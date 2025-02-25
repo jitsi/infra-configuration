@@ -31,10 +31,18 @@
       ansible.builtin.apt:
         name: "linux-generic-hwe-{{ ansible_distribution_version }}"
         state: latest
+      register: kernel_upgrade
     - name: Remove oracle linux
       ansible.builtin.apt:
-        name: ['linux*oracle']
+        name: ['linux*oracle', 'linux-oracle-*']
         state: absent
+      register: kernel_remove
+
+    - name: Reboot if kernel was upgraded # noqa no-handler
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+        post_reboot_delay: 60
+      when: kernel_upgrade.changed or kernel_remove.changed
 
   post_tasks:
     - name: Cleanup nomad data directory
