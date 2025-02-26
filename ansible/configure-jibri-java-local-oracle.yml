@@ -79,12 +79,12 @@
       args:
         executable: /bin/bash
       register: jibri_version_cmd
-      changed_when: jibri_version.rc != 0
+      changed_when: jibri_version_cmd.rc != 0
       when: not jibri_docker_compose_flag
     - name: Set jibri_version fact from installed jibri package
       ansible.builtin.set_fact:
         jibri_version: "{{ jibri_version_cmd.stdout }}"
-      changed_when: jibri_version.rc != 0
+      changed_when: jibri_version_cmd.rc != 0
       when: not jibri_docker_compose_flag
     - name: Setup new repo template file
       ansible.builtin.template:
