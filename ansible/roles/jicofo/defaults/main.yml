@@ -38,6 +38,9 @@ jicofo_health_cron:
 jicofo_health_cron_user: ubuntu
 jicofo_health_script_path: /usr/local/bin/jicofo-health.sh
 jicofo_hostname: "{{ environment_domain_name | default('domain.local') }}"
+jicofo_ice_failure_detection_interval: 60
+jicofo_ice_failure_detection_min_endpoints: 40
+jicofo_ice_failure_detection_threshold: 0.1
 jicofo_install_flag: true
 jicofo_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
 jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
@@ -56,6 +59,8 @@ jicofo_prosody_brewery_shard_enabled: "{{ prosody_brewery_shard_enabled | defaul
 jicofo_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
   else oracle_to_aws_region_map[oracle_region] if oracle_region is defined and oracle_region in oracle_to_aws_region_map else 'default' }}"
 jicofo_require_muc_config_flag: false
+jicofo_restart_requests_interval: 60
+jicofo_restart_requests_max_requests: 3
 jicofo_separate_jvb_muc: "{{ prosody_jvb_configure_flag }}"
 jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 # a temp workaround to skip adding main vhost to list of trusted-domains till we migrate all sipjibris to authenticate
