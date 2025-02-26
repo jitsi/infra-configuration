@@ -51,6 +51,9 @@ jicofo {
 
     ice-failure-detection {
         enabled = {{ jicofo_enable_ice_failure_detection }}
+        interval = {{ jicofo_ice_failure_detection_interval }} seconds
+        min-endpoints = {{ jicofo_ice_failure_detection_min_endpoints }}
+        threshold = {{ jicofo_ice_failure_detection_threshold }}
     }
   }
   codec {
@@ -97,6 +100,11 @@ jicofo {
     {% endif %}
 
     enable-multi-stream-backward-compat = true
+
+    restart-request-rate-limits {
+      max-requests = {{ jicofo_restart_requests_max_requests }}
+      interval = {{ jicofo_restart_requests_interval }} seconds
+    }
   }
 
 
