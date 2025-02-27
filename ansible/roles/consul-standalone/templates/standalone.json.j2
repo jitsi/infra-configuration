@@ -4,18 +4,20 @@
     "tags":["{{ hcv_environment }}","standalone-{{ consul_standalone_id }}"],
     "meta": {
         "environment":"{{ hcv_environment }}",
-        "domain":"{{ environment_domain_name }}"
+        "domain":"{{ environment_domain_name }}",
+        "signal_version":"{{ signal_version }}",
+        "jvb_version":"{{ jvb_version }}",
     },
     "tagged_addresses": {
       "lan": {
         "address": "{{ consul_standalone_private_ip }}",
-        "port": 5280
+        "port": 443
       },
       "wan": {
         "address": "{{ consul_standalone_public_ip }}",
-        "port": 5280
+        "port": 443
       }
     },
-    "port": 5280
+    "port": 443
   }
 }
