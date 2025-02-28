@@ -17,7 +17,6 @@ jitsi_torture_grid_address: http://yourgrid.example.com:4444/wd/hub
 jitsi_torture_groupname: "{{ jitsi_torture_username }}"
 jitsi_torture_homedir: "/home/{{ jitsi_torture_username }}"
 jitsi_torture_include_tests:
-jitsi_torture_iframe_page: https://example.com
 jitsi_torture_keepalive_check_script: "{{ jitsi_torture_path }}/check-{{ jitsi_torture_domain }}"
 jitsi_torture_keepalive_cron:
   hour: "*"
@@ -44,7 +43,5 @@ jitsi_torture_users:
     state: present
     username: "{{ jitsi_torture_username }}"
 test_xmpp_domain_name: "{{ hcv_domain }}"
-torture_github_token: replaceme
-torture_github_user: replaceme
 torture_longtest_duration: 350
 torture_longtest_only: true
