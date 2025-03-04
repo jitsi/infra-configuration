@@ -369,7 +369,7 @@ function wait_for_authenticated_user(event)
     end
 
     if not room.has_host then
-        if session.auth_token then
+        if session.auth_token or (session.jitsi_meet_tenant_mismatch and not is_vpaas(room)) then
             -- the host is here, let's drop the lobby
             room:set_members_only(false);
 
