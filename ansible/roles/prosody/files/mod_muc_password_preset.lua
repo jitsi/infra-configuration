@@ -359,17 +359,18 @@ function wait_for_authenticated_user(event)
         return;
     end
 
+    local is_vpaas_room = is_vpaas(room);
     local has_host = false;
     -- here we check for token available for any of the participants in the meeting
     for _, o in room:each_occupant() do
         local ses = prosody.full_sessions[o.jid]
-        if ses and ses.auth_token then
+        if ses and (ses.auth_token or (ses.jitsi_meet_tenant_mismatch and not is_vpaas_room)) then
             room.has_host = true;
         end
     end
 
     if not room.has_host then
-        if session.auth_token or (session.jitsi_meet_tenant_mismatch and not is_vpaas(room)) then
+        if session.auth_token or (session.jitsi_meet_tenant_mismatch and not is_vpaas_room) then
             -- the host is here, let's drop the lobby
             room:set_members_only(false);
 
