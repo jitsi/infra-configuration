@@ -2,9 +2,9 @@ local http = require "net.http";
 local json = require "cjson";
 local inspect = require('inspect');
 
-local um_is_admin = require 'core.usermanager'.is_admin;
 local util = module:require "util.internal";
 local oss_util = module:require "util";
+local is_admin = oss_util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local is_vpaas = oss_util.is_vpaas;
 local urlencode = require "util.http".urlencode;
@@ -23,10 +23,6 @@ local jaas_actuator_base_url
 module:log("info", "Loading mod_muc_permissions_vpaas!");
 
 local DEBUG = false;
-
-local function is_admin(jid)
-    return um_is_admin(jid);
-end
 
 local function update_features(session, disabled_features)
     if not session.jitsi_meet_context_features then

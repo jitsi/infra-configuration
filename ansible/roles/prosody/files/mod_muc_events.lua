@@ -1,6 +1,5 @@
 module:set_global();
 
-local um_is_admin = require "core.usermanager".is_admin;
 local jid = require "util.jid";
 local http = require "net.http";
 local json = require "cjson";
@@ -10,6 +9,7 @@ local uuid_gen = require "util.uuid".generate;
 local jwt = module:require "luajwtjitsi";
 local util = module:require "util.internal";
 local oss_util = module:require "util";
+local is_admin = oss_util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local is_jibri = oss_util.is_jibri;
 local is_vpaas = oss_util.is_vpaas;
@@ -60,10 +60,6 @@ local escaped_muc_domain_prefix = muc_domain_prefix:gsub("%p", "%%%1");
 -- (e.g. extract 'foo' from 'foo.muc.example.com')
 local target_subdomain_pattern
     = "^"..escaped_muc_domain_prefix..".([^%.]+)%."..escaped_muc_domain_base;
-
-local function is_admin(jid)
-    return um_is_admin(jid);
-end
 
 local function remove_from_cache(key)
     confCache:set(key, nil);

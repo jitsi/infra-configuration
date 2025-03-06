@@ -5,15 +5,11 @@ local uuid = require 'util.uuid'.generate;
 local json = require 'cjson.safe';
 
 local util = module:require 'util';
+local is_admin = util.is_admin;
 local get_focus_occupant = util.get_focus_occupant;
 local is_feature_allowed = util.is_feature_allowed;
 local is_healthcheck_room = util.is_healthcheck_room;
 local internal_room_jid_match_rewrite = util.internal_room_jid_match_rewrite;
-
-local um_is_admin = require 'core.usermanager'.is_admin;
-local function is_admin(jid)
-    return um_is_admin(jid, module.host);
-end
 
 local muc_domain_base = module:get_option_string('muc_mapper_domain_base');
 if not muc_domain_base then
