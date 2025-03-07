@@ -8,45 +8,5 @@
       return filter_list.indexOf(e) == -1;
     });
   }
-
-  // Function called when any of the critical index.html resources
-  // fail to load.
-  window.postLoadErrorHandler = function (fileRef) {
-    if (typeof config.hepopAnalyticsUrl !== 'string'
-        || typeof config.hepopAnalyticsEvent !== "object") {
-        // Nothing to be done here
-        return;
-    }
-    function responseHandler () {
-        console.log("HEPop analytics response:", this.responseText);
-    }
-    // Set required dynamic fields
-    var event = config.hepopAnalyticsEvent;
-    event.serverTime = new Date().getTime();
-
-    if (config) {
-        event.user = config.deploymentInfo;
-    } else {
-        event.user = {};
-    }
-    event.device_id=Math.random().toString(36).substring(2);
-
-    if (window.localStorage) {
-        event.user.callstats_name
-            = window.localStorage.callStatsUserName;
-    }
-
-    if (fileRef) {
-        event.user.reason = fileRef;
-    }
-    event.user.url = window.location.href;
-    event.user.conference_name = window.location.pathname.substr(1,window.location.pathname.length-1);
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("load", responseHandler);
-    xhttp.open("POST", config.hepopAnalyticsUrl, true);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send(JSON.stringify(event));
-  };
 }());
 </script>
