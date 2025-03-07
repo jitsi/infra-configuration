@@ -35,6 +35,9 @@ var config = {
 {% if jitsi_meet_token_sso %}
     sso: {{jitsi_meet_token_sso}},
 {% endif %}
+{% if jitsi_meet_token_match_tenant %}
+    tokenRespectTenant: true,
+{% endif %}
 
     bridgeChannel: {
         preferSctp: {{ jitsi_meet_prefer_sctp | to_json }},
