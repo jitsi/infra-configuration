@@ -160,20 +160,8 @@ jitsi_meet_environment_type: dev
 jitsi_meet_feedback_percentage: 100
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
-jitsi_meet_google_analytics_flag: false
-jitsi_meet_google_analytics_hep_flag: false
-jitsi_meet_google_analytics_hep_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
-  /libs/analytics-hep.js'] }}"
-jitsi_meet_google_analytics_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
-  /libs/analytics-ga.min.js'] }}"
-jitsi_meet_google_analytics_tracking_id: ""
 jitsi_meet_google_api_app_client_id: false
 jitsi_meet_haproxy_bind_port: 9092
-jitsi_meet_hepop_analytics_url: ""
-jitsi_meet_hepop_analytics_urls_by_environment_type:
-  dev: https://hepop-dev.jitsi.net/
-  prod: https://hepop.jitsi.net/
-  stage: https://hepop-pilot.jitsi.net/
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
 jitsi_meet_jvb_preferred_codecs: "[ 'AV1', 'VP9', 'VP8', 'H264' ]"
