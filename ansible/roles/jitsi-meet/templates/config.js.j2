@@ -81,23 +81,6 @@ var config = {
     {% if jitsi_meet_rtcstats_log_sdp %}
         rtcstatsSendSdp: true,
     {% endif %}
-    {% if jitsi_meet_google_analytics_flag or jitsi_meet_google_analytics_hep_flag %}
-        scriptURLs: [
-        {% if jitsi_meet_google_analytics_flag %}
-            {% for url in jitsi_meet_google_analytics_script_urls %}
-            "{{ url }}",
-            {% endfor %}
-        {% endif %}
-        {% if jitsi_meet_google_analytics_hep_flag %}
-            {% for url in jitsi_meet_google_analytics_hep_script_urls %}
-            "{{ url }}",
-            {% endfor %}
-        {% endif %}
-        ],
-    {% endif %}
-    {% if jitsi_meet_google_analytics_flag %}
-        googleAnalyticsTrackingId: "{{ jitsi_meet_google_analytics_tracking_id }}",
-    {% endif %}
     {% if jitsi_meet_analytics_whitelist %}
         whiteListedEvents: {{ jitsi_meet_analytics_whitelist }},
     {% endif %}
@@ -429,21 +412,6 @@ whiteboard: {
     toolbarConfig: {
         timeout: 4000,
         initialTimeout: 20000
-    },
-    hepopAnalyticsUrl: "{{ jitsi_meet_hepop_analytics_url }}",
-    hepopAnalyticsEvent: {
-        product: "lib-jitsi-meet",
-        subproduct: "{{ hcv_environment }}",
-        name: "jitsi.page.load.failed",
-        action: "page.load.failed",
-        actionSubject: "page.load",
-        type: "page.load.failed",
-        source: "page.load",
-        attributes: {
-            type: "operational",
-            source: 'page.load'
-        },
-        server: "{{ jitsi_meet_xmpp_domain_name }}"
     },
     deploymentInfo: {
         environment: '{{ hcv_environment }}',
