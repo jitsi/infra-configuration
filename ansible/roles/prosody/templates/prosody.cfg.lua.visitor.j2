@@ -139,7 +139,7 @@ c2s_stanza_size_limit = {{ prosody_c2s_stanza_size_limit }};
 {% endif %}
 
 {% if prosody_mod_limits_rate %}
-unlimited_jids = { "focus@{{ prosody_auth_domain_name }}" }
+unlimited_jids = { "focus@auth.meet.jitsi" }
 limits = {
     c2s = {
         rate = "{{ prosody_mod_limits_rate }}";
