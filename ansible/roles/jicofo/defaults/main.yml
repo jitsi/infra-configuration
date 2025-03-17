@@ -22,8 +22,8 @@ jicofo_enable_ice_failure_detection: true
 jicofo_enable_octo: true
 jicofo_enable_opus_red: false
 # This needs to be kept in sync with jvb_enable_sctp
-jicofo_enable_sctp: false
-jicofo_enable_sctp_relay: false
+jicofo_enable_sctp: true
+jicofo_enable_sctp_relay: true
 jicofo_enable_source_signaling_delay: true
 # Enable additional logs for source-add, source-remove.
 jicofo_enable_ssrc_logs: false
