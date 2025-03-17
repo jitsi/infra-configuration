@@ -47,8 +47,8 @@ jvb_enable_octo: true
 jvb_enable_pcap: false
 jvb_enable_route_loudest_logs: false
 # This needs to be kept in sync with jicofo_enable_sctp
-jvb_enable_sctp: false
-jvb_enable_sctp_debug_logs: false
+jvb_enable_sctp: true
+jvb_enable_sctp_debug_logs: true
 jvb_enable_silence_detection: false
 jvb_enable_stats_cron: true
 jvb_enable_stats_filter: true
@@ -212,7 +212,7 @@ jvb_udp_buffer_size: 104857600
 jvb_ufrag_prefix: "{{ jvb_component_id }}"
 jvb_upgrade_flag: false
 jvb_use_cpu_for_stress: true
-jvb_use_dcsctp: false
+jvb_use_dcsctp: true
 jvb_use_public_ip: false
 jvb_use_vla_target_bitrate: false
 jvb_username: jvb
