@@ -391,6 +391,8 @@ token_verification_allowlist = { "recorder.{{ prosody_domain_name }}" }
 
 plugin_paths = { "{{ prosody_plugins_path }}/" }
 
+component_admins_as_room_owners = true -- make admins owners of all rooms
+
 ----------- Virtual hosts -----------
 VirtualHost "{{ prosody_domain_name }}"
         -- enabled = false -- Remove this line to enable this host
