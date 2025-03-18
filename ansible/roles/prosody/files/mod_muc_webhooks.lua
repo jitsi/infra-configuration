@@ -556,7 +556,7 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
             payload.flip = false;
         end
 
-        if not payload.name and pre_join_screen_name and occupant_nick then
+        if not payload.name and occupant_nick then
             payload.name = occupant_nick:get_text();
         end
     elseif final_event_type == PARTICIPANT_LEFT then
@@ -567,7 +567,7 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
         else
             payload.flip = false;
         end
-        if not payload.name and pre_join_screen_name and occupant_nick then
+        if not payload.name and occupant_nick then
             payload.name = occupant_nick:get_text();
         end
     end
