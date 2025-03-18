@@ -7,12 +7,12 @@ local http = require "net.http";
 local json = require "cjson";
 local jid_bare = require 'util.jid'.bare;
 local jid_split = require 'util.jid'.split;
-local um_is_admin = require "core.usermanager".is_admin;
 local st = require 'util.stanza';
 local timer = require "util.timer";
 local split_jid = require "util.jid".split;
 
 local oss_util = module:require "util";
+local is_admin = oss_util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local get_room_from_jid = oss_util.get_room_from_jid;
 local internal_room_jid_match_rewrite = oss_util.internal_room_jid_match_rewrite;
@@ -21,10 +21,6 @@ local is_vpaas = oss_util.is_vpaas;
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
 local SETTINGS_PROVISIONING_CHECK_AFTER_SECONDS = 1;
-
-local function is_admin(jid)
-    return um_is_admin(jid, module.host);
-end
 
 local JAAS_PREFIX = "vpaas-magic-cookie-"
 local EGRESS_URL = module:get_option_string("muc_prosody_egress_url", "http://127.0.0.1:8062/v1/events");
