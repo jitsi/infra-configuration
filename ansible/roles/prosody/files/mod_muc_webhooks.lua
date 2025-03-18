@@ -513,11 +513,8 @@ function handle_occupant_access(event, event_type)
         end
     end
 
-    -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
-    decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
-
-    -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add name field from nicks in data payload if missing
-    add_participant_name_if_missing(payload, occupant.nick, main_room, final_event_type);
+    -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload and add name field from nicks in data payload if missing
+    decorate_payload_flip_and_name(payload, occupant.nick, main_room, final_event_type);
 
     if DEBUG then module:log("debug", "Participant event %s", inspect(participant_access_event)); end
 
@@ -549,7 +546,7 @@ function handle_occupant_access(event, event_type)
     end
 end
 
-function decorate_payload_with_flip(payload, occupant_nick, main_room, final_event_type)
+function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final_event_type)
     if final_event_type == PARTICIPANT_JOINED then
         local flip_participant_nick = main_room._data and main_room._data.flip_participant_nick
         if occupant_nick and flip_participant_nick and flip_participant_nick == occupant_nick then
@@ -557,6 +554,12 @@ function decorate_payload_with_flip(payload, occupant_nick, main_room, final_eve
             payload.flip = true;
         else
             payload.flip = false;
+        end
+
+        local pre_join_screen_name = occupant_nick:get_text()
+        if not payload.name and pre_join_screen_name then
+            module:log("info", "Decorate participant joined event with name for occupant nick %s", pre_join_screen_name)
+            payload.name = pre_join_screen_name;
         end
     elseif final_event_type == PARTICIPANT_LEFT then
         local kicked_participant_nick = main_room._data and main_room._data.kicked_participant_nick
@@ -566,17 +569,7 @@ function decorate_payload_with_flip(payload, occupant_nick, main_room, final_eve
         else
             payload.flip = false;
         end
-    end
-end
 
-function add_participant_name_if_missing(payload, occupant_nick, final_event_type)
-    if final_event_type == PARTICIPANT_JOINED then
-        local pre_join_screen_name = occupant_nick:get_text()
-        if not payload.name and pre_join_screen_name then
-            module:log("info", "Decorate participant joined event with name for occupant nick %s", pre_join_screen_name)
-            payload.name = pre_join_screen_name;
-        end
-    elseif final_event_type == PARTICIPANT_LEFT then
         local pre_join_screen_name = occupant_nick:get_text()
         if not payload.name and pre_join_screen_name then
             module:log("info", "Decorate participant left event with name for occupant nick %s", pre_join_screen_name)
