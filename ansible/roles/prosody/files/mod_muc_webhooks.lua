@@ -552,9 +552,8 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
             payload.flip = false;
         end
 
-        local pre_join_screen_name = occupant_nick:get_text()
-        if not payload.name and pre_join_screen_name then
-            payload.name = pre_join_screen_name;
+        if not payload.name and occupant_nick then
+            payload.name = occupant_nick:get_text();
         end
     elseif final_event_type == PARTICIPANT_LEFT then
         local kicked_participant_nick = main_room._data and main_room._data.kicked_participant_nick
@@ -564,10 +563,8 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
         else
             payload.flip = false;
         end
-
-        local pre_join_screen_name = occupant_nick:get_text()
-        if not payload.name and pre_join_screen_name then
-            payload.name = pre_join_screen_name;
+        if not payload.name and occupant_nick then
+            payload.name = occupant_nick:get_text();
         end
     end
 end
