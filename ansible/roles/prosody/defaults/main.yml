@@ -261,7 +261,7 @@ prosody_use_lua_54: true
 prosody_url_version: 0.12.5
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax
-prosody_version: 0.12.*
+prosody_version: 13.*
 # shell command to extract installed prosody version string from dpkg
 prosody_version_shell: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
 prosody_visitors_enabled: "{{ visitors_enabled | default(false) }}"
