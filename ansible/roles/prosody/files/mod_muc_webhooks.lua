@@ -558,7 +558,6 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
 
         local pre_join_screen_name = occupant_nick:get_text()
         if not payload.name and pre_join_screen_name then
-            module:log("info", "Decorate participant joined event with name for occupant nick %s", pre_join_screen_name)
             payload.name = pre_join_screen_name;
         end
     elseif final_event_type == PARTICIPANT_LEFT then
@@ -572,7 +571,6 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
 
         local pre_join_screen_name = occupant_nick:get_text()
         if not payload.name and pre_join_screen_name then
-            module:log("info", "Decorate participant left event with name for occupant nick %s", pre_join_screen_name)
             payload.name = pre_join_screen_name;
         end
     end
