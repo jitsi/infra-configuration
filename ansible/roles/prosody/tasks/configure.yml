@@ -247,36 +247,6 @@
   when: prosody_jvb_configure_flag
   notify: Reload prosody JVB
 
-# now trigger all notification handlers
-- name: Ensure handlers are notified now to reload prosody if configuration changed
-  ansible.builtin.meta: flush_handlers
-
-- name: Register focus prosody user
-  ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
-  args:
-    stdin: "{{ prosody_focus_secret }}\n{{ prosody_focus_secret }}"
-    creates: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/focus.dat"
-  when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"
-
-- name: Check whether module mod_roster_command exists
-  ansible.builtin.stat:
-    path: "{{ prosody_plugins_path }}/mod_roster_command.lua"
-  register: stat_mod_roster_command
-
-- name: Add client_proxy to jicofo's roster
-  ansible.builtin.command: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
-  when:
-    - prosody_enable_client_proxy
-    - stat_mod_roster_command.stat.exists
-
-- name: Register focus prosody-jvb user
-  ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "focus@{{ prosody_jvb_auth_domain_name }}"
-  args:
-    stdin: "{{ prosody_focus_jvb_secret }}\n{{ prosody_focus_jvb_secret }}"
-    creates: "/var/lib/prosody-jvb/auth%2ejvb%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/focus.dat"
-  when: prosody_jvb_configure_flag and prosody_focus_jvb_secret is defined and prosody_focus_jvb_secret and prosody_focus_jvb_secret != "replaceme"
-
 - name: Install muc presence filter pfw rule
   ansible.builtin.template:
     src: "jvb_muc_presence_filter.pfw.j2"
@@ -342,14 +312,6 @@
 - name: Install systemd daemon-reload for prosody accounting for visitors
   ansible.builtin.systemd:
     daemon_reload: true
-
-- name: Add jicofo user for visitors
-  ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua adduser focus@auth.meet.jitsi
-  args:
-    stdin: "{{ prosody_focus_visitor_secret }}\n{{ prosody_focus_visitor_secret }}"
-    creates: "/var/lib/prosody-v{{ item }}/auth%2emeet%2ejitsi/accounts/focus.dat"
-  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
-  when: prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
 
 - name: Copy over the plugin for muc event reporting
   ansible.builtin.copy:
@@ -510,3 +472,37 @@
     hour: "*"
     job: "/usr/local/bin/prosody-health-check.sh > /tmp/prosody-health-cron-output 2>&1"
   when: prosody_enable_health_check_cron
+
+- name: Register focus prosody user
+  ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
+  args:
+    stdin: "{{ prosody_focus_secret }}\n{{ prosody_focus_secret }}"
+    creates: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/focus.dat"
+  when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"
+
+- name: Check whether module mod_roster_command exists
+  ansible.builtin.stat:
+    path: "{{ prosody_plugins_path }}/mod_roster_command.lua"
+  register: stat_mod_roster_command
+
+- name: Add client_proxy to jicofo's roster
+  ansible.builtin.command: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
+  when:
+    - prosody_enable_client_proxy
+    - stat_mod_roster_command.stat.exists
+
+- name: Register focus prosody-jvb user
+  ansible.builtin.command: |
+    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua adduser "focus@{{ prosody_jvb_auth_domain_name }}"
+  args:
+    stdin: "{{ prosody_focus_jvb_secret }}\n{{ prosody_focus_jvb_secret }}"
+    creates: "/var/lib/prosody-jvb/auth%2ejvb%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/accounts/focus.dat"
+  when: prosody_jvb_configure_flag and prosody_focus_jvb_secret is defined and prosody_focus_jvb_secret and prosody_focus_jvb_secret != "replaceme"
+
+- name: Add jicofo user for visitors
+  ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua adduser focus@auth.meet.jitsi
+  args:
+    stdin: "{{ prosody_focus_visitor_secret }}\n{{ prosody_focus_visitor_secret }}"
+    creates: "/var/lib/prosody-v{{ item }}/auth%2emeet%2ejitsi/accounts/focus.dat"
+  loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
+  when: prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
