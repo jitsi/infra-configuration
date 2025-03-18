@@ -247,6 +247,10 @@
   when: prosody_jvb_configure_flag
   notify: Reload prosody JVB
 
+# now trigger all notification handlers
+- name: Ensure handlers are notified now to reload prosody if configuration changed
+  ansible.builtin.meta: flush_handlers
+
 - name: Register focus prosody user
   ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
   args:
