@@ -241,7 +241,6 @@
 
   roles:
   # initial system pre-requisites
-    - { role: "standalone-debconf", tags: "standalone-debconf" }
     - { role: "vault", tags: "vault", vault_install_flag: true, vault_configure_flag: true, vault_agent_startup: true }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     # - { role: "carbon-black", tags: "carbon-black" }
@@ -293,6 +292,7 @@
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "prosody-egress", tags: "prosody-egress" }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
+    - { role: "standalone-debconf", tags: "standalone-debconf" }
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ environment_domain_name }}"
