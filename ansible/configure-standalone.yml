@@ -241,6 +241,7 @@
 
   roles:
   # initial system pre-requisites
+    - { role: "standalone-debconf", tags: "standalone-debconf" }
     - { role: "vault", tags: "vault", vault_install_flag: true, vault_configure_flag: true, vault_agent_startup: true }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
     # - { role: "carbon-black", tags: "carbon-black" }
