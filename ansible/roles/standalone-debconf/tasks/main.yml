@@ -47,7 +47,7 @@
     question: "jitsi-videobridge/jvbsecret"
     vtype: "password"
     value: "{{ jvb_auth_password }}"
-
+  no_log: true
 
 - name: Set jicofo debconf selections
   ansible.builtin.debconf:
@@ -55,6 +55,7 @@
     question: "jicofo/jicofo-authpassword"
     vtype: "password"
     value: "{{ jicofo_auth_password }}"
+  no_log: true
 
 - name: Make prosody conf.avail directory if not present
   ansible.builtin.file:
