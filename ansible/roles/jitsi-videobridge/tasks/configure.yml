@@ -247,25 +247,6 @@
     mode: 0755
   when: jvb_cloud_provider == "oracle"
 
-- name: Allow JVB stats user in cron
-  ansible.builtin.lineinfile:
-    mode: 0644
-    path: /etc/cron.allow
-    regexp: "^{{ jvb_stats_cron_user }}"
-    line: "{{ jvb_stats_cron_user }}"
-    create: true
-  when: jvb_enable_stats_cron
-
-# Run the the health checker regularly
-- name: JVB stats script cron
-  ansible.builtin.cron:
-    user: "{{ jvb_stats_cron_user }}"
-    state: present
-    name: "JVB stats script"
-    minute: "{{ jvb_stats_cron.minute }}"
-    hour: "{{ jvb_stats_cron.hour }}"
-    job: "{{ jvb_stats_cron.job }}"
-  when: jvb_enable_stats_cron
 
 # add a health checker script to upload health stats to CloudWatch
 - name: JVB health check script upload
