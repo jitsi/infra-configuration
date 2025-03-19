@@ -199,11 +199,6 @@ jvb_single_harvester_port: 10000
 jvb_skip_authentication_for_silence: false
 jvb_ssrc_limit_audio: 50
 jvb_ssrc_limit_video: 50
-jvb_stats_cron:
-  hour: "*"
-  job: "{{ path_to_stats_script }} > /tmp/stats-cron-output 2>&1"
-  minute: "*"
-jvb_stats_cron_user: jvb
 jvb_stun_mapping_enabled: true
 jvb_systemd_service_name: "jitsi-videobridge2"
 jvb_udp_buffer_max_backlog: 100000
