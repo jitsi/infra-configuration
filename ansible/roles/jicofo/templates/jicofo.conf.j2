@@ -55,6 +55,9 @@ jicofo {
         min-endpoints = {{ jicofo_ice_failure_detection_min_endpoints }}
         threshold = {{ jicofo_ice_failure_detection_threshold }}
     }
+    load-redistribution {
+        enabled = {{ jicofo_enable_load_redistribution }}
+    }
   }
   codec {
     rtp-extensions {
