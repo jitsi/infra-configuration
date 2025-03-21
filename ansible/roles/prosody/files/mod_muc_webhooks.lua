@@ -512,6 +512,14 @@ function handle_occupant_access(event, event_type)
     -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
     decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
 
+    if not payload.name and stanza
+        and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT) then
+        local nick = stanza:get_child('nick', NICK_NS);
+        if nick then
+            payload.name = nick:get_text();
+        end
+    end
+
     if DEBUG then module:log("debug", "Participant event %s", inspect(participant_access_event)); end
 
     event_count();
