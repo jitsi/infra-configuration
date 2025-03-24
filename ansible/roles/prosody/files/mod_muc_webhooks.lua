@@ -509,8 +509,16 @@ function handle_occupant_access(event, event_type)
         end
     end
 
-    -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload and add name field from nicks in data payload if missing
-    decorate_payload_flip_and_name(payload, occupant.nick, main_room, final_event_type);
+    -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
+    decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
+
+    if not payload.name and stanza
+        and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT) then
+        local nick = stanza:get_child('nick', NICK_NS);
+        if nick then
+            payload.name = nick:get_text();
+        end
+    end
 
     if DEBUG then module:log("debug", "Participant event %s", inspect(participant_access_event)); end
 
@@ -542,7 +550,7 @@ function handle_occupant_access(event, event_type)
     end
 end
 
-function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final_event_type)
+function decorate_payload_with_flip(payload, occupant_nick, main_room, final_event_type)
     if final_event_type == PARTICIPANT_JOINED then
         local flip_participant_nick = main_room._data and main_room._data.flip_participant_nick
         if occupant_nick and flip_participant_nick and flip_participant_nick == occupant_nick then
@@ -551,10 +559,6 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
         else
             payload.flip = false;
         end
-
-        if not payload.name and occupant_nick then
-            payload.name = occupant_nick:get_text();
-        end
     elseif final_event_type == PARTICIPANT_LEFT then
         local kicked_participant_nick = main_room._data and main_room._data.kicked_participant_nick
         if occupant_nick and kicked_participant_nick and kicked_participant_nick == occupant_nick then
@@ -562,9 +566,6 @@ function decorate_payload_flip_and_name(payload, occupant_nick, main_room, final
             payload.flip = true;
         else
             payload.flip = false;
-        end
-        if not payload.name and occupant_nick then
-            payload.name = occupant_nick:get_text();
         end
     end
 end
@@ -585,7 +586,6 @@ function handle_broadcast_presence(event)
         end
     end
 end
-
 
 local function handle_room_media_type_on_destroyed_event(event)
     local room = event.room;
