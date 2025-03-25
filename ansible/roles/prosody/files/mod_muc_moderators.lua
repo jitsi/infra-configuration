@@ -7,6 +7,7 @@ local oss_util = module:require "util";
 local is_admin = oss_util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local presence_check_status = oss_util.presence_check_status;
+local room_jid_match_rewrite = oss_util.room_jid_match_rewrite;
 local is_vpaas = oss_util.is_vpaas;
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
@@ -337,7 +338,7 @@ function filter_stanza(stanza)
     end
 
     -- we want to filter presences only on this host for allowners and skip anything like lobby etc.
-    local host_from = jid_host(stanza.attr.from);
+    local host_from = jid_host(room_jid_match_rewrite(stanza.attr.from));
     if host_from ~= module.host then
         return stanza;
     end
