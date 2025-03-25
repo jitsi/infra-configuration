@@ -5,11 +5,10 @@ local inspect = require('inspect');
 local socket = require "socket";
 local http = require "net.http";
 local json = require "cjson";
-local jid_bare = require 'util.jid'.bare;
-local jid_split = require 'util.jid'.split;
+local jid = require 'util.jid';
 local st = require 'util.stanza';
 local timer = require "util.timer";
-local split_jid = require "util.jid".split;
+local cache = require 'util.cache';
 
 local oss_util = module:require "util";
 local is_admin = oss_util.is_admin;
@@ -84,6 +83,25 @@ local DEBUG = false;
 -- List of the bare_jids of all moderator occupants (owners in main room) present in the lobby room.
 -- Will be removed as they leave.
 local moderator_occupants_in_lobby = {};
+
+local function load_from_room_cache(key, room)
+    if not room.jitsi_wh_cache then
+        return {};
+    end
+    return room.jitsi_wh_cache:get(key) or {};
+end
+
+local function onConfCacheEvict(evictedKey, evictedValue)
+    module:log("error", "Unexpected conference cache evict, this could lead to errors! For key %s, and value %s", evictedKey, evictedValue);
+end
+
+local function store_in_room_cache(key, room, details)
+    if not room.jitsi_wh_cache then
+        -- create the cache 2 times the max number of users
+        room.jitsi_wh_cache = cache.new(500*2, onConfCacheEvict)
+    end
+    room.jitsi_wh_cache:set(key, details);
+end
 
 local function cb_retry(content_, code_, _, request_)
     if code_ == 200 or code_ == 204 then
@@ -238,7 +256,7 @@ function handle_occupant_access(event, event_type)
     local breakout_room_id;
     if is_breakout then
         main_room = get_main_room(room);
-        breakout_room_id = jid_split(room.jid);
+        breakout_room_id = jid.split(room.jid);
     end
     if is_lobby then
         main_room = room.main_room;
@@ -258,7 +276,7 @@ function handle_occupant_access(event, event_type)
             occupant.jid, room.jid, is_breakout, main_room.jid);
     end
     local meeting_fqn, customer_id = util.get_fqn_and_customer_id(main_room);
-    local _, _, nick_resource = split_jid(occupant.nick);
+    local nick_resource = jid.resource(occupant.nick);
     local session = event.origin;
     local payload = {};
 
@@ -517,6 +535,9 @@ function handle_occupant_access(event, event_type)
         local nick = stanza:get_child('nick', NICK_NS);
         if nick then
             payload.name = nick:get_text();
+            store_in_room_cache(nick_resource, room, { name = payload.name });
+        else
+            payload.name = load_from_room_cache(nick_resource, room).name;
         end
     end
 
@@ -574,15 +595,25 @@ function handle_broadcast_presence(event)
     local room = event.room;
     local stanza = event.stanza;
 
+    if is_healthcheck_room(room.jid) then
+        return;
+    end
+
     -- sip participant will send at least 2 presence events on each join
     -- one for the first join, containing basic info
     -- and another one shortly after, containing additional info, such as the participant's sip_address
     -- multiple other presence updates can be sent apart from the 2 mandatory presences
     -- we process only the first presence containing the sip address
-    if not is_healthcheck_room(room.jid) and oss_util.is_sip_jibri_join(stanza) then
+    if oss_util.is_sip_jibri_join(stanza) then
         local sip_address = stanza:get_child_text('sip_address');
         if sip_address then
             handle_occupant_access(event, PARTICIPANT_JOINED)
+        end
+    else
+        local nick = stanza:get_child('nick', NICK_NS);
+        if nick then
+            local nick_resource = jid.resource(event.occupant.nick);
+            store_in_room_cache(nick_resource, room, { name = nick:get_text(); });
         end
     end
 end
@@ -611,7 +642,7 @@ function handle_room_event(event, event_type)
     local breakout_room_id;
     if is_breakout then
         main_room = get_main_room(room);
-        breakout_room_id = jid_split(room.jid);
+        breakout_room_id = jid.split(room.jid);
     end
 
     if  is_lobby then
@@ -665,7 +696,7 @@ function handle_jibri_event(event)
             if not jibri.attr.action then
                 return
             end
-            local node, _ = jid_split(jid_bare(event.stanza.attr.to));
+            local node = jid.node(event.stanza.attr.to);
             local room_jid = node .. '@' .. module.host;
             local room = get_room_from_jid(room_jid)
             -- determine the event type: recording or live stream start or end
@@ -706,13 +737,13 @@ function handle_poll_created(pollData)
     local breakout_room_id;
     if is_breakout then
         main_room = get_main_room(pollData.room);
-        breakout_room_id = jid_split(pollData.room.jid);
+        breakout_room_id = jid.split(pollData.room.jid);
     end
 
     local sessionId = main_room._data.meetingId;
     local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room);
 
-    local who = pollData.room:get_occupant_by_nick(jid_bare(pollData.room.jid) .. "/" .. pollData.poll.senderId);
+    local who = pollData.room:get_occupant_by_nick(jid.bare(pollData.room.jid) .. "/" .. pollData.poll.senderId);
     local user = util.extract_occupant_identity_user(who)
 
     local eventData = {
@@ -753,13 +784,13 @@ function handle_poll_answered(answerData)
     local breakout_room_id;
     if is_breakout then
         main_room = get_main_room(answerData.room);
-        breakout_room_id = jid_split(answerData.room.jid);
+        breakout_room_id = jid.split(answerData.room.jid);
     end
 
     local sessionId = main_room._data.meetingId;
     local meetingFqn, customerId = util.get_fqn_and_customer_id(main_room);
 
-    local who = answerData.room:get_occupant_by_nick(jid_bare(answerData.room.jid) .. "/" .. answerData.voterId);
+    local who = answerData.room:get_occupant_by_nick(jid.bare(answerData.room.jid) .. "/" .. answerData.voterId);
     local user = util.extract_occupant_identity_user(who)
 
     local eventData = {
@@ -878,12 +909,12 @@ local function occupant_affiliation_changed(event)
         local eventData = {
             grantedBy = {
                 participantJid = granted_by_occupant.jid,
-                participantId = select(3, split_jid(granted_by_occupant.nick)),
+                participantId = select(3, jid.split(granted_by_occupant.nick)),
                 id = util.extract_occupant_identity_user(granted_by_occupant)['id']
             },
             grantedTo = {
                 participantJid = granted_to_occupant.jid,
-                participantId = select(3, split_jid(granted_to_occupant.nick)),
+                participantId = select(3, jid.split(granted_to_occupant.nick)),
                 id = util.extract_occupant_identity_user(granted_to_occupant)['id']
             },
             role = granted_to_occupant.role
@@ -917,7 +948,7 @@ local function handle_subject_changed(event, new_subject)
 
     local breakout_room_id;
     if is_breakout then
-        breakout_room_id = jid_split(room.jid);
+        breakout_room_id = jid.split(room.jid);
     end
 
     local who = room:get_occupant_by_nick(event.stanza.attr.from);
