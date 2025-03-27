@@ -530,14 +530,16 @@ function handle_occupant_access(event, event_type)
     -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
     decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
 
-    if not payload.name and stanza
-        and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT) then
-        local nick = stanza:get_child('nick', NICK_NS);
-        if nick then
-            payload.name = nick:get_text();
-            store_in_room_cache(nick_resource, room, { name = payload.name });
-        else
-            payload.name = load_from_room_cache(nick_resource, room).name;
+    if not payload.name and (final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT) then
+        -- if something is stored used that as stanza (kick) may not be available
+        payload.name = load_from_room_cache(nick_resource, room).name;
+
+        if stanza then
+            local nick = stanza:get_child('nick', NICK_NS);
+            if nick then
+                payload.name = nick:get_text();
+                store_in_room_cache(nick_resource, room, { name = payload.name });
+            end
         end
     end
 
