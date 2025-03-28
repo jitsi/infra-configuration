@@ -19,7 +19,7 @@ sudo extrepo enable prosody
 sudo apt update
 
 [ -n "$FORCE_PROSODY_VERSION" ] && PROSODY_VERSION=$FORCE_PROSODY_VERSION
-[ -z "$PROSODY_VERSION" ] && export PROSODY_VERSION=$(apt-cache madison prosody | awk '{print $3;}' | head -1 |  cut -d'-' -f1)
+[ -z "$PROSODY_VERSION" ] && export PROSODY_VERSION=$(apt-cache madison prosody-0.12 | awk '{print $3;}' | head -1 |  cut -d'-' -f1)
 
 # find meta version
 [ -z "$JITSI_MEET_META_VERSION" ] && JITSI_MEET_META_VERSION=$(apt-cache madison jitsi-meet | awk '{print $3;}' | head -1 |  cut -d'-' -f1)
