@@ -4,6 +4,7 @@ local urlencode = require "util.http".urlencode;
 local json = require "cjson.safe";
 local async_handler_wrapper = module:require "util".async_handler_wrapper;
 local jid = require "util.jid";
+local set = require 'util.set';
 local timer = require "util.timer";
 local http = require "net.http";
 local inspect = require "inspect";
@@ -222,7 +223,12 @@ local function queryForPassword(room)
         -- create lobby and set moderator
         if code_ == 200 then
             if DEBUG then module:log("debug","Receive conference info response %s",inspect(conference_res)) end
+
             room._data.moderator_id = conference_res.moderatorId;
+            room._data.moderationType = conference_res.moderationType;
+            room._data.allModerators = conference_res.moderationType == 'ALL_MEMBERS';
+            room._data.moderators = conference_res.moderationUsers;
+
             room._data.starts_with_lobby = conference_res.lobbyEnabled or false;
             room._data.max_occupants = conference_res.maxOccupants;
             room._data.auto_video_recording = conference_res.autoVideoRecording or false;
