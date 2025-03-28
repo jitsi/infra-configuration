@@ -18,7 +18,6 @@ sudo apt -y install extrepo
 sudo extrepo enable prosody
 sudo apt update
 
-[ -n "$FORCE_PROSODY_VERSION" ] && PROSODY_VERSION=$FORCE_PROSODY_VERSION
 [ -z "$PROSODY_VERSION" ] && export PROSODY_VERSION=$(apt-cache madison prosody-0.12 | awk '{print $3;}' | head -1 |  cut -d'-' -f1)
 
 # find meta version
