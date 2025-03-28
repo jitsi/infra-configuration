@@ -8,6 +8,7 @@ local is_admin = oss_util.is_admin;
 local is_healthcheck_room = oss_util.is_healthcheck_room;
 local presence_check_status = oss_util.presence_check_status;
 local room_jid_match_rewrite = oss_util.room_jid_match_rewrite;
+local table_find = oss_util.table_find;
 local is_vpaas = oss_util.is_vpaas;
 local MUC_NS = 'http://jabber.org/protocol/muc';
 
@@ -30,14 +31,11 @@ local DEBUG = false;
 
 -- Set affiliation as owner and role
 -- as moderator for a participant
-local function make_occupant_moderator(event, single_moderator, user_id)
+local function make_occupant_moderator(event, user_id)
     local occupant_jid = event.stanza.attr.from;
     local room = event.room;
     local affiliation, role = "owner", "moderator";
 
-    if single_moderator then
-        module:log("info", "Single moderator jid: %s user_id: %s for room: %s ", occupant_jid, user_id, room.jid)
-    end
     if DEBUG then
         module:log("debug",
             "Set affiliation: %s and role: %s for participant jid = %s from room jid = %s  ",
@@ -45,7 +43,7 @@ local function make_occupant_moderator(event, single_moderator, user_id)
     end
     room:set_affiliation(true, jid_bare(occupant_jid), affiliation)
     event.occupant.role = role;
-    event.room:save_occupant(event.occupant);
+    room:save_occupant(event.occupant);
 end
 
 -- Check whether an occupant will be promoted to moderator
@@ -53,7 +51,8 @@ end
 -- we just mark it by adding the bare_jid into joining_moderator_participants
 -- @param event - the muc event.
 local function check_for_moderator_rights(event)
-    local room_jid = event.room.jid;
+    local room = event.room;
+    local room_jid = room.jid;
 
     if is_healthcheck_room(room_jid) then
         return;
@@ -78,7 +77,7 @@ local function check_for_moderator_rights(event)
         return ;
     end
     if DEBUG then module:log("debug", "Occupant %s has identity = %s", occupant.bare_jid, inspect(identity)); end
-    if is_vpaas(event.room) then
+    if is_vpaas(room) then
         identity.is_vpaas = true;
 
         -- for VPaaS moderation is enabled per user using the moderator claim from jwt
@@ -89,7 +88,7 @@ local function check_for_moderator_rights(event)
         else
             if DEBUG then module:log("debug", "User with id %s is not moderator for vpaas room", identity.id); end
         end
-    elseif event.room._data.moderator_id == nil then
+    elseif room._data.moderator_id == nil and (room._data.moderationType == nil or room._data.allModerators) then
         -- only for non '/' tenants where url tenant is not matching the token tenant
         if session.jitsi_meet_tenant_mismatch and session.jitsi_web_query_prefix ~= '' then
             util.clear_auth(session);
@@ -100,8 +99,12 @@ local function check_for_moderator_rights(event)
     else
         -- Check if the occupant is moderator
         -- using moderator_id attribute set in the muc_password_preset plugin
-        if identity.id == event.room._data.moderator_id or identity.group == event.room._data.moderator_id then
-            identity.single_moderator = identity.id == event.room._data.moderator_id;
+        if identity.id == room._data.moderator_id or identity.group == room._data.moderator_id then
+            if identity.id == room._data.moderator_id then
+                module:log("info", "Single moderator jid: %s user_id: %s for room: %s ", occupant_jid, user_id, room.jid)
+            end
+            joining_moderator_participants[occupant.bare_jid] = identity;
+        elseif table_find(room._data.moderators, identity.id) then
             joining_moderator_participants[occupant.bare_jid] = identity;
         end
     end
@@ -123,7 +126,7 @@ local function handle_occupant_join(event)
     -- clear it
     joining_moderator_participants[occupant.bare_jid] = nil;
 
-    make_occupant_moderator(event, promote_to_moderator_identity.single_moderator, promote_to_moderator_identity.id);
+    make_occupant_moderator(event, promote_to_moderator_identity.id);
 
     if promote_to_moderator_identity.is_vpaas then
         local room = event.room
@@ -173,7 +176,7 @@ module:hook("muc-occupant-pre-join", function(event)
         if DEBUG then module:log("debug", "Set moderator on occupant-pre-join because meeting starts with lobby"); end
         handle_occupant_join(event);
     end
-end,2);
+end, 2);
 
 module:hook("muc-occupant-joined", function(event)
     local room, occupant = event.room, event.occupant;
@@ -207,11 +210,11 @@ module:hook("muc-occupant-left", function(event)
     if has_persistent_lobby and not room:has_occupant() and room._data.lobbyroom ~= nil then
         local lobby_room_obj = lobby_muc_service.get_room_from_jid(room._data.lobbyroom);
         if lobby_room_obj and not lobby_room_obj:has_occupant() then
-            if event.room._data.room_destroyed_triggered == nil then
+            if room._data.room_destroyed_triggered == nil then
                 -- this will be triggered when there are only non-moderators in the main room and jicofo,
                 -- the persistent lobby is enabled and Jicofo leaves.
                 if DEBUG then module:log("debug", "Trigger destroy main room"); end
-                event.room._data.room_destroyed_triggered = true;
+                room._data.room_destroyed_triggered = true;
                 module:fire_event("muc-room-destroyed", { room = room });
             end
         end
@@ -219,9 +222,9 @@ module:hook("muc-occupant-left", function(event)
     -- if the persistent lobby is disabled during the meeting
     --  and the last participant leaves the main room
     if has_persistent_lobby and room ~= nil and not room:has_occupant() and room._data.lobbyroom == nil then
-        if event.room._data.room_destroyed_triggered == nil then
+        if room._data.room_destroyed_triggered == nil then
             module:log("info", "Trigger destroy main room after persistent lobby is disable");
-            event.room._data.room_destroyed_triggered = true;
+            room._data.room_destroyed_triggered = true;
             module:fire_event("muc-room-destroyed", { room = room });
         end
     end
@@ -301,9 +304,9 @@ function process_lobby_muc_loaded(lobby_muc, host_module)
         local has_persistent_lobby = main_room._data.starts_with_lobby;
 
         if has_persistent_lobby and not lobby_room:has_occupant() and main_room ~= nil and not main_room:has_occupant() then
-            if event.room._data.room_destroyed_triggered == nil then
+            if lobby_room._data.room_destroyed_triggered == nil then
                 if DEBUG then module:log("debug", "Trigger destroy main room"); end
-                event.room._data.room_destroyed_triggered = true;
+                lobby_room._data.room_destroyed_triggered = true;
                 module:fire_event("muc-room-destroyed", { room = main_room });
             end
         end
