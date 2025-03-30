@@ -23,7 +23,7 @@
       tags: "provision"
 
   roles:
-    - { role: "jibri-kernel", tags: "jibri-kernel"}
+    - { role: "jibri-kernel", tags: "jibri-kernel", when: not jibri_pulseaudio_enabled }
     - { role: "common", tags: "common"}
     - { role: "boot-postinstall", tags: "boot-postinstall" }
     - { role: "sshusers", tags: "ssh" }
@@ -44,6 +44,7 @@
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
         autoscaler_instance_type: "jibri", autoscaler_install_flag: true, autoscaler_configure_flag: false, jitsi_autoscaler_sidecar: true}
     - { role: "jibri-java", tags: "jibri", jibri_install_flag: true, jibri_configure_flag: false}
+    - { role: "pulseaudio", tags: "pulseaudio", when: jibri_pulseaudio_enabled }
     - { role: "jitsi-upload-integrations", tags: "jitsi-upload-integrations",
         upload_integrations_install_flag: true, upload_integrations_configure_flag: false }
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
