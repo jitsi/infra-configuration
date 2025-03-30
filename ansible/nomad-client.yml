@@ -21,6 +21,7 @@
   vars:
     nomad_enable_jitsi_autoscaler: false
     nvidia_docker_flag: false
+    nomad_models_flag: false
     cloud_provider: oracle
     cloud_instance_id: "{{ ansible_fqdn }}"
     docker_daemon_nvidia_options:
@@ -151,7 +152,7 @@
     - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
     - { role: "docker-daemon-config", tags: "docker-daemon-config" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
-    - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag }
+    - { role: "gpu-models", tags: "gpu-models", when: nomad_models_flag }
     - { role: "gpu-docker-pull", tags: "gpu-docker", when: nvidia_docker_flag }
     - { role: "skynet-credentials", tags: "skynet-credentials", when: nomad_pool_type == "skynet" }
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
