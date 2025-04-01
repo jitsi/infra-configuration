@@ -641,6 +641,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_recording_autostart_enabled %}
       "recording_autostart";
 {% endif %}
+{% if prosody_filter_messages_enabled %}
+    "filter_messages";
+{% endif %}
     }
 
 {% if prosody_enable_rate_limit %}
