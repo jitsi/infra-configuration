@@ -100,9 +100,6 @@ modules_enabled = {
 {% if prosody_enable_muc_events %}
       "muc_events";
 {% endif %}
-{% if prosody_enable_password_preset %}
-      "muc_password_preset";
-{% endif %}
 {% if prosody_enable_end_meeting %}
       "muc_end_meeting";
 {% endif %}
@@ -577,6 +574,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
     {% if prosody_enable_token_room_verification %}
         "token_verification";
     {% endif %}
+{% endif %}
+{% if prosody_enable_password_preset %}
+      "muc_password_preset";
 {% endif %}
 {% if prosody_muc_max_occupants %}
         "muc_max_occupants";
