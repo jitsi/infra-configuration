@@ -1,0 +1,56 @@
+---
+
+# first install iperf3 via apt
+- name: Install iperf3
+  ansible.builtin.apt:
+    name: iperf3
+    state: present
+
+# now write systemd unit file
+- name: Create systemd unit file for iperf3 server
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/iperf3-server.service
+    mode: 0644
+    owner: root
+    group: root
+    content: |
+      [Unit]
+      Description=iperf3 server
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/bin/iperf3 -s -1
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Open iperf3 TCP port 5201 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: tcp
+    destination_port: "5201"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+- name: Open iperf3 UDP port 5201 via iptables
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    protocol: udp
+    destination_port: "5201"
+    jump: ACCEPT
+    action: insert
+    comment: Added via ansible post-launch configuration script
+
+- name: Save newly added iptable rules # noqa no-changed-when
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+
+# now start and enable the service
+- name: Start and enable iperf3 server
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: iperf3-server
+    state: started
+    enabled: true
