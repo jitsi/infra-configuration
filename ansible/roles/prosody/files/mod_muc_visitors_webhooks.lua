@@ -127,7 +127,6 @@ function handle_occupant_access(event, event_type)
 
     if is_healthcheck_room(room.jid)
         or is_admin(occupant.bare_jid)
-        or not is_vpaas(room)
         or occupant_domain ~= local_domain then
         return;
     end
