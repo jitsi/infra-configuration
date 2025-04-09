@@ -11,6 +11,8 @@ local um_is_admin = require "core.usermanager".is_admin;
 local st = require 'util.stanza';
 local timer = require "util.timer";
 local split_jid = require "util.jid".split;
+local jid = require "util.jid";
+local cache = require 'util.cache';
 
 local oss_util = module:require "util";
 local is_healthcheck_room = oss_util.is_healthcheck_room;
@@ -88,6 +90,25 @@ local DEBUG = false;
 -- List of the bare_jids of all moderator occupants (owners in main room) present in the lobby room.
 -- Will be removed as they leave.
 local moderator_occupants_in_lobby = {};
+
+local function load_from_room_cache(key, room)
+    if not room.jitsi_wh_cache then
+        return {};
+    end
+    return room.jitsi_wh_cache:get(key) or {};
+end
+
+local function onConfCacheEvict(evictedKey, evictedValue)
+    module:log("error", "Unexpected conference cache evict, this could lead to errors! For key %s, and value %s", evictedKey, evictedValue);
+end
+
+local function store_in_room_cache(key, room, details)
+    if not room.jitsi_wh_cache then
+        -- create the cache 2 times the max number of users
+        room.jitsi_wh_cache = cache.new(500*2, onConfCacheEvict)
+    end
+    room.jitsi_wh_cache:set(key, details);
+end
 
 local function cb_retry(content_, code_, _, request_)
     if code_ == 200 or code_ == 204 then
@@ -516,6 +537,45 @@ function handle_occupant_access(event, event_type)
     -- in case of PARTICIPANT_LEFT or PARTICIPANT_JOINED events add flip field in data payload
     decorate_payload_with_flip(payload, occupant.nick, main_room, final_event_type);
 
+    if final_event_type == PARTICIPANT_JOINED then
+        local value = load_from_room_cache(nick_resource, room);
+
+        value.customerId = participant_access_event["customerId"];
+        value.id = payload.id;
+        value.group = payload.group;
+
+        store_in_room_cache(nick_resource, room, value);
+    end
+
+    if final_event_type == PARTICIPANT_JOINED or final_event_type == PARTICIPANT_LEFT then
+        local value = load_from_room_cache(nick_resource, room);
+
+        if not payload.name then
+            -- if something is stored used that as stanza (kick) may not be available
+            payload.name = value.name;
+
+            if stanza then
+                local nick = stanza:get_child('nick', NICK_NS);
+                if nick then
+                    payload.name = nick:get_text();
+
+                    value.name = payload.name;
+                    store_in_room_cache(nick_resource, room, value);
+                end
+            end
+        end
+
+        if not participant_access_event["customerId"] then
+            participant_access_event["customerId"] = value.customerId;
+        end
+        if not payload.id then
+            payload.id = value.id;
+        end
+        if not payload.group then
+            payload.group = value.group;
+        end
+    end
+
     if DEBUG then module:log("debug", "Participant event %s", inspect(participant_access_event)); end
 
     event_count();
@@ -570,15 +630,29 @@ function handle_broadcast_presence(event)
     local room = event.room;
     local stanza = event.stanza;
 
+    if is_healthcheck_room(room.jid) then
+        return;
+    end
+
     -- sip participant will send at least 2 presence events on each join
     -- one for the first join, containing basic info
     -- and another one shortly after, containing additional info, such as the participant's sip_address
     -- multiple other presence updates can be sent apart from the 2 mandatory presences
     -- we process only the first presence containing the sip address
-    if not is_healthcheck_room(room.jid) and oss_util.is_sip_jibri_join(stanza) then
+    if oss_util.is_sip_jibri_join(stanza) then
         local sip_address = stanza:get_child_text('sip_address');
         if sip_address then
             handle_occupant_access(event, PARTICIPANT_JOINED)
+        end
+    else
+        local nick = stanza:get_child('nick', NICK_NS);
+        if nick then
+            local nick_resource = jid.resource(event.occupant.nick);
+
+            local value = load_from_room_cache(nick_resource, room);
+            value.name = nick:get_text();
+
+            store_in_room_cache(nick_resource, room, value);
         end
     end
 end
