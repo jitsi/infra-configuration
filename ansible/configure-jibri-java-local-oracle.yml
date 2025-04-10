@@ -22,9 +22,6 @@
     cloud_provider: oracle
     cloud_instance_id: "{{ ansible_fqdn }}"
     jibri_docker_compose_flag: false
-    fluentd_jitsi_region: us-west-2
-    fluentd_jitsi_log_group_role: jibri
-    fluentd_jitsi_cloudwatch_logs_enabled: "{{ jibri_enable_fluentd }}"
     consul_template_env:
       JIBRI_USERNAME: "{{ jibri_auth_control_user }}"
       JIBRI_PASSWORD: "{{ jibri_auth_control_pass }}"
@@ -65,13 +62,6 @@
     - name: Set hostname
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
-    - name: Stop fluentd # noqa ignore-errors
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: not jibri_enable_fluentd
     - name: Register installed jibri package
       ansible.builtin.shell: |
         set -o pipefail

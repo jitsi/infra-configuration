@@ -115,15 +115,6 @@
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
       tags: boot
-    - name: Stop fluentd
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      register: stop_fluentd_results
-      ignore_errors: true
-      tags: boot
-      when: not jvb_enable_fluentd
     - name: Get instance's VNIC
       ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/vnics/

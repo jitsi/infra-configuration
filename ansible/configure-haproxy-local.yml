@@ -163,13 +163,6 @@
         line: "{{ private_ip }} {{ full_hostname }}"
       when: not haproxy_configure_only
 
-    - name: Ensure that fluentd stopped # noqa ignore-errors
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: not haproxy_enable_fluentd
   roles:
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }

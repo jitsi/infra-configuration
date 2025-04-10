@@ -13,7 +13,6 @@
     - "sites/{{ hcv_environment }}/vars.yml"
   vars:
     shard_role: ssh
-    fluentd_jitsi_oci_logs_enabled: true
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:

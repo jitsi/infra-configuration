@@ -1,6 +1,0 @@
----
-- name: Restart jitsi fluentd
-  ansible.builtin.service:
-    name: td-agent
-    state: restarted
-    enabled: true

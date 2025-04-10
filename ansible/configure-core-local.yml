@@ -159,16 +159,6 @@
         name: "{{ ansible_fqdn }}"
       when: core_cloud_provider == 'aws'
 
-    - name: Stop fluentd
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      register: stop_fluentd_results
-      ignore_errors: true
-      tags: boot
-      when: not core_enable_fluentd
-
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
