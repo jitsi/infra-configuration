@@ -12,7 +12,6 @@
     private_ip: "{{ ansible_default_ipv4.address }}"
   vars_files:
     - secrets/ssh-users.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - secrets/ops-repo.yml
     - config/vars.yml

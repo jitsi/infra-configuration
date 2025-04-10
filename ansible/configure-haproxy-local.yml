@@ -89,7 +89,6 @@
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/consul.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - roles/hcv-haproxy-configure/defaults/main.yml
     - roles/jvb-colibri-proxy/defaults/main.yml
@@ -163,13 +162,6 @@
         line: "{{ private_ip }} {{ full_hostname }}"
       when: not haproxy_configure_only
 
-    - name: Ensure that fluentd stopped # noqa ignore-errors
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: not haproxy_enable_fluentd
   roles:
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }

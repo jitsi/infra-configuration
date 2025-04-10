@@ -35,7 +35,6 @@
     - secrets/consul.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
-    - secrets/oci-logging.yml
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
