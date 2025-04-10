@@ -433,9 +433,21 @@
 
 - name: Add client_proxy to jicofo's roster
   ansible.builtin.command: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
+  args:
+    creates: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/roster/focus.dat"
   when:
     - prosody_enable_client_proxy
     - stat_mod_roster_command.stat.exists
+
+- name: Confirm that the focus user is in the roster
+  ansible.builtin.lineinfile:
+    path: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/roster/focus.dat"
+    regex: ".*focus.{{ prosody_domain_name }}.*"
+    state: absent            # here's the trick
+  changed_when: false
+  check_mode: true
+  register: roster_focus
+  failed_when: roster_focus.found != 1
 
 - name: Register focus prosody-jvb user
   ansible.builtin.command: |
