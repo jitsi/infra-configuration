@@ -51,7 +51,6 @@
     - secrets/consul.yml
     - secrets/prosody.yml
     - secrets/prosody-egress-aws.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - secrets/carbon-black.yml
     - secrets/github-deploy.yml

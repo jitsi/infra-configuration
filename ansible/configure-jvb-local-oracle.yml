@@ -14,7 +14,6 @@
     - secrets/jvb-ddns.yml
     - secrets/jvb-ddns-aws.yml
     - secrets/asap-keys.yml
-    - secrets/oci-logging.yml
     - roles/jitsi-repo/defaults/main.yml
     - roles/jitsi-videobridge/defaults/main.yml
     - secrets/repo.yml

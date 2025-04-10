@@ -6,7 +6,6 @@
   become: yes
   vars_files:
     - secrets/wavefront.yml
-    - secrets/oci-logging.yml
     - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml

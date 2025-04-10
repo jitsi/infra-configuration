@@ -12,7 +12,6 @@
     - secrets/asap-keys.yml
     - secrets/repo.yml
     - secrets/consul.yml
-    - secrets/oci-logging.yml
     - secrets/voximplant.yml
     - config/vars.yml
     - secrets/aws-cloudwatch.yml

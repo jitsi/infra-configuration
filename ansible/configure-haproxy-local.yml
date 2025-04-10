@@ -89,7 +89,6 @@
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/consul.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - roles/hcv-haproxy-configure/defaults/main.yml
     - roles/jvb-colibri-proxy/defaults/main.yml

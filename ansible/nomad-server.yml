@@ -8,7 +8,6 @@
     - secrets/ssh-users.yml
     - secrets/wavefront.yml
     - secrets/consul.yml
-    - secrets/oci-logging.yml
     - secrets/nomad.yml
     - secrets/repo.yml
     - secrets/carbon-black.yml
