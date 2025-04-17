@@ -1,4 +1,5 @@
 ---
-jibri_instance_id: "{{ cloud_instance_id | default('default') }}"
+jibri_instance_id: "jibri-{{ jibri_component_id }}"
+jibri_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 jibri_version: false
 jibri_docker_version: "{{ 'jibri-' + jibri_version+'-1' if jibri_version else 'unstable' }}"
