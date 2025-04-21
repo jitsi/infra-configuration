@@ -33,7 +33,6 @@
     - secrets/jvb.yml
     - secrets/consul.yml
     - secrets/prosody-egress-aws.yml
-    - secrets/aws-cloudwatch.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
     - config/vars.yml
