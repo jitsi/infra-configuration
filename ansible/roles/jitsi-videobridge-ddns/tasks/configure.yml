@@ -46,4 +46,4 @@
     src: "cleanup_route53_dns.j2"
     dest: "{{ jvb_path_to_cleanup_route53_dns_script }}"
     mode: 0755
-  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag
+  when: jvb_ddns_cloud_provider == "oracle" and jvb_ddns_cleanup_flag and jvb_ddns_create_entry
