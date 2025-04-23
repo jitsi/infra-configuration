@@ -29,30 +29,6 @@ GRACEFUL_SHUTDOWN_FILE="/tmp/graceful-shutdown-output"
 
 CURL_BIN="/usr/bin/curl"
 
-## /proc/stat cpu information from man 5 proc
- # The amount of time, measured in units of USER_HZ (1/100ths of a second on most architectures, use sysconf(_SC_CLK_TCK) to obtain the right value), that the system ("cpu" line) or the specific CPU ("cpuN" line) spent in various states:
-
-#  user   (1) Time spent in user mode.
-#  nice   (2) Time spent in user mode with low priority (nice).
-#  system (3) Time spent in system mode.
-#  idle   (4) Time spent in the idle task.  This value should be USER_HZ times the second entry in the /proc/uptime pseudo-file.
-#  iowait (since Linux 2.5.41)
-#         (5) Time waiting for I/O to complete.  This value is not reliable, for the following reasons:
-#         1. The CPU will not wait for I/O to complete; iowait is the time that a task is waiting for I/O to complete.  When a CPU goes into idle state for outstanding task I/O, another task will be scheduled on this CPU.
-#         2. On a multi-core CPU, the task waiting for I/O to complete is not running on any CPU, so the iowait of each CPU is difficult to calculate.
-#         3. The value in this field may decrease in certain conditions.
-#  irq (since Linux 2.6.0)
-#         (6) Time servicing interrupts.
-#  softirq (since Linux 2.6.0)
-#         (7) Time servicing softirqs.
-#  steal (since Linux 2.6.11)
-#         (8) Stolen time, which is the time spent in other operating systems when running in a virtualized environment
-#  guest (since Linux 2.6.24)
-#         (9) Time spent running a virtual CPU for guest operating systems under the control of the Linux kernel.
-#  guest_nice (since Linux 2.6.33)
-#         (10) Time spent running a niced guest (virtual CPU for guest operating systems under the control of the Linux kernel).
-
-
 function get_cpu_steal() {
   # Get the CPU steal time from top
   # Run it in batch mode at interval 5 seconds for 2 iterations. The first iteration will have 0s everywhere, grab the "st" value from the second, take only the integer part
