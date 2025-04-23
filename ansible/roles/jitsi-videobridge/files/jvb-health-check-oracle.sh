@@ -61,13 +61,12 @@ function get_cpu_steal() {
   # between the two values
 
   local cpu_steal=$(grep 'cpu ' /proc/stat | awk '{print $9}')
-  local cpu_total=$(grep 'cpu ' /proc/stat | awk '{print $2 + $3 + $4 + $5 + $9}')
+  local cpu_total=$(grep 'cpu ' /proc/stat | awk '{print $2 + $3 + $4 + $5 + $9 + $10 + $11}')
 
   sleep 5
 
   local cpu_steal_1=$(grep 'cpu ' /proc/stat | awk '{print $9}')
-
-  local cpu_total_1=$(grep 'cpu ' /proc/stat | awk '{print $2 + $3 + $4 + $5 + $9}')
+  local cpu_total_1=$(grep 'cpu ' /proc/stat | awk '{print $2 + $3 + $4 + $5 + $9 + $10 + $11}')
   local cpu_steal_diff=$((cpu_steal_1 - cpu_steal))
   local cpu_total_diff=$((cpu_total_1 - cpu_total))
 
