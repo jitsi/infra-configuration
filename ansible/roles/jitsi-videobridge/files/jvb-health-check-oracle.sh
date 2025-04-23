@@ -54,25 +54,9 @@ CURL_BIN="/usr/bin/curl"
 
 
 function get_cpu_steal() {
-  # Get the CPU steal time from /proc/stat
-  # then wait for 5 second
-  # then get the CPU steal time again
-  # and calculate the difference
-  # between the two values
-
-  local cpu_steal=$(grep 'cpu ' /proc/stat | awk '{print $9}')
-  local cpu_total=$(grep 'cpu ' /proc/stat | awk '{print $2 + $3 + $4 + $5 + $9 + $10 + $11}')
-
-  sleep 5
-
-  local cpu_steal_1=$(grep 'cpu ' /proc/stat | awk '{print $9}')
-  local cpu_total_1=$(grep 'cpu ' /proc/stat | awk '{print $2 + $3 + $4 + $5 + $9 + $10 + $11}')
-  local cpu_steal_diff=$((cpu_steal_1 - cpu_steal))
-  local cpu_total_diff=$((cpu_total_1 - cpu_total))
-
-  # use bc to calculate the percentage
-  local cpu_steal_percentage="$(printf "%g\n" $(echo "scale=2; ($cpu_steal_diff / $cpu_total_diff) * 100" | bc))"
-  echo $cpu_steal_percentage
+  # Get the CPU steal time from top
+  # Run it in batch mode at interval 5 seconds for 2 iterations. The first iteration will have 0s everywhere, grab the "st" value from the second, take only the integer part
+  top -b -n 2 -d 5 -p0 | grep -E '^%Cpu.*st$' | tail -1 | awk -F',' '{print $NF}' | awk '{print $1}' | cut -d'.' -f1
 }
 
 function run_check() {
