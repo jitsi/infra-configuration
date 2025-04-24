@@ -164,6 +164,7 @@ jitsi_meet_google_api_app_client_id: false
 jitsi_meet_haproxy_bind_port: 9092
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
+jitsi_meet_jaas_actuator_url: false
 jitsi_meet_jvb_preferred_codecs: "[ 'AV1', 'VP9', 'VP8', 'H264' ]"
 jitsi_meet_jvb_preferred_mobile_codecs: "[ 'VP8', 'H264', 'VP9' ]"
 jitsi_meet_load_test_enabled: false
