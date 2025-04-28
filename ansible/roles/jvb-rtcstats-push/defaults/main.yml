@@ -8,7 +8,7 @@ jvb_rtcstats_push_git_repo: https://github.com/jitsi/jvb-rtcstats-push.git
 jvb_rtcstats_push_groupname: jitsi
 jvb_rtcstats_push_install_flag: true
 jvb_rtcstats_push_jvb_address: http://localhost:8080
-jvb_rtcstats_push_jvb_path: "debug?full=true"
+jvb_rtcstats_push_jvb_path: "stats"
 # Enable sending JVB logs to rtcstats
 jvb_rtcstats_push_jvb_logs_enabled: false
 jvb_rtcstats_push_jvb_logs_path: /var/log/jitsi/jvb.log
