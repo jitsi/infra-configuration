@@ -68,7 +68,7 @@ jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ envi
 jicofo_sipjibri_skip_main_in_trusted_domains: false
 # No delay for conferences with <=25, 1 second for 25-50, etc.
 jicofo_source_signaling_delay: { 50: 1000, 100: 2000 }
-jicofo_ssrc_rewriting: false
+jicofo_ssrc_rewriting: true
 jicofo_stress_threshold: 0.8
 jicofo_use_presence_for_jvb_health: false
 jicofo_visitors_enabled: "{{ visitors_enabled | default(false) }}"
