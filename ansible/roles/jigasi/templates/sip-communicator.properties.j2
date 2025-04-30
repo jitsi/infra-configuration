@@ -18,7 +18,7 @@ net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_brewery_auth_pass|b64encode }}
 
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=={{ jigasi_nick }}
-#net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=false
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE_PRIORITY=30
 
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_METHOD=XEP-0199
