@@ -5,5 +5,5 @@ nodejs_from_apt: true
 nodejs_nodesource_pin_priority: 500
 nodejs_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/nodejs_16.20.0-deb-1nodesource1_{{ nodejs_architecture }}.deb" # noqa yaml[line-length]
 # 0.10 or 0.12 or 4.x
-nodejs_version: "20.*"
+nodejs_version: "22.*"
 nodejs_distribution_release: "{{ 'jammy' if ansible_distribution_release == 'noble' else ansible_distribution_release }}"
