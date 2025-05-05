@@ -22,6 +22,14 @@
   args:
     executable: /bin/bash
 
+
+- name: Hack for NodeSource GPG issue redux
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl --silent https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo apt-key add -
+  args:
+    executable: /bin/bash
+
 - name: Add NodeSource deb repository
   ansible.builtin.apt_repository:
     repo: 'deb https://deb.nodesource.com/node_{{ debian_repo_version }} {{ nodejs_distribution_release }} main'
