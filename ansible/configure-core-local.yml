@@ -132,6 +132,39 @@
       tags: "provision"
       when: core_cloud_provider == 'oracle'
 
+    - name: Register installed Jicofo version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+      register: jicofo_version_shell
+      args:
+        executable: /bin/bash
+      changed_when: jicofo_version_shell.rc != 0
+
+    - name: Register installed Meet version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      register: jitsi_meet_version_shell
+      args:
+        executable: /bin/bash
+      changed_when: jitsi_meet_version_shell.rc != 0
+
+    - name: Register installed Prosody version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s prosody | grep Version | awk '{print $2}' | cut -d'-' -f1
+      register: prosody_version_shell
+      args:
+        executable: /bin/bash
+      changed_when: prosody_version_shell.rc != 0
+    - name: Set version facts
+      ansible.builtin.set_fact:
+        signal_version: "{{ jicofo_version_shell.stdout }}-{{ jitsi_meet_version_shell.stdout }}-{{ prosody_version_shell.stdout }}"
+        jicofo_version: "{{ jicofo_version_shell.stdout }}"
+        jitsi_meet_version: "{{ jitsi_meet_version_shell.stdout }}"
+        prosody_version: "{{ prosody_version_shell.stdout }}"
+
     - name: Remove NodeSource deb repository
       ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
