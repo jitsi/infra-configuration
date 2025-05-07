@@ -202,6 +202,9 @@ jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
 jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"
 jitsi_meet_recordings_prompt: false
 jitsi_meet_recordings_warn: false
+jitsi_meet_recordings_require_consent: false
+jitsi_meet_recordings_consent_learn_more_url: ''
+jitsi_meet_recordings_skip_consent_in_meeting: false
 jitsi_meet_redirect_to_ssl: true
 jitsi_meet_require_displayname: false
 jitsi_meet_resolution: false
