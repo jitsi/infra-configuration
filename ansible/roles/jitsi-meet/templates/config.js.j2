@@ -223,7 +223,7 @@ var config = {
         suggestRecording: {% if jitsi_meet_recordings_prompt %}true{% else %}false{% endif %},
         showPrejoinWarning: {% if jitsi_meet_recordings_warn %}true{% else %}false{% endif %},
         requireConsent: {% if jitsi_meet_recordings_require_consent %}true{% else %}false{% endif %},
-        {% if jitsi_meet_consent_learn_more_url %}
+        {% if jitsi_meet_recordings_consent_learn_more_url %}
             consentLearnMoreLink: "{{ jitsi_meet_recordings_consent_learn_more_url }}",
         {% endif %}
         skipConsentInMeeting: {% if jitsi_meet_recordings_skip_consent_in_meeting %}true{% else %}false{% endif %}
