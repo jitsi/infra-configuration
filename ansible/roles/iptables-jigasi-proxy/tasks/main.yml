@@ -7,7 +7,6 @@
     destination_port: 8080
     jump: ACCEPT
     action: insert
-    rule_num: 6
     comment: Added via ansible post-launch configuration script
 - name: Open TCP port 80 via iptables
   ansible.builtin.iptables:
@@ -17,7 +16,6 @@
     destination_port: 80
     jump: ACCEPT
     action: insert
-    rule_num: 6
     comment: Added via ansible post-launch configuration script
 - name: Open serf TCP port 8301 via iptables
   ansible.builtin.iptables:
