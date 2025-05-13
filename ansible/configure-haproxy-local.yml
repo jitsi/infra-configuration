@@ -170,6 +170,7 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog"}
+    - { role: "vector", tags: "vector", when: haproxy_vector_enabled, vector_install_flag: false }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
