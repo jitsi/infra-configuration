@@ -217,7 +217,8 @@ var config = {
 {% endif %}
 
     transcription: {
-        enabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %}
+        enabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %},
+        disableClosedCaptions: {% if jitsi_meet_enable_transcription %}false{% else %}true{% endif %}
     },
     recordings: {
         suggestRecording: {% if jitsi_meet_recordings_prompt %}true{% else %}false{% endif %},
