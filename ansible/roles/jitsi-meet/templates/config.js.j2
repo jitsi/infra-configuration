@@ -212,6 +212,13 @@ var config = {
     },
 {% endif %}
 
+{% if jitsi_meet_filesharing_api_url %}
+    fileSharing: {
+      apiUrl :"{{ jitsi_meet_filesharing_api_url }}",
+      enabled: true
+    },
+{% endif %}
+
 {% if jitsi_meet_performance_stats %}
     longTasksStatsInterval: 10000,
 {% endif %}
