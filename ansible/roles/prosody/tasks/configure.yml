@@ -217,6 +217,13 @@
     mode: 0644
     content: "{{ asap_key['key'] }}"
 
+- name: Install ASAP shortlived key
+  ansible.builtin.copy:
+    dest: "{{ prosody_asap_shortlived_key_path }}"
+    mode: 0644
+    content: "{{ prosody_asap_shortlived_key['key'] }}"
+  when: prosody_enable_shortlived_tokens
+
 - name: Check whether module muc_meeting_id exists
   ansible.builtin.stat:
     path: "{{ prosody_plugins_path }}/mod_muc_meeting_id.lua"
