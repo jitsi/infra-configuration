@@ -165,10 +165,10 @@ enable_password_waiting_for_host = true;
 
 {% if prosody_enable_shortlived_tokens %}
 short_lived_token = {
-    issuer = "prosody",
-    accepted_audiences = { "file-sharing" },
-    key_path = "{{ prosody_asap_shortlived_key_path }}",
-    key_id = "{{ prosody_asap_shortlived_key['id'] }}",
+    issuer = "prosody";
+    accepted_audiences = { "file-sharing" };
+    key_path = "{{ prosody_asap_shortlived_key_path }}";
+    key_id = "{{ prosody_asap_shortlived_key['id'] }}";
     ttl_seconds = 30;
 };
 {% endif %}
