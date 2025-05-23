@@ -157,6 +157,7 @@ jitsi_meet_enable_welcome_page: true
 jitsi_meet_enable_webhid_feature: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
+jitsi_meet_filesharing_api_url: false
 jitsi_meet_feedback_percentage: 100
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
