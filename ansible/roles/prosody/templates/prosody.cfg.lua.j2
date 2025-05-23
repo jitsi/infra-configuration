@@ -483,6 +483,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_muc_events %}
       "jibri_session";
 {% endif %}
+{% if prosody_enable_shortlived_tokens %}
+      "short_lived_token";
+{% endif %}
         }
         shard_name = "{{ shard_name }}"
         region_name = "{{ prosody_region }}"
