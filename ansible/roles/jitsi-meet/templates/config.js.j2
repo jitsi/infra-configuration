@@ -481,5 +481,8 @@ whiteboard: {
     {% if jitsi_meet_dump_transcript %}
         dumpTranscript: {{ jitsi_meet_dump_transcript | to_json }},
     {% endif %}
+    {% if jitsi_meet_enable_graceful_reconnect %}
+        enableGracefulReconnect: true,
+    {% endif %}
     }
 };
