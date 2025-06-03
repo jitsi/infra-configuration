@@ -22,7 +22,13 @@ prosody_asap_accepted_issuers:
   - vmms
 prosody_asap_audience: jitsi
 prosody_asap_issuer: jitsi
+asap_key_shortlived:
+  default:
+    id: "asap-shortlived"
+    key: "replaceme"
 prosody_asap_key_path: /etc/prosody/certs/asap.key
+prosody_asap_shortlived_key_path: /etc/prosody/certs/asap-shortlived.key
+prosody_asap_shortlived_key: "{{ asap_key_shortlived[hcv_environment] if hcv_environment in asap_key_shortlived else asap_key_shortlived['default'] }}"
 prosody_auth_domain_name: "auth.{{ prosody_domain_name }}"
 prosody_bosh_max_inactivity: 60
 # assume shard has local prosody-jvb, otherwise use prosody-brewery shared service
@@ -86,6 +92,7 @@ prosody_enable_end_meeting: false
 # flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
 prosody_enable_rate_limit: true
+prosody_enable_shortlived_tokens: false
 prosody_enable_system_chat_message: true
 prosody_enable_token_room_verification: true
 # don't enable tokens by default for now
@@ -93,6 +100,7 @@ prosody_enable_tokens: true
 # plugin to check features when requesting a transcription
 prosody_enable_transcription_filter: false
 prosody_enable_wait_for_host: false
+prosody_filter_messages_enabled: true
 # prosody_log_level: change 'info' to 'debug' for debug logs
 prosody_focus_admins:
   - "focus@{{ prosody_auth_domain_name }}"
@@ -115,7 +123,7 @@ prosody_install_flag: true
 # when prosody_install_from_apt is true we use latest prosody from apt matching prosody_version
 # for instance, prosody_version is only used for apt, whereas prosody_package_version is to specify a by-file version
 # set this to false to install via URL, or true to install via apt
-prosody_install_from_apt: true
+prosody_install_from_apt: false
 prosody_invite_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/invite"
 prosody_jaas_actuator_url: false
 prosody_jvb_admins:

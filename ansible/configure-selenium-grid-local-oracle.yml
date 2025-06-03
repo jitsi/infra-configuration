@@ -28,7 +28,6 @@
     - secrets/repo.yml
     - secrets/nomad.yml
     - secrets/github.yml
-    - secrets/oci-logging.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:

@@ -1,12 +1,5 @@
 ---
 # stop daemons
-- name: Stop fluentd if present # noqa ignore-errors
-  ansible.builtin.service:
-    name: "td-agent"
-    state: stopped
-    enabled: false
-  ignore_errors: true
-
 - name: Stop telegraf if present # noqa ignore-errors
   ansible.builtin.service:
     name: "telegraf"

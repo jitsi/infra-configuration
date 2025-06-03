@@ -1,8 +1,0 @@
----
-- name: Include install steps
-  ansible.builtin.include_tasks: install.yml
-  when: fluentd_jitsi_install_flag
-
-- name: Include configure steps
-  ansible.builtin.include_tasks: configure.yml
-  when: fluentd_jitsi_configure_flag

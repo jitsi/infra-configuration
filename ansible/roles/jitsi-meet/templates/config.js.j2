@@ -212,16 +212,29 @@ var config = {
     },
 {% endif %}
 
+{% if jitsi_meet_filesharing_api_url %}
+    fileSharing: {
+      apiUrl :"{{ jitsi_meet_filesharing_api_url }}",
+      enabled: true
+    },
+{% endif %}
+
 {% if jitsi_meet_performance_stats %}
     longTasksStatsInterval: 10000,
 {% endif %}
 
     transcription: {
-        enabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %}
+        enabled: {% if jitsi_meet_enable_transcription %}true{% else %}false{% endif %},
+        disableClosedCaptions: {% if jitsi_meet_enable_transcription %}false{% else %}true{% endif %}
     },
     recordings: {
         suggestRecording: {% if jitsi_meet_recordings_prompt %}true{% else %}false{% endif %},
-        showPrejoinWarning: {% if jitsi_meet_recordings_warn %}true{% else %}false{% endif %}
+        showPrejoinWarning: {% if jitsi_meet_recordings_warn %}true{% else %}false{% endif %},
+        requireConsent: {% if jitsi_meet_recordings_require_consent %}true{% else %}false{% endif %},
+        {% if jitsi_meet_recordings_consent_learn_more_url %}
+            consentLearnMoreLink: "{{ jitsi_meet_recordings_consent_learn_more_url }}",
+        {% endif %}
+        skipConsentInMeeting: {% if jitsi_meet_recordings_skip_consent_in_meeting %}true{% else %}false{% endif %}
     },
     liveStreaming: {
         enabled: {% if jitsi_meet_enable_livestreaming %}true{% else %}false{% endif %}
@@ -245,8 +258,8 @@ var config = {
 {% if jitsi_meet_enable_email_in_stats %}
     enableEmailInStats: true,
 {% endif %}
-{% if prosody_jaas_actuator_url %}
-   jaasActuatorUrl: '{{ prosody_jaas_actuator_url }}',
+{% if jitsi_meet_jaas_actuator_url %}
+   jaasActuatorUrl: '{{ jitsi_meet_jaas_actuator_url }}',
 {% endif %}
 {% if jitsi_meet_api_jaas_token_url %}
    jaasTokenUrl: '{{ jitsi_meet_api_jaas_token_url }}',

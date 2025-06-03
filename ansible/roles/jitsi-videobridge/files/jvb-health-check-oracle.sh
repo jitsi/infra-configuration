@@ -17,6 +17,7 @@ CRITICAL_FAILURE_THRESHOLD=3
 HEALTH_FAIL_LOCK_FILE="/tmp/jvb-unhealthy-lock"
 JVB_USER="jvb"
 LOAD_THRESHOLD=100
+CPU_STEAL_THRESHOLD=15
 
 #maximum number of seconds to wait before unhealthy bridge is terminated
 SLEEP_MAX=$((3600 * 12))
@@ -27,6 +28,12 @@ SLEEP_INTERVAL=60
 GRACEFUL_SHUTDOWN_FILE="/tmp/graceful-shutdown-output"
 
 CURL_BIN="/usr/bin/curl"
+
+function get_cpu_steal() {
+  # Get the CPU steal time from top
+  # Run it in batch mode at interval 5 seconds for 2 iterations. The first iteration will have 0s everywhere, grab the "st" value from the second, take only the integer part
+  top -b -n 2 -d 5 -p0 | grep -E '^%Cpu.*st$' | tail -1 | awk -F',' '{print $NF}' | awk '{print $1}' | cut -d'.' -f1
+}
 
 function run_check() {
 
@@ -49,6 +56,12 @@ function run_check() {
     BASIC_HEALTH_PASSED=false
     # ensure dump happens immediately by overriding the failure count
     echo $((CRITICAL_FAILURE_THRESHOLD+1)) > $HEALTH_FAILURE_FILE
+  fi
+
+  CPU_STEAL="$(get_cpu_steal)"
+  if [[ $CPU_STEAL -ge $CPU_STEAL_THRESHOLD ]]; then
+    echo "CPU steal $CPU_STEAL HIGHER THAN $CPU_STEAL_THRESHOLD"
+    BASIC_HEALTH_PASSED=false
   fi
 
   if $BASIC_HEALTH_PASSED; then

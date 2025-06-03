@@ -217,6 +217,13 @@
     mode: 0644
     content: "{{ asap_key['key'] }}"
 
+- name: Install ASAP shortlived key
+  ansible.builtin.copy:
+    dest: "{{ prosody_asap_shortlived_key_path }}"
+    mode: 0644
+    content: "{{ prosody_asap_shortlived_key['key'] }}"
+  when: prosody_enable_shortlived_tokens
+
 - name: Check whether module muc_meeting_id exists
   ansible.builtin.stat:
     path: "{{ prosody_plugins_path }}/mod_muc_meeting_id.lua"
@@ -237,7 +244,6 @@
     src: prosody.cfg.lua.j2
     dest: /etc/prosody/prosody.cfg.lua
     mode: 0644
-  notify: Reload prosody
 
 - name: Build prosody-jvb.cfg.lua from template
   ansible.builtin.template:
@@ -245,7 +251,6 @@
     dest: /etc/prosody-jvb/prosody.cfg.lua
     mode: 0644
   when: prosody_jvb_configure_flag
-  notify: Reload prosody JVB
 
 - name: Install muc presence filter pfw rule
   ansible.builtin.template:
@@ -312,60 +317,6 @@
 - name: Install systemd daemon-reload for prosody accounting for visitors
   ansible.builtin.systemd:
     daemon_reload: true
-
-- name: Copy over the plugin for muc event reporting
-  ansible.builtin.copy:
-    src: "mod_muc_events.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for muc video/desktop detection
-  ansible.builtin.copy:
-    src: "mod_muc_get_media_type.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for muc webhooks
-  ansible.builtin.copy:
-    src: "mod_muc_webhooks.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for muc visitor webhooks
-  ansible.builtin.copy:
-    src: "mod_muc_visitors_webhooks.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for muc moderators
-  ansible.builtin.copy:
-    src: "mod_muc_moderators.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for muc vpaas auth
-  ansible.builtin.copy:
-    src: "mod_muc_auth_vpaas.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for muc vpaas permissions
-  ansible.builtin.copy:
-    src: "mod_muc_permissions_vpaas.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the plugin for preset passwords on mucs
-  ansible.builtin.copy:
-    src: "mod_muc_password_preset.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
-
-- name: Copy over the util internal lib
-  ansible.builtin.copy:
-    src: "util.internal.lib.lua"
-    dest: "/usr/lib/prosody/modules/"
-    mode: 0644
 
 - name: Manage hosts name for the prosody domain {{ prosody_domain_name }}
   ansible.builtin.lineinfile:
@@ -443,25 +394,6 @@
     masked: false
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
 
-- name: Start and enable prosody service
-  ansible.builtin.systemd:
-    name: prosody
-    state: started
-    enabled: true
-    daemon_reload: true
-    masked: false
-
-- name: Start and enable prosody-jvb service
-  ansible.builtin.systemd:
-    name: prosody-jvb
-    state: started
-    enabled: true
-    daemon_reload: true
-  when: prosody_jvb_configure_flag
-
-- name: Ensure handlers are notified now to reload prosody if configuration changed
-  ansible.builtin.meta: flush_handlers
-
   # Run the health checker regularly
 - name: Enable prosody health check cron
   ansible.builtin.cron:
@@ -487,9 +419,18 @@
 
 - name: Add client_proxy to jicofo's roster
   ansible.builtin.command: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
+  args:
+    creates: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/roster/focus.dat"
   when:
     - prosody_enable_client_proxy
     - stat_mod_roster_command.stat.exists
+
+- name: Confirm that the focus user is in the roster # noqa yaml[line-length]
+  ansible.builtin.command: |
+    grep -q "focus.{{ prosody_domain_name }}" "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\.', '%2e') | regex_replace('-', '%2d') }}/roster/focus.dat"
+  changed_when: false
+  register: roster_focus
+  failed_when: roster_focus.rc > 0
 
 - name: Register focus prosody-jvb user
   ansible.builtin.command: |
@@ -506,3 +447,19 @@
     creates: "/var/lib/prosody-v{{ item }}/auth%2emeet%2ejitsi/accounts/focus.dat"
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
   when: prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
+
+- name: Start and enable prosody service
+  ansible.builtin.systemd:
+    name: prosody
+    state: started
+    enabled: true
+    daemon_reload: true
+    masked: false
+
+- name: Start and enable prosody-jvb service
+  ansible.builtin.systemd:
+    name: prosody-jvb
+    state: started
+    enabled: true
+    daemon_reload: true
+  when: prosody_jvb_configure_flag

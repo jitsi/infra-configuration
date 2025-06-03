@@ -8,13 +8,11 @@
   vars_files:
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
-    - secrets/oci-logging.yml
     - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     shard_role: vpn
-    fluentd_jitsi_oci_logs_enabled: true
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:

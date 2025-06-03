@@ -89,7 +89,6 @@
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
     - secrets/consul.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - roles/hcv-haproxy-configure/defaults/main.yml
     - roles/jvb-colibri-proxy/defaults/main.yml
@@ -163,13 +162,6 @@
         line: "{{ private_ip }} {{ full_hostname }}"
       when: not haproxy_configure_only
 
-    - name: Ensure that fluentd stopped # noqa ignore-errors
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: not haproxy_enable_fluentd
   roles:
     - { role: "jitsi-dumper", tags: "jitsi-dumper" }
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }
@@ -177,7 +169,8 @@
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
     - { role: "journald", tags: "journald"}
-    - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog"}
+    - { role: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: "{{ haproxy_vector_enabled }}", tags: "rsyslog"}
+    - { role: "vector", tags: "vector", when: haproxy_vector_enabled, vector_install_flag: false }
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

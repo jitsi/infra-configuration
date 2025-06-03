@@ -157,6 +157,7 @@ jitsi_meet_enable_welcome_page: true
 jitsi_meet_enable_webhid_feature: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
+jitsi_meet_filesharing_api_url: false
 jitsi_meet_feedback_percentage: 100
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
@@ -164,6 +165,7 @@ jitsi_meet_google_api_app_client_id: false
 jitsi_meet_haproxy_bind_port: 9092
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
+jitsi_meet_jaas_actuator_url: false
 jitsi_meet_jvb_preferred_codecs: "[ 'AV1', 'VP9', 'VP8', 'H264' ]"
 jitsi_meet_jvb_preferred_mobile_codecs: "[ 'VP8', 'H264', 'VP9' ]"
 jitsi_meet_load_test_enabled: false
@@ -201,6 +203,9 @@ jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
 jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"
 jitsi_meet_recordings_prompt: false
 jitsi_meet_recordings_warn: false
+jitsi_meet_recordings_require_consent: false
+jitsi_meet_recordings_consent_learn_more_url: ''
+jitsi_meet_recordings_skip_consent_in_meeting: false
 jitsi_meet_redirect_to_ssl: true
 jitsi_meet_require_displayname: false
 jitsi_meet_resolution: false

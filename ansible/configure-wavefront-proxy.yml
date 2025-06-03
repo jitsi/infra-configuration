@@ -6,13 +6,11 @@
   become: yes
   vars_files:
     - secrets/wavefront.yml
-    - secrets/oci-logging.yml
     - secrets/carbon-black.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     shard_role: wf-proxy
-    fluentd_jitsi_oci_logs_enabled: true
     java_use_11: true
   roles:
     - { role: "openjdk-java", tags: "openjdk-java", when: cloud_provider=="oracle", java_install_flag: false }

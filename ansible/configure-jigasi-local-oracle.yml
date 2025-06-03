@@ -14,7 +14,7 @@
       - src: roles/jigasi/templates/xmpp-sip-communicator.properties.template.j2
     consul_template_templates:
       - name: "xmpp-sip-communicator.properties.template"
-        dest: "/etc/jitsi/jigasi/xmpp-sip-communicator.properties"
+        dest: "/etc/jitsi/jigasi/xmpp-sip-communicator-candidate.properties"
         cmd: "/usr/local/bin/reconfigure-jigasi-wrapper.sh"
         user: "root"
         group: "jitsi"
@@ -35,7 +35,6 @@
     - secrets/consul.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
-    - secrets/oci-logging.yml
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
