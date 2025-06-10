@@ -206,6 +206,11 @@ jmt {
         bitrate-threshold = {{ jvb_loss_bitrate_threshold_kbps }} kbps
       }
     }
+{% if jvb_use_google_cc2_bwe %}
+    estimator {
+       engine = GoogleCc2
+    }
+{% endif %}
   }
 {% if jvb_skip_authentication_for_silence %}
   srtp {
