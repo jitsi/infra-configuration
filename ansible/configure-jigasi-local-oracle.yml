@@ -168,18 +168,6 @@
         name: rsyslog
         state: restarted
       tags: setup
-    - name: Run consul-template once to make sure configuration is populated
-      ansible.builtin.command: "/usr/local/bin/reconfigure-jigasi-wrapper.sh"
-      when:
-        - jigasi_enable_consul_template
-    - name: Restart jigasi # restart jigasi to apply the new configuration after all is said and done
-      ansible.builtin.service:
-        name: jigasi
-        state: restarted
-      when:
-        - jigasi_enable_consul_template
-        - not jigasi_configure_only_flag
-      tags: setup
 
   roles:
     - { role: "iptables-jigasi", tags: "iptables"}
