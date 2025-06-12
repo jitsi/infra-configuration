@@ -87,6 +87,12 @@ frontend health
   http-request deny deny_status 503 if !is_up
   default_backend local_health
 
+frontend prometheus
+  bind *:8405
+  mode http
+  http-request use-service prometheus-exporter if { path /metrics }
+  no log
+
 frontend www-http
 {% if haproxy_ssl_certificates %}
    bind *:443 ssl{% for cert in haproxy_ssl_certificates %} crt /etc/ssl/{{ cert.name }}.pem{% endfor %}
