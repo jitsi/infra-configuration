@@ -827,6 +827,10 @@ Component "visitors.{{ prosody_domain_name }}" "visitors_component"
     {% endif %}
     always_visitors_enabled = {{ prosody_visitors_always_supported | to_json }}
 {% endif %}
+{% if prosody_enable_file_sharing %}
+Component "filesharing.{{ prosody_domain_name }}" "filesharing_component"
+    muc_component = "conference.{{ prosody_domain_name }}"
+{% endif %}
 
 {% if hcv_environment in sip_jibri_shared_secrets %}
 VirtualHost "sipjibri.{{ prosody_domain_name }}"
