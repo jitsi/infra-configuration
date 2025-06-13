@@ -59,6 +59,7 @@ prosody_enable_call_flow: false
 # Has to be in sync with the jicofo version: "false" for <= 700, "true" for > 700 (or based on the "Remove FocusComponent" commit for hotfixes.)
 prosody_enable_client_proxy: true
 prosody_enable_debug_log: false
+prosody_enable_file_sharing: false
 prosody_enable_filter_iq_jibri: false
 # plugin to control outbound dialing
 prosody_enable_filter_iq_rayo: false
