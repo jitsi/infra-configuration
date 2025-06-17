@@ -148,6 +148,12 @@ jicofo {
   sctp {
     enabled = {{ jicofo_enable_sctp | to_json }}
   }
+  transcription {
+    {% if jicofo_transcription_url_template %}
+    url-template = "{{ jicofo_transcription_url_template }}"
+    {% endif %}
+  }
+
 
   {% if jicofo_visitors_enabled %}
   visitors {
