@@ -485,9 +485,6 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_filter_iq_rayo and prosody_max_number_outgoing_calls %}
         max_number_outgoing_calls = {{ prosody_max_number_outgoing_calls }}
 {% endif %}
-{% if prosody_meet_conf_duration_enabled %}
-        conference_duration_component = "conferenceduration.{{ prosody_domain_name }}"
-{% endif %}
 {% if prosody_enable_lobby %}
         lobby_muc = "lobby.{{ prosody_domain_name }}"
         muc_lobby_whitelist = {
