@@ -77,6 +77,7 @@ haproxy_stats_socket: '/run/haproxy/admin.sock'
 haproxy_stick_entry_include_host: true
 haproxy_stick_table_not_web: false
 haproxy_systemd_path: '/lib/systemd/system/haproxy.service'
+haproxy_test_backends_enabled: false
 # roundrobin all backup servers by default
 haproxy_use_allbackups: true
 haproxy_web_backend: beta-meet-jit-si-web.jitsi.net

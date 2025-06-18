@@ -301,9 +301,7 @@ backend {{ $standalone.ServiceMeta.shard }} from global_defaults
 {%- endif %}
   option forwardfor
   server shard-{% raw %}{{ $standalone.ServiceMeta.shard }} {{ $standalone.Address }}:{{ $standalone.ServiceMeta.http_backend_port }}{{ if eq $standalone.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
-{{ end }}
-{% endif %}{% raw %}
-
+{{ end }}{% endraw %}{% endif %}{% raw %}
 {{ range $release_number := scratch.MapValues "releases" }}{{ $release_name := print "release-" $release_number }}
 backend {{ $release_name }} from global_defaults
 {% endraw %}
