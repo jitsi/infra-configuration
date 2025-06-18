@@ -432,6 +432,7 @@ VirtualHost "{{ prosody_domain_name }}"
         modules_enabled = {
           "bosh";
           -- "component_disconnect";
+          "features_identity";
 {% if prosody_enable_filter_iq_rayo %}
           "filter_iq_rayo";
 {% endif %}
