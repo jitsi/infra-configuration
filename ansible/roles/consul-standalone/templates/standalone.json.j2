@@ -4,7 +4,9 @@
     "tags":["{{ hcv_environment }}","standalone-{{ consul_standalone_id }}"],
     "meta": {
         "environment":"{{ hcv_environment }}",
-        "domain":"{{ environment_domain_name }}"
+        "domain":"{{ environment_domain_name }}",
+        "shard":"{{ consul_standalone_id }}",
+        "http_backend_port":"443"
     },
     "tagged_addresses": {
       "lan": {

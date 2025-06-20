@@ -217,6 +217,12 @@ frontend www-http from global_defaults
 {%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}|any" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
   use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ } OR { hdr(X-Room) -m end _{{ $shard.ServiceMeta.shard }} }{{ end }}{% endraw %}
 
+{% if haproxy_test_backends_enabled %}
+  # standalone backends
+{%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "all@{% endraw %}{{ dc }}{% raw %}|any" }}{{ scratch.MapSet "test-shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "test-shards" }}
+  use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ } OR { hdr(X-Room) -m end _{{ $shard.ServiceMeta.shard }} }{{ end }}{% endraw %}
+{% endif %}
+
   # use tenant pin if there are servers, otherwise use the GA (live) backend
   use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
   use_backend %[var(req.live_backend)]
@@ -283,7 +289,20 @@ backend {{ $shard.ServiceMeta.shard }} from global_defaults
 {%- endif %}
   option forwardfor
   server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
-{{ end }}{{ range $release_number := scratch.MapValues "releases" }}{{ $release_name := print "release-" $release_number }}
+{{ end }}{% endraw %}
+
+{% if haproxy_test_backends_enabled %}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_standalones := print "all@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_standalones }}{{ scratch.MapSet "standalones" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
+{% raw %}{{ range $standalone := scratch.Get "standalones" }}
+backend {{ $standalone.ServiceMeta.shard }} from global_defaults
+{% endraw %}
+{%- if haproxy_enable_https_redirect %}
+  redirect scheme https if !{ ssl_fc }
+{%- endif %}
+  option forwardfor
+  server shard-{% raw %}{{ $standalone.ServiceMeta.shard }} {{ $standalone.Address }}:{{ $standalone.ServiceMeta.http_backend_port }}{{ if eq $standalone.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
+{{ end }}{% endraw %}{% endif %}{% raw %}
+{{ range $release_number := scratch.MapValues "releases" }}{{ $release_name := print "release-" $release_number }}
 backend {{ $release_name }} from global_defaults
 {% endraw %}
   acl stick_token hdr_reg(X-Room) .+
