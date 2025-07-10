@@ -35,6 +35,16 @@ network_settings = {
   tcp_backlog = 511;
 }
 
+{% if prosody_enable_shortlived_tokens %}
+short_lived_token = {
+    issuer = "prosody";
+    accepted_audiences = { "file-sharing" };
+    key_path = "{{ prosody_asap_shortlived_key_path }}";
+    key_id = "{{ prosody_asap_shortlived_key['id'] }}";
+    ttl_seconds = 30;
+};
+{% endif %}
+
 modules_enabled = {
       'roster';
       'saslauth';
@@ -243,6 +253,10 @@ VirtualHost 'v{{ item }}.meet.jitsi'
     {% if prosody_enable_filter_iq_rayo %}
       "filter_iq_rayo";
     {% endif %}
+{% if prosody_enable_shortlived_tokens %}
+      "short_lived_token";
+{% endif %}
+      "features_identity";
     }
     main_muc = 'conference.v{{ item }}.meet.jitsi';
     shard_name = "{{ shard_name }}"
@@ -367,4 +381,9 @@ VirtualHost "jigasib.v{{ item }}.meet.jitsi"
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ secrets_jigasi_conference_B }}"
     smacks_max_old_sessions = 2000;
+{% endif %}
+
+{% if prosody_enable_file_sharing %}
+Component "filesharing.v{{ item }}.meet.jitsi" "filesharing_component"
+    muc_component = "conference.v{{ item }}.meet.jitsi"
 {% endif %}
