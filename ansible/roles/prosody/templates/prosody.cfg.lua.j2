@@ -629,14 +629,15 @@ Component "conference.{{ prosody_domain_name }}" "muc"
         "muc_wait_for_host";
 {% endif %}
 {% if prosody_visitors_enabled %}
-      "s2sout_override";
+        "s2sout_override";
 {% endif %}
 {% if prosody_recording_autostart_enabled %}
-      "recording_autostart";
+        "recording_autostart";
 {% endif %}
 {% if prosody_filter_messages_enabled %}
-    "filter_messages";
+        "filter_messages";
 {% endif %}
+        "muc_displayname";
     }
 
 {% if prosody_enable_rate_limit %}
