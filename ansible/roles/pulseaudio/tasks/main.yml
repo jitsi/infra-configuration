@@ -1,0 +1,37 @@
+---
+- name: Install pulseaudio
+  ansible.builtin.apt:
+    name: ['pulseaudio']
+    state: present
+
+- name: Install /etc/pulse/default.pa
+  ansible.builtin.copy:
+    src: default.pa
+    dest: /etc/pulse/default.pa
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install jibri pulse defaults
+  ansible.builtin.copy:
+    src: jibri-default.pa
+    dest: /home/jibri/.config/pulse/default.pa
+    owner: jibri
+    group: jibri
+    mode: 0644
+
+- name: Install jibri pulse client config
+  ansible.builtin.copy:
+    src: jibri-client.conf
+    dest: /home/jibri/.config/pulse/client.conf
+    owner: jibri
+    group: jibri
+    mode: 0644
+
+- name: Install jibri pulse daemon config
+  ansible.builtin.copy:
+    src: jibri-daemon.conf
+    dest: /home/jibri/.config/pulse/daemon.conf
+    owner: jibri
+    group: jibri
+    mode: 0644
