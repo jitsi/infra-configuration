@@ -1,0 +1,88 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    # Verify that packages were installed
+    - name: Check if basic tools are installed
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      check_mode: true
+      register: pkg_status
+      failed_when: pkg_status.changed
+      loop:
+        - atop
+        - mc
+        - htop
+        - tmux
+        - unzip
+        - jq
+        - libffi-dev
+        - libssl-dev
+        - acl
+        - net-tools
+        - sysstat
+        - at
+    
+    # Check if locale was set properly
+    - name: Check locale configuration
+      ansible.builtin.command: "locale"
+      register: locale_output
+      changed_when: false
+    
+    - name: Verify locale is properly set
+      ansible.builtin.assert:
+        that: locale in locale_output.stdout
+        
+    # Verify python pip packages installation based on Ubuntu version
+    - name: Check if setuptools is installed (Ubuntu Focal)
+      ansible.builtin.command: "pip3 list | grep setuptools"
+      register: setuptools_output
+      changed_when: false
+      when: ansible_distribution_major_version | int == 20
+      
+    - name: Check AWS related libraries
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      check_mode: true
+      register: aws_pkg_status
+      failed_when: aws_pkg_status.changed
+      loop:
+        - python3-boto3
+        - python3-botocore
+        - python3-yaml
+        - python3-urllib3
+        - python3-requests
+    
+    # Verify helper scripts were installed
+    - name: Check if helper scripts exist
+      ansible.builtin.stat:
+        path: "/usr/local/bin/{{ item }}"
+      register: scripts_stat
+      failed_when: not scripts_stat.stat.exists
+      loop:
+        - download.sh
+        - aws_cache.sh
+        
+    # Verify file permissions are correct
+    - name: Check file permissions
+      ansible.builtin.stat:
+        path: "/usr/local/bin/download.sh"
+      register: script_perms
+      
+    - name: Verify script permissions
+      ansible.builtin.assert:
+        that: 
+          - script_perms.stat.mode == "0755"
+        
+    # Verify getaddrinfo configuration
+    - name: Check if gai.conf exists
+      ansible.builtin.stat:
+        path: "/etc/gai.conf"
+      register: gai_conf
+      
+    - name: Verify gai.conf exists
+      ansible.builtin.assert:
+        that: gai_conf.stat.exists
