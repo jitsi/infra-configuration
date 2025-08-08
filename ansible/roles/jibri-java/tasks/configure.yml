@@ -235,22 +235,6 @@
     mode: 0755
     owner: root
 
-# aws credentials for oracle to send stats to cloudwatch
-- name: Create directory for AWS credentials for CloudWatch
-  ansible.builtin.file:
-    mode: 0755
-    path: "{{ jibri_homedir }}/.aws"
-    state: directory
-  when: jibri_cloud_provider == "oracle"
-
-- name: AWS credentials
-  ansible.builtin.template:
-    mode: 0640
-    owner: "{{ jibri_username }}"
-    src: aws_credentials.j2
-    dest: "{{ jibri_homedir }}/.aws/credentials"
-  when: jibri_cloud_provider == "oracle"
-
   # Run the metric reporting script regularly
 - name: Jibri status script cron
   ansible.builtin.cron:

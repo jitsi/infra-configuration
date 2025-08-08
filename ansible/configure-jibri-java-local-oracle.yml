@@ -14,7 +14,6 @@
     - secrets/consul.yml
     - secrets/voximplant.yml
     - config/vars.yml
-    - secrets/aws-cloudwatch.yml
     - roles/jibri-java/defaults/main.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
