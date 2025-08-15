@@ -272,7 +272,7 @@ prosody_url_version: 0.12.5
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax
 prosody_version: 13.*
 # shell command to extract installed prosody version string from dpkg
-prosody_version_shell: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
+prosody_version_shell_cmd: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
 prosody_visitors_enabled: "{{ visitors_enabled | default(false) }}"
 prosody_visitors_count: "{{ visitors_count | default(0) }}"
 prosody_visitors_always_supported: false
