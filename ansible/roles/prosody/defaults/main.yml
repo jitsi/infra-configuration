@@ -124,7 +124,7 @@ prosody_install_flag: true
 # when prosody_install_from_apt is true we use latest prosody from apt matching prosody_version
 # for instance, prosody_version is only used for apt, whereas prosody_package_version is to specify a by-file version
 # set this to false to install via URL, or true to install via apt
-prosody_install_from_apt: false
+prosody_install_from_apt: true
 prosody_invite_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/invite"
 prosody_jaas_actuator_url: false
 prosody_jvb_admins:
