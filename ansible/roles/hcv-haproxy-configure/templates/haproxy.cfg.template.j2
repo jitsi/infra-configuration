@@ -217,8 +217,6 @@ frontend www-http from global_defaults
   use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
   use_backend %[var(req.live_backend)]
 
-{% endif -%}
-
 {% if haproxy_jvb_colibri_proxy_enabled %}
 backend jvb-colibri-proxy from global_defaults
   server jvb localhost:{{ haproxy_jvb_colibri_proxy_port }} id 1 no-check
