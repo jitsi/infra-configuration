@@ -1,5 +1,13 @@
 ---
 
+- name: Register installed prosody version
+  ansible.builtin.shell: |
+    set -o pipefail
+    {{ prosody_version_shell }}
+  args:
+    executable: /bin/bash
+  register: prosody_version_shell
+
 - name: Configure to use lua 5.4 by default
   ansible.builtin.shell: |
     set -o pipefail
@@ -404,6 +412,16 @@
     hour: "*"
     job: "/usr/local/bin/prosody-health-check.sh > /tmp/prosody-health-cron-output 2>&1"
   when: prosody_enable_health_check_cron
+
+# start prosody service if not already started
+- name: Start prosody service if prosody 13 is in use
+  ansible.builtin.systemd:
+    name: prosody
+    state: started
+    enabled: true
+    daemon_reload: true
+    masked: false
+  when: prosody_version_shell is defined and prosody_version_shell | version_compare('13', '>=')
 
 - name: Register focus prosody user
   ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
