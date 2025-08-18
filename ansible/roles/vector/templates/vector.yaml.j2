@@ -94,7 +94,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "syslog"
@@ -112,7 +112,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "shard-{{ vector_shard_name }}"
@@ -130,7 +130,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "shard-{{ vector_shard_name }}"
@@ -148,7 +148,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "vault-{{ vector_cloud_region }}"
@@ -165,7 +165,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "jvb-{{ ansible_hostname }}"
@@ -183,7 +183,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "{{ vector_shard_role }}-{{ ansible_hostname }}"
@@ -201,7 +201,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "jibri-{{ ansible_hostname }}"
@@ -219,7 +219,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: true
+        enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "jibri-{{ ansible_hostname }}"
