@@ -1,4 +1,11 @@
 ---
+- name: Register installed prosody version
+  ansible.builtin.shell: |
+    set -o pipefail
+    {{ prosody_version_shell_cmd }}
+  args:
+    executable: /bin/bash
+  register: prosody_version_shell
 
 - name: Configure to use lua 5.4 by default
   ansible.builtin.shell: |
@@ -244,12 +251,14 @@
     src: prosody.cfg.lua.j2
     dest: /etc/prosody/prosody.cfg.lua
     mode: 0644
+  register: prosody_cfg_lua
 
 - name: Build prosody-jvb.cfg.lua from template
   ansible.builtin.template:
     src: prosody-jvb.cfg.lua.j2
     dest: /etc/prosody-jvb/prosody.cfg.lua
     mode: 0644
+  register: prosody_jvb_cfg_lua
   when: prosody_jvb_configure_flag
 
 - name: Install muc presence filter pfw rule
@@ -404,6 +413,28 @@
     hour: "*"
     job: "/usr/local/bin/prosody-health-check.sh > /tmp/prosody-health-cron-output 2>&1"
   when: prosody_enable_health_check_cron
+
+# restart prosody service if changes haven't yet been applied
+- name: ReStart prosody service if prosody 13 is in use and the configuration has changed
+  ansible.builtin.systemd:
+    name: prosody
+    state: restarted
+  when:
+    - prosody_version_shell is defined
+    - prosody_version_shell.stdout.split('.')[0] | int >= 13
+    - prosody_cfg_lua is defined
+    - prosody_cfg_lua.changed
+
+# restart prosody-jvb service if changes haven't yet been applied
+- name: ReStart prosody-jvb service if prosody 13 is in use and the configuration has changed
+  ansible.builtin.systemd:
+    name: prosody-jvb
+    state: restarted
+  when:
+    - prosody_version_shell is defined
+    - prosody_version_shell.stdout.split('.')[0] | int >= 13
+    - prosody_jvb_cfg_lua is defined
+    - prosody_jvb_cfg_lua.changed
 
 - name: Register focus prosody user
   ansible.builtin.command: prosodyctl adduser focus@auth.{{ prosody_domain_name }}
