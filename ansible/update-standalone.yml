@@ -1,0 +1,247 @@
+---
+- name: Upgrade Standalone Jitsi Components
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  vars:
+    java_use_11: true
+  vars_files:
+    - secrets/ssl-certificates.yml
+    - secrets/jibri.yml
+    - secrets/jigasi.yml
+    - secrets/jicofo.yml
+    - secrets/jvb.yml
+    - secrets/prosody.yml
+    - secrets/repo.yml
+    - config/vars.yml
+    - roles/prosody/defaults/main.yml
+    - roles/jitsi-meet-branding/defaults/main.yml
+    - roles/jitsi-meet/defaults/main.yml
+    - roles/jicofo/defaults/main.yml
+    - roles/jitsi-videobridge/defaults/main.yml
+    - sites/{{ hcv_environment }}/vars.yml
+
+  pre_tasks:
+    - name: Wait for system to be ready
+      ansible.builtin.wait_for:
+        port: 22
+        timeout: 60
+        state: started
+        search_regex: OpenSSH
+      register: response
+      until: response
+      retries: 10
+      delay: 3
+
+    - name: Stop Jitsi services before upgrade
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - jitsi-videobridge2
+        - jicofo
+        - prosody
+      ignore_errors: true
+      tags: "upgrade"
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags: "upgrade"
+
+    # now install jitsi-videobridge
+    - name: Mark unhold on jitsi-videobridge package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark unhold jitsi-videobridge2
+
+    - name: Update jitsi-videobridge
+      ansible.builtin.apt:
+        name: "jitsi-videobridge2={{ jitsi_videobridge_deb_pkg_version }}"
+        state: present
+
+    - name: Mark hold on jitsi-videobridge package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark hold jitsi-videobridge2
+
+    # now install prosody, either from URL or via apt
+    - name: Include apt install tasks
+      ansible.builtin.include_tasks: roles/prosody/tasks/install-from-apt.yml
+      when: prosody_install_from_apt
+
+    - name: Include URL install tasks
+      ansible.builtin.include_tasks: roles/prosody/tasks/install-from-url.yml
+      when: not prosody_install_from_apt
+
+   # now install jicofo
+    - name: Mark unhold on jicofo package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark unhold {{ jicofo_deb_pkg_name }}
+
+    - name: Update jicofo
+      ansible.builtin.apt:
+        name: "{{ jicofo_deb_pkg_name }}={{ jicofo_deb_pkg_version }}"
+        state: present
+
+    - name: Mark hold on jicofo package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark hold {{ jicofo_deb_pkg_name }}
+
+  # now install jitsi-meet
+    - name: Mark unhold on jitsi-meet package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark unhold {{ jitsi_meet_deb_pkg_name }}
+
+    - name: Install jitsi-meet
+      ansible.builtin.apt:
+        name: "{{ jitsi_meet_deb_pkg_name }}={{ jitsi_meet_deb_pkg_version }}"
+        state: present
+
+    - name: Mark hold on jitsi-meet package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark hold {{ jitsi_meet_deb_pkg_name }}
+
+    # now reconfigure jitsi-videobridge
+    - name: Install jitsi-videobridge new config file
+      ansible.builtin.template:
+        mode: 0644
+        src: roles/jitsi-videobridge/templates/jvb.conf.j2
+        dest: /etc/jitsi/videobridge/jvb.conf
+      when: jvb_configure_from_template_flag
+
+    # now reconfigure prosody
+    - name: Check whether module muc_meeting_id exists
+      ansible.builtin.stat:
+        path: "{{ prosody_plugins_path }}/mod_muc_meeting_id.lua"
+      register: muc_meeting_id_exists
+
+    - name: Build prosody.cfg.lua from template
+      ansible.builtin.template:
+        src: roles/prosody/templates/prosody.cfg.lua.j2
+        dest: /etc/prosody/prosody.cfg.lua
+        mode: 0644
+
+    # now reconfigure jitsi-meet branding
+    - name: Register installed Meet version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      args:
+        executable: /bin/bash
+      register: jitsi_meet_web_version_shell
+
+    - name: Install branding override when required
+      ansible.builtin.apt:
+        name: "{{ jitsi_meet_branding_override }}=1.0.{{ jitsi_meet_web_version_shell.stdout }}*"
+        allow-downgrades: true
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      when: jitsi_meet_branding_override != "jitsi-meet"
+
+    - name: Register installed branding version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s {{ jitsi_meet_branding_override }} | grep Version | awk '{print $2}' | cut -d'.' -f3,4 | cut -d'-' -f1
+      args:
+        executable: /bin/bash
+      register: jitsi_meet_branding_version_shell
+      when: jitsi_meet_branding_override != "jitsi-meet"
+
+    - name: Set jitsi_meet_branding_version
+      ansible.builtin.set_fact:
+        jitsi_meet_branding_version: "{{ jitsi_meet_branding_version_shell.stdout if (jitsi_meet_branding_override != 'jitsi-meet')
+          else jitsi_meet_web_version_shell.stdout }}"
+
+    # now reconfigure jitsi-meet
+    - name: Deploy config file
+      ansible.builtin.template:
+        src: roles/jitsi-meet/templates/config.js.j2
+        dest: "{{ jitsi_meet_config_path }}/{{ jitsi_meet_domain_name }}-config.js"
+        mode: 0644
+        owner: "www-data"
+
+    - name: Set base HTML contents (no sanitize hack)
+      ansible.builtin.set_fact:
+        jitsi_meet_base_html_content: "<base href=\"{{ jitsi_meet_cdn_base_url }}/{{ jitsi_meet_cdn_prefix }}{{ jitsi_meet_branding_version }}/\" />"
+
+    - name: Add CDN base href for meet index.html
+      ansible.builtin.copy:
+        content: "{{ jitsi_meet_base_html_content }}"
+        dest: "{{ jitsi_meet_nginx_root }}/base.html"
+        mode: 0644
+        owner: "www-data"
+      when: jitsi_meet_cdn_enabled
+
+    - name: Remove CDN base href for meet index.html
+      ansible.builtin.copy:
+        content: ""
+        dest: "{{ jitsi_meet_nginx_root }}/base.html"
+        mode: 0644
+        owner: "www-data"
+      when: not jitsi_meet_cdn_enabled
+
+    # now reconfigure jicofo
+    - name: Jicofo configuration file
+      ansible.builtin.template:
+        src: roles/jicofo/templates/jicofo.conf.j2
+        dest: /etc/jitsi/jicofo/jicofo.conf
+        mode: 0600
+        owner: jicofo
+        group: jitsi
+
+  post_tasks:
+    - name: Ensure all services are started
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+        daemon_reload: true
+      loop:
+        - prosody
+        - jicofo
+        - jitsi-videobridge2
+      tags: "upgrade"
+
+    - name: Register upgraded Jicofo version
+      tags: "gather_versions"
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+      args:
+        executable: /bin/bash
+      register: jicofo_version_shell
+      changed_when: jicofo_version_shell.rc != 0
+
+    - name: Register upgraded Meet version
+      tags: "gather_versions"
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
+      args:
+        executable: /bin/bash
+      register: jitsi_meet_version_shell
+      changed_when: jitsi_meet_version_shell.rc != 0
+
+    - name: Register upgraded JVB version
+      tags: "gather_versions"
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s jitsi-videobridge2 | grep Version | awk '{print $2}' | cut -d'-' -f2
+      args:
+        executable: /bin/bash
+      register: jvb_version_shell
+      changed_when: jvb_version_shell.rc != 0
+
+    - name: Register upgraded Prosody version
+      tags: "gather_versions"
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s prosody | grep Version | awk '{print $2}' | cut -d'-' -f1
+      args:
+        executable: /bin/bash
+      register: prosody_version_shell
+      changed_when: prosody_version_shell.rc != 0
+
+    - name: Display upgrade results
+      ansible.builtin.debug:
+        msg: |
+          Upgrade completed successfully:
+          - Prosody: {{ prosody_version_shell.stdout }}
+          - Jitsi Meet: {{ jitsi_meet_version_shell.stdout }}
+          - Jicofo: {{ jicofo_version_shell.stdout }}
+          - JVB: {{ jvb_version_shell.stdout }}
+      tags: "gather_versions"
