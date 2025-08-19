@@ -94,13 +94,13 @@ if [ -n "$PROSODY_FROM_URL" ]; then
     PROSODY_APT_FLAG="\"prosody_install_from_apt\":$PROSODY_APT_FLAG"
 fi
 
-# Load vault credentials if available
-if [ -f "$LOCAL_PATH/vault-login.sh" ]; then
-     . $LOCAL_PATH/vault-login.sh
-set +x     
-     export VAULT_TOKEN="$(cat $HOME/.vault-token)"
-set -x
-fi
+# # Load vault credentials if available
+# if [ -f "$LOCAL_PATH/vault-login.sh" ]; then
+#      . $LOCAL_PATH/vault-login.sh
+# set +x     
+#      export VAULT_TOKEN="$(cat $HOME/.vault-token)"
+# set -x
+# fi
 
 # Create upgrade results directory
 mkdir -p upgrade-results
