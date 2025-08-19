@@ -379,7 +379,10 @@ var config = {
 {% if jaas_feedback_metadata_url %}
    jaasFeedbackMetadataURL: '{{ jaas_feedback_metadata_url }}',
 {% endif %}
-    prejoinPageEnabled: {% if jitsi_meet_enable_prejoin_page %}true{% else %}false{% endif %},
+    prejoinConfig: {
+        enabled: {% if jitsi_meet_enable_prejoin_page %}true{% else %}false{% endif %},
+    },
+{% endif %}
 {% if jitsi_meet_moderated_service_url %}
     moderatedRoomServiceUrl: '{{ jitsi_meet_moderated_service_url }}',
 {% endif %}
