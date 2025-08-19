@@ -518,11 +518,23 @@ VirtualHost "{{ prosody_guest_domain_name }}"
 {% if prosody_enable_filter_iq_jibri %}
           "filter_iq_jibri";
 {% endif %}
+{% if prosody_enable_jiconop_module %}
+          "jiconop";
+{% endif %}
         }
         authentication = "jitsi-anonymous"
 {% if prosody_visitors_enabled %}
         allow_anonymous_s2s = true
 {% endif %}
+{% if prosody_enable_lobby %}
+        lobby_muc = "lobby.{{ prosody_domain_name }}"
+{% endif %}
+{% if prosody_breakout_rooms_enabled %}
+        breakout_rooms_muc = "breakout.{{ prosody_domain_name }}"
+{% endif %}
+        shard_name = "{{ shard_name }}"
+        region_name = "{{ prosody_region }}"
+        release_number = "{{ jitsi_release_number }}"
 {% endif %}
 
 VirtualHost "{{ prosody_auth_domain_name }}"
