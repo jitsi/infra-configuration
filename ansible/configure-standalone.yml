@@ -242,6 +242,7 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
+    - { role: "iptables-serf", tags: "iptables", when: cloud_provider=='oracle' }
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
