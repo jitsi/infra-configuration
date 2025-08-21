@@ -238,7 +238,7 @@ backend {{ haproxy_backend_name }} from global_defaults
 
   stick-table type string len 200 size 200k peers mypeers expire 5m srvkey addr 
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token stick_token_flag
-  stick store hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
+  stick store-request hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
   # use all backup servers like normal if primary is down
   option allbackups
   # setup a custom http health check for our nodes
@@ -288,7 +288,7 @@ backend {{ $release_name }} from global_defaults
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token stick_token_flag
-  stick store hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
+  stick store-request hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release_number }}
   server {{ $release_number }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{% endraw %}{% if loop.index != 1 %}{% raw %} backup{% endraw %}{% endif %}{% raw %}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{% endraw %}{% endfor %}
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if ne $live_release_name $release_name }}{{ if eq (print "release-" $shard.ServiceMeta.release_number) $live_release_name }}
