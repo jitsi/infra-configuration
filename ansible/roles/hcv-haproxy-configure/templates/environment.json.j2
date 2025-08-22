@@ -3,7 +3,6 @@
     "consul_extra_urls":{{ haproxy_consul_extra_urls|to_json }},
     "enable_cross_region":{{ haproxy_enable_cross_region|to_json }},
     "region":"{{ haproxy_region }}",
-    "consul_enabled":{{ haproxy_consul_enabled|to_json }},
     "include_standalone":{{ haproxy_consul_include_standalone|to_json }},
     "private_ip":"{{ haproxy_private_ip }}"{% if haproxy_public_ip %},
     "public_ip":"{{ haproxy_public_ip }}"{% endif %},

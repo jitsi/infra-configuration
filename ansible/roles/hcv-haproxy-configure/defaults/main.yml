@@ -25,7 +25,6 @@ haproxy_check_interval: 10s
 haproxy_check_port: "{{ haproxy_backend_port }}"
 haproxy_cloud_provider: "{{ cloud_provider | default('aws') }}"
 haproxy_consul_datacenter: "{{ cloud_name | default('dc1') }}"
-haproxy_consul_enabled: true
 haproxy_consul_extra_urls: []
 haproxy_consul_include_standalone: false
 haproxy_consul_server: localhost:8500
