@@ -3,7 +3,6 @@ ansible_ec2_placement_region:
 haproxy_acl_max_length: 60
 haproxy_agent_check: true
 haproxy_agent_check_port: 6060
-haproxy_bad_room_list: "{{ bad_room_list | default([]) }}"
 haproxy_backend_fall_count: 2
 haproxy_backend_name: nodes
 haproxy_backend_port: 443
@@ -16,8 +15,6 @@ haproxy_ban_prefix_map_path: /etc/haproxy/maps/banned_prefix.map
 haproxy_ban_substr_map_path: /etc/haproxy/maps/banned_substring.map
 haproxy_unban_prefix_map_path: /etc/haproxy/maps/unban_prefix.map
 # for tenant-pin-writer
-haproxy_ban_rooms_map_path: /etc/haproxy/maps/banned_rooms.map
-haproxy_ban_tenants_map_path: /etc/haproxy/maps/banned_tenants.map
 haproxy_boot_flag: false
 haproxy_build_ami: false
 haproxy_check_interval: 10s
@@ -32,10 +29,7 @@ haproxy_conf_path: "/etc/haproxy"
 haproxy_configure_only: false
 haproxy_configure_setup: true
 haproxy_default_conf_path: "/etc/default/"
-haproxy_domain_blacklist: example.com
-haproxy_domain_blacklist_enabled: false
 # by default, haproxy in sibling regions across clouds will consider entities in those regions as 'local'
-haproxy_enable_cross_region: true
 haproxy_environment: "{{ hcv_environment }}"
 haproxy_facts: {}
 haproxy_frontend_count: 4
@@ -56,7 +50,6 @@ haproxy_release_tenant_map_path: /etc/haproxy/maps/tenant.map
 haproxy_region: "{{ cloud_region | default('default') }}"
 haproxy_regions: "{{ haproxy_regions_by_region[haproxy_region] | default(default_regions) }}"
 # required due to changes in configuration scripts which check for specific haproxy version
-haproxy_rest_check: true
 haproxy_set_shard_states_on_reconfigure: false
 haproxy_ssl_certificates: false
 haproxy_state_file: '/tmp/server_state'

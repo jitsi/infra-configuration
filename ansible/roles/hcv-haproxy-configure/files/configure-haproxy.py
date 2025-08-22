@@ -481,12 +481,6 @@ def main():
 
     local_region = local_data['region']
 
-    # by default only consider first datacenter as local
-    enable_cross_region = False
-    if 'enable_cross_region' in local_data:
-        # if enabled, consider first datacenter in each response as local
-        enable_cross_region = local_data['enable_cross_region']
-
     # get other datacenters from consul
     datacenters = []
     local_datacenters = []
@@ -494,9 +488,8 @@ def main():
         segment_dcs = fetch_datacenters(consul_url)
         if segment_dcs:
             datacenters.extend(segment_dcs)
-            if enable_cross_region or len(local_datacenters) == 0:
-                # mark the first DC in each list as 'local'
-                local_datacenters.append(segment_dcs[0])
+            if len(local_datacenters) == 0:
+                local_datacenters.append(segment_dcs[0]) # the first DC in list from consul is local
 
     # order datacenters based on proximity from EC2_REGION_FILE
     ordered_datacenters = []

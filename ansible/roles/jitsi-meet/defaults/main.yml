@@ -60,7 +60,6 @@ jitsi_meet_assetlinks: |
           "sha256_cert_fingerprints": ["F6:C8:93:15:16:9D:E0:08:0A:B7:EA:36:15:26:24:25:60:93:77:F7:61:79:89:E9:52:05:F4:09:B3:0E:59:44"]
       }
   }]
-jitsi_meet_bad_room_list: "{{ bad_room_list | default([]) }}"
 jitsi_meet_bosh_host: "{{ environment_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "https://"
