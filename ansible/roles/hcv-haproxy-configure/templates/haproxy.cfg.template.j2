@@ -9,13 +9,11 @@ global
   maxconn 2000000
   daemon
 
-{% if haproxy_enable_multithreading %}
 {% if haproxy_installed_version is version('2.5','<') %}
   nbproc 1
 {% endif %}
   nbthread {{ ansible_processor_vcpus|int() }}
   cpu-map 1/all 0-{{ ansible_processor_vcpus|int() - 1 }}
-{% endif %}
 
   # Default SSL material locations
   ca-base /etc/ssl/certs
@@ -77,6 +75,7 @@ listen admin from global_defaults
   stats auth admin:admin
   stats uri /haproxy_stats
 
+# this allows use of the health map to turn the haproxy off for load balancers
 frontend health from global_defaults
   bind *:8081
   http-request set-log-level silent
@@ -106,11 +105,6 @@ frontend www-http from global_defaults
   acl banned_domain var(req.ban_domain) -m str ban
   http-request deny deny_status 429 if banned_domain
 
-{% if haproxy_enable_https_redirect %}
-  http-request add-header X-Forwarded-Proto http
-  http-request add-header X-Proxy-Region {{ haproxy_region }}
-  http-request add-header X-Proxy-Host {{ ansible_hostname.split('.')[0] }}
-  default_backend {{ haproxy_backend_name }}{% else %}
   # detect if we're a health check, if so do not put it in access log
   acl is_healthcheck url /about/health /_health
   http-request set-log-level silent if is_healthcheck
@@ -170,7 +164,7 @@ frontend www-http from global_defaults
 
   # set stick token header with stick token; may be set to blank if group and room are blank
   http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
-  http-request set-header X-StickTokenFlag true if room_set{% if haproxy_stick_table_not_web %} not_web{% endif %}
+  http-request set-header X-StickTokenFlag true if room_set not_web
 
   http-request add-header X-Forwarded-Proto https
   http-request add-header X-Proxy-Region {{ haproxy_region }}
@@ -208,10 +202,6 @@ frontend www-http from global_defaults
   acl jvb_path path_beg /colibri-relay-ws/
   use_backend jvb-colibri-proxy if jvb_path
 {% endif %}
-{% if haproxy_web_backend_enabled %}
-  use_backend {{ haproxy_backend_name }} if not_web
-  default_backend web
-{% else %}
 
   # shard-specific backends
 {%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}|any" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
@@ -227,23 +217,9 @@ frontend www-http from global_defaults
   use_backend %[var(req.tenant_pin)] if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
   use_backend %[var(req.live_backend)]
 
-{% endif -%}
-{% endif -%}
-
 {% if haproxy_jvb_colibri_proxy_enabled %}
 backend jvb-colibri-proxy from global_defaults
   server jvb localhost:{{ haproxy_jvb_colibri_proxy_port }} id 1 no-check
-{% endif %}
-{% if haproxy_web_backend_enabled %}
-backend web from global_defaults
-  # set the Host header to the one the ingress expects
-  http-request set-header Host {{ haproxy_web_backend }}
-{% if haproxy_enable_https_redirect %}
-  redirect scheme https if !{ ssl_fc }
-{% endif %}
-  option forwardfor
-
-  server web {{ haproxy_web_backend }}:{{ haproxy_web_backend_port }} id 1 {% if haproxy_web_backend_port==443 %} ssl verify none{% endif %} check
 {% endif %}
 
 backend local_health from global_defaults
@@ -252,10 +228,6 @@ backend local_health from global_defaults
 backend {{ haproxy_backend_name }} from global_defaults
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
-
-{%- if haproxy_enable_https_redirect %}
-  redirect scheme https if !{ ssl_fc }
-{%- endif %}
 
   # pass client IP to server
   option forwardfor
@@ -266,11 +238,9 @@ backend {{ haproxy_backend_name }} from global_defaults
 
   stick-table type string len 200 size 200k peers mypeers expire 5m srvkey addr 
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
-{% if haproxy_use_allbackups %}
+  stick store-request hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token stick_token_flag
   # use all backup servers like normal if primary is down
   option allbackups
-{% endif %}
   # setup a custom http health check for our nodes
 {% if haproxy_installed_version is version('2.2','>=') %}
   option httpchk
@@ -284,9 +254,6 @@ backend {{ haproxy_backend_name }} from global_defaults
 {% raw %}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }} from global_defaults
 {% endraw %}
-{%- if haproxy_enable_https_redirect %}
-  redirect scheme https if !{ ssl_fc }
-{%- endif %}
   option forwardfor
   server shard-{% raw %}{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{% endraw %}
@@ -296,9 +263,6 @@ backend {{ $shard.ServiceMeta.shard }} from global_defaults
 {% raw %}{{ range $standalone := scratch.Get "standalones" }}
 backend {{ $standalone.ServiceMeta.shard }} from global_defaults
 {% endraw %}
-{%- if haproxy_enable_https_redirect %}
-  redirect scheme https if !{ ssl_fc }
-{%- endif %}
   option forwardfor
   server shard-{% raw %}{{ $standalone.ServiceMeta.shard }} {{ $standalone.Address }}:{{ $standalone.ServiceMeta.http_backend_port }}{{ if eq $standalone.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }}{% endraw %} no-check{% raw %}
 {{ end }}{% endraw %}{% endif %}{% raw %}
@@ -307,10 +271,6 @@ backend {{ $release_name }} from global_defaults
 {% endraw %}
   acl stick_token hdr_reg(X-Room) .+
   acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
-
-{%- if haproxy_enable_https_redirect %}
-  redirect scheme https if !{ ssl_fc }
-{%- endif %}
 
   option forwardfor      # pass client IP to server
   no option allbackups   # use only the first backup server to ensure fallbacks will be by release 
@@ -328,7 +288,7 @@ backend {{ $release_name }} from global_defaults
   hash-type consistent {{ haproxy_hash_function }}
   hash-balance-factor 150
   stick match hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token
-  stick on hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token_flag stick_token
+  stick store-request hdr(X-StickToken) table {{ haproxy_backend_name }} if stick_token stick_token_flag 
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if eq $shard.ServiceMeta.release_number $release_number }}
   server {{ $release_number }}-{{ $shard.ServiceMeta.shard }} {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }} id {{ $shard_int := $shard.ServiceMeta.shard_id | parseInt }}{{ add $shard_int 10 }}{% endraw %}{% if loop.index != 1 %}{% raw %} backup{% endraw %}{% endif %}{% raw %}{{ if eq $shard.ServiceMeta.http_backend_port "443" }} ssl verify none{{ end }} no-check agent-check agent-port {{ $shard.ServiceMeta.signal_sidecar_agent_port }} agent-inter {{ env "HAPROXY_AGENT_CHECK_INTERVAL" }} weight 256{{ end }}{{ end }}{% endraw %}{% endfor %}
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $index, $shard := service $dc_shards }}{{ if ne $live_release_name $release_name }}{{ if eq (print "release-" $shard.ServiceMeta.release_number) $live_release_name }}

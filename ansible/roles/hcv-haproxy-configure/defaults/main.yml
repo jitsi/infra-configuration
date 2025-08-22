@@ -25,7 +25,6 @@ haproxy_check_interval: 10s
 haproxy_check_port: "{{ haproxy_backend_port }}"
 haproxy_cloud_provider: "{{ cloud_provider | default('aws') }}"
 haproxy_consul_datacenter: "{{ cloud_name | default('dc1') }}"
-haproxy_consul_enabled: false
 haproxy_consul_extra_urls: []
 haproxy_consul_include_standalone: false
 haproxy_consul_server: localhost:8500
@@ -37,12 +36,6 @@ haproxy_domain_blacklist: example.com
 haproxy_domain_blacklist_enabled: false
 # by default, haproxy in sibling regions across clouds will consider entities in those regions as 'local'
 haproxy_enable_cross_region: true
-haproxy_enable_https_redirect: false
-# enable threading in HAProxy (1.8 only)
-haproxy_enable_multithreading: true
-haproxy_enable_stats_cron: false
-# only enable if all HAProxies are in peered VPCs, uses internal addresses for peering
-haproxy_enable_vpc_peering: false
 haproxy_environment: "{{ hcv_environment }}"
 haproxy_facts: {}
 haproxy_frontend_count: 4
@@ -54,7 +47,6 @@ haproxy_jvb_colibri_proxy_port: "{{ jvb_colibri_proxy_port | default(8088) }}"
 haproxy_init_d_path: '/etc/init.d/haproxy'
 haproxy_installed_version: ""
 haproxy_log_level: "{{ 'info' if haproxy_http_log_enabled else 'notice' }}"
-haproxy_path_to_stats_script: "/usr/local/bin/haproxy-stats.sh"
 haproxy_peer_port: 1024
 haproxy_private_ip: "{{ private_ip | default(ansible_default_ipv4.address) }}"
 haproxy_public_ip: "{{ public_ip | default('') }}"
@@ -68,21 +60,9 @@ haproxy_rest_check: true
 haproxy_set_shard_states_on_reconfigure: false
 haproxy_ssl_certificates: false
 haproxy_state_file: '/tmp/server_state'
-haproxy_stats_cron:
-  hour: "*"
-  job: "{{ haproxy_path_to_stats_script }} > /tmp/stats-cron-output 2>&1"
-  minute: "10"
-haproxy_stats_cron_user: ubuntu
 haproxy_stats_socket: '/run/haproxy/admin.sock'
-haproxy_stick_entry_include_host: true
-haproxy_stick_table_not_web: false
 haproxy_systemd_path: '/lib/systemd/system/haproxy.service'
 haproxy_test_backends_enabled: false
 # roundrobin all backup servers by default
-haproxy_use_allbackups: true
-haproxy_web_backend: beta-meet-jit-si-web.jitsi.net
-# web backend - redirect most requests to a single backend_service
-haproxy_web_backend_enabled: false
-haproxy_web_backend_port: 443
 haproxy_health_up_map_value: "{{ False if haproxy_build_ami or haproxy_boot_flag else True }}"
 haproxy_health_up_map_path: /etc/haproxy/maps/up.map
