@@ -244,10 +244,10 @@ backend {{ haproxy_backend_name }} from global_defaults
   # setup a custom http health check for our nodes
 {% if haproxy_installed_version is version('2.2','>=') %}
   option httpchk
-  http-check send meth GET uri {% if haproxy_rest_check %}/about/health hdr Host 127.0.0.1{% else %}/{% endif %} 
+  http-check send meth GET uri /about/health hdr Host 127.0.0.1
   http-check expect status 200
 {% else %}
-  option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
+  option httpchk GET /about/health HTTP/1.1\r\nHost:127.0.0.1
 {%- endif %}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
 {% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
@@ -279,10 +279,10 @@ backend {{ $release_name }} from global_defaults
   # custom http health checks for our nodes
 {% if haproxy_installed_version is version('2.2','>=') %}
   option httpchk
-  http-check send meth GET uri {% if haproxy_rest_check %}/about/health hdr Host 127.0.0.1{% else %}/{% endif %} 
+  http-check send meth GET uri /about/health hdr Host 127.0.0.1
   http-check expect status 200
 {% else %}
-  option httpchk GET {% if haproxy_rest_check %}/about/health HTTP/1.1\r\nHost:127.0.0.1{% else %}/{% endif %}
+  option httpchk GET /about/health HTTP/1.1\r\nHost:127.0.0.1
 {% endif %}
   balance hdr(X-StickToken)
   hash-type consistent {{ haproxy_hash_function }}

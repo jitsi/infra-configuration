@@ -699,14 +699,6 @@ server {
 
 {% endif %}
 
-{% if jitsi_meet_bad_room_list | length > 0 %}
-    #ensure all inappropriate room names are redirected appropriately
-    location ~* ^/({% for r in jitsi_meet_bad_room_list %}{{ r }}{% if not loop.last %}|{% endif %}{% endfor %})$
-    {
-        rewrite ^/(.*)$ https://{{ jitsi_meet_domain_name }}/ permanent;
-    }
-{% endif %}
-
     #Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
     location ~ ^/([^/?&:'"]+)$ {
         try_files $uri @root_path;
