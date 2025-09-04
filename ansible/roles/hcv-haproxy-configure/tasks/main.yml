@@ -237,7 +237,7 @@
     - not haproxy_build_ami
     - not haproxy_configure_only
 
-- name: Install haproxy update from map script for consul-templat
+- name: Install haproxy update from map script for consul-template
   ansible.builtin.copy:
     mode: 0744
     src: update-haproxy-map.sh
