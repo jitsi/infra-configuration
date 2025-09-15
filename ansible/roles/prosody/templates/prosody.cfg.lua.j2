@@ -159,10 +159,6 @@ asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences
 asap_require_room_claim = false;
 {% endif %}
 
-{% if prosody_enable_password_waiting_for_host %}
-enable_password_waiting_for_host = true;
-{% endif %}
-
 {% if prosody_enable_shortlived_tokens %}
 short_lived_token = {
     issuer = "prosody";
