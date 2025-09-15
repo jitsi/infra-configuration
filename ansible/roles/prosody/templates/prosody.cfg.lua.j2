@@ -156,7 +156,7 @@ asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences
 {% endif %}
 
 {% if prosody_enable_wait_for_host %}
-    allowner_issuers = { "jitsi" }
+allowner_issuers = { "jitsi" };
 {% endif %}
 
 {% if prosody_disable_required_room_claim %}
