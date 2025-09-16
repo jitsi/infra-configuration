@@ -632,9 +632,6 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_meet_flip_enabled %}
         "muc_flip";
 {% endif %}
-{% if prosody_polls_enabled %}
-        "polls";
-{% endif %}
 {% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
 {% endif %}
@@ -808,9 +805,6 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
 {% endif %}
-{% if prosody_polls_enabled %}
-        "polls";
-{% endif %}
 {% if prosody_meet_webhooks_enabled %}
         "muc_webhooks";
 {% endif %}
@@ -857,6 +851,10 @@ VirtualHost "sipjibri.{{ prosody_domain_name }}"
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ sip_jibri_shared_secrets[hcv_environment] }}"
     smacks_max_old_sessions = 2000;
+{% endif %}
+
+{% if prosody_polls_enabled %}
+Component "polls.{{ prosody_domain_name }}" "polls_component"
 {% endif %}
 
 {% if secrets_jigasi_conference_A %}
