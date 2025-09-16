@@ -155,6 +155,10 @@ asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},
 asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{ aud }}"{% endfor %} }
 {% endif %}
 
+{% if prosody_enable_wait_for_host %}
+allowner_issuers = { "jitsi" };
+{% endif %}
+
 {% if prosody_disable_required_room_claim %}
 asap_require_room_claim = false;
 {% endif %}
