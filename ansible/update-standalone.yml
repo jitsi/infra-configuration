@@ -78,6 +78,13 @@
       ansible.builtin.include_tasks: roles/prosody/tasks/install-from-url.yml
       when: not prosody_install_from_apt
 
+    - name: Stop prosody after upgrade
+      ansible.builtin.systemd:
+        name: "prosody"
+        state: stopped
+      ignore_errors: true
+      tags: "upgrade"
+
    # now install jicofo
     - name: Mark unhold on jicofo package version # noqa no-changed-when
       ansible.builtin.command: apt-mark unhold {{ jicofo_deb_pkg_name }}
