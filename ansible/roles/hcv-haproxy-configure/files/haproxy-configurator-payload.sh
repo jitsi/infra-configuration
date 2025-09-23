@@ -52,7 +52,7 @@ if [[ "$FINAL_EXIT" -eq 0 ]]; then
     # make sure the most recent validated config is being used
     cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
 
-    service haproxy reload
+    service haproxy restart
     if [[ $? -gt 0 ]]; then
         log_Msg "haproxy failed to reload"
         echo -n "jitsi.config.haproxy.reconfig:0|c" | nc -4u -w1 localhost 8125
