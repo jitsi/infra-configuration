@@ -163,6 +163,10 @@ allowner_issuers = { "jitsi" };
 asap_require_room_claim = false;
 {% endif %}
 
+{% if prosody_displayname_ignore_jwt_name %}
+ignore_jwt_name = true;
+{% endif %}
+
 {% if prosody_enable_shortlived_tokens %}
 short_lived_token = {
     issuer = "prosody";
