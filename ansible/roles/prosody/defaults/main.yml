@@ -44,6 +44,7 @@ prosody_configure_flag: true
 prosody_disable_messaging: false
 prosody_disabled_modules: ["pubsub", "register"]
 prosody_disable_required_room_claim: false
+prosody_displayname_ignore_jwt_name: false
 prosody_domain_name: "{{ environment_domain_name | default('domain.local') }}"
 # version vars for url install method
 prosody_dpkg_base_name: prosody
