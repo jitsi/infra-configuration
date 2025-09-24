@@ -208,7 +208,7 @@ jvb_ufrag_prefix: "{{ jvb_component_id }}"
 jvb_upgrade_flag: false
 jvb_use_cpu_for_stress: true
 jvb_use_dcsctp: true
-jvb_use_google_cc2_bwe: false
+jvb_use_google_cc2_bwe: true
 jvb_use_public_ip: false
 jvb_use_vla_target_bitrate: false
 jvb_username: jvb
