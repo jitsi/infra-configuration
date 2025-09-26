@@ -85,6 +85,10 @@ sources:
         include:
             - "/var/log/vault/audit.log"
             - "/var/log/vault/audit.log.1"
+    haproxy_template:
+        type: "file"
+        include:
+            - "/var/log/consul-template/haproxy-template.log"
 sinks:
   loki_syslog:
     remove_timestamp: false
@@ -112,7 +116,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "shard-{{ vector_shard_name }}"
@@ -130,7 +134,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "shard-{{ vector_shard_name }}"
@@ -148,7 +152,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "vault-{{ vector_cloud_region }}"
@@ -165,7 +169,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "jvb-{{ ansible_hostname }}"
@@ -183,7 +187,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "{{ vector_shard_role }}-{{ ansible_hostname }}"
@@ -201,7 +205,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "jibri-{{ ansible_hostname }}"
@@ -219,7 +223,7 @@ sinks:
     encoding:
         codec: "json"
     healthcheck:
-        enabled: false
+        enabled: true
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "jibri-{{ ansible_hostname }}"
