@@ -239,7 +239,7 @@ sinks:
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
         level: "{{ '{{' }} .level }}"
-  loki_haproxy
+  loki_haproxy:
     remove_timestamp: false
     type: "loki"
     inputs: ["haproxy_to_structure"]
@@ -255,7 +255,7 @@ sinks:
         group: "haproxy"
         namespace: "default"
         node: "{{ ansible_hostname }}"
-  loki_haproxy_template
+  loki_haproxy_template:
     remove_timestamp: false
     type: "loki"
     inputs: ["haproxy_template_to_structure"]
