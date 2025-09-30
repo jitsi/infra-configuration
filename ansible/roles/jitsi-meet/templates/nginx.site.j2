@@ -409,7 +409,13 @@ server {
 
 
     location = /external_api.js {
-        alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
+       add_header Strict-Transport-Security 'max-age=63072000; includeSubDomains';
+       add_header 'X-Jitsi-Shard' '{{ shard_name }}';
+       add_header 'X-Jitsi-Region' '{{ shard_region }}';
+       add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
     }
 
     # Backward compatibility
@@ -693,14 +699,6 @@ server {
 
 {% endif %}
 
-{% if jitsi_meet_bad_room_list | length > 0 %}
-    #ensure all inappropriate room names are redirected appropriately
-    location ~* ^/({% for r in jitsi_meet_bad_room_list %}{{ r }}{% if not loop.last %}|{% endif %}{% endfor %})$
-    {
-        rewrite ^/(.*)$ https://{{ jitsi_meet_domain_name }}/ permanent;
-    }
-{% endif %}
-
     #Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
     location ~ ^/([^/?&:'"]+)$ {
         try_files $uri @root_path;
@@ -760,7 +758,13 @@ server {
     }
 
     location ~ ^/([^/?&:'"]+)/external_api.js {
-        alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
+       add_header Strict-Transport-Security 'max-age=63072000; includeSubDomains';
+       add_header 'X-Jitsi-Shard' '{{ shard_name }}';
+       add_header 'X-Jitsi-Region' '{{ shard_region }}';
+       add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
     }
 
     # Matches /(TENANT)/(static path)/(.*) so rewrite to /(static path) and look for file

@@ -5,7 +5,6 @@
     name: haproxy
     state: reloaded
     daemon_reload: true
-  notify: Set shard states
 
 - name: Restart haproxy systemd
   ansible.builtin.systemd:
@@ -18,15 +17,3 @@
     name: haproxy
     state: started
     daemon_reload: true
-  notify: Set shard states
-
-- name: Set shard states
-  ansible.builtin.shell: |
-    set -o pipefail
-    cat /tmp/haproxy-facts.json | \
-    jq -r '.backends|map("set server {{ haproxy_backend_name }}/\(.shard) state \(.shard_state)")|.[]' | \
-    sudo socat /var/run/haproxy/admin.sock stdio
-  args:
-    executable: /bin/bash
-  when:
-    - haproxy_set_shard_states_on_reconfigure

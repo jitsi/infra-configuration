@@ -1,0 +1,71 @@
+---
+- name: Set jicofo jvb-hostname debconf selection
+  ansible.builtin.debconf:
+    name: "jicofo"
+    question: "jitsi-videobridge/jvb-hostname"
+    vtype: "string"
+    value: "{{ environment_domain_name }}"
+
+- name: Set jvb jvb-hostname debconf selection
+  ansible.builtin.debconf:
+    name: "jitsi-videobridge2"
+    question: "jitsi-videobridge/jvb-hostname"
+    vtype: "string"
+    value: "{{ environment_domain_name }}"
+
+- name: Set jitsi-meet-web-config debconf selections
+  ansible.builtin.debconf:
+    name: "jitsi-meet-web-config"
+    question: "jitsi-meet/cert-choice"
+    vtype: "select"
+    value: "I want to use my own certificate"
+
+- name: Set jitsi-meet-web-config debconf selections
+  ansible.builtin.debconf:
+    name: "jitsi-meet-web-config"
+    question: "jitsi-meet/jaas-choice"
+    vtype: "boolean"
+    value: "false"
+
+- name: Set jitsi-meet-web-config debconf selections
+  ansible.builtin.debconf:
+    name: "jitsi-meet-web-config"
+    question: "jitsi-meet/cert-path-crt"
+    vtype: "string"
+    value: "/etc/nginx/ssl/{{ environment_domain_name }}.crt"
+
+- name: Set jitsi-meet-web-config debconf selections
+  ansible.builtin.debconf:
+    name: "jitsi-meet-web-config"
+    question: "jitsi-meet/cert-path-key"
+    vtype: "string"
+    value: "/etc/nginx/ssl/{{ environment_domain_name }}.key"
+
+#- name: Set jitsi-videobridge2 debconf selections
+#  ansible.builtin.debconf:
+#    name: "jitsi-videobridge2"
+#    question: "jitsi-videobridge/jvbsecret"
+#    vtype: "password"
+#    value: "{{ jvb_auth_password }}"
+#  no_log: true
+#
+#- name: Set jicofo debconf selections
+#  ansible.builtin.debconf:
+#    name: "jicofo"
+#    question: "jicofo/jicofo-authpassword"
+#    vtype: "password"
+#    value: "{{ jicofo_auth_password }}"
+#  no_log: true
+
+- name: Make prosody conf.avail directory if not present
+  ansible.builtin.file:
+    path: "/etc/prosody/conf.avail"
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: Touch conf.available/environment_domain_name.lua
+  ansible.builtin.file:
+    path: "/etc/prosody/conf.avail/{{ environment_domain_name }}.cfg.lua"
+    state: touch
+    mode: 0644

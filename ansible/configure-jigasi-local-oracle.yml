@@ -14,7 +14,7 @@
       - src: roles/jigasi/templates/xmpp-sip-communicator.properties.template.j2
     consul_template_templates:
       - name: "xmpp-sip-communicator.properties.template"
-        dest: "/etc/jitsi/jigasi/xmpp-sip-communicator.properties"
+        dest: "/etc/jitsi/jigasi/xmpp-sip-communicator-candidate.properties"
         cmd: "/usr/local/bin/reconfigure-jigasi-wrapper.sh"
         user: "root"
         group: "jitsi"
@@ -35,7 +35,6 @@
     - secrets/consul.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
-    - secrets/oci-logging.yml
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
@@ -168,18 +167,6 @@
       ansible.builtin.service:
         name: rsyslog
         state: restarted
-      tags: setup
-    - name: Run consul-template once to make sure configuration is populated
-      ansible.builtin.command: "/usr/local/bin/reconfigure-jigasi-wrapper.sh"
-      when:
-        - jigasi_enable_consul_template
-    - name: Restart jigasi # restart jigasi to apply the new configuration after all is said and done
-      ansible.builtin.service:
-        name: jigasi
-        state: restarted
-      when:
-        - jigasi_enable_consul_template
-        - not jigasi_configure_only_flag
       tags: setup
 
   roles:

@@ -33,7 +33,6 @@
     - secrets/jvb.yml
     - secrets/consul.yml
     - secrets/prosody-egress-aws.yml
-    - secrets/oci-logging.yml
     - secrets/aws-cloudwatch.yml
     - roles/jitsi-repo/defaults/main.yml
     - secrets/repo.yml
@@ -191,16 +190,6 @@
       ansible.builtin.hostname:
         name: "{{ ansible_fqdn }}"
       when: core_cloud_provider == 'aws'
-
-    - name: Stop fluentd
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      register: stop_fluentd_results
-      ignore_errors: true
-      tags: boot
-      when: not core_enable_fluentd
 
   post_tasks:
     - name: Restart rsyslog

@@ -69,4 +69,4 @@
       - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
   roles:
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy"}
-    - { role: "consul-template", tags: "consul-template", when: haproxy_enable_consul_template }
+    - { role: "consul-template", tags: "consul-template" }

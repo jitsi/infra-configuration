@@ -1,6 +1,3 @@
-[submodule "ansible/roles/fluentd"]
-	path = ansible/roles/fluentd
-	url = https://github.com/aaronkvanmeerten/ansible-fluentd.git
 [submodule "ansible/roles/nvm"]
 	path = ansible/roles/nvm
 	url = https://github.com/aaronkvanmeerten/ansible-nvm.git

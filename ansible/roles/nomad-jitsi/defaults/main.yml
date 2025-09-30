@@ -7,3 +7,4 @@ nomad_docker_auth_file:
     "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
 nomad_jibri_preserve_boot_volume_if_needed: "{{ jibri_preserve_boot_volume_if_needed | default(false) }}"
 nomad_jibri_recording_dir: /opt/jibri/recordings
+nomad_telemetry_publish_allocation_metrics: true

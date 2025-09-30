@@ -51,7 +51,6 @@
     - secrets/consul.yml
     - secrets/prosody.yml
     - secrets/prosody-egress-aws.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - secrets/carbon-black.yml
     - secrets/github-deploy.yml
@@ -167,14 +166,6 @@
     - name: Vacuum journalctl # noqa no-changed-when
       ansible.builtin.command: journalctl --vacuum-size=200M
       tags: "provision"
-    - name: Stop fluentd # noqa ignore-errors
-      ansible.builtin.service:
-        name: "td-agent"
-        state: stopped
-        enabled: false
-      ignore_errors: true
-      when: not standalone_enable_fluentd
-      tags: "provision"
     - name: Disable colibri-ws proxy for standalone
       ansible.builtin.set_fact:
         jitsi_meet_colibri_proxy_enabled: false
@@ -251,6 +242,7 @@
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
+    - { role: "iptables-serf", tags: "iptables", when: cloud_provider=='oracle' }
 
   # install phase of jitsi components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
@@ -292,6 +284,7 @@
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "prosody-egress", tags: "prosody-egress" }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
+    - { role: "standalone-debconf", tags: "standalone-debconf" }
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ environment_domain_name }}"

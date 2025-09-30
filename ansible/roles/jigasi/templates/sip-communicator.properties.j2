@@ -17,8 +17,8 @@ net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ALLOW_NON_
 #base64 AES keyLength:256 or 128
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.PASSWORD={{ jigasi_brewery_auth_pass|b64encode }}
 
-#net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=jigasi
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE=={{ jigasi_nick }}
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.AUTO_GENERATE_RESOURCE=false
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.RESOURCE_PRIORITY=30
 
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.KEEP_ALIVE_METHOD=XEP-0199
@@ -36,7 +36,7 @@ net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_USE_UPN
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IM_DISABLED=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.SERVER_STORED_INFO_DISABLED=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.IS_FILE_TRANSFER_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USE_DEFAULT_STUN_SERVER=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.USE_DEFAULT_STUN_SERVER=false
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL.DTLS-SRTP=0
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ server['id'] }}.OVERRIDE_ENCODINGS=true

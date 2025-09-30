@@ -60,7 +60,6 @@ jitsi_meet_assetlinks: |
           "sha256_cert_fingerprints": ["F6:C8:93:15:16:9D:E0:08:0A:B7:EA:36:15:26:24:25:60:93:77:F7:61:79:89:E9:52:05:F4:09:B3:0E:59:44"]
       }
   }]
-jitsi_meet_bad_room_list: "{{ bad_room_list | default([]) }}"
 jitsi_meet_bosh_host: "{{ environment_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "https://"
@@ -116,6 +115,7 @@ jitsi_meet_download_apps_url: false
 jitsi_meet_dropbox_app_key: false
 jitsi_meet_dump_transcript: false
 jitsi_meet_e2eping_enabled: false
+jitsi_meet_enable_advanced_audio_settings: false
 jitsi_meet_enable_calendar: false
 jitsi_meet_enable_colibri_websockets: false
 jitsi_meet_enable_conference_request_http: false
@@ -130,6 +130,7 @@ jitsi_meet_enable_local_recording: false
 jitsi_meet_enable_file_recordings: false
 jitsi_meet_enable_file_recordings_sharing: false
 jitsi_meet_enable_forced_client_reload: false
+jitsi_meet_enable_graceful_reconnect: false
 jitsi_meet_enable_gzip: false
 jitsi_meet_enable_insecure_room_name_warning: false
 jitsi_meet_enable_livestreaming: false
@@ -157,25 +158,15 @@ jitsi_meet_enable_welcome_page: true
 jitsi_meet_enable_webhid_feature: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
+jitsi_meet_filesharing_api_url: false
 jitsi_meet_feedback_percentage: 100
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
-jitsi_meet_google_analytics_flag: false
-jitsi_meet_google_analytics_hep_flag: false
-jitsi_meet_google_analytics_hep_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
-  /libs/analytics-hep.js'] }}"
-jitsi_meet_google_analytics_script_urls: "{{ ['https://<!--# echo var=\"http_host\" default=\"' + jitsi_meet_domain_name + '\" -->
-  /libs/analytics-ga.min.js'] }}"
-jitsi_meet_google_analytics_tracking_id: ""
 jitsi_meet_google_api_app_client_id: false
 jitsi_meet_haproxy_bind_port: 9092
-jitsi_meet_hepop_analytics_url: ""
-jitsi_meet_hepop_analytics_urls_by_environment_type:
-  dev: https://hepop-dev.jitsi.net/
-  prod: https://hepop.jitsi.net/
-  stage: https://hepop-pilot.jitsi.net/
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
+jitsi_meet_jaas_actuator_url: false
 jitsi_meet_jvb_preferred_codecs: "[ 'AV1', 'VP9', 'VP8', 'H264' ]"
 jitsi_meet_jvb_preferred_mobile_codecs: "[ 'VP8', 'H264', 'VP9' ]"
 jitsi_meet_load_test_enabled: false
@@ -213,6 +204,9 @@ jitsi_meet_prosody_deb_pkg_name: "jitsi-meet-prosody"
 jitsi_meet_prosody_deb_pkg_version: "{{ jitsi_meet_deb_pkg_version }}"
 jitsi_meet_recordings_prompt: false
 jitsi_meet_recordings_warn: false
+jitsi_meet_recordings_require_consent: false
+jitsi_meet_recordings_consent_learn_more_url: ''
+jitsi_meet_recordings_skip_consent_in_meeting: false
 jitsi_meet_redirect_to_ssl: true
 jitsi_meet_require_displayname: false
 jitsi_meet_resolution: false
@@ -226,6 +220,7 @@ jitsi_meet_rtcstats_poll_interval: 10000
 jitsi_meet_rtcstats_use_legacy: false
 jitsi_meet_screenshot_capture_enabled: false
 jitsi_meet_screenshot_capture_mode: 'recording'
+jitsi_meet_show_spot_consent_dialog: false
 jitsi_meet_signal_api_server_name: "signal-api-{{ jitsi_meet_domain_name }}"
 jitsi_meet_signal_api_ssl_certificate: "{{ jitsi_meet_ssl_certificate }}"
 jitsi_meet_signal_api_ssl_key_name: "{{ jitsi_meet_ssl_key_name }}"
@@ -250,8 +245,10 @@ jitsi_meet_title_metadata_override: false
 jitsi_meet_token_auth_url: false
 jitsi_meet_token_auth_url_auto_redirect: false
 jitsi_meet_token_logout_url: false
+jitsi_meet_token_match_tenant: false
 jitsi_meet_token_sso: false
 jitsi_meet_toolbar_buttons_filter: []
+jitsi_meet_transcription_disable_jigasi: false
 jitsi_meet_user_documentation_url: false
 jitsi_meet_video_quality: false
 jitsi_meet_visitors_enabled: "{{ visitors_enabled | default(false) }}"

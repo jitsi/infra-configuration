@@ -10,7 +10,6 @@
     - secrets/ssh-users.yml
     - secrets/consul.yml
     - config/vars.yml
-    - secrets/oci-logging.yml
     - secrets/repo.yml
     - secrets/carbon-black.yml
     - sites/{{hcv_environment}}/vars.yml

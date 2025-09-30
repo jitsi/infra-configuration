@@ -464,81 +464,65 @@ def main():
     except Exception as e:
         #error happened
         logging.warning("Error loading local data file for haproxy configuration local facts %s"%e)
+        sys.exit(1)
 
-    if local_data and 'consul_enabled' in local_data and local_data['consul_enabled']:
-        if 'consul_server' in local_data and local_data['consul_server']:
-            consul_urls= ['https://%s'%local_data['consul_server']]
-        else:
-            consul_urls = ['http://localhost:8500']
+    if 'consul_server' in local_data and local_data['consul_server']:
+        consul_urls= ['https://%s'%local_data['consul_server']]
+    else:
+        consul_urls = ['http://localhost:8500']
 
-        if 'consul_extra_urls' in local_data:
-            consul_urls.extend(local_data['consul_extra_urls'])
+    if 'consul_extra_urls' in local_data:
+        consul_urls.extend(local_data['consul_extra_urls'])
 
-        local_environment = local_data['environment']
-        public_ipv4 = local_ipv4 = local_data['private_ip']
-        if 'public_ip' in local_data and local_data['public_ip']:
-            public_ipv4 = local_data['public_ip']
+    local_environment = local_data['environment']
+    public_ipv4 = local_ipv4 = local_data['private_ip']
+    if 'public_ip' in local_data and local_data['public_ip']:
+        public_ipv4 = local_data['public_ip']
 
-        local_region = local_data['region']
+    local_region = local_data['region']
 
-        # by default only consider first datacenter as local
-        enable_cross_region = False
-        if 'enable_cross_region' in local_data:
-            # if enabled, consider first datacenter in each response as local
-            enable_cross_region = local_data['enable_cross_region']
+    # get other datacenters from consul
+    datacenters = []
+    local_datacenters = []
+    for consul_url in consul_urls:
+        segment_dcs = fetch_datacenters(consul_url)
+        if segment_dcs:
+            datacenters.extend(segment_dcs)
+            if len(local_datacenters) == 0:
+                local_datacenters.append(segment_dcs[0]) # the first DC in list from consul is local
 
-        # get other datacenters from consul
-        datacenters = []
-        local_datacenters = []
-        for consul_url in consul_urls:
-            segment_dcs = fetch_datacenters(consul_url)
-            if segment_dcs:
-                datacenters.extend(segment_dcs)
-                if enable_cross_region or len(local_datacenters) == 0:
-                    # mark the first DC in each list as 'local'
-                    local_datacenters.append(segment_dcs[0])
+    # order datacenters based on proximity from EC2_REGION_FILE
+    ordered_datacenters = []
+    if os.path.isfile(EC2_REGION_FILE):
+        ordered_aws_regions = []
+        with open(EC2_REGION_FILE, "r") as regionfile:
+            ordered_aws_regions = [ word for line in regionfile for word in line.split() ]
 
-        # order datacenters based on proximity from EC2_REGION_FILE
-        ordered_datacenters = []
-        if os.path.isfile(EC2_REGION_FILE):
-            ordered_aws_regions = []
-            with open(EC2_REGION_FILE, "r") as regionfile:
-                ordered_aws_regions = [ word for line in regionfile for word in line.split() ]
+        for aws_region in ordered_aws_regions:
+            # derive OCI region from AWS region and add to list if found in consul datacenters
+            if aws_region in local_data['aws_to_oracle_region_map'].keys():
+                oci_region = local_data['aws_to_oracle_region_map'][aws_region] 
+                ordered_datacenters.extend([i for i in datacenters if oci_region in i])
 
-            for aws_region in ordered_aws_regions:
-                # derive OCI region from AWS region and add to list if found in consul datacenters
-                if aws_region in local_data['aws_to_oracle_region_map'].keys():
-                    oci_region = local_data['aws_to_oracle_region_map'][aws_region] 
-                    ordered_datacenters.extend([i for i in datacenters if oci_region in i])
-
-                # de-alias AWS region and add to list if found in consul datacenters
-                if aws_region in local_data['aliased_regions'].keys():
-                    aws_region = local_data['aliased_regions'][aws_region]
-                ordered_datacenters.extend([i for i in datacenters if aws_region in i])
-
-        else:
-            ordered_datacenters = datacenters
-            logging.warning('{} not found; unable to order datacenters'.format(EC2_REGION_FILE))
-
-        logging.info('original datacenters: {}'.format(datacenters))
-        logging.info('ordered datacenters: {}'.format(ordered_datacenters))
-
-        include_standalone = False
-        if 'include_standalone' in local_data and local_data['include_standalone']:
-            include_standalone = True
-
-        consul_data = fetch_consul_data(consul_urls, local_environment, local_datacenters, ordered_datacenters, include_standalone)
-
-        build_haproxy_variables(backends=consul_data['backends'], peers=consul_data['peers'], datacenters=ordered_datacenters, live_release=consul_data['live_release'])
+            # de-alias AWS region and add to list if found in consul datacenters
+            if aws_region in local_data['aliased_regions'].keys():
+                aws_region = local_data['aliased_regions'][aws_region]
+            ordered_datacenters.extend([i for i in datacenters if aws_region in i])
 
     else:
-        aws_data = fetch_aws_data()
-        build_haproxy_variables(backends = aws_data['backends'], peers = aws_data['peers'], datacenters=ordered_datacenters, local_instance = fetch_instances)
+        ordered_datacenters = datacenters
+        logging.warning('{} not found; unable to order datacenters'.format(EC2_REGION_FILE))
 
-    #now read the server states from haproxy
-    # server_states = read_haproxy_server_states()
-    # print(server_states)
+    logging.info('original datacenters: {}'.format(datacenters))
+    logging.info('ordered datacenters: {}'.format(ordered_datacenters))
 
+    include_standalone = False
+    if 'include_standalone' in local_data and local_data['include_standalone']:
+        include_standalone = True
+
+    consul_data = fetch_consul_data(consul_urls, local_environment, local_datacenters, ordered_datacenters, include_standalone)
+
+    build_haproxy_variables(backends=consul_data['backends'], peers=consul_data['peers'], datacenters=ordered_datacenters, live_release=consul_data['live_release'])
 
 if __name__ == '__main__':
     main()

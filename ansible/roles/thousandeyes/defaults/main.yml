@@ -1,6 +1,6 @@
 ---
 thousandeyes_agent_name: "{{ ansible_hostname }}"
-thousandeyes_docker_flag: "{{ true if (ansible_distribution_major_version | int) > 20 else false }}"
+thousandeyes_docker_flag: false # "{{ true if (ansible_distribution_major_version | int) > 20 else false }}"
 thousandeyes_docker_path: /opt/thousandeyes
 thousandeyes_docker_config: "{{ thousandeyes_docker_config_dir }}/service.env"
 thousandeyes_docker_config_dir: /etc/thousandeyes

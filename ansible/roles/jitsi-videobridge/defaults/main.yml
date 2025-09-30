@@ -47,7 +47,7 @@ jvb_enable_octo: true
 jvb_enable_pcap: false
 jvb_enable_route_loudest_logs: false
 # This needs to be kept in sync with jicofo_enable_sctp
-jvb_enable_sctp: false
+jvb_enable_sctp: true
 jvb_enable_sctp_debug_logs: false
 jvb_enable_silence_detection: false
 jvb_enable_stats_cron: true
@@ -199,11 +199,6 @@ jvb_single_harvester_port: 10000
 jvb_skip_authentication_for_silence: false
 jvb_ssrc_limit_audio: 50
 jvb_ssrc_limit_video: 50
-jvb_stats_cron:
-  hour: "*"
-  job: "{{ path_to_stats_script }} > /tmp/stats-cron-output 2>&1"
-  minute: "*"
-jvb_stats_cron_user: jvb
 jvb_stun_mapping_enabled: true
 jvb_systemd_service_name: "jitsi-videobridge2"
 jvb_udp_buffer_max_backlog: 100000
@@ -212,7 +207,8 @@ jvb_udp_buffer_size: 104857600
 jvb_ufrag_prefix: "{{ jvb_component_id }}"
 jvb_upgrade_flag: false
 jvb_use_cpu_for_stress: true
-jvb_use_dcsctp: false
+jvb_use_dcsctp: true
+jvb_use_google_cc2_bwe: true
 jvb_use_public_ip: false
 jvb_use_vla_target_bitrate: false
 jvb_username: jvb

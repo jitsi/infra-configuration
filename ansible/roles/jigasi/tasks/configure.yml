@@ -416,6 +416,13 @@
     mode: 0755
     owner: root
 
+- name: Copy Jigasi configurator script
+  ansible.builtin.copy:
+    src: "jigasi-configurator.sh"
+    dest: "/usr/local/bin/jigasi-configurator.sh"
+    mode: 0755
+    owner: root
+
 - name: Copy Jigasi reconfigure wrapper script
   ansible.builtin.copy:
     src: "reconfigure-jigasi-wrapper.sh"

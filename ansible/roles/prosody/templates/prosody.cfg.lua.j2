@@ -7,7 +7,7 @@ admins = {
 {% endfor %}
 
 }
-
+component_admins_as_room_owners = true;
 pidfile = "/var/run/prosody/prosody.pid";
 
 {% if prosody_use_lua_54 %}
@@ -100,9 +100,6 @@ modules_enabled = {
 {% if prosody_enable_muc_events %}
       "muc_events";
 {% endif %}
-{% if prosody_enable_password_preset %}
-      "muc_password_preset";
-{% endif %}
 {% if prosody_enable_end_meeting %}
       "muc_end_meeting";
 {% endif %}
@@ -158,12 +155,26 @@ asap_accepted_issuers = { "jitsi"{% for iss in prosody_asap_accepted_issuers %},
 asap_accepted_audiences = { "jitsi"{% for aud in prosody_asap_accepted_audiences %},"{{ aud }}"{% endfor %} }
 {% endif %}
 
+{% if prosody_enable_wait_for_host %}
+allowner_issuers = { "jitsi" };
+{% endif %}
+
 {% if prosody_disable_required_room_claim %}
 asap_require_room_claim = false;
 {% endif %}
 
-{% if prosody_enable_password_waiting_for_host %}
-enable_password_waiting_for_host = true;
+{% if prosody_displayname_ignore_jwt_name %}
+ignore_jwt_name = true;
+{% endif %}
+
+{% if prosody_enable_shortlived_tokens %}
+short_lived_token = {
+    issuer = "prosody";
+    accepted_audiences = { "file-sharing" };
+    key_path = "{{ prosody_asap_shortlived_key_path }}";
+    key_id = "{{ prosody_asap_shortlived_key['id'] }}";
+    ttl_seconds = 30;
+};
 {% endif %}
 
 {% if prosody_enable_muc_events or prosody_enable_call_flow %}
@@ -241,6 +252,9 @@ c2s_stanza_size_limit = {{ prosody_c2s_stanza_size_limit }};
 unlimited_jids = { "focus@{{ prosody_auth_domain_name }}" }
 limits = {
     c2s = {
+        rate = "{{ prosody_mod_limits_rate }}";
+    };
+    s2sin = {
         rate = "{{ prosody_mod_limits_rate }}";
     };
 }
@@ -422,6 +436,7 @@ VirtualHost "{{ prosody_domain_name }}"
         modules_enabled = {
           "bosh";
           -- "component_disconnect";
+          "features_identity";
 {% if prosody_enable_filter_iq_rayo %}
           "filter_iq_rayo";
 {% endif %}
@@ -430,12 +445,6 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_xmpp_resume %}
           "smacks";
-{% endif %}
-{% if prosody_meet_av_moderation_enabled %}
-          "av_moderation";
-{% endif %}
-{% if prosody_meet_speaker_stats_enabled %}
-          "speakerstats";
 {% endif %}
 {% if prosody_meet_conf_duration_enabled %}
           "conference_duration";
@@ -458,9 +467,6 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_mod_jigasi_invite_enabled %}
           "muc_jigasi_invite";
 {% endif %}
-{% if prosody_meet_room_metadata_enabled %}
-          "room_metadata";
-{% endif %}
 {% if prosody_visitors_enabled %}
           "visitors";
 {% endif %}
@@ -473,21 +479,15 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_muc_events %}
       "jibri_session";
 {% endif %}
+{% if prosody_enable_shortlived_tokens %}
+      "short_lived_token";
+{% endif %}
         }
         shard_name = "{{ shard_name }}"
         region_name = "{{ prosody_region }}"
         release_number = "{{ jitsi_release_number }}"
 {% if prosody_enable_filter_iq_rayo and prosody_max_number_outgoing_calls %}
         max_number_outgoing_calls = {{ prosody_max_number_outgoing_calls }}
-{% endif %}
-{% if prosody_meet_av_moderation_enabled %}
-        av_moderation_component = "avmoderation.{{ prosody_domain_name }}"
-{% endif %}
-{% if prosody_meet_speaker_stats_enabled %}
-        speakerstats_component = "speakerstats.{{ prosody_domain_name }}"
-{% endif %}
-{% if prosody_meet_conf_duration_enabled %}
-        conference_duration_component = "conferenceduration.{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_enable_lobby %}
         lobby_muc = "lobby.{{ prosody_domain_name }}"
@@ -501,9 +501,6 @@ VirtualHost "{{ prosody_domain_name }}"
         main_muc = "conference.{{ prosody_domain_name }}"
 {% if prosody_breakout_rooms_enabled %}
         breakout_rooms_muc = "breakout.{{ prosody_domain_name }}"
-{% endif %}
-{% if prosody_meet_room_metadata_enabled %}
-        room_metadata_component = "metadata.{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_visitors_enabled %}
         visitors_ignore_list = { "recorder.{{ prosody_domain_name }}" }
@@ -525,11 +522,23 @@ VirtualHost "{{ prosody_guest_domain_name }}"
 {% if prosody_enable_filter_iq_jibri %}
           "filter_iq_jibri";
 {% endif %}
+{% if prosody_enable_jiconop_module %}
+          "jiconop";
+{% endif %}
         }
         authentication = "jitsi-anonymous"
 {% if prosody_visitors_enabled %}
         allow_anonymous_s2s = true
 {% endif %}
+{% if prosody_enable_lobby %}
+        lobby_muc = "lobby.{{ prosody_domain_name }}"
+{% endif %}
+{% if prosody_breakout_rooms_enabled %}
+        breakout_rooms_muc = "breakout.{{ prosody_domain_name }}"
+{% endif %}
+        shard_name = "{{ shard_name }}"
+        region_name = "{{ prosody_region }}"
+        release_number = "{{ jitsi_release_number }}"
 {% endif %}
 
 VirtualHost "{{ prosody_auth_domain_name }}"
@@ -574,6 +583,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
     {% if prosody_enable_token_room_verification %}
         "token_verification";
     {% endif %}
+{% endif %}
+{% if prosody_enable_password_preset %}
+      "muc_password_preset";
 {% endif %}
 {% if prosody_muc_max_occupants %}
         "muc_max_occupants";
@@ -620,9 +632,6 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_meet_flip_enabled %}
         "muc_flip";
 {% endif %}
-{% if prosody_polls_enabled %}
-        "polls";
-{% endif %}
 {% if prosody_limit_messages and prosody_limit_messages_load_module %}
         "muc_limit_messages";
 {% endif %}
@@ -633,11 +642,15 @@ Component "conference.{{ prosody_domain_name }}" "muc"
         "muc_wait_for_host";
 {% endif %}
 {% if prosody_visitors_enabled %}
-      "s2sout_override";
+        "s2sout_override";
 {% endif %}
 {% if prosody_recording_autostart_enabled %}
-      "recording_autostart";
+        "recording_autostart";
 {% endif %}
+{% if prosody_filter_messages_enabled %}
+        "filter_messages";
+{% endif %}
+        "muc_displayname";
     }
 
 {% if prosody_enable_rate_limit %}
@@ -710,7 +723,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 -- internal muc component, meant to enable pools of jibri and jigasi clients
 Component "internal.auth.{{ prosody_domain_name }}" "muc"
     modules_enabled = {
+{% if prosody_hide_all_rooms %}
       "muc_hide_all";
+{% endif %}
       "muc_filter_access";
     }
     storage = "memory"
@@ -756,6 +771,9 @@ Component "lobby.{{ prosody_domain_name }}" "muc"
     muc_max_occupants = {{ prosody_muc_max_occupants }}
 {% endif %}
     modules_enabled = {
+{% if prosody_hide_all_rooms %}
+      "muc_hide_all";
+{% endif %}
 {% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
 {% endif %}
@@ -781,11 +799,11 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
     muc_max_occupants = {{ prosody_muc_max_occupants }}
 {% endif %}
     modules_enabled = {
+{% if prosody_hide_all_rooms %}
+      "muc_hide_all";
+{% endif %}
 {% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
-{% endif %}
-{% if prosody_polls_enabled %}
-        "polls";
 {% endif %}
 {% if prosody_meet_webhooks_enabled %}
         "muc_webhooks";
@@ -818,6 +836,10 @@ Component "visitors.{{ prosody_domain_name }}" "visitors_component"
     {% endif %}
     always_visitors_enabled = {{ prosody_visitors_always_supported | to_json }}
 {% endif %}
+{% if prosody_enable_file_sharing %}
+Component "filesharing.{{ prosody_domain_name }}" "filesharing_component"
+    muc_component = "conference.{{ prosody_domain_name }}"
+{% endif %}
 
 {% if hcv_environment in sip_jibri_shared_secrets %}
 VirtualHost "sipjibri.{{ prosody_domain_name }}"
@@ -829,6 +851,10 @@ VirtualHost "sipjibri.{{ prosody_domain_name }}"
     authentication = "jitsi-shared-secret"
     shared_secret = "{{ sip_jibri_shared_secrets[hcv_environment] }}"
     smacks_max_old_sessions = 2000;
+{% endif %}
+
+{% if prosody_polls_enabled %}
+Component "polls.{{ prosody_domain_name }}" "polls_component"
 {% endif %}
 
 {% if secrets_jigasi_conference_A %}

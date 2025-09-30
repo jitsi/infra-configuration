@@ -20,6 +20,7 @@ admins = {
 {% endfor %}
 
 }
+component_admins_as_room_owners = true;
 
 data_path = "/var/lib/prosody-jvb/"
 
@@ -138,7 +139,9 @@ VirtualHost "{{ prosody_jvb_auth_domain_name }}"
 Component "{{ prosody_jvb_muc_name }}" "muc"
     modules_enabled = {
       "ping",
-      "muc_hide_all";
+{% if prosody_hide_all_rooms %}
+        "muc_hide_all";
+{% endif %}
       "muc_filter_access";
     }
     storage = "memory"

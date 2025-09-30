@@ -1,5 +1,0 @@
----
-- name: Restart tenant-pin
-  ansible.builtin.service:
-    name: tenant-pin
-    state: restarted

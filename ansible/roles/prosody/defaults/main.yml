@@ -22,7 +22,13 @@ prosody_asap_accepted_issuers:
   - vmms
 prosody_asap_audience: jitsi
 prosody_asap_issuer: jitsi
+asap_key_shortlived:
+  default:
+    id: "asap-shortlived"
+    key: "replaceme"
 prosody_asap_key_path: /etc/prosody/certs/asap.key
+prosody_asap_shortlived_key_path: /etc/prosody/certs/asap-shortlived.key
+prosody_asap_shortlived_key: "{{ asap_key_shortlived[hcv_environment] if hcv_environment in asap_key_shortlived else asap_key_shortlived['default'] }}"
 prosody_auth_domain_name: "auth.{{ prosody_domain_name }}"
 prosody_bosh_max_inactivity: 60
 # assume shard has local prosody-jvb, otherwise use prosody-brewery shared service
@@ -38,6 +44,7 @@ prosody_configure_flag: true
 prosody_disable_messaging: false
 prosody_disabled_modules: ["pubsub", "register"]
 prosody_disable_required_room_claim: false
+prosody_displayname_ignore_jwt_name: false
 prosody_domain_name: "{{ environment_domain_name | default('domain.local') }}"
 # version vars for url install method
 prosody_dpkg_base_name: prosody
@@ -53,6 +60,7 @@ prosody_enable_call_flow: false
 # Has to be in sync with the jicofo version: "false" for <= 700, "true" for > 700 (or based on the "Remove FocusComponent" commit for hotfixes.)
 prosody_enable_client_proxy: true
 prosody_enable_debug_log: false
+prosody_enable_file_sharing: false
 prosody_enable_filter_iq_jibri: false
 # plugin to control outbound dialing
 prosody_enable_filter_iq_rayo: false
@@ -80,12 +88,12 @@ prosody_enable_muc_password_whitelist: true
 prosody_enable_muc_rate_limit: true
 prosody_enable_muc_size: false
 prosody_enable_password_preset: false
-prosody_enable_password_waiting_for_host: false
 prosody_enable_persistent_lobby: false
 prosody_enable_end_meeting: false
 # flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
 prosody_enable_rate_limit: true
+prosody_enable_shortlived_tokens: false
 prosody_enable_system_chat_message: true
 prosody_enable_token_room_verification: true
 # don't enable tokens by default for now
@@ -93,6 +101,7 @@ prosody_enable_tokens: true
 # plugin to check features when requesting a transcription
 prosody_enable_transcription_filter: false
 prosody_enable_wait_for_host: false
+prosody_filter_messages_enabled: true
 # prosody_log_level: change 'info' to 'debug' for debug logs
 prosody_focus_admins:
   - "focus@{{ prosody_auth_domain_name }}"
@@ -115,7 +124,7 @@ prosody_install_flag: true
 # when prosody_install_from_apt is true we use latest prosody from apt matching prosody_version
 # for instance, prosody_version is only used for apt, whereas prosody_package_version is to specify a by-file version
 # set this to false to install via URL, or true to install via apt
-prosody_install_from_apt: true
+prosody_install_from_apt: false
 prosody_invite_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/invite"
 prosody_jaas_actuator_url: false
 prosody_jvb_admins:
@@ -211,7 +220,7 @@ prosody_package_filename: "{{ prosody_package_name }}_{{ prosody_package_version
 # with apt install we use package name from apt variable: 'prosody'
 # with file install we use package name from dpkg variable: 'prosody-0.11'
 prosody_package_name: "{{ prosody_dpkg_base_name if not prosody_install_from_apt else prosody_apt_base_name }}"
-prosody_package_subversion: "13"
+prosody_package_subversion: "5"
 
 prosody_plugins_path: "/usr/share/jitsi-meet/prosody-plugins"
 
@@ -220,7 +229,7 @@ prosody_polls_enabled: true
 prosody_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 # with file version we must set it via variable
 # with apt we use the shell to detect subversion so leave it blank ''
-prosody_minor_version: "{{ '11' if not prosody_install_from_apt else '' }}"
+prosody_minor_version: "{{ '12' if not prosody_install_from_apt else '' }}"
 prosody_package_version: "{{ prosody_url_version }}-1~{{ ansible_distribution_release }}1_{{ prosody_architecture }}"
 prosody_password_public_key_repo_url: false
 prosody_public_key_repo_url: false
@@ -258,10 +267,10 @@ prosody_trusted_proxies: [
   "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"
 ]
 prosody_use_lua_54: true
-prosody_url_version: 0.12.4
+prosody_url_version: 0.12.5
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax
-prosody_version: 0.12.*
+prosody_version: 13.*
 # shell command to extract installed prosody version string from dpkg
 prosody_version_shell: "dpkg -s {{ prosody_package_name }} | awk '/Version/{print $2}' | cut -d'-' -f1"
 prosody_visitors_enabled: "{{ visitors_enabled | default(false) }}"

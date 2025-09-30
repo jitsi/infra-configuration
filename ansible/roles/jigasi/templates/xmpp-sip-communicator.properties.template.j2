@@ -7,6 +7,14 @@
         {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
     {{ end -}}
 {{ end -}}
+
+{{ range $dcidx, $dc := (`{% endraw %}{{ (jigasi_local_datacenters if jigasi_enable_local_datacenters else [hcv_environment+'-'+oracle_region])|to_json }}{% raw %}` | parseJSON) -}}
+  {{ $service := print "all@" $dc -}}
+    {{ range $index, $item := service $service -}}
+        {{ scratch.MapSetX "shards" .ServiceMeta.shard $item  -}}
+    {{ end -}}
+{{ end -}}
+
 {{ range $sindex, $item := scratch.MapValues "shards" -}}
 {{ $ID := .ServiceMeta.shard }}
 
@@ -41,7 +49,7 @@ net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.IS_USE_UPNP=false
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.IM_DISABLED=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.SERVER_STORED_INFO_DISABLED=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.IS_FILE_TRANSFER_DISABLED=true
-net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.USE_DEFAULT_STUN_SERVER=true
+net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.USE_DEFAULT_STUN_SERVER=false
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.ENCRYPTION_PROTOCOL.DTLS-SRTP=0
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=true
 net.java.sip.communicator.impl.protocol.jabber.acc-{{ $ID }}.OVERRIDE_ENCODINGS=true

@@ -10,7 +10,6 @@
     - secrets/consul.yml
     - secrets/nomad.yml
     - secrets/skynet.yml
-    - secrets/oci-logging.yml
     - secrets/carbon-black.yml
     - secrets/asap-keys.yml
     - secrets/ops-repo.yml
@@ -157,6 +156,8 @@
     - { role: "nomad", tags: "nomad", nomad_install_flag: false }
 #    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
   tasks:
+    - name: Flush handlers for docker before nomad starts
+      ansible.builtin.meta: flush_handlers
     - name: Consul service enablement
       ansible.builtin.systemd:
         name: consul

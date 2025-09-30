@@ -55,6 +55,9 @@ jicofo {
         min-endpoints = {{ jicofo_ice_failure_detection_min_endpoints }}
         threshold = {{ jicofo_ice_failure_detection_threshold }}
     }
+    load-redistribution {
+        enabled = {{ jicofo_enable_load_redistribution }}
+    }
   }
   codec {
     rtp-extensions {
@@ -145,6 +148,12 @@ jicofo {
   sctp {
     enabled = {{ jicofo_enable_sctp | to_json }}
   }
+  transcription {
+    {% if jicofo_transcription_url_template %}
+    url-template = "{{ jicofo_transcription_url_template }}"
+    {% endif %}
+  }
+
 
   {% if jicofo_visitors_enabled %}
   visitors {

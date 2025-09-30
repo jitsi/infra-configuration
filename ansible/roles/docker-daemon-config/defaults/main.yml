@@ -4,5 +4,11 @@ docker_mirrors_dns_zone_name: "{{ dns_zone_name | default('example.com') }}"
 docker_mirrors_daemon_options:
   registry-mirrors:
     - "https://{{ docker_mirrors_environment }}-{{ docker_mirrors_region }}-dhmirror.{{ docker_mirrors_dns_zone_name }}"
+docker_daemon_options_logging:
+  log-driver: "json-file"
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
 docker_daemon_options_extras: {}
-docker_daemon_options: "{{ dict(docker_mirrors_daemon_options, **docker_daemon_options_extras) }}"
+docker_daemon_options_merged: "{{ dict(docker_daemon_options_logging, **docker_daemon_options_extras) }}"
+docker_daemon_options: "{{ dict(docker_mirrors_daemon_options, **docker_daemon_options_merged) }}"
