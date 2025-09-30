@@ -13,6 +13,8 @@ sources:
             - "/var/log/cloud-init.log.1"
             - "/var/log/postinstall-ansible.log"
             - "/var/log/bootstrap.log"
+        fingerprint:
+            strategy: device_and_inode
     jvb:
         type: "file"
         multiline:
@@ -85,6 +87,10 @@ sources:
         include:
             - "/var/log/vault/audit.log"
             - "/var/log/vault/audit.log.1"
+    haproxy:
+        type: "file"
+        include:
+            - "/var/log/haproxy.log"
     haproxy_template:
         type: "file"
         include:
@@ -233,6 +239,39 @@ sinks:
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
         level: "{{ '{{' }} .level }}"
+  loki_haproxy
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["haproxy_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "vault-{{ vector_cloud_region }}"
+        task: "haproxy"
+        group: "haproxy"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+  loki_haproxy_template
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["haproxy_template_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: true
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "vault-{{ vector_cloud_region }}"
+        task: "haproxy_template"
+        group: "haproxy"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
 transforms:
   vault_audit_to_structure:
     type: "remap"
@@ -309,3 +348,21 @@ transforms:
             parse_regex(.message, r'^(?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
+  haproxy_to_structure:
+    type: "remap"
+    inputs: ["haproxy"]
+    source: |
+        structured =
+            parse_json(.message) ??
+            {}
+        . = merge!(., structured)
+        .timestamp = .time
+  haproxy_template_to_structure:
+    type: "remap"
+    inputs: ["haproxy_template"]
+    source: |
+        structured =
+            parse_json(.message) ??
+            {}
+        . = merge!(., structured)
+        .timestamp = .time
