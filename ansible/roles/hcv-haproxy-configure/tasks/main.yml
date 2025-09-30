@@ -278,3 +278,8 @@
     mode: 0755
     src: check-peer-mesh.sh
     dest: /usr/local/bin/check-peer-mesh.sh
+
+- name: Assign haproxy log file to adm group
+  ansible.builtin.file:
+    group: adm
+    state: touch
