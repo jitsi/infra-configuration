@@ -250,7 +250,7 @@ sinks:
         enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
-        job: "vault-{{ vector_cloud_region }}"
+        job: "haproxy-{{ vector_cloud_region }}"
         task: "haproxy"
         group: "haproxy"
         namespace: "default"
@@ -266,7 +266,7 @@ sinks:
         enabled: false
     labels:
         alloc: "{{ vector_cloud_instance_id }}"
-        job: "vault-{{ vector_cloud_region }}"
+        job: "haproxy-template-{{ vector_cloud_region }}"
         task: "haproxy_template"
         group: "haproxy"
         namespace: "default"
