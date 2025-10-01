@@ -283,3 +283,4 @@
   ansible.builtin.file:
     group: adm
     state: touch
+    path: /var/log/haproxy.log
