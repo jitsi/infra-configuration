@@ -46,7 +46,6 @@ if [ "$FINAL_EXIT" == "0" ]; then
         UNIX_TIME=$(date +%s)
         if (( $UNIX_TIME > $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 60 )); then
             log_msg "validated config file has been stable for 60 seconds, initiating reload"
-            grep 'up true' /etc/haproxy/maps/up.map
             if [ $? -eq 0 ]; then
                 consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
                 if [ $? -eq 0 ]; then
@@ -57,14 +56,6 @@ if [ "$FINAL_EXIT" == "0" ]; then
                     FINAL_EXIT=1
                 fi
                 echo -n "jitsi.config.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
-            else
-                log_msg "haproxy is not up, skipping consul lock and immediately reloading"
-                cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
-                service haproxy restart
-                if [[ $? -gt 0 ]]; then
-                    log_msg "haproxy failed to reload when down"
-                    FINAL_EXIT=1
-                fi
             fi
             break
         else
