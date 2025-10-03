@@ -46,17 +46,19 @@ if [ "$FINAL_EXIT" == "0" ]; then
         UNIX_TIME=$(date +%s)
         if (( $UNIX_TIME > $UNIX_TIME_OF_VALIDATED_CONFIG_FILE + 60 )); then
             log_msg "validated config file has been stable for 60 seconds, initiating reload"
-            if [ $? -eq 0 ]; then
-                consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
-                if [ $? -eq 0 ]; then
-                    log_msg "haproxy-configurator-payload.sh exited with zero"
-                else
-                    log_msg "haproxy-configurator-payload.sh exited with non-zero"
-                    echo -n "jitsi.config.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
-                    FINAL_EXIT=1
-                fi
-                echo -n "jitsi.config.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
+            grep 'up true' /etc/haproxy/maps/up.map
+            if [ $? -ne 0 ]; then
+                log_msg "up.map does not contain 'up true'"
             fi
+            consul lock -child-exit-code -timeout=10m haproxy_configurator_lock "/usr/local/bin/haproxy-configurator-payload.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED"
+            if [ $? -eq 0 ]; then
+                log_msg "haproxy-configurator-payload.sh exited with zero"
+            else
+                log_msg "haproxy-configurator-payload.sh exited with non-zero"
+                echo -n "jitsi.config.haproxy.reconfig_error:1|c" | nc -4u -w1 localhost 8125
+                FINAL_EXIT=1
+            fi
+            echo -n "jitsi.config.haproxy.reconfig_locked:0|c" | nc -4u -w1 localhost 8125
             break
         else
             sleep 1
