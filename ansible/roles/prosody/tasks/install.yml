@@ -166,6 +166,13 @@
     strip: 1
   when: (prosody_major_version | int) == 0 and (prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 5
 
+- name: Apply muc_room_default_presence_broadcast revert patch
+  ansible.posix.patch:
+    basedir: /usr/lib/prosody/modules
+    src: "muc_room_default_presence_broadcast_fix.patch"
+    strip: 2
+  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) <= 2
+
 - name: Apply mod_http parse IP patch
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules

@@ -1,0 +1,22 @@
+
+# HG changeset patch
+# User Kim Alvefur <zash@zash.se>
+# Date 1749150831 -7200
+# Node ID c6010e1322aa3dd0245581bf050a8bb1a83482a0
+# Parent  c83fdee8efda0a61b6a277405641dfe2d1370aa2
+MUC: Fix #1938 by reverting ac44bb7b7064
+
+diff -r c83fdee8efda -r c6010e1322aa plugins/muc/mod_muc.lua
+--- a/plugins/muc/mod_muc.lua	Mon Jun 02 12:50:57 2025 +0100
++++ b/plugins/muc/mod_muc.lua	Thu Jun 05 21:13:51 2025 +0200
+@@ -302,8 +302,7 @@
+ 	room:set_changesubject(module:get_option_boolean("muc_room_default_change_subject", room:get_changesubject()));
+ 	room:set_historylength(module:get_option_integer("muc_room_default_history_length", room:get_historylength(), 0));
+ 	room:set_language(lang or module:get_option_string("muc_room_default_language"));
+-	room:set_presence_broadcast(module:get_option_enum("muc_room_default_presence_broadcast", room:get_presence_broadcast(), "visitor", "participant",
+-		"moderator"));
++	room:set_presence_broadcast(module:get_option("muc_room_default_presence_broadcast", room:get_presence_broadcast()));
+ 	room:set_allow_pm(module:get_option_enum("muc_room_default_allow_pm", room:get_allow_pm(), "visitor", "participant", "moderator"));
+ 	room:set_allow_modpm(module:get_option_boolean("muc_room_default_always_allow_moderator_pms", room:get_allow_modpm()));
+ end
+
