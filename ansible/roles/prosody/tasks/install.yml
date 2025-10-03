@@ -144,7 +144,7 @@
     prosody_subversion: "{{ prosody_version_shell.stdout.split('.')[-1] }}"
     prosody_minor_version: "{{ prosody_version_shell.stdout.split('.')[1] }}"
     prosody_major_version: "{{ prosody_version_shell.stdout.split('.')[0] }}"
-  when: prosody_subversion == ''
+#  when: prosody_subversion == ''
 
 - name: Apply muc_lib_visitor_broadcast patch
   ansible.posix.patch:
