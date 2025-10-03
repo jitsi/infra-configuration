@@ -1,0 +1,27 @@
+
+# HG changeset patch
+# User Kim Alvefur <zash@zash.se>
+# Date 1756052109 -7200
+# Node ID 334fb7adb0bcaa5908b3744ef64438e3984a7ade
+# Parent  e6087c73389984ff8380d4014c088330c5adde73
+net.server_epoll: Restore idle checks after pause (e.g. rate limits)
+
+It seems that under some conditions the read timeout is not recreated.
+This led to various dead connection accumulating.
+
+Code review noticed this case, easily triggered by enabling rate limits.
+Uncertain if there may be others.
+
+diff -r e6087c733899 -r 334fb7adb0bc net/server_epoll.lua
+--- a/net/server_epoll.lua	Tue Aug 05 21:49:58 2025 +0200
++++ b/net/server_epoll.lua	Sun Aug 24 18:15:09 2025 +0200
+@@ -827,6 +827,8 @@
+ 		if self.conn and self.conn:dirty() then
+ 			self:noise("Have buffered incoming data to process");
+ 			self:onreadable();
++		else
++			self:setreadtimeout();
+ 		end
+ 	end);
+ end
+

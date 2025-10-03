@@ -143,7 +143,7 @@
   ansible.builtin.set_fact:
     prosody_subversion: "{{ prosody_version_shell.stdout.split('.')[-1] }}"
     prosody_minor_version: "{{ prosody_version_shell.stdout.split('.')[1] }}"
-  when: prosody_subversion == ''
+    prosody_major_version: "{{ prosody_version_shell.stdout.split('.')[0] }}"
 
 - name: Apply muc_lib_visitor_broadcast patch
   ansible.posix.patch:
@@ -154,10 +154,17 @@
 
 - name: Apply server_epoll Restore idle checks after pause patch
   ansible.posix.patch:
-    basedir: /usr/share/lua/5.4/prosody
+    basedir: /usr/share/lua/5.1/prosody
     src: "server_epoll_restore_idle_check.patch"
     strip: 1
-  when: (prosody_minor_version | int) == 13 and (prosody_subversion | int) <= 2
+  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) <= 2
+
+- name: Apply server_epoll Restore idle checks after pause patch
+  ansible.posix.patch:
+    basedir: /usr/share/lua/5.1/prosody
+    src: "server_epoll_restore_idle_check-0.12.5.patch"
+    strip: 1
+  when: (prosody_major_version | int) == 0 and (prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 5
 
 - name: Apply mod_http parse IP patch
   ansible.posix.patch:
