@@ -145,6 +145,18 @@
     prosody_minor_version: "{{ prosody_version_shell.stdout.split('.')[1] }}"
     prosody_major_version: "{{ prosody_version_shell.stdout.split('.')[0] }}"
 
+- name: Register prosody real path
+  ansible.builtin.shell: |
+    set -o pipefail
+    realpath "$(dirname $(realpath /usr/share/lua/5.4/prosody/net/server_epoll.lua))/.."
+  args:
+    executable: /bin/bash
+  register: prosody_basepath_shell
+
+- name: Set prosody basepath fact
+  ansible.builtin.set_fact:
+    prosody_basepath: "{{ prosody_basepath_shell.stdout }}"
+
 - name: Apply muc_lib_visitor_broadcast patch
   ansible.posix.patch:
     basedir: /usr/lib/prosody/modules/muc
@@ -152,19 +164,26 @@
   when:
     - ((prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 4)
 
-- name: Apply server_epoll Restore idle checks after pause patch
+- name: Apply server_epoll Restore idle checks after pause patch on prosody 13 <=13.0.2
   ansible.posix.patch:
-    basedir: /usr/share/lua/5.1/prosody
+    basedir: "{{ prosody_basepath }}"
     src: "server_epoll_restore_idle_check.patch"
     strip: 1
   when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) <= 2
 
-- name: Apply server_epoll Restore idle checks after pause patch
+- name: Apply server_epoll Restore idle checks after pause patch on prosody 0.12 <=0.12.5
   ansible.posix.patch:
-    basedir: /usr/share/lua/5.1/prosody
+    basedir: "{{ prosody_basepath }}"
     src: "server_epoll_restore_idle_check-0.12.5.patch"
     strip: 1
   when: (prosody_major_version | int) == 0 and (prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 5
+
+- name: Apply muc_room_default_presence_broadcast revert patch
+  ansible.posix.patch:
+    basedir: /usr/lib/prosody/modules
+    src: "muc_room_default_presence_broadcast_fix.patch"
+    strip: 2
+  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) <= 2
 
 - name: Apply mod_http parse IP patch
   ansible.posix.patch:
