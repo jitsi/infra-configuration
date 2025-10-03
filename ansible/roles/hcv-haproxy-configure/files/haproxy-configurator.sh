@@ -60,7 +60,7 @@ if [ "$FINAL_EXIT" == "0" ]; then
             else
                 log_msg "haproxy is not up, skipping consul lock and immediately reloading"
                 cp $DRAFT_CONFIG_VALIDATED /etc/haproxy/haproxy.cfg
-                service haproxy restart
+                service haproxy reload
                 if [[ $? -gt 0 ]]; then
                     log_msg "haproxy failed to reload when down"
                     FINAL_EXIT=1
