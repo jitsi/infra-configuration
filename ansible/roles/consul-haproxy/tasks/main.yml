@@ -4,6 +4,8 @@
     mode: 0644
     src: "haproxy.json.j2"
     dest: "/etc/consul.d/haproxy.json"
+  when:
+    - not haproxy_configure_only
   notify:
     - Restart consul for consul-haproxy
 
