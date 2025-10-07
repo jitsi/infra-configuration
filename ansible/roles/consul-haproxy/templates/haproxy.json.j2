@@ -3,7 +3,7 @@
     "name": "haproxy",
     "tags":["{{ hcv_environment }}"],
     {% set ip_id = consul_haproxy_private_ip.split('.')[2:4] | join('') %}
-    "id":"{{ hcv_environment ~ "-haproxy-" ~  ip_id }}-test1",
+    "id":"{{ hcv_environment ~ "-haproxy-" ~  ip_id }}",
     "meta": {
         "environment":"{{ hcv_environment }}",
         "domain":"{{ environment_domain_name }}",
