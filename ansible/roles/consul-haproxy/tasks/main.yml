@@ -4,8 +4,14 @@
     mode: 0644
     src: "haproxy.json.j2"
     dest: "/etc/consul.d/haproxy.json"
+  register:
+    haproxy_json_result
+
+- name: Restart consul if service file has changed
+  ansible.builtin.debug:
+    msg: Restarting consul because haproxy.json changed
   when:
-    - not haproxy_configure_only
+    - haproxy_json_result.changed
   notify:
     - Restart consul for consul-haproxy
 
