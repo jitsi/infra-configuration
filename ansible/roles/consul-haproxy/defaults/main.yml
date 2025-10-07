@@ -2,4 +2,3 @@
 consul_haproxy_install_flag: true
 consul_haproxy_private_ip: "{{ ansible_default_ipv4.address }}"
 consul_haproxy_public_ip:
-haproxy_configure_only: false
