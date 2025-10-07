@@ -203,7 +203,7 @@
     - { role: "haproxy-knight", tags: "haproxy-knight", when: haproxy_knight_enabled }
     - { role: "consul-haproxy", tags: "consul-haproxy", consul_haproxy_install_flag: false,
         consul_haproxy_public_ip: "{{ public_ip }}", consul_haproxy_private_ip: "{{ private_ip }}",
-        when: haproxy-boot-flag }
+        when: haproxy_boot_flag }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
     - { role: "consul-template", tags: "consul-template" }
