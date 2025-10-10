@@ -420,8 +420,6 @@
     name: prosody
     state: restarted
   when:
-    - prosody_version_shell is defined
-    - prosody_version_shell.stdout.split('.')[0] | int >= 13
     - prosody_cfg_lua is defined
     - prosody_cfg_lua.changed
 
@@ -431,8 +429,6 @@
     name: prosody-jvb
     state: restarted
   when:
-    - prosody_version_shell is defined
-    - prosody_version_shell.stdout.split('.')[0] | int >= 13
     - prosody_jvb_cfg_lua is defined
     - prosody_jvb_cfg_lua.changed
 
