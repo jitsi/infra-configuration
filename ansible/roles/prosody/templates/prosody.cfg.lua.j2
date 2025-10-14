@@ -398,7 +398,15 @@ muc_limit_messages_count = {{ prosody_limit_messages }};
 muc_limit_messages_check_token = {{ prosody_limit_messages_check_token }};
 {% endif %}
 
-token_verification_allowlist = { "recorder.{{ prosody_domain_name }}" }
+token_verification_allowlist = {
+    "recorder.{{ prosody_domain_name }}";
+{% if secrets_jigasi_conference_A %}
+    "jigasia.{{ prosody_domain_name }}";
+{% endif %}
+{% if secrets_jigasi_conference_B %}
+    "jigasib.{{ prosody_domain_name }}"
+{% endif %}
+}
 
 {% if secrets_jigasi_conference_A %}
 muc_jigasi_jid = "jigasia@{{ prosody_auth_domain_name }}"
