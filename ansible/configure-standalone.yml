@@ -171,6 +171,22 @@
         jitsi_meet_colibri_proxy_enabled: false
       tags: "provision"
   post_tasks:
+    - name: Restart prosody if changes were made
+      ansible.builtin.service:
+        name: prosody
+        state: restarted
+      when:
+        - prosody_cfg_lua is defined
+        - prosody_cfg_lua.changed
+
+    - name: Restart prosody JVB if changes were made
+      ansible.builtin.service:
+        name: prosody-jvb
+        state: restarted
+      when:
+        - prosody_jvb_cfg_lua is defined
+        - prosody_jvb_cfg_lua.changed
+
     - name: Install consul signal state script
       ansible.builtin.copy:
         src: "roles/consul-signal/files/set-shard-state-consul.sh"
