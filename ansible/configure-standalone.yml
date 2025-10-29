@@ -325,8 +325,7 @@
             urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics", "http://localhost:8080/metrics"]
             namepass: "{{ telegraf_jvb_filter + ['http*', 'signal*'] + [ telegraf_jicofo_filter ] }}"
         telegraf_tags:
-          shard-role: "all"
-          role: "all"
+          role: "standalone"
           jvb_version: "{{ jitsi_videobridge_deb_pkg_version }}"
           environment: "{{ hcv_environment }}"
           shard: "{{ environment_domain_name }}"

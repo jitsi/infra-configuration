@@ -219,7 +219,6 @@
             urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics"]
             namepass: ["http*", "signal*", "prosody*", "{{ telegraf_jicofo_filter }}"]
         telegraf_tags:
-          shard-role: "core"
           role: "core"
           environment: "{{ hcv_environment }}"
           shard: "{{ shard_name }}"

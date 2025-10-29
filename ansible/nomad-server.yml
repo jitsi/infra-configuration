@@ -49,7 +49,6 @@
           prometheus:
             urls: ["http://localhost:4646//v1/metrics?format=prometheus"]
         telegraf_tags:
-          shard-role: "nomad-server"
           role: "nomad-server"
           pool-type: "nomad_pool_type"
           environment: "{{ hcv_environment }}"
