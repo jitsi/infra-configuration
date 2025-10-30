@@ -184,7 +184,8 @@ frontend www-http from global_defaults
   http-request set-var(req.ban_room) hdr(X-Group),lower,map({{ haproxy_ban_exact_map_path }})
   http-request set-var(req.ban_room) hdr(X-Room),lower,map_beg({{ haproxy_ban_prefix_map_path }})
   http-request set-var(req.ban_room) hdr(X-Group),lower,map_beg({{ haproxy_ban_prefix_map_path }})
-  http-request set-var(req.ban_room) hdr(X-StickToken),lower,map_sub({{ haproxy_ban_substr_map_path }})
+  http-request set-var(req.stick_token_safe) hdr(X-StickToken),lower,regsub(/,___) if { hdr(X-StickToken) -m found }
+  http-request set-var(req.ban_room) var(req.stick_token_safe),map_sub({{ haproxy_ban_substr_map_path }}) if { var(req.stick_token_safe) -m found }
   # override to unban specific groups by prefix
   http-request set-var(req.ban_room) hdr(X-Group),lower,map_beg({{ haproxy_unban_prefix_map_path }})
   # ban if ban map value 'ban' is set for room
