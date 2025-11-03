@@ -10,7 +10,7 @@
   tasks:
     - name: "Provision ec2 security group"
       delegate_to: localhost
-      amazon.aws.ec2_group:
+      amazon.aws.ec2_security_group:
         name: "{{ ec2_security_group_name }}-amibuilder"
         description: "VaaS Load test security group for temporary ec2 instance"
         vpc_id: "{{ ec2_vpc_id }}"
@@ -27,7 +27,7 @@
             cidr_ip: 0.0.0.0/0
     - name: "Provision ec2 instance"
       delegate_to: localhost
-      amazon.aws.ec2:
+      amazon.aws.ec2_instance:
         key_name: "{{ ec2_keypair }}"
         vpc_subnet_id: "{{ ec2_vpc_subnet_id }}"
         instance_type: "{{ ec2_instance_type }}"
@@ -182,8 +182,7 @@
 
     - name: "Terminate temporary instance"
       delegate_to: localhost
-      amazon.aws.ec2:
-        module: ec2
+      amazon.aws.ec2_instance:
         state: absent
         wait: true
         wait_timeout: 500
@@ -192,8 +191,7 @@
 
     - name: "Drop ec2 security group"
       delegate_to: localhost
-      amazon.aws.ec2_group:
-        module: ec2_group
+      amazon.aws.ec2_security_group:
         name: "{{ ec2_security_group_name }}-amibuilder"
         description: "VaaS Load test security group for temporary ec2 instance"
         state: 'absent'
