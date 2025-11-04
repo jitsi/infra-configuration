@@ -52,3 +52,12 @@
     state: started
     daemon_reload: true
     name: docker-jenkins
+
+- name: Docker cleanup cron job
+  ansible.builtin.cron:
+    user: root
+    state: present
+    name: "Docker system prune for Jenkins"
+    minute: "0"
+    hour: "2"
+    job: "/usr/bin/docker system prune -f --filter 'until=24h' >> /var/log/docker-cleanup.log 2>&1"
