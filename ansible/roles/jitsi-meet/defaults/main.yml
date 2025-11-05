@@ -3,6 +3,7 @@ ansible_ec2_placement_region:
 # give a default shard name in case none is provided
 hcv_environment: all
 jaas_feedback_metadata_url: false
+jaas_feedback_metadata_url_path: /webhook-proxy/feedback
 # URL for branding to redirect users to standalone offering
 jitsi_meet_8x8_video_meetings_url: false
 jitsi_meet_conference_request_global_rate: 50
@@ -12,27 +13,47 @@ jitsi_meet_amplitude_include_utm: false
 jitsi_meet_analytics_whitelist: false
 jitsi_meet_anonymize_logs: false
 jitsi_meet_anonymousdomain: false
+jitsi_meet_api_cdn_enabled: false
+jitsi_meet_api_cdn_host: "{{ environment_domain_name }}"
+jitsi_meet_api_relative_base: '/v1/_jaas'
 jitsi_meet_api_billing_counter: false
+jitsi_meet_api_billing_counter_path: '/billing-counter/v1/connection'
 jitsi_meet_api_branding_data_url: false
+jitsi_meet_api_branding_data_url_path: /branding/public/v1/conferences
 jitsi_meet_api_conference_event_url: "{{ jitsi_meet_api_url }}/conferenceEvent"
 jitsi_meet_api_conference_invite_callflows_url: false
 jitsi_meet_api_conference_invite_url: false
+jitsi_meet_api_conference_invite_url_path: /v1/meeting/invite
 jitsi_meet_api_conference_mapper_url: "{{ jitsi_meet_api_url }}/conferenceMapper"
+jitsi_meet_api_conference_mapper_url_path: /vmms-conference-mapper/v1/access
 jitsi_meet_api_dialin_numbers_url: "{{ jitsi_meet_api_url }}/phoneNumberList"
+jitsi_meet_api_dialin_numbers_url_path: /vmms-conference-mapper/access/v1/dids
 jitsi_meet_api_dialout_auth_url: false
+jitsi_meet_api_dialout_auth_url_path: /phone-authorize
 jitsi_meet_api_dialout_region_url: false
+jitsi_meet_api_dialout_region_url_path: /customer-configs/v1/outbound-destination
 jitsi_meet_api_dialout_codes_url: false
 jitsi_meet_api_directory_search_url: false
+jitsi_meet_api_directory_search_url_path: /v1/directory/search
 jitsi_meet_api_guest_dial_out_status_url: false
+jitsi_meet_api_guest_dial_out_status_url_path: /voxadapter/v1/guest/conference/call_in/status
 jitsi_meet_api_guest_dial_out_url: false
+jitsi_meet_api_guest_dial_out_url_path: /voxadapter/v1/guest/conference/call_in
 jitsi_meet_api_jaas_token_url: false
+jitsi_meet_api_jaas_token_url_path: /_jaas/token-mapping
 jitsi_meet_api_jaas_webhook_proxy: false
+jitsi_meet_api_jaas_webhook_proxy_path: /v1/_jaas/webhook-proxy
 jitsi_meet_api_jaas_conference_creator_url: false
+jitsi_meet_api_jaas_conference_creator_url_path: /v1/_jaas/vmms-conference-mapper/v1/access/conference-creator
 # endpoint used for getting the sharable recording link
 jitsi_meet_api_recoding_sharing_url: false
+jitsi_meet_api_recoding_sharing_url_path: /jaas-recordings/link
 jitsi_meet_api_screenshot_history_url: false
+jitsi_meet_api_screenshot_history_url_path: /vo-content-sharing-history/v1/file-metadata
 jitsi_meet_api_screenshot_history_region_url: false
+jitsi_meet_api_screenshot_history_region_url_path: /vo-content-sharing-history/v1/file-metadata/storage-info
 jitsi_meet_api_sip_invite_url: false
+jitsi_meet_api_sip_invite_url_path: /sip-jibri-gateway/jibris/invite
 jitsi_meet_api_proxy_servername: api.jitsi.net
 jitsi_meet_api_url: https://api.jitsi.net
 jitsi_meet_apple_site_associations: |
@@ -159,6 +180,7 @@ jitsi_meet_enable_webhid_feature: true
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
 jitsi_meet_filesharing_api_url: false
+jitsi_meet_filesharing_api_url_path: /vo-content-sharing-history/v1/documents
 jitsi_meet_feedback_percentage: 100
 jitsi_meet_giphy_enabled: false
 jitsi_meet_giphy_sdk_key: ''
@@ -167,6 +189,7 @@ jitsi_meet_haproxy_bind_port: 9092
 jitsi_meet_hidden_from_recorder_feature: false
 jitsi_meet_install_flag: true
 jitsi_meet_jaas_actuator_url: false
+jitsi_meet_jaas_actuator_url_path: /jaas-actuator
 jitsi_meet_jvb_preferred_codecs: "[ 'AV1', 'VP9', 'VP8', 'H264' ]"
 jitsi_meet_jvb_preferred_mobile_codecs: "[ 'VP8', 'H264', 'VP9' ]"
 jitsi_meet_load_test_enabled: false
@@ -254,6 +277,7 @@ jitsi_meet_video_quality: false
 jitsi_meet_visitors_enabled: "{{ visitors_enabled | default(false) }}"
 jitsi_meet_visitors_count: "{{ visitors_count | default(0) }}"
 jitsi_meet_visitors_queue_service_url: false
+jitsi_meet_visitors_queue_service_url_path: /waiting-queue
 jitsi_meet_whiteboard_collab_server_base_url: ''
 jitsi_meet_whiteboard_enabled: false
 jitsi_meet_whiteboard_user_limit: 25
