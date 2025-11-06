@@ -215,7 +215,11 @@ var config = {
 
 {% if jitsi_meet_filesharing_api_url %}
     fileSharing: {
+{% if jitsi_meet_api_cdn_enabled %}
+      apiUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_filesharing_api_url_path }}',
+{% else %}
       apiUrl :"{{ jitsi_meet_filesharing_api_url }}",
+{% endif %}
       enabled: true
     },
 {% endif %}
@@ -261,52 +265,117 @@ var config = {
     enableEmailInStats: true,
 {% endif %}
 {% if jitsi_meet_jaas_actuator_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   jaasActuatorUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_jaas_actuator_url_path }}',
+{% else %}
    jaasActuatorUrl: '{{ jitsi_meet_jaas_actuator_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_jaas_token_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   jaasTokenUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_jaas_token_url_path }}',
+{% else %}
    jaasTokenUrl: '{{ jitsi_meet_api_jaas_token_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_jaas_conference_creator_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   jaasConferenceCreatorUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_jaas_conference_creator_url_path }}',
+{% else %}
    jaasConferenceCreatorUrl: '{{ jitsi_meet_api_jaas_conference_creator_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_jaas_webhook_proxy %}
+{% if jitsi_meet_api_cdn_enabled %}
+   webhookProxyUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_jaas_webhook_proxy_path }}',
+{% else %}
    webhookProxyUrl: '{{ jitsi_meet_api_jaas_webhook_proxy }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_billing_counter %}
+{% if jitsi_meet_api_cdn_enabled %}
+   billingCounterUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_billing_counter_path }}',
+{% else %}
    billingCounterUrl: '{{ jitsi_meet_api_billing_counter }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_branding_data_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   brandingDataUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_branding_data_url_path }}',
+{% else %}
    brandingDataUrl: '{{ jitsi_meet_api_branding_data_url }}',
 {% endif %}
+{% endif %}
+{% if jitsi_meet_api_cdn_enabled %}
+    dialInNumbersUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_dialin_numbers_url_path }}',
+    dialInConfCodeUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_conference_mapper_url_path }}',
+{% else %}
     dialInNumbersUrl: '{{ jitsi_meet_api_dialin_numbers_url }}',
     dialInConfCodeUrl:  '{{ jitsi_meet_api_conference_mapper_url }}',
+{% endif %}
 
 {% if jitsi_meet_api_dialout_codes_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    dialOutCodesUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_dialout_codes_url_path }}',
+{% else %}
     dialOutCodesUrl:  '{{ jitsi_meet_api_dialout_codes_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_dialout_auth_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    dialOutCodesUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_dialout_auth_url_path }}',
+{% else %}
     dialOutAuthUrl: '{{ jitsi_meet_api_dialout_auth_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_dialout_region_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    dialOutRegionUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_dialout_region_url_path }}',
+{% else %}
     dialOutRegionUrl: '{{ jitsi_meet_api_dialout_region_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_directory_search_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    peopleSearchUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_directory_search_url_path }}',
+{% else %}
     peopleSearchUrl: '{{ jitsi_meet_api_directory_search_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_conference_invite_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    inviteServiceUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_conference_invite_url_path }}',
+{% else %}
     inviteServiceUrl: '{{ jitsi_meet_api_conference_invite_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_conference_invite_callflows_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    inviteServiceCallFlowsUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_conference_invite_callflows_url_path }}',
+{% else %}
     inviteServiceCallFlowsUrl: '{{ jitsi_meet_api_conference_invite_callflows_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_guest_dial_out_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    guestDialOutUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_guest_dial_out_url_path }}',
+{% else %}
     guestDialOutUrl: '{{ jitsi_meet_api_guest_dial_out_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_guest_dial_out_status_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    guestDialOutStatusUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_guest_dial_out_status_url_path }}',
+{% else %}
     guestDialOutStatusUrl: '{{ jitsi_meet_api_guest_dial_out_status_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_recoding_sharing_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   recordingSharingUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_recoding_sharing_url_path }}',
+{% else %}
    recordingSharingUrl: '{{ jitsi_meet_api_recoding_sharing_url }}',
+{% endif %}
 {% endif %}
 {% if jitsi_meet_people_search_query_types %}
     peopleSearchQueryTypes: {{ jitsi_meet_people_search_query_types }},
@@ -314,7 +383,11 @@ var config = {
 
 {% if jitsi_meet_visitors_queue_service_url %}
     visitors: {
+{% if jitsi_meet_api_cdn_enabled %}
+        queueService: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_visitors_queue_service_url_path }}'
+{% else %}
         queueService: '{{ jitsi_meet_visitors_queue_service_url }}'
+{% endif %}
     },
 {% endif %}
     startAudioMuted: {{ jitsi_meet_start_audio_muted_count }},
@@ -335,13 +408,25 @@ var config = {
     _8x8VideoMeetingsUrl: '{{ jitsi_meet_8x8_video_meetings_url }}',
 {% endif %}
 {% if jitsi_meet_api_screenshot_history_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    _screenshotHistoryUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_screenshot_history_url_path }}',
+{% else %}
     _screenshotHistoryUrl: '{{ jitsi_meet_api_screenshot_history_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_screenshot_history_region_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+    _screenshotHistoryRegionUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_screenshot_history_region_url_path }}',
+{% else %}
     _screenshotHistoryRegionUrl: '{{ jitsi_meet_api_screenshot_history_region_url }}',
 {% endif %}
+{% endif %}
 {% if jitsi_meet_api_sip_invite_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   sipInviteUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_sip_invite_url_path }}',
+{% else %}
    sipInviteUrl: '{{ jitsi_meet_api_sip_invite_url }}',
+{% endif %}
 {% endif %}
 {% if jitsi_meet_disable_record_audio_notification %}
     disableRecordAudioNotification: true,
@@ -378,7 +463,11 @@ var config = {
     },
 {% endif %}
 {% if jaas_feedback_metadata_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   jaasFeedbackMetadataURL: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jaas_feedback_metadata_url_path }}',
+{% else %}
    jaasFeedbackMetadataURL: '{{ jaas_feedback_metadata_url }}',
+{% endif %}
 {% endif %}
     prejoinConfig: {
         enabled: {% if jitsi_meet_enable_prejoin_page %}true{% else %}false{% endif %},
