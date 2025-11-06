@@ -371,7 +371,11 @@ var config = {
 {% endif %}
 {% endif %}
 {% if jitsi_meet_api_recoding_sharing_url %}
+{% if jitsi_meet_api_cdn_enabled %}
+   recordingSharingUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_recoding_sharing_url_path }}',
+{% else %}
    recordingSharingUrl: '{{ jitsi_meet_api_recoding_sharing_url }}',
+{% endif %}
 {% endif %}
 {% if jitsi_meet_people_search_query_types %}
     peopleSearchQueryTypes: {{ jitsi_meet_people_search_query_types }},
