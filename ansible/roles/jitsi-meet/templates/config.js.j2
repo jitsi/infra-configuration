@@ -323,7 +323,7 @@ var config = {
 {% endif %}
 {% if jitsi_meet_api_dialout_auth_url %}
 {% if jitsi_meet_api_cdn_enabled %}
-    dialOutCodesUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_dialout_auth_url_path }}',
+    dialOutAuthUrl:  'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_api_dialout_auth_url_path }}',
 {% else %}
     dialOutAuthUrl: '{{ jitsi_meet_api_dialout_auth_url }}',
 {% endif %}
@@ -384,7 +384,7 @@ var config = {
 {% if jitsi_meet_visitors_queue_service_url %}
     visitors: {
 {% if jitsi_meet_api_cdn_enabled %}
-        queueService: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_visitors_queue_service_url_path }}'
+        queueService: '<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}{{ jitsi_meet_visitors_queue_service_url_path }}'
 {% else %}
         queueService: '{{ jitsi_meet_visitors_queue_service_url }}'
 {% endif %}
