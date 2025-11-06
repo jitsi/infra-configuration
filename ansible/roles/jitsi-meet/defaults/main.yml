@@ -40,11 +40,11 @@ jitsi_meet_api_guest_dial_out_status_url_path: /voxadapter/v1/guest/conference/c
 jitsi_meet_api_guest_dial_out_url: false
 jitsi_meet_api_guest_dial_out_url_path: /voxadapter/v1/guest/conference/call_in
 jitsi_meet_api_jaas_token_url: false
-jitsi_meet_api_jaas_token_url_path: /_jaas/token-mapping
+jitsi_meet_api_jaas_token_url_path: /token-mapping
 jitsi_meet_api_jaas_webhook_proxy: false
-jitsi_meet_api_jaas_webhook_proxy_path: /v1/_jaas/webhook-proxy
+jitsi_meet_api_jaas_webhook_proxy_path: /webhook-proxy
 jitsi_meet_api_jaas_conference_creator_url: false
-jitsi_meet_api_jaas_conference_creator_url_path: /v1/_jaas/vmms-conference-mapper/v1/access/conference-creator
+jitsi_meet_api_jaas_conference_creator_url_path: /vmms-conference-mapper/v1/access/conference-creator
 # endpoint used for getting the sharable recording link
 jitsi_meet_api_recoding_sharing_url: false
 jitsi_meet_api_recoding_sharing_url_path: /jaas-recordings/link
