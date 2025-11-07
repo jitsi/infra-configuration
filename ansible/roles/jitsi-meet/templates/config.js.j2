@@ -76,7 +76,11 @@ var config = {
         rtcstatsEnabled: {% if jitsi_meet_rtcstats_enabled %}true{% else %}false{% endif %} ,
         rtcstatsStoreLogs: {% if jitsi_meet_rtcstats_store_logs %}true{% else %}false{% endif %} ,
         rtcstatsUseLegacy: {% if jitsi_meet_rtcstats_use_legacy %}true{% else %}false{% endif %} ,
+    {% if jitsi_meet_api_cdn_enabled %}
+        rtcstatsEndpoint: "wss://<!--# echo var="http_host" default="{{ jitsi_meet_api_cdn_host }}" -->{{ jitsi_meet_api_relative_base }}/rtcstats",
+    {% else %}
         rtcstatsEndpoint: "{{ jitsi_meet_rtcstats_endpoint }}",
+    {% endif %}
         rtcstatsPollInterval: {{ jitsi_meet_rtcstats_poll_interval }},
     {% if jitsi_meet_rtcstats_log_sdp %}
         rtcstatsSendSdp: true,
