@@ -30,9 +30,8 @@ GRACEFUL_SHUTDOWN_FILE="/tmp/graceful-shutdown-output"
 CURL_BIN="/usr/bin/curl"
 
 function get_cpu_steal() {
-  # Get the CPU steal time from top
-  # Run it in batch mode at interval 5 seconds for 2 iterations. The first iteration will have 0s everywhere, grab the "st" value from the second, take only the integer part
-  top -b -n 2 -d 5 -p0 | grep -E '^%Cpu.*st$' | tail -1 | awk -F',' '{print $NF}' | awk '{print $1}' | cut -d'.' -f1
+  # Get the CPU steal time telegraf
+  curl -s 0:9126/metrics | grep ^cpu_usage_steal | awk '{print $2}'
 }
 
 function run_check() {
