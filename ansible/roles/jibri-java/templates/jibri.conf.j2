@@ -5,6 +5,22 @@ jibri {
         recordings-directory = "{{ jibri_recordings_dir }}"
         finalize-script = "{{ jibri_finalize_recording_script }}"
     }
+    ffmpeg {
+      // resolution =  "1920x1080"
+      // The audio source that will be used to capture audio on Linux
+      audio-source = "{{ 'pulse' if jibri_pulse_audio_enabled else 'alsa' }}"
+      // The audio device that will be used to capture audio on Linux
+      audio-device = "{{ 'default' if jibri_pulse_audio_enabled else 'plug:bsnoop' }}"
+      // framerate = 30
+      // queue-size = 4096
+      // streaming-max-bitrate = 2976
+      // Available presets: ultrafast, superfast, veryfast, faster, fast, medium,
+      // slow, slower, veryslow, placebo
+      // video-encode-preset = "veryfast"
+      // The range of the CRF scale is 0-51, where 0 is lossless,
+      // 23 is the default, and 51 is worst quality possible.
+      // h264-constant-rate-factor = 25
+    }
     webhook {
       subscribers = [{% if jibri_sidecar_webhook %}"{{ jibri_sidecar_webhook }}"{% endif %}{% if sip_jibri_sidecar_webhook %}{% if jibri_sidecar_webhook %},{% endif %}"{{ sip_jibri_sidecar_webhook }}"{% endif %}]
     }
