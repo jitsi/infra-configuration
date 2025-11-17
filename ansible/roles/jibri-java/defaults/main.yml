@@ -41,6 +41,7 @@ jibri_enable_pulse_verbose_logs: false
 jibri_enable_status_cron: true
 jibri_environments: "{{ default_jibri_environments }}"
 jibri_failed_upload_path: /opt/jitsi/jibri/failed
+jibri_ffmpeg_log_level: false
 jibri_finalize_recording_script: /usr/bin/jitsi_uploader.sh
 jibri_groupname: jibri
 jibri_health_cron:
