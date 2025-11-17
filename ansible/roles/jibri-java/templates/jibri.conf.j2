@@ -5,6 +5,11 @@ jibri {
         recordings-directory = "{{ jibri_recordings_dir }}"
         finalize-script = "{{ jibri_finalize_recording_script }}"
     }
+    ffmpeg {
+{% if jibri_ffmpeg_log_level %}
+        ffmpeg = [ ${jibri.ffmpeg.ffmpeg-binary}, "-y", "-v", "{{ jibri_ffmpeg_log_level }}"  ]
+{% endif %}
+    }
     webhook {
       subscribers = [{% if jibri_sidecar_webhook %}"{{ jibri_sidecar_webhook }}"{% endif %}{% if sip_jibri_sidecar_webhook %}{% if jibri_sidecar_webhook %},{% endif %}"{{ sip_jibri_sidecar_webhook }}"{% endif %}]
     }
