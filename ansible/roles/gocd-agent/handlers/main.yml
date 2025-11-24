@@ -1,0 +1,6 @@
+---
+- name: Restart go-agent
+  ansible.builtin.systemd:
+    name: go-agent
+    state: restarted
+    daemon_reload: true

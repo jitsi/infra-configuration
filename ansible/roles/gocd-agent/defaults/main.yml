@@ -1,0 +1,25 @@
+---
+# GoCD server URL (must be set in your playbook or inventory)
+# gocd_server_url: "https://gocd.example.com:8154/go"
+
+# GoCD agent auto-registration key (optional, for auto-registration)
+# gocd_agent_auto_register_key: ""
+
+# GoCD agent auto-registration resources (optional)
+# gocd_agent_auto_register_resources: ""
+
+# GoCD agent auto-registration environments (optional)
+# gocd_agent_auto_register_environments: ""
+
+# GoCD agent auto-registration hostname (optional)
+# gocd_agent_auto_register_hostname: "{{ ansible_hostname }}"
+
+# Additional environment variables for the agent
+gocd_agent_environment: {}
+
+# Installation method - set to true to install from .deb file instead of apt repository
+gocd_install_from_deb: false
+
+# URL to the .deb package (used when gocd_install_from_deb is true)
+gocd_deb_version: 23.1.0-16079
+gocd_deb_url: "https://download.gocd.org/binaries/{{ gocd_deb_version }}/deb/go-agent_{{ gocd_deb_version }}_all.deb"
