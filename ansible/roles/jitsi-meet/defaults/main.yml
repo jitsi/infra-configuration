@@ -122,6 +122,7 @@ jitsi_meet_content_security_policy_on_root: false
 jitsi_meet_cors_avatar_urls: false
 jitsi_meet_deb_pkg_name: "jitsi-meet-web"
 jitsi_meet_deb_pkg_version: "*"
+jitsi_meet_default_remote_displayname: false
 jitsi_meet_disable_firefox_p2p: false
 jitsi_meet_disable_iframe_api: false
 jitsi_meet_disable_reactions: false

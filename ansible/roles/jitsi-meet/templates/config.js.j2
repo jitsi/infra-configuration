@@ -258,6 +258,9 @@ var config = {
         notifyAllParticipants: {% if jitsi_meet_local_recording_notify_all %}true{% else %}false{% endif %}
     },
     requireDisplayName: {% if jitsi_meet_require_displayname %}true{% else %}false{% endif %},
+{% if jitsi_meet_default_remote_displayname %}
+    defaultRemoteDisplayName: "{{ jitsi_meet_default_remote_displayname }}",
+{% endif %}
     welcomePage: {
     {% if jitsi_meet_custom_landing_page_url %}
         customUrl: "{{ jitsi_meet_custom_landing_page_url }}",
