@@ -9,6 +9,6 @@
 - name: Install consul service enablement # noqa ignore-errors
   ansible.builtin.systemd:
     name: consul
-    state: started
+    state: reloaded
     enabled: true
   ignore_errors: true
