@@ -23,3 +23,7 @@ gocd_install_from_deb: false
 # URL to the .deb package (used when gocd_install_from_deb is true)
 gocd_deb_version: 23.1.0-16079
 gocd_deb_url: "https://download.gocd.org/binaries/{{ gocd_deb_version }}/deb/go-agent_{{ gocd_deb_version }}_all.deb"
+
+# Number of GoCD agents to run on this host (default: 1)
+# Set to a number > 1 to run multiple agents on the same host
+gocd_agent_count: 1

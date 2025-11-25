@@ -91,3 +91,8 @@
     enabled: true
     state: started
     daemon_reload: true
+
+# Configure additional agents if gocd_agent_count > 1
+- name: Include tasks for multiple agents
+  ansible.builtin.include_tasks: configure-multiple-agents.yml
+  when: gocd_agent_count > 1
