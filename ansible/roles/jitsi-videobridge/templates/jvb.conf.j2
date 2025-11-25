@@ -65,6 +65,7 @@ videobridge {
   }
 
   ice {
+    keep-alive-strategy = {{ jvb_keep_alive_strategy }}
     udp {
       port = {{ jvb_single_harvester_port }}
     }
@@ -232,6 +233,7 @@ ice4j {
     mapping.stun.enabled = false
 {% endif %}
   }
+  send-to-last-received-from-address = {{ jvb_send_to_last_received_from_address }}
 }
 
 include "xmpp.conf"

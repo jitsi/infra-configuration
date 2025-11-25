@@ -74,6 +74,7 @@ jvb_installed_package: "{{ jitsi_videobridge_deb_pkg_name }}"
 jvb_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
 # "sync" or "async". Async mode is currently unsafe for the bridge!
 jvb_iq_handler_mode: "sync"
+jvb_keep_alive_strategy: "selected_only"
 jvb_last_n_limits: 25
 jvb_load_threshold: "{{ jvb_load_threshold_by_shape[jvb_shape] if jvb_shape in jvb_load_threshold_by_shape else jvb_load_threshold_by_shape['default'] }}"
 jvb_load_threshold_by_shape:
@@ -186,6 +187,7 @@ jvb_rest_ssl_certificate_key: |
 jvb_rest_ssl_certificate_key_filename: "jvb_rest.service.consul.key"
 jvb_rest_ssl_dest_dir: /etc/nginx/ssl
 jvb_route_loudest_only: true
+jvb_send_to_last_received_from_address: false
 jvb_server_prefix: "{{ ansible_hostname.split('.')[0] }}"
 jvb_server_id: "jvb-{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 jvb_service_name: "jitsi-videobridge2"
