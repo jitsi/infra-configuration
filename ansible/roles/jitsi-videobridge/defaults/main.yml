@@ -187,6 +187,7 @@ jvb_rest_ssl_certificate_key: |
 jvb_rest_ssl_certificate_key_filename: "jvb_rest.service.consul.key"
 jvb_rest_ssl_dest_dir: /etc/nginx/ssl
 jvb_route_loudest_only: true
+jvb_send_to_last_received_from_address: false
 jvb_server_prefix: "{{ ansible_hostname.split('.')[0] }}"
 jvb_server_id: "jvb-{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"
 jvb_service_name: "jitsi-videobridge2"
