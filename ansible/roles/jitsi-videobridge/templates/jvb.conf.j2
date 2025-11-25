@@ -65,6 +65,7 @@ videobridge {
   }
 
   ice {
+    keep-alive-strategy = {{ jvb_keep_alive_strategy }}
     udp {
       port = {{ jvb_single_harvester_port }}
     }
