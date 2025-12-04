@@ -29,6 +29,7 @@ telegraf_jvb_filter: [
     "jitsi_jvb_endpoints_sending_video",
     "jitsi_jvb_endpoints_with_high_outgoing_loss",
     "jitsi_jvb_endpoints_with_suspended_sources",
+    "jitsi_jvb_exporter_*",
     "jitsi_jvb_graceful_shutdown",
     "jitsi_jvb_healthy",
     "jitsi_jvb_ice_failed_total",
