@@ -280,7 +280,7 @@ transforms:
         structured =
             parse_json(.message) ??
             {}
-        . = merge(., structured)
+        . = merge!(., structured)
         .timestamp = .time
   jvb_to_structure:
     type: "remap"
