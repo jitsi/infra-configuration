@@ -7,12 +7,16 @@
   vars:
     java_use_11: true
   vars_files:
+    - config/vars.yml
+    - roles/prosody/defaults/main.yml
+    - roles/jitsi-meet-branding/defaults/main.yml
+    - roles/jitsi-meet/defaults/main.yml
+    - roles/jicofo/defaults/main.yml
+    - roles/jitsi-videobridge/defaults/main.yml
     - secrets/ssh-users.yml
-    - secrets/ssl-certificates.yml
     - secrets/jibri.yml
     - secrets/jicofo.yml
     - secrets/jigasi.yml
-    - secrets/asap-keys.yml
     - secrets/coturn.yml
     - secrets/jvb.yml
     - secrets/wavefront.yml
@@ -21,12 +25,8 @@
     - secrets/prosody-egress-aws.yml
     - secrets/repo.yml
     - secrets/github-deploy.yml
-    - config/vars.yml
-    - roles/prosody/defaults/main.yml
-    - roles/jitsi-meet-branding/defaults/main.yml
-    - roles/jitsi-meet/defaults/main.yml
-    - roles/jicofo/defaults/main.yml
-    - roles/jitsi-videobridge/defaults/main.yml
+    - secrets/asap-keys.yml
+    - secrets/ssl-certificates.yml
     - sites/{{ hcv_environment }}/vars.yml
 
   pre_tasks:
