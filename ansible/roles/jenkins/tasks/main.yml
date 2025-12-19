@@ -41,11 +41,27 @@
     state: link
   notify: Restart nginx for jenkins
 
-- name: Systemd jenkins service
+- name: Create Jenkins secrets directory
+  ansible.builtin.file:
+    path: "{{ jenkins_secrets_dir }}"
+    state: directory
+    mode: '0700'
+  when: jenkins_saml_enabled | default(false)
+
+- name: Install SAML IdP metadata
   ansible.builtin.copy:
+    content: "{{ jenkins_saml_idp_metadata }}"
+    dest: "{{ jenkins_secrets_dir }}/idp-metadata.xml"
+    mode: '0600'
+  when: jenkins_saml_enabled | default(false) and jenkins_saml_idp_metadata is defined
+  notify: Restart jenkins service
+
+- name: Systemd jenkins service
+  ansible.builtin.template:
     mode: 0644
-    src: jenkins.service
+    src: jenkins.service.j2
     dest: /etc/systemd/system/docker-jenkins.service
+  notify: Restart jenkins service
 
 - name: Start jenkins service
   ansible.builtin.systemd:
