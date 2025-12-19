@@ -52,8 +52,16 @@
   ansible.builtin.copy:
     content: "{{ jenkins_saml_idp_metadata }}"
     dest: "{{ jenkins_secrets_dir }}/idp-metadata.xml"
-    mode: '0600'
+    mode: '0644'
   when: jenkins_saml_enabled | default(false) and jenkins_saml_idp_metadata is defined
+  notify: Restart jenkins service
+
+- name: Generate SAML JCasC configuration
+  ansible.builtin.template:
+    src: casc-saml.yaml.j2
+    dest: "{{ jenkins_secrets_dir }}/casc-saml.yaml"
+    mode: '0644'
+  when: jenkins_saml_enabled | default(false)
   notify: Restart jenkins service
 
 - name: Systemd jenkins service
