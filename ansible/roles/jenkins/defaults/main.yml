@@ -4,3 +4,12 @@ jenkins_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras
 jenkins_ssl_dest_dir: /etc/nginx/ssl
 jenkins_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"
 jenkins_install_flag: true
+
+# SAML SSO Configuration
+jenkins_saml_enabled: false
+jenkins_secrets_dir: /opt/jenkins/secrets
+# jenkins_saml_idp_metadata: "<EntityDescriptor>...</EntityDescriptor>"  # Set in vault or host_vars
+jenkins_saml_display_name_attr: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+jenkins_saml_email_attr: "emails"
+jenkins_saml_groups_attr: "groups"
+jenkins_saml_username_attr: "NameID"
