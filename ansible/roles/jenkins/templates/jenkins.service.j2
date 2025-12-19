@@ -15,7 +15,7 @@ ExecStartPre=-/usr/bin/docker create -m 0b -p 8080:8080 -p 50000:50000 \
   --env SAML_EMAIL_ATTR={{ jenkins_saml_email_attr | default('emails') }} \
   --env SAML_GROUPS_ATTR={{ jenkins_saml_groups_attr | default('groups') }} \
   --env SAML_USERNAME_ATTR={{ jenkins_saml_username_attr | default('NameID') }} \
-  --volume {{ jenkins_secrets_dir }}/idp-metadata.xml:/var/jenkins_home/secrets/idp-metadata.xml:ro \
+  --volume {{ jenkins_secrets_dir }}/idp-metadata.xml:/home/jenkins/secrets/idp-metadata.xml:ro \
 {% endif %}
   --volume jenkins-docker-certs:/certs/client \
   --volume jenkins-data:/var/jenkins_home \
