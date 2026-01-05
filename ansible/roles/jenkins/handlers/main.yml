@@ -4,3 +4,12 @@
     name: nginx
     state: restarted
     enabled: true
+
+- name: Restart jenkins service # noqa command-instead-of-module
+  ansible.builtin.shell: |
+    systemctl stop docker-jenkins
+    docker rm -f jenkins || true
+    systemctl daemon-reload
+    systemctl start docker-jenkins
+  args:
+    executable: /bin/bash

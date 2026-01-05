@@ -1,0 +1,30 @@
+[Unit]
+Description=Jenkins
+
+[Service]
+SyslogIdentifier=docker-jenkins
+ExecStartPre=-/usr/bin/docker create -m 0b -p 8080:8080 -p 50000:50000 \
+  --restart=always \
+  --name jenkins \
+  --add-host=host.docker.internal:host-gateway \
+  --privileged \
+  --env DOCKER_TLS_CERTDIR=/certs \
+  --env JENKINS_URL=https://{{ jenkins_sitename }} \
+{% if jenkins_saml_enabled | default(false) %}
+  --env CASC_JENKINS_CONFIG=/home/jenkins/casc.yaml,/home/jenkins/secrets/casc-saml.yaml \
+  --env SAML_DISPLAY_NAME_ATTR={{ jenkins_saml_display_name_attr | default('http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name') }} \
+  --env SAML_EMAIL_ATTR={{ jenkins_saml_email_attr | default('emails') }} \
+  --env SAML_GROUPS_ATTR={{ jenkins_saml_groups_attr | default('groups') }} \
+  --env SAML_USERNAME_ATTR={{ jenkins_saml_username_attr | default('NameID') }} \
+  --volume {{ jenkins_secrets_dir }}/idp-metadata.xml:/home/jenkins/secrets/idp-metadata.xml:ro \
+  --volume {{ jenkins_secrets_dir }}/casc-saml.yaml:/home/jenkins/secrets/casc-saml.yaml:ro \
+{% endif %}
+  --volume jenkins-docker-certs:/certs/client \
+  --volume jenkins-data:/var/jenkins_home \
+  --volume /var/run/docker.sock:/var/run/docker.sock \
+  aaronkvanmeerten/ops-jenkins:latest
+ExecStart=/usr/bin/docker start -a jenkins
+ExecStop=-/usr/bin/docker stop --time=0 jenkins
+
+[Install]
+WantedBy=multi-user.target
