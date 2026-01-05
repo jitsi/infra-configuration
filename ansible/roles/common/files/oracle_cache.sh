@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Save the current state of -x flag and disable tracing for this script
+if [[ $- == *x* ]]; then
+    _oracle_cache_restore_x=true
+else
+    _oracle_cache_restore_x=false
+fi
+set +x
+
 # Enables calling the oci API withing the oracle instance
 export OCI_CLI_AUTH=instance_principal
 
@@ -126,4 +134,9 @@ fi
 
 if [ "$JVB_POOL_MODE" == "null" ]; then
   export JVB_POOL_MODE=
+fi
+
+# Restore -x flag if it was originally set
+if $_oracle_cache_restore_x; then
+    set -x
 fi
