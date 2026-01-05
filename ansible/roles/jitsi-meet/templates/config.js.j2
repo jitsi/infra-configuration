@@ -498,6 +498,9 @@ var config = {
 {% if jitsi_meet_disable_iframe_api %}
     disableIframeAPI: true,
 {% endif %}
+{% if jitsi_meet_show_chat_permissions_setting %}
+    showChatPermissionsModeratorSetting: true,
+{% endif %}
 faceLandmarks: {
     enableFaceCentering: {% if jitsi_meet_enable_face_landmarks_enable_centering %}true{% else %}false{% endif %},
     enableFaceExpressionsDetection: {% if jitsi_meet_enable_face_landmarks_detect_expressions %}true{% else %}false{% endif %},
