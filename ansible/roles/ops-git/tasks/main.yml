@@ -1,0 +1,84 @@
+---
+- name: Create git group
+  ansible.builtin.group:
+    name: "{{ ops_git_user }}"
+    gid: "{{ ops_git_gid }}"
+    state: present
+  when: ops_git_install_flag
+
+- name: Create git user
+  ansible.builtin.user:
+    name: "{{ ops_git_user }}"
+    uid: "{{ ops_git_uid }}"
+    group: "{{ ops_git_user }}"
+    comment: "Git mirror service account"
+    home: "{{ ops_git_data_dir }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+  when: ops_git_install_flag
+
+- name: Ensure ops-git data directory exists
+  ansible.builtin.file:
+    path: "{{ ops_git_data_dir }}"
+    state: directory
+    owner: "{{ ops_git_uid }}"
+    group: "{{ ops_git_gid }}"
+    mode: '0755'
+  when: ops_git_install_flag
+
+- name: Create .ssh directory for git user
+  ansible.builtin.file:
+    path: "{{ ops_git_data_dir }}/.ssh"
+    state: directory
+    owner: "{{ ops_git_uid }}"
+    group: "{{ ops_git_gid }}"
+    mode: '0700'
+  when: ops_git_install_flag
+
+- name: Deploy SSH private key for GitHub access
+  ansible.builtin.copy:
+    content: "{{ jenkins_deploy_key }}"
+    dest: "{{ ops_git_data_dir }}/.ssh/id_rsa"
+    owner: "{{ ops_git_uid }}"
+    group: "{{ ops_git_gid }}"
+    mode: '0600'
+  when:
+    - ops_git_install_flag
+    - ops_git_configure_ssh_key
+    - jenkins_deploy_key is defined
+  no_log: true
+  notify: Restart ops-git service
+
+- name: Pull ops-git Docker image
+  community.docker.docker_image:
+    name: "{{ ops_git_image }}"
+    tag: "{{ ops_git_version }}"
+    source: pull
+    state: present
+  when: ops_git_install_flag
+
+- name: Deploy ops-git systemd service
+  ansible.builtin.template:
+    src: ops-git.service.j2
+    dest: /etc/systemd/system/docker-ops-git.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart ops-git service
+  when: ops_git_install_flag
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ops_git_install_flag
+
+- name: Flush handlers before starting ops-git service
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start ops-git service
+  ansible.builtin.systemd:
+    name: docker-ops-git
+    enabled: true
+    state: started
+  when: ops_git_install_flag
