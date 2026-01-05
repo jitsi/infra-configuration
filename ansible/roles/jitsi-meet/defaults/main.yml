@@ -244,7 +244,7 @@ jitsi_meet_rtcstats_poll_interval: 10000
 jitsi_meet_rtcstats_use_legacy: false
 jitsi_meet_screenshot_capture_enabled: false
 jitsi_meet_screenshot_capture_mode: 'recording'
-jitsi_meet_show_chat_permissions_setting: false
+jitsi_meet_show_chat_permissions_setting: true
 jitsi_meet_show_spot_consent_dialog: false
 jitsi_meet_signal_api_server_name: "signal-api-{{ jitsi_meet_domain_name }}"
 jitsi_meet_signal_api_ssl_certificate: "{{ jitsi_meet_ssl_certificate }}"
