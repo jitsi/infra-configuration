@@ -85,6 +85,9 @@ s2s_whitelist = {
     'jigasib.{{ prosody_domain_name }}';
 {% endif %}
     'recorder.{{ prosody_domain_name }}';
+{% if prosody_polls_enabled %}
+    'polls.{{ prosody_domain_name }}';
+{% endif %}
 };
 
 {% if prosody_enable_mod_turncredentials %}
@@ -201,6 +204,9 @@ s2sout_override = {
     ["jigasib.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
 {% endif %}
     ["recorder.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
+{% if prosody_polls_enabled %}
+    ["polls.{{ prosody_domain_name }}"] = "tcp://127.0.0.1:5269";
+{% endif %}
 }
 
 {% if prosody_limit_messages %}
@@ -386,4 +392,8 @@ VirtualHost "jigasib.v{{ item }}.meet.jitsi"
 {% if prosody_enable_file_sharing %}
 Component "filesharing.v{{ item }}.meet.jitsi" "filesharing_component"
     muc_component = "conference.v{{ item }}.meet.jitsi"
+{% endif %}
+
+{% if prosody_polls_enabled %}
+Component "polls.v{{ item }}.meet.jitsi" "polls_component"
 {% endif %}
