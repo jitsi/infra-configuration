@@ -384,11 +384,17 @@ s2sout_override = {
 {% for i in range(prosody_visitors_count|int) %}
         ["conference.v{{ i }}.meet.jitsi"] = "tcp://127.0.0.1:{{ 52690+i }}";
         ["v{{ i }}.meet.jitsi"] = "tcp://127.0.0.1:{{ 52690+i }}";
+        {% if prosody_polls_enabled %}
+        ["polls.v{{ i }}.meet.jitsi"] = "tcp://127.0.0.1:{{ 52690+i }}";
+        {% endif %}
 {% endfor %}
 };
 s2s_whitelist = {
 {% for i in range(prosody_visitors_count|int) %}
         "conference.v{{ i }}.meet.jitsi";
+        {% if prosody_polls_enabled %}
+        "polls.v{{ i }}.meet.jitsi";
+        {% endif %}
 {% endfor %}
 };
 {% endif %}
