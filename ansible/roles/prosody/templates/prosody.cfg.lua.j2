@@ -346,15 +346,12 @@ log = {
   {% else %}
 --	debug = "/var/log/prosody/prosody.fifo";
   {% endif %}
-
-  {% if prosody_enable_wait_for_host %}
     {
         timestamps = "%Y-%m-%d %X";
         to = "file",
         filename = "/var/log/prosody/prosody.audit.log",
         levels = { "audit" }
     };
-  {% endif %}
 {% if prosody_mod_log_ringbuffer_size %}
     {
         level = "debug",
