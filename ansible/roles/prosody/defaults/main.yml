@@ -229,7 +229,7 @@ prosody_polls_enabled: true
 prosody_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 # with file version we must set it via variable
 # with apt we use the shell to detect subversion so leave it blank ''
-prosody_minor_version: "{{ '12' if not prosody_install_from_apt else '' }}"
+prosody_minor_version: "{{ prosody_url_version.split('.')[1] if not prosody_install_from_apt else '' }}"
 prosody_package_version: "{{ prosody_url_version }}-1~{{ ansible_distribution_release }}1_{{ prosody_architecture }}"
 prosody_password_public_key_repo_url: false
 prosody_public_key_repo_url: false
@@ -267,7 +267,7 @@ prosody_trusted_proxies: [
   "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"
 ]
 prosody_use_lua_54: true
-prosody_url_version: 0.12.5
+prosody_url_version: 13.0.2
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax
 prosody_version: 13.*
