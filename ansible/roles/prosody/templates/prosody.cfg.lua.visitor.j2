@@ -211,7 +211,7 @@ s2sout_override = {
 
 {% if prosody_limit_messages %}
 muc_limit_messages_count = {{ prosody_limit_messages }};
-muc_limit_messages_check_token = {{ prosody_limit_messages_check_token }};
+muc_limit_messages_check_token = {{ prosody_limit_messages_check_token | to_json }};
 {% endif %}
 
 plugin_paths = { '{{ prosody_plugins_path }}/' }
