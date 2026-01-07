@@ -1,0 +1,6 @@
+---
+shard_ws_proxy_install_flag: true
+shard_ws_proxy_configure_flag: true
+shard_ws_proxy_domain_name: "{{ environment_domain_name }}"
+shard_ws_proxy_nginx_port: "{{ shard_ws_proxy_port | default(8089) }}"
+shard_ws_proxy_signal_dest_port: 443
