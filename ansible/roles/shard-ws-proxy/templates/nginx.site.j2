@@ -23,13 +23,15 @@ server {
     # set the root
     root /usr/share/nginx/html;
 
-    location ~ ^/v1/_ws/(?<shard_name>[^/]+)/xmpp-websocket$ {
-        set $signal_backend $shard_name.signal.service.consul;
-        proxy_pass http://$signal_backend:{{ shard_ws_proxy_signal_dest_port }}/$ws_path$is_args$args;
+    location ~ ^/v1/_ws/(?<shard_name>(?<datacenter>.+)-s\d+)/xmpp-websocket$ {
+        set $signal_backend shard-$shard_name.signal.service.$datacenter.dc.consul;
+        proxy_pass https://$signal_backend:{{ shard_ws_proxy_signal_dest_port }}/$ws_path$is_args$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host $host;
+        proxy_set_header X-Proxy-Region {{ shard_ws_proxy_region }};
+        proxy_set_header X-Proxy-Host {{ shard_ws_proxy_host }};
         tcp_nodelay on;
     }
 }
