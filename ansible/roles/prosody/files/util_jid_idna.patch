@@ -1,0 +1,12 @@
+diff -r f65302ea37b0 util/jid.lua
+--- a/util/jid.lua	Mon Jan 05 11:35:32 2026 +0000
++++ b/util/jid.lua	Wed Jan 07 12:36:31 2026 -0600
+@@ -63,7 +63,7 @@
+ 		end
+ 		host = nameprep(host, strict);
+ 		if host == nil then return; end
+-		if not (valid_ip(host) or idna_to_ascii(host)) then return; end
++		--if not (valid_ip(host) or idna_to_ascii(host)) then return; end
+ 		if node ~= nil then
+ 			node = nodeprep(node, strict);
+ 			if node == nil then return; end

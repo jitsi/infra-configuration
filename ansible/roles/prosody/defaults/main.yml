@@ -267,7 +267,7 @@ prosody_trusted_proxies: [
   "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"
 ]
 prosody_use_lua_54: true
-prosody_url_version: 13.0.2
+prosody_url_version: 13.0.3
 # vars for apt install method
 # prosody_version is only used from when prosody_install_from_apt is true, and uses wildcard syntax
 prosody_version: 13.*
