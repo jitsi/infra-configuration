@@ -53,6 +53,27 @@
         executable: /bin/bash
       changed_when: jitsi_meet_version_shell.rc != 0
 
+    - name: Register installed Prosody version
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -s prosody 2>/dev/null | grep Version | awk '{print $2}' | cut -d'-' -f1 || \
+        dpkg -s prosody-trunk 2>/dev/null | grep Version | awk '{print $2}' | cut -d'-' -f1
+      register: prosody_version_shell
+      args:
+        executable: /bin/bash
+      changed_when: prosody_version_shell.rc != 0
+
+    - name: Write installed versions to JSON file for Packer post-processor
+      ansible.builtin.copy:
+        dest: /tmp/installed-versions.json
+        content: |
+          {
+            "jicofo_version": "{{ jicofo_version_shell.stdout }}",
+            "jitsi_meet_version": "{{ jitsi_meet_version_shell.stdout }}",
+            "prosody_version": "{{ prosody_version_shell.stdout }}"
+          }
+        mode: '0644'
+
   roles:
     - { role: "common", tags: "common" }
     - { role: "boot-postinstall", tags: "boot-postinstall" }
