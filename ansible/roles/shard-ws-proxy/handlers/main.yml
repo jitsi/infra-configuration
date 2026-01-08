@@ -1,0 +1,6 @@
+---
+- name: Restart nginx for shard-ws-proxy
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: true

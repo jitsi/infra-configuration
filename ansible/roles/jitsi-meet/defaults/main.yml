@@ -166,6 +166,7 @@ jitsi_meet_enable_prejoin_page: false
 jitsi_meet_enable_room_api: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
+jitsi_meet_enable_shard_ws_proxy: false
 jitsi_meet_enable_simulcast: true
 jitsi_meet_enable_simulcast_av1: false
 jitsi_meet_enable_simulcast_vp9: false

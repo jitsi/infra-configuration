@@ -1,10 +1,10 @@
 ---
-- name: Install colibri proxy nginx site config
+- name: Install shard-ws-proxy nginx site config
   ansible.builtin.template:
     src: nginx.site.j2
-    dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
+    dest: "/etc/nginx/sites-available/shard-ws-proxy"
     mode: "0644"
-  notify: Restart nginx for colibri proxy
+  notify: Restart nginx for shard-ws-proxy
 
 - name: Remove nginx default site
   ansible.builtin.file:
@@ -16,12 +16,12 @@
     path: /etc/nginx/conf.d/default.conf
     state: absent
 
-- name: Enable colibri proxy nginx site config
+- name: Enable shard-ws-proxy nginx site config
   ansible.builtin.file:
-    src: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
-    dest: "/etc/nginx/sites-enabled/{{ jvb_colibri_proxy_domain_name }}"
+    src: "/etc/nginx/sites-available/shard-ws-proxy"
+    dest: "/etc/nginx/sites-enabled/shard-ws-proxy"
     state: link
-  notify: Restart nginx for colibri proxy
+  notify: Restart nginx for shard-ws-proxy
 
 - name: Start nginx service
   ansible.builtin.service:
