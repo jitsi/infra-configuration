@@ -1,0 +1,22 @@
+[Unit]
+Description=Ops Git Mirror Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+SyslogIdentifier=docker-ops-git
+ExecStartPre=-/usr/bin/docker rm -f {{ ops_git_container_name }}
+ExecStartPre=/usr/bin/docker create \
+  --name {{ ops_git_container_name }} \
+  --restart={{ ops_git_restart_policy }} \
+  -p {{ ops_git_ssh_port }}:22 \
+  --env S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+  --volume {{ ops_git_data_dir }}:/home/git:rw \
+  {{ ops_git_image }}:{{ ops_git_version }}
+ExecStart=/usr/bin/docker start -a {{ ops_git_container_name }}
+ExecStop=-/usr/bin/docker stop --time=10 {{ ops_git_container_name }}
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

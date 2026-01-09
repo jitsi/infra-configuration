@@ -1,0 +1,9 @@
+---
+- name: Restart ops-git service # noqa command-instead-of-module
+  ansible.builtin.shell: |
+    systemctl stop docker-ops-git || true
+    docker rm -f {{ ops_git_container_name }} || true
+    systemctl daemon-reload
+    systemctl start docker-ops-git
+  args:
+    executable: /bin/bash
