@@ -263,6 +263,7 @@ VirtualHost 'v{{ item }}.meet.jitsi'
       "short_lived_token";
 {% endif %}
       "features_identity";
+      "muc_occupant_session";
     }
     main_muc = 'conference.v{{ item }}.meet.jitsi';
     shard_name = "{{ shard_name }}"
@@ -331,6 +332,7 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_meet_webhooks_enabled %}
         "muc_visitors_webhooks";
 {% endif %}
+        "muc_occupant_session";
     }
     muc_room_default_presence_broadcast = {
         visitor = false;
