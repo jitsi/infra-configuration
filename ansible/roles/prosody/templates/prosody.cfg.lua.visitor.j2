@@ -215,7 +215,7 @@ muc_limit_messages_check_token = {{ prosody_limit_messages_check_token | to_json
 {% endif %}
 
 token_verification_allowlist = {
-    'recorder.{{ prosody_domain_name }}'';
+    'recorder.{{ prosody_domain_name }}';
 {% if secrets_jigasi_conference_A %}
     'jigasia.{{ prosody_domain_name }}';
 {% endif %}
