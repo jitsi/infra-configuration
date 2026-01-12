@@ -20,7 +20,6 @@ jitsi_meet_api_billing_counter: false
 jitsi_meet_api_billing_counter_path: '/billing-counter/v1/connection'
 jitsi_meet_api_branding_data_url: false
 jitsi_meet_api_branding_data_url_path: /branding/public/v1/conferences
-jitsi_meet_api_conference_event_url: "{{ jitsi_meet_api_url }}/conferenceEvent"
 jitsi_meet_api_conference_invite_callflows_url: false
 jitsi_meet_api_conference_invite_url: false
 jitsi_meet_api_conference_invite_url_path: /v1/meeting/invite
@@ -144,7 +143,6 @@ jitsi_meet_enable_conference_request_http: false
 jitsi_meet_enable_display_name_in_stats: false
 jitsi_meet_enable_dtx: false
 jitsi_meet_enable_email_in_stats: false
-jitsi_meet_enable_event_proxy: true
 jitsi_meet_enable_face_landmarks_enable_centering: false
 jitsi_meet_enable_face_landmarks_detect_expressions: false
 jitsi_meet_enable_face_landmarks_display_expressions: false
