@@ -769,7 +769,7 @@ Component "speakerstats.{{ prosody_domain_name }}" "speakerstats_component"
     muc_component = "conference.{{ prosody_domain_name }}"
     modules_enabled = {
 {% if prosody_enable_muc_events %}
-      "muc_events";
+      "muc_speaker_stats_history";
 {% endif %}
     }
 {% endif %}
