@@ -123,7 +123,7 @@ muc_prosody_jaas_actuator_url = "{{ prosody_jaas_actuator_url }}";
 muc_prosody_egress_url = "{{ prosody_egress_url }}";
 muc_prosody_egress_fallback_url = "{{ prosody_egress_fallback_url }}";
 {% endif %}
-{% if prosody_enable_muc_events or prosody_enable_call_flow %}
+{% if prosody_meet_webhooks_enabled or prosody_meet_permissions_vpaas_enabled %}
 asap_key_path = "{{ prosody_asap_key_path }}"
 asap_issuer = "{{ prosody_asap_issuer }}";
 asap_audience = "{{ prosody_asap_audience }}";
@@ -325,9 +325,6 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% endif %}
 {% if prosody_meet_permissions_vpaas_enabled %}
         "muc_permissions_vpaas";
-{% endif %}
-{% if prosody_enable_muc_events %}
-        "muc_events";
 {% endif %}
 {% if prosody_meet_webhooks_enabled %}
         "muc_visitors_webhooks";

@@ -97,9 +97,6 @@ modules_enabled = {
 {% if prosody_enable_log_slow_events %}
       "log_slow_events";
 {% endif %}
-{% if prosody_enable_muc_events %}
-      "muc_events";
-{% endif %}
 {% if prosody_enable_end_meeting %}
       "muc_end_meeting";
 {% endif %}
@@ -177,16 +174,11 @@ short_lived_token = {
 };
 {% endif %}
 
-{% if prosody_enable_muc_events or prosody_enable_call_flow %}
+{% if prosody_meet_chat_history_url or prosody_enable_password_preset or prosody_meet_permissions_vpaas_enabled or prosody_meet_speaker_stats_url or prosody_meet_webhooks_enabled %}
 asap_key_path = "{{ prosody_asap_key_path }}"
 asap_key_id = "{{ asap_key['id'] }}";
 asap_issuer = "{{ prosody_asap_issuer }}";
 asap_audience = "{{ prosody_asap_audience }}";
-{% endif %}
-{% if prosody_enable_call_flow %}
-invite_api = "{{ prosody_invite_api }}"
-cancel_api = "{{ prosody_cancel_api }}"
-missed_api = "{{ prosody_missed_api }}"
 {% endif %}
 
 {% if prosody_meet_chat_history_url %}
@@ -486,9 +478,7 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_system_chat_message %}
       "system_chat_message";
 {% endif %}
-{% if prosody_enable_muc_events %}
       "jibri_session";
-{% endif %}
 {% if prosody_enable_shortlived_tokens %}
       "short_lived_token";
 {% endif %}
@@ -556,11 +546,9 @@ VirtualHost "{{ prosody_guest_domain_name }}"
 VirtualHost "{{ prosody_auth_domain_name }}"
     modules_enabled = {
     {% if prosody_mod_limits_rate %}
-      "limits_exception";
+        "limits_exception";
     {% endif %}
-    {% if prosody_enable_muc_events %}
-          "jibri_session";
-    {% endif %}
+        "jibri_session";
         "smacks";
     }
     authentication = "internal_hashed"
@@ -611,14 +599,11 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_muc_domain_mapper %}
         "muc_domain_mapper";
 {% endif %}
-{% if prosody_enable_muc_events %}
-        "muc_events";
+{% if prosody_meet_chat_history_url %}
+        "muc_chat_history";
 {% endif %}
 {% if prosody_enable_muc_rate_limit %}
         "muc_rate_limit";
-{% endif %}
-{% if prosody_enable_call_flow %}
-        "muc_call";
 {% endif %}
 {% if muc_meeting_id_exists.stat.exists %}
         "muc_meeting_id";
@@ -762,7 +747,7 @@ Component "avmoderation.{{ prosody_domain_name }}" "av_moderation_component"
 Component "speakerstats.{{ prosody_domain_name }}" "speakerstats_component"
     muc_component = "conference.{{ prosody_domain_name }}"
     modules_enabled = {
-{% if prosody_enable_muc_events %}
+{% if prosody_meet_speaker_stats_url %}
       "muc_speaker_stats_history";
 {% endif %}
     }
