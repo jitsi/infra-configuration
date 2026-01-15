@@ -21,6 +21,20 @@
     - name: Pause for 60
       ansible.builtin.pause:
         seconds: 60
+
+    - name: Disable apt-daily systemd timers and services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: false
+        masked: true
+        state: stopped
+      loop:
+        - apt-daily.timer
+        - apt-daily-upgrade.timer
+        - apt-daily.service
+        - apt-daily-upgrade.service
+      ignore_errors: true
+
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true

@@ -94,6 +94,20 @@
     - name: Pause for 10 seconds
       ansible.builtin.pause:
         seconds: 10
+
+    - name: Disable apt-daily systemd timers and services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: false
+        masked: true
+        state: stopped
+      loop:
+        - apt-daily.timer
+        - apt-daily-upgrade.timer
+        - apt-daily.service
+        - apt-daily-upgrade.service
+      ignore_errors: true
+
     - name: Install aptitude # noqa package-latest
       ansible.builtin.apt:
         name: aptitude
