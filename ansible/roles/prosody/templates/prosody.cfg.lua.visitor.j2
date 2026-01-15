@@ -218,9 +218,11 @@ token_verification_allowlist = {
     'recorder.{{ prosody_domain_name }}';
 {% if secrets_jigasi_conference_A %}
     'jigasia.{{ prosody_domain_name }}';
+    'jigasia.v{{ item }}.meet.jitsi';
 {% endif %}
 {% if secrets_jigasi_conference_B %}
     'jigasib.{{ prosody_domain_name }}';
+    'jigasib.v{{ item }}.meet.jitsi';
 {% endif %}
 }
 
