@@ -74,6 +74,19 @@
         state: absent
         update_cache: false
 
+    - name: Disable apt-daily systemd timers and services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: false
+        masked: true
+        state: stopped
+      loop:
+        - apt-daily.timer
+        - apt-daily-upgrade.timer
+        - apt-daily.service
+        - apt-daily-upgrade.service
+      ignore_errors: true
+
     - name: Show JVB use public variable
       ansible.builtin.debug:
         var: jvb_use_public_ip
