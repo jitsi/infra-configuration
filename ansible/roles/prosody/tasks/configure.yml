@@ -449,7 +449,7 @@
   register: stat_mod_roster_command
 
 - name: Add client_proxy to jicofo's roster
-  ansible.builtin.command: prosodyctl mod_roster_command subscribe "focus.{{ prosody_domain_name }}" "focus@auth.{{ prosody_domain_name }}"
+  ansible.builtin.command: prosodyctl shell roster subscribe_both "focus@auth.{{ prosody_domain_name }}" "focus.{{ prosody_domain_name }}"
   args:
     creates: "/var/lib/prosody/auth%2e{{ prosody_domain_name | regex_replace('\\.', '%2e') | regex_replace('-', '%2d') }}/roster/focus.dat"
   when:
