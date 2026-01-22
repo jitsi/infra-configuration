@@ -479,6 +479,11 @@
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
   when: prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
 
+- name: Reload client proxy module for focus roster
+  ansible.builtin.command: prosodyctl shell module reload client_proxy
+  when:
+    - prosody_enable_client_proxy
+
 - name: Start and enable prosody service
   ansible.builtin.systemd:
     name: prosody
