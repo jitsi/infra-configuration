@@ -356,7 +356,7 @@ transforms:
         structured =
             parse_regex(.message, r'^(?P<datetime>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+\d{2}:\d{2}) \((?P<level>\w+)\)\s+ : (?P<message>[\S\s]*)$') ??
             {}
-        . = merge!(., structured)
+        . = merge(., structured)
         .timestamp = .time
   # e.g., 2025-09-29_14:34:30.Z [3834387] hap-map: starting update-haproxy-map.sh
   haproxy_template_to_structure:
@@ -366,5 +366,5 @@ transforms:
         structured =
             parse_regex(.message, r'^(?P<datetime>\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}\.Z) \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
             {}
-        . = merge!(., structured)
+        . = merge(., structured)
         .timestamp = .time
