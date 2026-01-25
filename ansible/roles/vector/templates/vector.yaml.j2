@@ -87,10 +87,6 @@ sources:
         include:
             - "/var/log/vault/audit.log"
             - "/var/log/vault/audit.log.1"
-    haproxy:
-        type: "file"
-        include:
-            - "/var/log/haproxy.log"
     haproxy_template:
         type: "file"
         include:
@@ -99,7 +95,7 @@ sinks:
   loki_syslog:
     remove_timestamp: false
     type: "loki"
-    inputs: ["syslog","boot"]
+    inputs: ["syslog_to_structure","boot_to_structure"]
     endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
@@ -110,7 +106,7 @@ sinks:
         job: "syslog"
         task: "{{ '{{' }} .appname }}"
         group: "syslog"
-        namespace: "system"
+        namespace: "{{ '{{' }} .namespace }}"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
         level: "{{ '{{' }} .severity }}"
@@ -239,22 +235,6 @@ sinks:
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
         level: "{{ '{{' }} .level }}"
-  loki_haproxy:
-    remove_timestamp: false
-    type: "loki"
-    inputs: ["haproxy_to_structure"]
-    endpoint: "{{ vector_loki_url }}"
-    encoding:
-        codec: "json"
-    healthcheck:
-        enabled: false
-    labels:
-        alloc: "{{ vector_cloud_instance_id }}"
-        job: "haproxy-{{ vector_cloud_region }}"
-        task: "haproxy"
-        group: "haproxy"
-        namespace: "default"
-        node: "{{ ansible_hostname }}"
   loki_haproxy_template:
     remove_timestamp: false
     type: "loki"
@@ -273,6 +253,22 @@ sinks:
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
 transforms:
+  boot_to_structure:
+    type: "remap"
+    inputs: ["boot"]
+    source: |
+        .appname = "boot"
+        .severity = "info"
+        .namespace = "system"
+  syslog_to_structure:
+    type: "remap"
+    inputs: ["syslog"]
+    source: |
+        if .appname == "haproxy" {
+            .namespace = "default"
+        } else {
+            .namespace = "system"
+        }
   vault_audit_to_structure:
     type: "remap"
     inputs: ["vault_audit"]
@@ -280,7 +276,7 @@ transforms:
         structured =
             parse_json(.message) ??
             {}
-        . = merge!(., structured)
+        . = merge(., structured)
         .timestamp = .time
   jvb_to_structure:
     type: "remap"
@@ -348,16 +344,6 @@ transforms:
             parse_regex(.message, r'^(?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
-  # e.g., 2025-09-23T21:48:43.302273+00:00 meet-jit-si-haproxy-12836 haproxy[2716276]: [NOTICE]   (2716276) : path to executable is /usr/sbin/haproxy
-  haproxy_to_structure:
-    type: "remap"
-    inputs: ["haproxy"]
-    source: |
-        structured =
-            parse_regex(.message, r'^(?P<datetime>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+\d{2}:\d{2}) \((?P<level>\w+)\)\s+ : (?P<message>[\S\s]*)$') ??
-            {}
-        . = merge!(., structured)
-        .timestamp = .time
   # e.g., 2025-09-29_14:34:30.Z [3834387] hap-map: starting update-haproxy-map.sh
   haproxy_template_to_structure:
     type: "remap"
@@ -366,5 +352,5 @@ transforms:
         structured =
             parse_regex(.message, r'^(?P<datetime>\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}\.Z) \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
             {}
-        . = merge!(., structured)
+        . = merge(., structured)
         .timestamp = .time
