@@ -198,7 +198,7 @@
     echo "{{ lookup('file', 'util_jid_idna.patch') }}" | patch --follow-symlinks -p1 -d /usr/share/lua/5.4/prosody
   args:
     executable: /bin/bash
-  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) == 3
+  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) >= 3 and (prosody_subversion | int) < 5
 
 - name: Copy systemd file for nightly if it does not exist
   ansible.builtin.copy:
