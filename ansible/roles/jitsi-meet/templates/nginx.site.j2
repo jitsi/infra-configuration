@@ -594,6 +594,14 @@ server {
     }
 {% endif %}
 
+    # handle /v1/_ws/ traffic when proxy isn't engaged but URL was rewritten
+    location ~ ^/v1/_ws/[^/]+/xmpp-websocket$ {
+        if ($arg_tenant) {
+            rewrite ^ /$arg_tenant/xmpp-websocket last;
+        }
+        rewrite ^ /xmpp-websocket last;
+    }
+
     # xmpp websockets
     location = /xmpp-websocket {
         proxy_pass http://$prosody_node/xmpp-websocket?prefix=$prefix&$args;

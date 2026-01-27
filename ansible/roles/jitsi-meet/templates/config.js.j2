@@ -105,7 +105,11 @@ var config = {
 {% if jitsi_meet_enable_multi_domain %}
     bosh: '{{ jitsi_meet_bosh_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/<!--# echo var="subdir" default="" -->{{ jitsi_meet_bosh_path }}',
 {% if jitsi_meet_enable_xmpp_websockets %}
+{% if jitsi_meet_enable_shard_ws_proxy %}
+    websocket: `{{ jitsi_meet_ws_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/v1/_ws/{{ shard_name }}/{{ jitsi_meet_ws_path }}?tenant=${subdomain}`,
+{% else %}
     websocket: '{{ jitsi_meet_ws_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->{{ jitsi_meet_ws_path }}',
+{% endif %}
     websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/<!--# echo var="subdir" default="" -->_unlock',
 {% endif %}
 {% if jitsi_meet_enable_conference_request_http %}

@@ -206,6 +206,7 @@
         when: haproxy_boot_flag }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
+    - { role: "shard-ws-proxy", "tags": "shard-ws-proxy", when: shard_ws_proxy_enabled}
     - { role: "consul-template", tags: "consul-template" }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
