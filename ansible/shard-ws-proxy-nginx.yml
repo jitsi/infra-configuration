@@ -14,4 +14,5 @@
     shard_role: haproxy
 
   roles:
+    - { role: "iptables-haproxy", "tags": "iptables"}
     - { role: "shard-ws-proxy", "tags": "shard-ws-proxy"}
