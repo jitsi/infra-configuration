@@ -179,6 +179,7 @@ var config = {
     {% endif %}
     },
 {% endif %}
+    enableDisplayNameInStats: {% if jitsi_meet_enable_display_name_in_stats %}true{% else %}false{% endif %},
     disableAudioLevels: false,
     audioQuality: {
         stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
