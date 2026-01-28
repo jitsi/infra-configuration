@@ -54,8 +54,6 @@ prosody_dpkg_path: "/tmp/{{ prosody_package_filename }}"
 prosody_dpkg_url: "https://packages.prosody.im/debian/pool/main/p/{{ prosody_package_name }}/{{ prosody_package_filename }}"
 prosody_egress_url: http://127.0.0.1:8062/v1/events
 prosody_egress_fallback_url: https://api-vo-pilot.cloudflare.jitsi.net/vpaas-event-acceptor/v1/forward
-# flag to control whether to trigger call flow events
-prosody_enable_call_flow: false
 # Use mod_client_proxy instead of external component for "focus.".
 # Has to be in sync with the jicofo version: "false" for <= 700, "true" for > 700 (or based on the "Remove FocusComponent" commit for hotfixes.)
 prosody_enable_client_proxy: true
@@ -82,8 +80,6 @@ prosody_enable_mod_turncredentials: false
 prosody_enable_mod_measure_message_count: false
 prosody_enable_muc_census: true
 prosody_enable_muc_domain_mapper: false
-# call flow configuration
-prosody_enable_muc_events: false
 prosody_enable_muc_password_whitelist: true
 prosody_enable_muc_rate_limit: true
 prosody_enable_muc_size: false

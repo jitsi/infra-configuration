@@ -204,22 +204,6 @@ server {
     return 301 https://$host$request_uri;
 }
 {% endif %}
-{% if jitsi_meet_enable_event_proxy %}
-server {
-    listen *:9880 {% if jitsi_meet_default_server | default(true) %} default_server{% endif -%};
-    resolver 8.8.4.4 8.8.8.8 valid=300s ipv6=off;
-    resolver_timeout 10s;
-
-    location = / {
-        access_log off;
-        proxy_pass {{ jitsi_meet_api_conference_event_url }}$is_args$args;
-        proxy_ssl_server_name on;
-
-        proxy_buffering off;
-        tcp_nodelay on;
-    }
-}
-{% endif %}
 
 upstream jaas_cluster {
     zone upstreams 64K;
