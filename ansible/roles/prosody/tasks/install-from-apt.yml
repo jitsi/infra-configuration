@@ -6,7 +6,7 @@
 
 - name: Configure prosody apt repo
   ansible.builtin.apt_repository:
-    repo: "deb http://packages.prosody.im/debian {{ ansible_distribution_release }} main"
+    repo: "deb https://packages.prosody.im/debian {{ ansible_distribution_release }} main"
     state: present
     update_cache: true
 
