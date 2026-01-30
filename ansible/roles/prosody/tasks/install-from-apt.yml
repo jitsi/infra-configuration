@@ -19,7 +19,7 @@
 
 - name: Install prosody package from apt
   ansible.builtin.apt:
-    name: "{{ prosody_package_name }}={{ prosody_version }}"
+    name: "{{ prosody_package_name }}={{ prosody_apt_version }}"
   notify:
     - Remove patches
     - Reload prosody
