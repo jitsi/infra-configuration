@@ -8,3 +8,4 @@ vector_install_flag: true
 vector_loki_url: "https://{{ hcv_environment}}-{{oracle_region }}-loki.{{ top_level_domain }}"
 vector_shard_name: "{{ shard_name }}"
 vector_shard_role: "{{ shard_role | default('vector') }}"
+vector_release_number: "{{ jitsi_release_number | default('default') }}"
