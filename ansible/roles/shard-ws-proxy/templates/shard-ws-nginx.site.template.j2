@@ -1,0 +1,46 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+map $arg_tenant $ws_path {
+    default   xmpp-websocket;
+    ~.+       $arg_tenant/xmpp-websocket;
+}
+
+# upstream definitions
+{% raw -%}
+{{ range $dcidx, $dc := datacenters -}}
+{{ $service := print "signal@" $dc -}}
+{{ range $index, $shard := service $service -}}
+upstream 'shard-{{ $shard.ServiceMeta.shard }}' {
+    zone upstreams 64K;
+    server {{ $shard.Address }}:{{ $shard.ServiceMeta.http_backend_port }};
+    keepalive 2;
+}
+{{ end -}}
+{{ end -}}
+{% endraw -%}
+# end upstream definitions
+
+server {
+    proxy_connect_timeout       90s;
+    proxy_send_timeout          90s;
+    proxy_read_timeout          90s;
+    send_timeout                90s;
+
+    listen {{ shard_ws_proxy_nginx_port }} default_server;
+
+    root /usr/share/nginx/html;
+
+    location ~ ^/v1/_ws/(?<shard_name>.+-s\d+)/xmpp-websocket$ {
+        proxy_pass https://shard-$shard_name/$ws_path$is_args$args;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Proxy-Region {{ shard_ws_proxy_region }};
+        proxy_set_header X-Proxy-Host {{ shard_ws_proxy_host }};
+        tcp_nodelay on;
+    }
+}

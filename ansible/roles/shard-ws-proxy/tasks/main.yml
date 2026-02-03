@@ -1,10 +1,10 @@
 ---
-- name: Install shard-ws-proxy nginx site config
-  ansible.builtin.template:
-    src: nginx.site.j2
-    dest: "/etc/nginx/sites-available/shard-ws-proxy"
+- name: Install placeholder shard-ws-proxy nginx site config
+  ansible.builtin.copy:
+    content: "# Placeholder - consul-template will populate this file\n"
+    dest: "/etc/nginx/sites-available/shard_ws.conf"
     mode: "0644"
-  notify: Restart nginx for shard-ws-proxy
+    force: false
 
 - name: Remove nginx default site
   ansible.builtin.file:
@@ -18,8 +18,8 @@
 
 - name: Enable shard-ws-proxy nginx site config
   ansible.builtin.file:
-    src: "/etc/nginx/sites-available/shard-ws-proxy"
-    dest: "/etc/nginx/sites-enabled/shard-ws-proxy"
+    src: "/etc/nginx/sites-available/shard_ws.conf"
+    dest: "/etc/nginx/sites-enabled/shard_ws.conf"
     state: link
   notify: Restart nginx for shard-ws-proxy
 

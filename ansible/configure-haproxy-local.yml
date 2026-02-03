@@ -14,6 +14,12 @@
       CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
       ENVIRONMENT: "{{ hcv_environment }}"
       HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
+    consul_template_templates_shard_ws_proxy:
+      - name: "shard-ws-nginx.site.template"
+        dest: "/etc/nginx/sites-available/shard_ws.conf"
+        cmd: "/usr/sbin/service nginx reload"
+        perms: 0644
+        backup: false
     consul_template_templates_colibri_proxy:
       - name: "colibri-nginx.site.template"
         dest: "/etc/nginx/sites-available/{{ jvb_colibri_proxy_domain_name }}"
@@ -61,7 +67,7 @@
         cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_unban_prefix_map_path }}"
         perms: 0640
         backup: false
-    consul_template_templates: "{{ consul_template_templates_default +
+    consul_template_templates: "{{ consul_template_templates_shard_ws_proxy + consul_template_templates_default +
       (consul_template_templates_colibri_proxy if jvb_colibri_proxy_enabled else []) }}"
 
     consul_template_template_files:
@@ -74,10 +80,13 @@
       - src: roles/hcv-haproxy-configure/files/unban-prefix.map.template
     consul_template_template_templates_colibri_proxy:
       - src: roles/jvb-colibri-proxy/templates/colibri-nginx.site.template.j2
+    consul_template_template_templates_shard_ws_proxy:
+      - src: roles/shard-ws-proxy/templates/shard-ws-nginx.site.template.j2
     consul_template_template_templates_default:
       - src: roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2
     consul_template_template_templates: "{{ consul_template_template_templates_default +
-      (consul_template_template_templates_colibri_proxy if jvb_colibri_proxy_enabled else []) }}"
+      (consul_template_template_templates_colibri_proxy if jvb_colibri_proxy_enabled else []) +
+      consul_template_template_templates_shard_ws_proxy }}"
     public_ip: "{{ ansible_ec2_public_ipv4 if cloud_provider == 'aws' else cloud_public_ip }}"
     private_ip: "{{ ansible_default_ipv4.address }}"
     host_ip: "{{ public_ip if cloud_provider == 'aws' else private_ip }}"
@@ -206,7 +215,7 @@
         when: haproxy_boot_flag }
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
-    - { role: "shard-ws-proxy", "tags": "shard-ws-proxy", when: shard_ws_proxy_enabled}
+    - { role: "shard-ws-proxy", "tags": "shard-ws-proxy" }
     - { role: "consul-template", tags: "consul-template" }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
