@@ -36,6 +36,19 @@ http {
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_origin" $request_time';
 
+    log_format json_combined escape=json '{'
+        '"time_local":"$time_local",'
+        '"remote_addr":"$remote_addr",'
+        '"request":"$request",'
+        '"status":$status,'
+        '"body_bytes_sent":$body_bytes_sent,'
+        '"http_referer":"$http_referer",'
+        '"http_user_agent":"$http_user_agent",'
+        '"request_time":$request_time,'
+        '"upstream_response_time":"$upstream_response_time",'
+        '"upstream_addr":"$upstream_addr"'
+    '}';
+
     access_log  /var/log/nginx/access.log  main;
     error_log /var/log/nginx/error.log;
 

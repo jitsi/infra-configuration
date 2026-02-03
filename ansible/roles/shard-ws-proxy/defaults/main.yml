@@ -6,3 +6,5 @@ shard_ws_proxy_nginx_port: "{{ shard_ws_proxy_port | default(8089) }}"
 shard_ws_proxy_signal_dest_port: 443
 shard_ws_proxy_region: "{{ oracle_region | default('unknown') }}"
 shard_ws_proxy_host: "{{ ansible_hostname.split('.')[0] }}"
+shard_ws_proxy_access_log: /var/log/nginx/access.log
+shard_ws_proxy_error_log: /var/log/nginx/error.log

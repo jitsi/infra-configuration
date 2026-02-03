@@ -31,6 +31,9 @@ server {
 
     listen {{ shard_ws_proxy_nginx_port }} default_server;
 
+    access_log {{ shard_ws_proxy_access_log }} json_combined;
+    error_log {{ shard_ws_proxy_error_log }};
+
     root /usr/share/nginx/html;
 
     location ~ ^/v1/_ws/(?<shard_name>.+-s\d+)/xmpp-websocket$ {
