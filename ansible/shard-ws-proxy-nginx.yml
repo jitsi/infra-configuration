@@ -1,3 +1,4 @@
+---
 - name: Main
   hosts: all
   gather_facts: true
@@ -7,12 +8,28 @@
   gather_timeout: 180
   vars_files:
     - secrets/consul.yml
+    - roles/shard-ws-proxy/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
     shard_role: haproxy
+    consul_template_templates:
+      - name: "shard-ws-nginx.site.template"
+        dest: "/etc/nginx/sites-available/shard_ws.conf"
+        cmd: "/usr/sbin/service nginx reload"
+        perms: 0644
+        backup: false
+    consul_template_template_templates:
+      - src: roles/shard-ws-proxy/templates/shard-ws-nginx.site.template.j2
+
+  pre_tasks:
+    - name: Remove deprecated shard-ws-proxy nginx site config
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/shard-ws-proxy
+        state: absent
 
   roles:
     - { role: "iptables-haproxy", "tags": "iptables"}
     - { role: "shard-ws-proxy", "tags": "shard-ws-proxy"}
+    - { role: "consul-template", tags: "consul-template" }
