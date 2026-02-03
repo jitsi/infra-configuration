@@ -401,7 +401,7 @@ transforms:
             parse_json(.message) ??
             parse_regex(.message, r'^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<request>[^"]*)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" "(?P<http_origin>[^"]*)" (?P<request_time>\S+)$') ??
             {}
-        . = merge(., structured)
+        . = merge!(., structured)
         status_int = to_int(.status) ?? 0
         if status_int >= 500 {
             .level = "error"
