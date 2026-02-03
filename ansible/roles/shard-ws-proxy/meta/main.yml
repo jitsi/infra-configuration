@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: shard_ws_proxy
+  author: Aaron van Meerten
+  description: install and configure nginx to proxy prosody websockets
+  license: Apache License Version 2.0
+  min_ansible_version: '6.6.0'
+  platforms:
+    - name: Ubuntu
+      releases:
+        - focal
+        - jammy
+dependencies:
+  - { role: nginx, nginx_start_service: false, when: shard_ws_proxy_install_flag}
