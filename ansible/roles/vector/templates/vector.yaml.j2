@@ -91,6 +91,24 @@ sources:
         type: "file"
         include:
             - "/var/log/consul-template/haproxy-template.log"
+{% if vector_nginx_enabled | default(false) %}
+    nginx_access:
+        type: "file"
+        include:
+{% for path in vector_nginx_access_log_paths %}
+            - "{{ path }}"
+{% endfor %}
+        fingerprint:
+            strategy: device_and_inode
+    nginx_error:
+        type: "file"
+        include:
+{% for path in vector_nginx_error_log_paths %}
+            - "{{ path }}"
+{% endfor %}
+        fingerprint:
+            strategy: device_and_inode
+{% endif %}
 sinks:
   loki_syslog:
     remove_timestamp: false
@@ -252,6 +270,26 @@ sinks:
         namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
+{% if vector_nginx_enabled | default(false) %}
+  loki_nginx:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["nginx_access_to_structure", "nginx_error_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: false
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "nginx-{{ vector_nginx_service_name }}"
+        task: "nginx"
+        group: "nginx"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
+        level: "{{ '{{' }} .level }}"
+{% endif %}
 transforms:
   boot_to_structure:
     type: "remap"
@@ -354,3 +392,38 @@ transforms:
             {}
         . = merge(., structured)
         .timestamp = .time
+{% if vector_nginx_enabled | default(false) %}
+  nginx_access_to_structure:
+    type: "remap"
+    inputs: ["nginx_access"]
+    source: |
+        structured =
+            parse_json(.message) ??
+            parse_regex(.message, r'^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<request>[^"]*)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" "(?P<http_origin>[^"]*)" (?P<request_time>\S+)$') ??
+            {}
+        . = merge!(., structured)
+        status_int = to_int(.status) ?? 0
+        if status_int >= 500 {
+            .level = "error"
+        } else if status_int >= 400 {
+            .level = "warn"
+        } else {
+            .level = "info"
+        }
+  # e.g., 2024/01/15 10:30:45 [error] 1234#1234: *5678 connect() failed (111: Connection refused) while connecting to upstream
+  nginx_error_to_structure:
+    type: "remap"
+    inputs: ["nginx_error"]
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<pid>\d+)#(?P<tid>\d+): (?:\*(?P<connection>\d+) )?(?P<message>.*)$') ??
+            {}
+        . = merge(., structured)
+        if .level == "emerg" || .level == "alert" || .level == "crit" || .level == "error" {
+            .level = "error"
+        } else if .level == "warn" {
+            .level = "warn"
+        } else {
+            .level = "info"
+        }
+{% endif %}

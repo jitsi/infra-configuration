@@ -20,6 +20,9 @@ server {
     resolver 127.0.0.1:8600 valid=10s;
     resolver_timeout 5s;
 
+    access_log {{ shard_ws_proxy_access_log }} json_combined;
+    error_log {{ shard_ws_proxy_error_log }};
+
     # set the root
     root /usr/share/nginx/html;
 
