@@ -1,0 +1,12 @@
+---
+- name: Ensure /root/.docker/ directory exists.
+  ansible.builtin.file:
+    path: "{{ docker_auth_file_path | dirname }}"
+    state: directory
+    mode: 0700
+
+- name: Configure Docker auth credentials.
+  ansible.builtin.copy:
+    content: "{{ docker_auth_file | to_nice_json }}"
+    dest: "{{ docker_auth_file_path }}"
+    mode: 0600

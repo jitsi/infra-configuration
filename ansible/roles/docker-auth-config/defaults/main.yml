@@ -1,0 +1,5 @@
+---
+docker_auth_file_path: /root/.docker/config.json
+docker_auth_file:
+  credHelpers:
+    "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
