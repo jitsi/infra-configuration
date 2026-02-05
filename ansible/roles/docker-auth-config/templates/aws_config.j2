@@ -1,0 +1,6 @@
+# Managed by Ansible - do not edit manually
+{% for registry, creds in docker_ecr_credentials.items() %}
+[profile {{ registry }}]
+region = {{ creds.region }}
+
+{% endfor %}

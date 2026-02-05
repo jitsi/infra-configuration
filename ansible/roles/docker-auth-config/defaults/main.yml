@@ -1,0 +1,11 @@
+---
+docker_auth_file_path: /root/.docker/config.json
+docker_auth_file:
+  credHelpers:
+    "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
+
+# Multi-registry ECR support
+docker_ecr_credential_helper_path: /usr/local/bin/docker-credential-ecr-auto
+docker_aws_config_path: /root/.aws/config
+docker_aws_credentials_path: /root/.aws/credentials
+docker_ecr_credentials: {}

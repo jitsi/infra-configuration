@@ -1,0 +1,8 @@
+{
+  "credHelpers": {
+{% for registry in docker_ecr_credentials.keys() %}
+    "{{ registry }}": "ecr-auto"{% if not loop.last %},{% endif %}
+
+{% endfor %}
+  }
+}
