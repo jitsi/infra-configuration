@@ -4,6 +4,8 @@
   gather_facts: false
   become: true
   become_user: root
+  vars:
+    docker_ecr_credentials: "{{ nomad_docker_ecr_credentials }}"
   vars_files:
     - secrets/nomad.yml
   roles:
