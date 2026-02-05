@@ -1,12 +1,50 @@
 ---
+# Multi-registry ECR support (when docker_ecr_credentials is defined)
+- name: Install docker-credential-ecr-auto script.
+  ansible.builtin.copy:
+    src: docker-credential-ecr-auto
+    dest: "{{ docker_ecr_credential_helper_path }}"
+    mode: "0755"
+  when: docker_ecr_credentials | length > 0
+
+- name: Ensure /root/.aws/ directory exists.
+  ansible.builtin.file:
+    path: "{{ docker_aws_config_path | dirname }}"
+    state: directory
+    mode: "0700"
+  when: docker_ecr_credentials | length > 0
+
+- name: Deploy AWS config file.
+  ansible.builtin.template:
+    src: aws_config.j2
+    dest: "{{ docker_aws_config_path }}"
+    mode: "0600"
+  when: docker_ecr_credentials | length > 0
+
+- name: Deploy AWS credentials file.
+  ansible.builtin.template:
+    src: aws_credentials.j2
+    dest: "{{ docker_aws_credentials_path }}"
+    mode: "0600"
+  when: docker_ecr_credentials | length > 0
+
 - name: Ensure /root/.docker/ directory exists.
   ansible.builtin.file:
     path: "{{ docker_auth_file_path | dirname }}"
     state: directory
-    mode: 0700
+    mode: "0700"
 
-- name: Configure Docker auth credentials.
+- name: Deploy Docker config from template.
+  ansible.builtin.template:
+    src: docker_config.json.j2
+    dest: "{{ docker_auth_file_path }}"
+    mode: "0600"
+  when: docker_ecr_credentials | length > 0
+
+# Legacy support (when docker_ecr_credentials is empty)
+- name: Configure Docker auth credentials (legacy).
   ansible.builtin.copy:
     content: "{{ docker_auth_file | to_nice_json }}"
     dest: "{{ docker_auth_file_path }}"
-    mode: 0600
+    mode: "0600"
+  when: docker_ecr_credentials | length == 0
