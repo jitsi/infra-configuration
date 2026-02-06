@@ -9,12 +9,14 @@
     - secrets/consul.yml
     - secrets/ssh-users.yml
     - secrets/ssl-certificates.yml
+    - secrets/github-deploy.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   roles:
     - { role: "iptables-jenkins", tags: "iptables"}
     - { role: "jenkins", tags: "jenkins"}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
+    - { role: "ops-git", tags: "ops-git"}
     - role: "wavefront"
       tags: "telegraf"
       wavefront_proxy_address: "{{ regional_wavefront_proxy }}"

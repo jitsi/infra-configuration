@@ -1,0 +1,12 @@
+---
+ops_git_image: "aaronkvanmeerten/ops-git"
+ops_git_version: "0.0.6"
+ops_git_container_name: "ops-git"
+ops_git_ssh_port: 2222
+ops_git_data_dir: "/home/git"
+ops_git_user: "git"
+ops_git_uid: 1046
+ops_git_gid: 1049
+ops_git_restart_policy: "unless-stopped"
+ops_git_install_flag: true
+ops_git_configure_ssh_key: true
