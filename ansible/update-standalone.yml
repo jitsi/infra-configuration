@@ -123,6 +123,10 @@
       ignore_errors: true
       tags: "upgrade"
 
+    # apply prosody patches
+    - name: Include prosody patches tasks
+      ansible.builtin.include_tasks: roles/prosody/tasks/patches.yml
+
    # now install jicofo
     - name: Mark unhold on jicofo package version # noqa no-changed-when
       ansible.builtin.command: apt-mark unhold {{ jicofo_deb_pkg_name }}
@@ -234,6 +238,19 @@
         mode: 0600
         owner: jicofo
         group: jitsi
+
+  handlers:
+    - name: Remove patches # noqa ignore-errors
+      ansible.builtin.shell: |
+        set -o pipefail
+        find /usr/lib/prosody -name "*.orig" | xargs -r rm && find /usr/lib/prosody -name ".*.lua" | xargs -r rm
+      args:
+        executable: /bin/bash
+      ignore_errors: true
+
+    - name: Reload prosody
+      ansible.builtin.debug:
+        msg: "Skipping prosody reload - service will be started in post_tasks"
 
   post_tasks:
     - name: Ensure all services are started
