@@ -16,7 +16,7 @@
   template: src=sidecar.env.j2 dest={{ sip_jibri_env_path }}
 
 - name: xmpp user map file
-  copy: content="{{ sip_jibri_xmpp_login_map|to_json }}" dest="{{ sip_jibri_xmpp_logins_path }}"
+  template: src=xmpp-logins.json.j2 dest={{ sip_jibri_xmpp_logins_path }}
 
 - name: Configure systemd script for sidecar service
   template: src=sidecar.systemd.j2 dest=/lib/systemd/system/{{ sip_jibri_sidecar_service_name }}.service
