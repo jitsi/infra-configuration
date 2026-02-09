@@ -8,12 +8,17 @@
   gather_timeout: 180
   vars_files:
     - secrets/consul.yml
+    - roles/hcv-haproxy-configure/defaults/main.yml
     - roles/shard-ws-proxy/defaults/main.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
     cloud_provider: oracle
     shard_role: haproxy
+    consul_template_env:
+      CONSUL_LOCAL_DATACENTER: "{{ hcv_environment }}-{{ cloud_region }}"
+      ENVIRONMENT: "{{ hcv_environment }}"
+      HAPROXY_AGENT_CHECK_INTERVAL: "{{ haproxy_check_interval }}"
     consul_template_templates:
       - name: "shard-ws-nginx.site.template"
         dest: "/etc/nginx/sites-available/shard_ws.conf"
@@ -33,3 +38,4 @@
     - { role: "iptables-haproxy", "tags": "iptables"}
     - { role: "shard-ws-proxy", "tags": "shard-ws-proxy"}
     - { role: "consul-template", tags: "consul-template" }
+    - { role: "vector", tags: "vector" }
