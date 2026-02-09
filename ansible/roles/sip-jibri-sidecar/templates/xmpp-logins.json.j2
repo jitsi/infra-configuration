@@ -1,0 +1,10 @@
+  inbound:
+    "{{ sip_jibri_environment }}":
+      domain: "sipjibri.{{ environment_domain_name }}"
+      password: "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+      username: "{{ sip_jibri_nick }}"
+  outbound:
+    "{{ sip_jibri_environment }}":
+      domain: "sipjibri.{{ environment_domain_name }}"
+      password: "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+      username: "{{ sip_jibri_nick }}"
