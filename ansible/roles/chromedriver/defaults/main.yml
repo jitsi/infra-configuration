@@ -3,6 +3,6 @@ chromedriver_latest_release_url: https://googlechromelabs.github.io/chrome-for-t
 chromedriver_path: /usr/bin/chromedriver
 chromedriver_tmp_dir: /tmp/chromedriver_linux64
 chromedriver_tmp_path: /tmp/chromedriver_linux64.zip
-chromedriver_url: https://chromedriver.storage.googleapis.com/{{ chromedriver_version }}/chromedriver_linux64.zip
+chromedriver_url: https://storage.googleapis.com/chrome-for-testing-public/144.0.7559.132/linux64/chrome-linux64.zip
 chromedriver_use_latest: false
 chromedriver_version: 144.0.7559.132
