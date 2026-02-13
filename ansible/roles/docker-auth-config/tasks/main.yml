@@ -9,7 +9,7 @@
 
 - name: Ensure /root/.aws/ directory exists.
   ansible.builtin.file:
-    path: "{{ docker_aws_config_path | dirname }}"
+    path: "/root/.aws/"
     state: directory
     mode: "0700"
   when: docker_ecr_credentials | length > 0
@@ -30,11 +30,18 @@
 
 - name: Ensure /root/.docker/ directory exists.
   ansible.builtin.file:
-    path: "{{ docker_auth_file_path | dirname }}"
+    path: "/root/.docker"
     state: directory
     mode: "0700"
 
-- name: Deploy Docker config from template.
+- name: Deploy Docker config from template to /root/.docker/config.json
+  ansible.builtin.template:
+    src: docker_config.json.j2
+    dest: "/root/.docker/config.json"
+    mode: "0600"
+  when: docker_ecr_credentials | length > 0
+
+- name: Deploy Docker auth file from template to /etc/docker-auth.json
   ansible.builtin.template:
     src: docker_config.json.j2
     dest: "{{ docker_auth_file_path }}"
