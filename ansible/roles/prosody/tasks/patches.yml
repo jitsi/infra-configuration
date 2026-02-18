@@ -6,7 +6,6 @@
   args:
     executable: /bin/bash
   register: prosody_version_shell
-  changed_when: false
 
 - name: Set prosody subversion fact
   ansible.builtin.set_fact:
@@ -21,7 +20,6 @@
   args:
     executable: /bin/bash
   register: prosody_basepath_shell
-  changed_when: false
 
 - name: Set prosody basepath fact
   ansible.builtin.set_fact:
@@ -65,7 +63,7 @@
 - name: Apply util/jid.lua patch to disable idna validation on 13.0.3
   ansible.builtin.shell: |
     set -o pipefail
-    cat "{{ role_path | default('roles/prosody') }}/files/util_jid_idna.patch" | patch --forward --follow-symlinks -p1 -d /usr/share/lua/5.4/prosody || test $? -eq 1
+    echo "{{ lookup('file', (role_path | default('roles/prosody')) + '/files/util_jid_idna.patch') }}" | patch --follow-symlinks -p1 -d /usr/share/lua/5.4/prosody
   args:
     executable: /bin/bash
   register: jid_patch_result
