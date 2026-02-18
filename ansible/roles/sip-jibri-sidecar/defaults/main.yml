@@ -52,15 +52,4 @@ sip_jibri_voximplant_user: "{{ sip_jibri_voximplant_region_users[sip_jibri_voxim
 sip_jibri_voximplant_user_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g4>') }}"
 sip_jibri_ws_server_url: "{{ sip_jibri_ws_server_url | default('wss://api-vo-pilot.jitsi.net') }}"
 sip_jibri_xmpp_logins_enable: false
-sip_jibri_xmpp_login_map:
-  inbound:
-    "{{ sip_jibri_environment }}":
-      domain: "sipjibri.{{ environment_domain_name }}"
-      password: "{{ sip_jibri_shared_secrets[hcv_environment] }}"
-      username: "{{ sip_jibri_nick }}"
-  outbound:
-    "{{ sip_jibri_environment }}":
-      domain: "sipjibri.{{ environment_domain_name }}"
-      password: "{{ sip_jibri_shared_secrets[hcv_environment] }}"
-      username: "{{ sip_jibri_nick }}"
 sip_jibri_xmpp_logins_path: /etc/jitsi/sip-jibri-sidecar/xmpp-logins.json
