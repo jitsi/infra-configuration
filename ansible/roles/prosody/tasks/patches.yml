@@ -60,7 +60,7 @@
     strip: 2
   when: (prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 5
 
-- name: Apply util/jid.lua patch to disable idna validation on 13.0.3
+- name: Apply util/jid.lua patch to disable idna validation on 13.X
   ansible.builtin.shell: |
     set -o pipefail
     echo "{{ lookup('file', (role_path | default('roles/prosody')) + '/files/util_jid_idna.patch') }}" | patch --follow-symlinks -p1 -d /usr/share/lua/5.4/prosody
@@ -68,4 +68,4 @@
     executable: /bin/bash
   register: jid_patch_result
   changed_when: "'Reversed' not in jid_patch_result.stdout and 'already applied' not in jid_patch_result.stdout"
-  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0 and (prosody_subversion | int) >= 3 and (prosody_subversion | int) < 5
+  when: (prosody_major_version | int) == 13
