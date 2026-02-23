@@ -65,5 +65,4 @@
     basedir: /usr/share/lua/5.4/prosody
     src: "{{ role_path | default('roles/prosody') }}/files/util_jid_idna.patch"
     strip: 1
-    follow_symlinks: true
   when: (prosody_major_version | int) == 13
