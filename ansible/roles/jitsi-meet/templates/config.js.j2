@@ -26,6 +26,9 @@ var config = {
 {% if jitsi_meet_token_auth_url %}
     tokenAuthUrl: {{jitsi_meet_token_auth_url}},
 {% endif %}
+{% if jitsi_meet_token_auth_inline %}
+    tokenAuthInline: true,
+{% endif %}
 {% if jitsi_meet_token_auth_url_auto_redirect %}
     tokenAuthUrlAutoRedirect: true,
 {% endif %}
