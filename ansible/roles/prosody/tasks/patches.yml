@@ -62,7 +62,8 @@
 
 - name: Apply util/jid.lua patch to disable idna validation on 13.X
   ansible.posix.patch:
-    basedir: /usr/share/lua/5.4/prosody
+    basedir: "{{ prosody_basepath }}"
     src: "{{ role_path | default('roles/prosody') }}/files/util_jid_idna.patch"
     strip: 1
+    follow_symlinks: true
   when: (prosody_major_version | int) == 13
