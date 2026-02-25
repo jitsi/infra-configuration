@@ -831,6 +831,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% if prosody_muc_max_occupants %}
         "muc_max_occupants";
 {% endif %}
+{% if prosody_filter_messages_enabled %}
+        "filter_messages";
+{% endif %}
     }
 {% endif %}
 
