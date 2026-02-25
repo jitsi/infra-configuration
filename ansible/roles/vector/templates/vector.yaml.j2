@@ -113,7 +113,7 @@ sinks:
   loki_syslog:
     remove_timestamp: false
     type: "loki"
-    inputs: ["syslog_to_structure","boot_to_structure"]
+    inputs: ["route_syslog._unmatched","boot_to_structure"]
     endpoint: "{{ vector_loki_url }}"
     encoding:
         codec: "json"
@@ -125,6 +125,24 @@ sinks:
         task: "{{ '{{' }} .appname }}"
         group: "syslog"
         namespace: "{{ '{{' }} .namespace }}"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
+        level: "{{ '{{' }} .severity }}"
+  loki_signal_syslog:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["route_syslog.signal"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: false
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "shard-{{ vector_shard_name }}"
+        task: "{{ '{{' }} .appname }}"
+        group: "signal"
+        namespace: "default"
         node: "{{ ansible_hostname }}"
         region: "{{ vector_cloud_region }}"
         level: "{{ '{{' }} .severity }}"
@@ -302,11 +320,16 @@ transforms:
     type: "remap"
     inputs: ["syslog"]
     source: |
-        if .appname == "haproxy" {
+        if .appname == "haproxy" || .appname == "jitsi-autoscaler-sidecar" {
             .namespace = "default"
         } else {
             .namespace = "system"
         }
+  route_syslog:
+    type: "route"
+    inputs: ["syslog_to_structure"]
+    route:
+        signal: '.appname == "signal-sidecar" || .appname == "jicofo-rtcstats-push"'
   vault_audit_to_structure:
     type: "remap"
     inputs: ["vault_audit"]

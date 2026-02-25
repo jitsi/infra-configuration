@@ -60,9 +60,15 @@
     strip: 2
   when: (prosody_minor_version | int) == 12 and (prosody_subversion | int) <= 5
 
+- name: Register util/jid.lua real path
+  ansible.builtin.command: realpath {{ prosody_basepath }}/util/jid.lua
+  register: jid_lua_realpath
+  changed_when: false
+  when: (prosody_major_version | int) == 13
+
 - name: Apply util/jid.lua patch to disable idna validation on 13.X
   ansible.posix.patch:
-    basedir: /usr/share/lua/5.4/prosody
+    dest: "{{ jid_lua_realpath.stdout }}"
     src: "{{ role_path | default('roles/prosody') }}/files/util_jid_idna.patch"
     strip: 1
   when: (prosody_major_version | int) == 13
