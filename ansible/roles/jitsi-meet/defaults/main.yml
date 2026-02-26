@@ -269,7 +269,6 @@ jitsi_meet_talk_while_muted_enabled: true
 jitsi_meet_title_metadata_override: false
 jitsi_meet_token_auth_inline: false
 jitsi_meet_token_auth_url: false
-jitsi_meet_token_auth_url_auto_redirect: false
 jitsi_meet_token_logout_url: false
 jitsi_meet_token_match_tenant: false
 jitsi_meet_token_sso: false
