@@ -87,7 +87,8 @@ if [ "$DRY_RUN" == "false" ]; then
     lock $PROGNAME
 
     if [[ "$?" -eq 0 ]]; then
-        /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
+        # run outside the consul-template scope so that a consul-template crash won't kill this fork
+        systemd-run --scope /usr/local/bin/haproxy-configurator.sh $TEMPLATE_LOGFILE $DRAFT_CONFIG_VALIDATED &
         log_msg "haproxy-configurator.sh forked"
         echo -n "jitsi.config.haproxy.configurator:1|c" | nc -4u -w1 localhost 8125
     else
