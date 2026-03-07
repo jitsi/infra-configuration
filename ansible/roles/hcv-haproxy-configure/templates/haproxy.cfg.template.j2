@@ -164,6 +164,8 @@ frontend www-http from global_defaults
 
   # set stick token header with stick token; may be set to blank if group and room are blank
   http-request set-header X-StickToken %[hdr(X-Group)]%[hdr(X-Room)]
+  # normalize double-encoded URLs so e.g. %25c3%25b2 maps to the same shard as %c3%b2
+  http-request set-header X-StickToken %[hdr(X-StickToken),regsub(%25,%,g)]
   http-request set-header X-StickTokenFlag true if room_set not_web
 
   http-request add-header X-Forwarded-Proto https
