@@ -122,12 +122,6 @@ jicofo {
     pending-timeout = {{ jicofo_jibri_pending_timeout }} seconds
   }
 
-{% if jicofo_sipjibri_brewery_muc %}
-  jibri-sip {
-    brewery-jid = "{{ jicofo_sipjibri_brewery_muc }}"
-  }
-{% endif %}
-
 {% if jicofo_jigasi_brewery_muc %}
   jigasi {
     brewery-jid = "{{ jicofo_jigasi_brewery_muc }}"
@@ -201,19 +195,12 @@ jicofo {
 {% endif %}
     }
 {% endif %}
-{% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
-      # By trusting environment_domain_name we effectively disable the feature and allow clients to impersonate Jibri. This is
-      # intentional until we are able to have SIP Jibris login to one of the authenticated domains (otherwise SIP Jibris will
-      # not be recognized by jicofo leading to "mute all" affecting them).
-{% endif %}
       trusted-domains = [
         "{{ prosody_auth_domain_name }}",
         "recorder.{{ environment_domain_name }}",
         "jigasia.{{ environment_domain_name }}",
-        "jigasib.{{ environment_domain_name }}"
-{% if not jicofo_sipjibri_skip_main_in_trusted_domains %}
-        ,"{{ environment_domain_name }}"
-{% endif %}
+        "jigasib.{{ environment_domain_name }}",
+        "sipjibri.{{ environment_domain_name }}",
     ]
 {% if jicofo_visitors_enabled %}
       visitors {
