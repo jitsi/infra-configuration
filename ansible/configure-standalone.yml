@@ -293,7 +293,6 @@
     - { role: jibri-auth, tags: "jibri-auth"}
     - { role: "jigasi-auth", tags: "jigasi-auth"}
     - { role: "prosody-egress", tags: "prosody-egress" }
-    - { role: "consul-standalone", tags: "consul" }
 
   # now run any handlers which haven't run, before continuing
     - { role: flush-handlers, tags: "configure" }
@@ -312,6 +311,7 @@
     - { role: flush-handlers, tags: "configure" }
 
   # additional components here
+    - { role: "consul-standalone", tags: "consul" }
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
     - { role: "vector", tags: "vector"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
