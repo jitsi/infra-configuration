@@ -1,0 +1,9 @@
+---
+- name: Update google-chrome and chromedriver
+  hosts: all
+  gather_facts: true
+  become: true
+
+  roles:
+#    - { role: "google-chrome", tags: "google-chrome" }
+    - { role: "chromedriver", tags: "chromedriver" }
