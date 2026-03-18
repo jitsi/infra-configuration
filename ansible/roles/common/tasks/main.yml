@@ -68,9 +68,20 @@
     state: present
 
 # # Get the AWS CLI from pip, latest version is required for lifecycle management, temporary credentials
-- name: Install awscli module from pip, used later for videobridge configuration
+- name: Create virtualenv for awscli
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} awscli"
+    cmd: "python3 -m venv /opt/awscli-venv"
+    creates: /opt/awscli-venv/bin/python
+
+- name: Install awscli in virtualenv
+  ansible.builtin.command:
+    cmd: "/opt/awscli-venv/bin/pip install awscli"
+
+- name: Symlink aws binary to /usr/local/bin
+  ansible.builtin.file:
+    src: /opt/awscli-venv/bin/aws
+    dest: /usr/local/bin/aws
+    state: link
 
 - name: Create virtualenv for oci-cli
   ansible.builtin.command:

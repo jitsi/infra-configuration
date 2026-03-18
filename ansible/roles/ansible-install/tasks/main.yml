@@ -18,15 +18,31 @@
     state: present
   when: not ansible_install_from_apt
 
-- name: Install ansible client install via pip
+- name: Create virtualenv for ansible
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} ansible==9.0.1"
+    cmd: "python3 -m venv /opt/ansible-venv"
+    creates: /opt/ansible-venv/bin/python
+  when: ansible_install_from_pip
+
+- name: Install ansible in virtualenv
+  ansible.builtin.command:
+    cmd: "/opt/ansible-venv/bin/pip install ansible==9.0.1"
+  when: ansible_install_from_pip
+
+- name: Symlink ansible binaries to /usr/local/bin
+  ansible.builtin.file:
+    src: "/opt/ansible-venv/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    state: link
+  loop:
+    - ansible
+    - ansible-pull
+    - ansible-playbook
+    - ansible-galaxy
   when: ansible_install_from_pip
 
 - name: Perform ansible client install cleanup via pip
-  ansible.builtin.pip:
-    name: ['ansible', 'ansible-core']
+  ansible.builtin.file:
+    path: /opt/ansible-venv
     state: absent
-  when:
-    - not ansible_install_from_pip
-    - ansible_distribution_major_version | int < 24
+  when: not ansible_install_from_pip
