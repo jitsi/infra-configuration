@@ -273,45 +273,52 @@
     - { role: "iptables-standalone", tags: "iptables", when: cloud_provider=='oracle' }
     - { role: "iptables-serf", tags: "iptables", when: cloud_provider=='oracle' }
 
-  # install phase of jitsi components
+  # install phase of shard components
     - { role: "prosody", tags: "prosody", prosody_install_flag: true, prosody_configure_flag: false}
     - { role: "jitsi-meet-prosody", tags: "jitsi-meet-prosody" }
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: true, jicofo_configure_flag: false }
     - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: true, jicofo_rtcstats_push_configure_flag: false }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: true, jitsi_meet_configure_flag: false}
-    - { role: jitsi-videobridge, tags: "jitsi-videobridge", jvb_image_build_flag: true, jvb_install_flag: true, jvb_configure_flag: false}
-    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
     - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: true, signal_sidecar_configure_flag: false }
 
-  # configure phase of jitsi components
+  # configure phase of shard components
     - { role: "jitsi-meet-branding", tags: "jitsi-meet" }
     - { role: "prosody", tags: "prosody", prosody_install_flag: false, prosody_configure_flag: true}
     - { role: "jicofo-auth", tags: "jicofo-auth" }
+    - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}
     - { role: "jicofo", tags: "jicofo", jicofo_install_flag: false, jicofo_configure_flag: true }
     - { role: "jicofo-rtcstats-push", tags: "jicofo-rtcstats-push", jicofo_rtcstats_push_install_flag: false, jicofo_rtcstats_push_configure_flag: true }
     - { role: "jitsi-meet", tags: "jitsi-meet", jitsi_meet_install_flag: false, jitsi_meet_configure_flag: true, jitsi_meet_redirect_to_ssl: true}
+    - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true}
+    - { role: jibri-auth, tags: "jibri-auth"}
+    - { role: "jigasi-auth", tags: "jigasi-auth"}
+    - { role: "prosody-egress", tags: "prosody-egress" }
+
+  # now run any handlers which haven't run, before continuing
+    - { role: flush-handlers, tags: "configure" }
+
+    # install phase for jvb components
+    - { role: jitsi-videobridge, tags: "jitsi-videobridge", jvb_image_build_flag: true, jvb_install_flag: true, jvb_configure_flag: false}
+    - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
+
+    # configure phase for jvb components
     - { role: jitsi-videobridge, tags: "jitsi-videobridge",
         jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true,
         jvb_enable_multiple_shards: false, jvb_hostname: "{{ environment_domain_name }}", jvb_reconfigure_on_changes_flag: true }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
-    - { role: "signal-sidecar", tags: "signal-sidecar", signal_sidecar_install_flag: false, signal_sidecar_configure_flag: true}
 
   # now run any handlers which haven't run, before continuing
     - { role: flush-handlers, tags: "configure" }
 
   # additional components here
+    - { role: "consul-standalone", tags: "consul" }
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}
     - { role: "vector", tags: "vector"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: jitsi-dumper, tags: "jitsi-dumper"}
-    - { role: jibri-auth, tags: "jibri-auth"}
-    - { role: "jigasi-auth", tags: "jigasi-auth"}
-    - { role: "jitsi-videobridge-auth", tags: "jitsi-videobridge-auth"}
 # removing until testrtc builds can be sorted out
 #    - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true, testrtc_configure_flag: true }
-    - { role: "consul-standalone", tags: "consul" }
     - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
-    - { role: "prosody-egress", tags: "prosody-egress" }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "standalone-debconf", tags: "standalone-debconf" }
     - role: "wavefront"
