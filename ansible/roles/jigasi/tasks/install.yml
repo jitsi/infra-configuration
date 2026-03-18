@@ -105,14 +105,14 @@
     state: present
   when: (ansible_distribution_major_version | int) >= 20
 
-- name: Install stats script pip pre reqs
+- name: Create virtualenv for jigasi pip packages
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} datadog"
-  when: (ansible_distribution_major_version | int) >= 20
+    cmd: "python3 -m venv /opt/jigasi-pip-venv"
+    creates: /opt/jigasi-pip-venv/bin/python
 
-- name: Install configuration pip prereqs
+- name: Install jigasi pip dependencies in virtualenv
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} pyjavaproperties"
+    cmd: "/opt/jigasi-pip-venv/bin/pip install datadog pyjavaproperties"
 
 # provide script for managing the auto-scale group lifecycle queue
 - name: Upload lifecyle script upload

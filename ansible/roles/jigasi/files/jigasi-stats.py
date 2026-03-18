@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/jigasi-pip-venv/bin/python3
 
 try:
     # For Python 3.0 and later

@@ -64,23 +64,41 @@
 # Get the AWS CLI from apt, latest version is required for lifecycle management, temporary credentials
 - name: Install python aws-related libraries from apt
   ansible.builtin.apt:
-    name: ['python3-boto3', 'python3-botocore', 'python3-yaml', 'python3-urllib3', 'python3-requests', 'python3-hvac']
+    name: ['python3-boto3', 'python3-botocore', 'python3-yaml', 'python3-urllib3', 'python3-requests', 'python3-hvac', 'python3-venv']
     state: present
 
 # # Get the AWS CLI from pip, latest version is required for lifecycle management, temporary credentials
-- name: Install awscli module from pip, used later for videobridge configuration
+- name: Create virtualenv for awscli
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} awscli"
+    cmd: "python3 -m venv /opt/awscli-venv"
+    creates: /opt/awscli-venv/bin/python
 
-- name: Install oci-cli module from pip, used later for videobridge configuration
+- name: Install awscli in virtualenv
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} oci-cli"
+    cmd: "/opt/awscli-venv/bin/pip install awscli"
+
+- name: Symlink aws binary to /usr/local/bin
+  ansible.builtin.file:
+    src: /opt/awscli-venv/bin/aws
+    dest: /usr/local/bin/aws
+    state: link
+
+- name: Create virtualenv for oci-cli
+  ansible.builtin.command:
+    cmd: "python3 -m venv /opt/oci-cli-venv"
+    creates: /opt/oci-cli-venv/bin/python
   when: common_cloud_provider == "oracle"
 
-- name: Set executable bit on pip-installed oci binary
+- name: Install oci-cli in virtualenv
+  ansible.builtin.command:
+    cmd: "/opt/oci-cli-venv/bin/pip install oci-cli"
+  when: common_cloud_provider == "oracle"
+
+- name: Symlink oci binary to /usr/local/bin
   ansible.builtin.file:
-    path: /usr/local/bin/oci
-    mode: 0755
+    src: /opt/oci-cli-venv/bin/oci
+    dest: /usr/local/bin/oci
+    state: link
   when: common_cloud_provider == "oracle"
 
 # getaddrinfo configurator
