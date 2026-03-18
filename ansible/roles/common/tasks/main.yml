@@ -72,15 +72,22 @@
   ansible.builtin.command:
     cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} awscli"
 
-- name: Install oci-cli module from pip, used later for videobridge configuration
+- name: Create virtualenv for oci-cli
   ansible.builtin.command:
-    cmd: "/usr/bin/pip3 install {{ '--break-system-packages' if (ansible_distribution_major_version | int) >= 24 else '' }} oci-cli"
+    cmd: "python3 -m venv /opt/oci-cli-venv"
+    creates: /opt/oci-cli-venv/bin/python
   when: common_cloud_provider == "oracle"
 
-- name: Set executable bit on pip-installed oci binary
+- name: Install oci-cli in virtualenv
+  ansible.builtin.command:
+    cmd: "/opt/oci-cli-venv/bin/pip install oci-cli"
+  when: common_cloud_provider == "oracle"
+
+- name: Symlink oci binary to /usr/local/bin
   ansible.builtin.file:
-    path: /usr/local/bin/oci
-    mode: 0755
+    src: /opt/oci-cli-venv/bin/oci
+    dest: /usr/local/bin/oci
+    state: link
   when: common_cloud_provider == "oracle"
 
 # getaddrinfo configurator
