@@ -1,10 +1,6 @@
 ---
 nomad_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 nomad_jibri_mount_point: "{{ nomad_jibri_recording_dir }}"
-nomad_docker_auth_file_path: "{{ docker_auth_file_path }}"
-nomad_docker_auth_file:
-  credHelpers:
-    "REPLACE-ME.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
 nomad_jibri_preserve_boot_volume_if_needed: "{{ jibri_preserve_boot_volume_if_needed | default(false) }}"
 nomad_jibri_recording_dir: /opt/jibri/recordings
 nomad_telemetry_publish_allocation_metrics: true
