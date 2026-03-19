@@ -161,6 +161,7 @@
           cloud: "oracle"
     - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: coturn_enable_nomad}
     - { role: "docker-daemon-config", tags: "docker-daemon-config", when: coturn_enable_nomad }
+    - { role: "docker-auth-config", tags: "docker-auth-config", docker_ecr_credentials: "{{ nomad_docker_ecr_credentials }}", when: coturn_enable_nomad }
     - { role: "nomad-jitsi", tags: "nomad-jitsi", when: coturn_enable_nomad }
     - { role: "nomad", tags: "nomad", when: coturn_enable_nomad }
 

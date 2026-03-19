@@ -150,6 +150,7 @@
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
     - { role: "docker-daemon-config", tags: "docker-daemon-config" }
+    - { role: "docker-auth-config", tags: "docker-auth-config", docker_ecr_credentials: "{{ nomad_docker_ecr_credentials }}" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi" }
     - { role: "gpu-models", tags: "gpu-models", when: nvidia_docker_flag or skynet_models_flag }
     - { role: "gpu-docker-pull", tags: "gpu-docker", when: nvidia_docker_flag or skynet_models_flag }
