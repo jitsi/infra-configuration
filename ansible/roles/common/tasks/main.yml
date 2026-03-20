@@ -82,6 +82,7 @@
     src: /opt/awscli-venv/bin/aws
     dest: /usr/local/bin/aws
     state: link
+    force: true
 
 - name: Create virtualenv for oci-cli
   ansible.builtin.command:
@@ -99,6 +100,7 @@
     src: /opt/oci-cli-venv/bin/oci
     dest: /usr/local/bin/oci
     state: link
+    force: true
   when: common_cloud_provider == "oracle"
 
 # getaddrinfo configurator

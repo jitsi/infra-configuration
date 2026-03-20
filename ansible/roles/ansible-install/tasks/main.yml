@@ -34,6 +34,7 @@
     src: "/opt/ansible-venv/bin/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     state: link
+    force: true
   loop:
     - ansible
     - ansible-pull
