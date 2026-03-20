@@ -555,7 +555,9 @@ whiteboard: {
         showImage: {{ jitsi_meet_deeplink_show_image | to_json }},
         ios: {
             appName: "{{ jitsi_meet_mobile_app_name }}",
+        {% if jitsi_meet_app_scheme %}
             appScheme: "{{ jitsi_meet_app_scheme }}",
+        {% endif %}
         {% if jitsi_meet_dynamic_linking %}
             dynamicLink: {{ jitsi_meet_dynamic_linking | to_json }},
         {% endif %}
@@ -563,7 +565,9 @@ whiteboard: {
         },
         android: {
             appName: "{{ jitsi_meet_mobile_app_name }}",
+        {% if jitsi_meet_app_scheme %}
             appScheme: "{{ jitsi_meet_app_scheme }}",
+        {% endif %}
             appPackage: "{{ jitsi_meet_android_app_package }}",
             fDroidUrl: "{{ jitsi_meet_f_droid_url }}",
         {% if jitsi_meet_dynamic_linking %}
