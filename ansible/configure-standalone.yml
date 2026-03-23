@@ -305,7 +305,7 @@
     - { role: jitsi-videobridge, tags: "jitsi-videobridge",
         jvb_standalone: true, jvb_install_flag: false, jvb_image_build_flag: false, jvb_reconfigure_flag: false, jvb_configure_from_template_flag: true,
         jvb_enable_multiple_shards: false, jvb_hostname: "{{ environment_domain_name }}", jvb_reconfigure_on_changes_flag: true,
-        jvb_suppress_private_candidates: {{ jvb_use_public_ip }}
+        jvb_suppress_private_candidates: "{{ jvb_use_public_ip }}"
     }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: false, jvb_rtcstats_push_configure_flag: true }
 
