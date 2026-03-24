@@ -1,5 +1,6 @@
 ---
 consul_cloud_provider: "{{ cloud_provider | default('aws') }}"
+consul_node_name: "{{ ansible_hostname }}"
 consul_datacenter: "{{ cloud_name | default('dc1') }}"
 consul_encryption_key: "{{ consul_encryption_keys[consul_server_type] | default(false) }}"
 consul_environment_type: "{{ jitsi_meet_environment_type | default('prod') }}"
