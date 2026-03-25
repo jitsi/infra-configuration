@@ -63,9 +63,6 @@ jicofo_require_muc_config_flag: false
 jicofo_restart_requests_interval: 60
 jicofo_restart_requests_max_requests: 3
 jicofo_separate_jvb_muc: "{{ prosody_jvb_configure_flag }}"
-jicofo_sipjibri_brewery_muc: SipBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
-# a temp workaround to skip adding main vhost to list of trusted-domains till we migrate all sipjibris to authenticate
-jicofo_sipjibri_skip_main_in_trusted_domains: false
 # No delay for conferences with <=25, 1 second for 25-50, etc.
 jicofo_source_signaling_delay: { 50: 1000, 100: 2000 }
 jicofo_ssrc_rewriting: true
