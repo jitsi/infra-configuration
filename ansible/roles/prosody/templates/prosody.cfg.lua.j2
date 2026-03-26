@@ -407,13 +407,6 @@ token_verification_allowlist = {
 {% endif %}
 }
 
-{% if secrets_jigasi_conference_A %}
-muc_jigasi_jid = "jigasia@{{ prosody_auth_domain_name }}"
-{% endif %}
-{% if secrets_jigasi_conference_B %}
-muc_jigasi_jid = "jigasib@{{ prosody_auth_domain_name }}"
-{% endif %}
-
 plugin_paths = { "{{ prosody_plugins_path }}/" }
 
 ----------- Virtual hosts -----------
