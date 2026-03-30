@@ -509,7 +509,18 @@ VirtualHost "{{ prosody_domain_name }}"
         breakout_rooms_muc = "breakout.{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_visitors_enabled %}
-        visitors_ignore_list = { "recorder.{{ prosody_domain_name }}" }
+        visitors_ignore_list = {
+            "recorder.{{ prosody_domain_name }}";
+{% if secrets_jigasi_conference_A %}
+            'jigasia.{{ prosody_domain_name }}';
+{% endif %}
+{% if secrets_jigasi_conference_B %}
+            'jigasib.{{ prosody_domain_name }}';
+{% endif %}
+{% if hcv_environment in sip_jibri_shared_secrets %}
+            'sipjibri.{{ prosody_domain_name }}';
+{% endif %}
+         }
 {% endif %}
 {% if prosody_recording_rate_per_minute_per_ip %}
         -- attempts to record or livestream
