@@ -108,6 +108,8 @@
           cloud: "oracle"
     - { role: "jitsi-torture-assets", tags: "torture-assets", when: selenium_grid_enable_nomad == "true" }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false, when: selenium_grid_enable_nomad == "true"}
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "selenium-grid", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "docker-daemon-config", tags: "docker-daemon-config", when: selenium_grid_enable_nomad == "true" }
     - { role: "docker-auth-config", tags: "docker-auth-config", docker_ecr_credentials: "{{ nomad_docker_ecr_credentials }}", when: selenium_grid_enable_nomad == "true" }
     - { role: "nomad-jitsi", tags: "nomad-jitsi", when: selenium_grid_enable_nomad == "true" }
