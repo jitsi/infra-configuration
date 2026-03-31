@@ -69,7 +69,15 @@ autoscaler_sidecar_instance_version_command_by_type:
   'jigasi': "dpkg -s jigasi | grep Version | awk '{print $2}' | sed 's/..$//'"
   'sip-jibri': "dpkg -s jibri | grep Version | awk '{print $2}' | sed 's/..$//'"
   'nomad': "nomad --version | head -1 | cut -d' ' -f2 | tr -d 'v'"
-  'selenium-grid': "NODE_ID=$(curl -s http://localhost:4646/v1/agent/self | jq -r '.stats.client.node_id') && JOB_ID=$(curl -s http://localhost:4646/v1/node/$NODE_ID/allocations | jq -r '[.[] | select(.JobID | contains(\"grid-node\")) | select(.ClientStatus==\"running\")][0].JobID') && curl -s http://localhost:4646/v1/job/$JOB_ID | jq -r '.TaskGroups[].Tasks[].Config.image' | head -1 | rev | cut -d: -f1 | rev"
+  'selenium-grid': >-
+    NODE_ID=$(curl -s http://localhost:4646/v1/agent/self |
+    jq -r '.stats.client.node_id') &&
+    JOB_ID=$(curl -s http://localhost:4646/v1/node/$NODE_ID/allocations |
+    jq -r '[.[] | select(.JobID | contains("grid-node")) |
+    select(.ClientStatus=="running")][0].JobID') &&
+    curl -s http://localhost:4646/v1/job/$JOB_ID |
+    jq -r '.TaskGroups[].Tasks[].Config.image' |
+    head -1 | rev | cut -d: -f1 | rev
 autoscaler_sidecar_private_ip: "{{ ansible_default_ipv4.address }}"
 autoscaler_sidecar_public_ip: "{{ ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false }}"
 autoscaler_sidecar_service_name: jitsi-autoscaler-sidecar
