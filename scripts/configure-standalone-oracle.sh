@@ -158,6 +158,7 @@ $([ -n "$ORACLE_REGION" ] && echo "-e oracle_region=$ORACLE_REGION") \
 -e "infra_customizations_repo=$INFRA_CUSTOMIZATIONS_REPO" \
 -e "test_id=$UNIQUE_ID" \
 -e "unique_id=$UNIQUE_ID" \
+-e "consul_node_name=$SHARD_BASE-$ORACLE_REGION-$UNIQUE_ID" \
 -e "ansible_ssh_user=$ANSIBLE_SSH_USER" \
 --vault-password-file .vault-password.txt \
 --tags "$DEPLOY_TAGS"
