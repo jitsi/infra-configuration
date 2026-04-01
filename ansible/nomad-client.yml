@@ -146,7 +146,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
     - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
+        autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler == "true"}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
     - { role: "docker-daemon-config", tags: "docker-daemon-config" }
