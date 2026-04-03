@@ -207,6 +207,18 @@ logrotate_rules_haproxy:
       - "postrotate\n\t/usr/bin/systemctl kill -s HUP rsyslog.service > /dev/null\n  endscript"
     path:
       - /var/log/haproxy.log
+  - name: nginx
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - "postrotate\n\t[ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid` > /dev/null\n  endscript"
+    path:
+      - /var/log/nginx/access.log
+      - /var/log/nginx/error.log
 logrotate_rules_haproxy_enabled: false
 logrotate_rules_jigasi:
   - name: jigasi
