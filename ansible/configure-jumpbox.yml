@@ -17,6 +17,10 @@
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 86400
+      async: 300
+      poll: 10
+      retries: 3
+      delay: 10
       tags: setup
   roles:
     - { role: "sshusers", tags: "ssh" }
