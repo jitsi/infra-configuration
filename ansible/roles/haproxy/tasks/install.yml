@@ -1,0 +1,124 @@
+---
+## VAR SETUP
+- name: 'Set CentOS directory prefix'
+  ansible.builtin.set_fact:
+    etc_prefix: /etc
+  when: ansible_os_family == "RedHat"
+
+- name: 'Set CentOS haproxy config location'
+  ansible.builtin.set_fact:
+    config_location: /etc/haproxy/haproxy.cfg
+  when: ansible_os_family == "RedHat"
+
+- name: 'Set SmartOS etc prefix'
+  ansible.builtin.set_fact:
+    etc_prefix: /opt/local/etc
+  when: ansible_os_family == "Solaris"
+
+- name: 'Set SmartOS haproxy config location'
+  ansible.builtin.set_fact:
+    config_location: /opt/local/etc/haproxy.cfg
+  when: ansible_os_family == "Solaris"
+
+- name: 'Set Debian/Ubuntu directory prefix'
+  ansible.builtin.set_fact:
+    etc_prefix: /etc
+  when: ansible_os_family == "Debian"
+
+- name: 'Set Debian/Ubuntu haproxy config location'
+  ansible.builtin.set_fact:
+    config_location: /etc/haproxy/haproxy.cfg
+  when: ansible_os_family == "Debian"
+
+## PACKAGE INSTALL
+
+- name: 'Check epel repo'
+  ansible.builtin.shell: |
+    set -o pipefail
+    yum repolist | grep -qi EPEL
+  args:
+    executable: /bin/bash
+  register: epel_repo_check
+  when: ansible_pkg_mgr == 'yum'
+
+- name: 'Add epel repo'
+  ansible.builtin.template:
+    src: epel.repo
+    dest: /etc/yum.repos.d/epel.repo
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_pkg_mgr == 'yum' and epel_repo_check.rc != 0
+
+- name: 'Installs haproxy as well as socat for socket api'
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - haproxy
+    - socat
+  when: ansible_os_family == 'RedHat'
+
+- name: 'Add haproxy apt repo'
+  become: true
+  become_user: root
+  ansible.builtin.apt_repository:
+    repo: "deb http://http.debian.net/debian wheezy-backports main"
+    state: present
+    update_cache: true
+  when: ansible_distribution_release == "wheezy"
+
+- name: 'Add haproxy apt repo'
+  become: true
+  become_user: root
+  ansible.builtin.apt_repository:
+    repo: "ppa:vbernat/haproxy-{{ haproxy_repo_version }}"
+    codename: "{{ haproxy_repo_codename }}"
+    state: present
+    update_cache: true
+  when: ansible_distribution == "Ubuntu"
+
+- name: 'Installs haproxy as well as socat for socket api'
+  ansible.builtin.apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - haproxy={{ haproxy_package_version }}*
+    - socat
+  when: ansible_os_family == 'Debian'
+
+- name: 'Installs haproxy as well as socat for socket api'
+  community.general.pkgin:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - haproxy
+    - socat
+  when: ansible_os_family == 'Solaris'
+
+- name: 'Enable it'
+  ansible.builtin.service:
+    name: haproxy
+    enabled: true
+  when: haproxy_service_start
+
+- name: 'Ensure chroot directory exists'
+  ansible.builtin.file:
+    mode: 0755
+    name: "{{ haproxy_global.chroot }}"
+    state: directory
+  when: haproxy_global.chroot is defined and haproxy_global.chroot
+
+- name: Remove default logrotate config
+  ansible.builtin.file:
+    name: /etc/logrotate.d/haproxy
+    state: absent
+
+- name: 'Remove haproxy apt repo'
+  become: true
+  become_user: root
+  ansible.builtin.apt_repository:
+    repo: "ppa:vbernat/haproxy-{{ haproxy_repo_version }}"
+    codename: "{{ haproxy_repo_codename }}"
+    state: absent
+  when: ansible_distribution == "Ubuntu"

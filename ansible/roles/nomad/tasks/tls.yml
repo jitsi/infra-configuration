@@ -1,0 +1,43 @@
+---
+# File: tls.yml - TLS tasks for Nomad
+
+- name: TLS block
+  when: nomad_tls_copy_keys | bool
+  block:
+    - name: Create SSL directory
+      ansible.builtin.file:
+        dest: "{{ nomad_tls_dir }}"
+        state: directory
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: 0755
+
+    - name: Copy CA certificate
+      ansible.builtin.copy:
+        remote_src: "{{ nomad_tls_files_remote_src }}"
+        src: "{{ nomad_ca_file }}"
+        dest: "{{ nomad_tls_dir }}/{{ nomad_ca_file | basename }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: 0644
+      notify: restart nomad
+
+    - name: Copy certificate
+      ansible.builtin.copy:
+        remote_src: "{{ nomad_tls_files_remote_src }}"
+        src: "{{ nomad_cert_file }}"
+        dest: "{{ nomad_tls_dir }}/{{ nomad_cert_file | basename }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: 0644
+      notify: restart nomad
+
+    - name: Copy key
+      ansible.builtin.copy:
+        remote_src: "{{ nomad_tls_files_remote_src }}"
+        src: "{{ nomad_key_file }}"
+        dest: "{{ nomad_tls_dir }}/{{ nomad_key_file | basename }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: 0600
+      notify: restart nomad

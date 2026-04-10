@@ -1,0 +1,16 @@
+---
+# force rewrite nvm folder from remove git
+nvm_force_install: false
+# allow to skip dependencies installation (for non-root user)
+nvm_install_deps: true
+# path config
+nvm_install_path: ~/.nvm
+nvm_node_version: 14.15.4
+# nvm_node_version: 'lts'
+# nvm_node_version: 'latest'
+
+nvm_shell_init_file: ~/.profile
+nvm_version: 0.37.2
+# nvm_version: 'master'
+# nvm_version: 'latest'
+# nvm_version: 'HEAD'

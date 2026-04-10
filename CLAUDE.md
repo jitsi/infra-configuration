@@ -139,7 +139,7 @@ See `README_HAPROXY.md` for detailed HAProxy operations including:
 ## Notes
 
 - This repository depends on a private customizations repository (symlinked as `config/` and `sites/`)
-- Some external roles are included as git submodules (docker, haproxy, consul-template, etc.)
+- Some external roles (docker, haproxy, consul-template, memcached, nomad, nvm) are vendored directly in the repo under `ansible/roles/`
 - The `hcvlib.py` library provides core functionality for AWS and Oracle Cloud API interactions
 - Build playbooks create AMIs/images, configure playbooks provision running instances
 - Oracle Cloud uses OCI SDK, AWS uses boto3

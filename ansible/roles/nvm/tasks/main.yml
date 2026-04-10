@@ -1,0 +1,17 @@
+---
+- include_tasks: setup-redhat.yml
+  when: ansible_os_family == "RedHat" and nvm_install_deps
+  tags: nvm
+
+- include_tasks: setup-debian.yml
+  when: ansible_os_family == "Debian" and nvm_install_deps
+  tags: nvm
+
+- include_tasks: install_nvm.yml
+  tags: nvm
+
+- include_tasks: install_nodejs.yml
+  tags: nvm
+
+- include_tasks: validate.yml
+  tags: nvm

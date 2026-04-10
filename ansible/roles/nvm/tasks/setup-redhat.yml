@@ -1,0 +1,12 @@
+---
+- name: Install dependencies
+  become: true
+  become_user: root
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - "@Development Tools"
+    - git
+    - curl
+    - openssl-devel
