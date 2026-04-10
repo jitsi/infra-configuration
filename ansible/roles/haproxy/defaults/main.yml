@@ -1,0 +1,67 @@
+---
+# defaults file for haproxy
+haproxy_manage_config: false
+haproxy_service_start: true
+haproxy_global:
+  log:
+    - address: /dev/log
+      facility: local0
+    - address: /dev/log
+      facility: local1
+      level: notice
+  chroot: /var/lib/haproxy
+  user: haproxy
+  group: haproxy
+  daemon: true
+
+haproxy_repo_codename: "{{ 'jammy' if ansible_distribution_release == 'jammy' or ansible_distribution_release == 'noble' else 'focal' }}"
+haproxy_repo_version: "{{ haproxy_package_version }}"
+haproxy_package_version: 2.8
+
+haproxy_assemble_types:
+  - frontends.d
+  - backends.d
+  - listen.d
+  - peers.d
+  - userlists.d
+  - compiled
+
+haproxy_frontends: []
+haproxy_backends: []
+haproxy_listen: []
+haproxy_peers: []
+haproxy_userlists: []
+
+haproxy_defaults:
+  mode: http
+  log:
+    - address: /dev/log
+      facility: local1
+      level: notice
+  timeout:
+    - param: 'connect'
+      value: '5000ms'
+    - param: 'client'
+      value: '50000ms'
+    - param: 'server'
+      value: '50000ms'
+  options:
+    - httpclose
+    - forwardfor except 127.0.0.0/8
+    - redispatch
+    - abortonclose
+    - httplog
+    - dontlognull
+  errorfile:
+    - code: 400
+      file: /etc/haproxy/errors/400.http
+    - code: 403
+      file: /etc/haproxy/errors/403.http
+    - code: 408
+      file: /etc/haproxy/errors/408.http
+    - code: 500
+      file: /etc/haproxy/errors/500.http
+    - code: 502
+      file: /etc/haproxy/errors/502.http
+    - code: 504
+      file: /etc/haproxy/errors/504.http

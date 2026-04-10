@@ -235,12 +235,10 @@ function checkout_repos() {
   fi
   cd $BSD/infra-configuration
   git checkout $GIT_BRANCH
-  git submodule update --init --recursive
   git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
   cd -
   cd $BSD/infra-customizations
   git checkout $GIT_BRANCH
-  git submodule update --init --recursive
   git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
   cp -a $BSD/infra-customizations/* $BSD/infra-configuration
   cd -

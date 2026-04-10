@@ -1,0 +1,123 @@
+---
+
+## ASSEMBLE CONFIG - SETUP
+
+- name: 'Create directory for the assembly'
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ etc_prefix }}/haproxy/{{ item }}"
+    state: directory
+  with_items: "{{ haproxy_assemble_types }}"
+
+- name: 'Empty the folder if not already empty'
+  ansible.builtin.command: find {{ etc_prefix }}/haproxy/{{ item }} -name *.cfg -exec rm -f {} \;
+  with_items: "{{ haproxy_assemble_types }}"
+
+## ASSEMBLE CONFIG - FRONTEND
+
+- name: 'Build up the frontends'
+  ansible.builtin.template:
+    mode: 0644
+    src: frontend.cfg
+    dest: "{{ etc_prefix }}/haproxy/frontends.d/{{ item.name }}.cfg"
+  with_items: "{{ haproxy_frontends }}"
+  when: haproxy_frontends is defined
+
+## ASSEMBLE CONFIG - BACKEND
+
+- name: 'Build up the backends'
+  ansible.builtin.template:
+    mode: 0644
+    src: backend.cfg
+    dest: "{{ etc_prefix }}/haproxy/backends.d/{{ item.name }}.cfg"
+  with_items: "{{ haproxy_backends }}"
+  when: haproxy_backends is defined
+
+## ASSEMBLE CONFIG - LISTEN
+
+- name: 'Build up the listen sections'
+  ansible.builtin.template:
+    mode: 0644
+    src: listen.cfg
+    dest: "{{ etc_prefix }}/haproxy/listen.d/{{ item.name }}.cfg"
+  with_items: "{{ haproxy_listen }}"
+  when: haproxy_listen is defined
+
+## ASSEMBLE CONFIG - PEERS
+
+- name: 'Build up the peers sections'
+  ansible.builtin.template:
+    mode: 0644
+    src: peer.cfg
+    dest: "{{ etc_prefix }}/haproxy/peers.d/{{ item.name }}.cfg"
+  with_items: "{{ haproxy_peers }}"
+  when: haproxy_peers is defined
+
+## ASSEMBLE CONFIG - USERLIST
+
+- name: 'Build up the userlist sections'
+  ansible.builtin.template:
+    mode: 0644
+    src: userlist.cfg
+    dest: "{{ etc_prefix }}/haproxy/userlists.d/{{ item.name }}.cfg"
+  with_items: "{{ haproxy_userlists }}"
+  when: haproxy_userlists is defined
+
+## ASSEMBLE CONFIG - GLOBAL & DEFAULT
+
+- name: 'Build up the global config'
+  ansible.builtin.template:
+    mode: 0644
+    src: global.cfg
+    dest: "{{ etc_prefix }}/haproxy/compiled/01-global.cfg"
+  when: haproxy_global is defined
+  tags: 'test'
+
+- name: 'Build up the default config'
+  ansible.builtin.template:
+    mode: 0644
+    src: defaults.cfg
+    dest: "{{ etc_prefix }}/haproxy/compiled/02-defaults.cfg"
+  when: haproxy_defaults is defined
+
+
+## ASSEMBLE FINAL CONFIG
+
+- name: 'Assemble the backends configuration file'
+  ansible.builtin.assemble:
+    mode: 0644
+    src: "{{ etc_prefix }}/haproxy/backends.d"
+    dest: "{{ etc_prefix }}/haproxy/compiled/03-backends.cfg"
+
+- name: 'Assemble the frontends configuration file'
+  ansible.builtin.assemble:
+    mode: 0644
+    src: "{{ etc_prefix }}/haproxy/frontends.d"
+    dest: "{{ etc_prefix }}/haproxy/compiled/04-frontends.cfg"
+
+- name: 'Assemble the listen sections configuration file'
+  ansible.builtin.assemble:
+    mode: 0644
+    src: "{{ etc_prefix }}/haproxy/listen.d"
+    dest: "{{ etc_prefix }}/haproxy/compiled/05-listen.cfg"
+
+- name: 'Assemble the userlists sections configuration file'
+  ansible.builtin.assemble:
+    mode: 0644
+    src: "{{ etc_prefix }}/haproxy/userlists.d"
+    dest: "{{ etc_prefix }}/haproxy/compiled/06-userlists.cfg"
+
+- name: 'Assemble the peers sections configuration file'
+  ansible.builtin.assemble:
+    mode: 0644
+    src: "{{ etc_prefix }}/haproxy/peers.d"
+    dest: "{{ etc_prefix }}/haproxy/compiled/07-peers.cfg"
+
+
+- name: 'Assemble the final configuration file'
+  ansible.builtin.assemble:
+    mode: 0644
+    src: "{{ etc_prefix }}/haproxy/compiled"
+    dest: "{{ config_location }}"
+    backup: true
+  notify: Restart haproxy

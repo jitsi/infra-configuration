@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  author: Pierre Paul Lefebvre, Rafe Colton
+  description: Installs and configure haproxy
+  company: Pheromone, ModCloth
+  license: Apache v2
+  min_ansible_version: '1.5'
+  platforms:
+    - name: Ubuntu
+      versions:
+        - precise
+        - trusty
+        - focal
+        - jammy
+    - name: SmartOS
+    - name: Debian
+      versions:
+        - wheezy
+        - jessie
+        - bullseye
+  galaxy_tags:
+    - networking
+    - system
+    - web
+dependencies: []

@@ -1,0 +1,10 @@
+.DS_Store
+.vagrant
+.tm_properties
+*.retry
+examples/hashistack
+examples/hosts
+files/*.zip
+files/nomad
+nomad_*_SHA256SUMS
+*.swp

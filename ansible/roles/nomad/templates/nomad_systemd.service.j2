@@ -1,0 +1,36 @@
+### BEGIN INIT INFO
+# Provides:          nomad
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: distributed scheduler
+# Description:       distributed, highly available, datacenter-aware scheduler
+### END INIT INFO
+
+[Unit]
+Description=nomad agent
+Documentation=https://nomadproject.io/docs/
+After=network-online.target
+Wants=network-online.target
+StartLimitBurst=3
+StartLimitIntervalSec=10
+
+[Service]
+User={{ nomad_user }}
+Group={{ nomad_group }}
+ExecStart={{ nomad_bin_dir }}/nomad agent -config={{ nomad_config_dir }}
+
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+LimitNOFILE=infinity
+LimitNPROC=infinity
+Restart=always
+RestartSec=120
+{% if systemd_version.stdout is version('226', '>=') %}
+TasksMax=infinity
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target
