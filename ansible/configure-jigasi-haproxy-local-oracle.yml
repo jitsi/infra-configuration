@@ -34,6 +34,10 @@
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 86400
+      async: 300
+      poll: 10
+      retries: 3
+      delay: 10
     - name: Change instance hostname
       ansible.builtin.hostname:
         name: "{{ jigasi_haproxy_hostname }}"

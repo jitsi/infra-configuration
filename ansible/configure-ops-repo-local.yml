@@ -24,6 +24,10 @@
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
+      async: 300
+      poll: 10
+      retries: 3
+      delay: 10
   roles:
     - { role: "iptables-repo", tags: "iptables", when: cloud_provider == 'oracle' }
     - { role: "sshusers", tags: "ssh" }

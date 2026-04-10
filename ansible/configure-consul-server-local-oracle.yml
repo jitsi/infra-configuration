@@ -107,6 +107,10 @@
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
+      async: 300
+      poll: 10
+      retries: 3
+      delay: 10
     - name: Get instance's details
       ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/instance/

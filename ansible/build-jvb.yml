@@ -80,6 +80,10 @@
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
+      async: 300
+      poll: 10
+      retries: 3
+      delay: 10
 
   post_tasks:
     - name: Register installed JVB version
