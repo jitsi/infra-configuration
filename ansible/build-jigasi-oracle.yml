@@ -33,6 +33,7 @@
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", tags: "rsyslog"}
     - { role: "consul-install", tags: "consul-install"}
+    - { role: "consul-template", tags: "consul-template-install", consul_template_install_flag: true, consul_template_configure_flag: false }
     - { role: google-cloud, tags: "google-cloud", google_cloud_configure_flag: false, google_cloud_install_flag: true}
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "nginx", tags: "nginx", nginx_start_service: false}

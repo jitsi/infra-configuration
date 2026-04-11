@@ -37,5 +37,5 @@
   roles:
     - { role: "iptables-haproxy", "tags": "iptables"}
     - { role: "shard-ws-proxy", "tags": "shard-ws-proxy"}
-    - { role: "consul-template", tags: "consul-template" }
+    - { role: "consul-template", tags: "consul-template", consul_template_install_flag: false, consul_template_configure_flag: true }
     - { role: "vector", tags: "vector" }

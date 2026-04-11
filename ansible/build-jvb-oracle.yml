@@ -41,4 +41,5 @@
         jvb_ddns_install_flag: true, jvb_ddns_configure_flag: false, jvb_ddns_cleanup_flag: false, ipv6_enabled: false }
     - { role: "jvb-rtcstats-push", tags: "rtcstats-push", jvb_rtcstats_push_install_flag: true, jvb_rtcstats_push_configure_flag: false }
     - { role: jitsi-dumper, tags: "jitsi-dumper"}
+    - { role: "consul-template", tags: "consul-template-install", consul_template_install_flag: true, consul_template_configure_flag: false }
     - { role: "clean-system", tags: "clean-system, build" }

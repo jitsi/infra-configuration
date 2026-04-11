@@ -1,11 +1,8 @@
 ---
-# tasks file for consul-template
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
+  when: consul_template_install_flag
 
-- name: Include user and group settings
-  ansible.builtin.import_tasks: user_group.yml
-
-- name: Include consul-template installation
-  ansible.builtin.import_tasks: install.yml
-
-- name: Include service installation
-  ansible.builtin.import_tasks: service.yml
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
+  when: consul_template_configure_flag
