@@ -64,6 +64,9 @@ jicofo {
       video-layers-allocation {
         enabled = {{ jicofo_enable_video_layers_allocation }}
       }
+      mid {
+        enabled = {{ jicofo_enable_mid | to_json }}
+      }
     }
     video {
       vp8 {
