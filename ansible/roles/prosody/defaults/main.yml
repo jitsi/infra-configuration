@@ -82,6 +82,8 @@ prosody_enable_muc_census: true
 prosody_enable_muc_domain_mapper: false
 prosody_enable_muc_password_whitelist: true
 prosody_enable_muc_rate_limit: true
+prosody_enable_muc_resource_validate: true
+prosody_muc_resource_validate_anonymous_strict: false
 prosody_enable_muc_size: false
 prosody_enable_password_preset: false
 prosody_enable_persistent_lobby: false

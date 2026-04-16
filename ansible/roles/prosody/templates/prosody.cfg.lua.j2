@@ -666,8 +666,14 @@ Component "conference.{{ prosody_domain_name }}" "muc"
         "muc_displayname";
         "muc_cleanup_backend_services";
         "muc_occupant_session";
+{% if prosody_enable_muc_resource_validate %}
+        "muc_resource_validate";
+{% endif %}
     }
 
+{% if prosody_enable_muc_resource_validate %}
+    anonymous_strict = {{ prosody_muc_resource_validate_anonymous_strict | lower }};
+{% endif %}
 {% if prosody_enable_rate_limit %}
     -- Max allowed join/login rate in events per second.
 	rate_limit_login_rate = {{ prosody_rate_limit_login_rate }};
