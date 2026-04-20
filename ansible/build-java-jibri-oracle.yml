@@ -54,4 +54,5 @@
         upload_customizations_install_flag: true, upload_customizations_configure_flag: false }
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: true, jibri_pjsua_configure_flag: false}
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: true, sip_jibri_configure_flag: false}
+    - { role: "consul-template", tags: "consul-template-install", consul_template_install_flag: true, consul_template_configure_flag: false }
     - { role: "clean-system", tags: "clean-system, build" }

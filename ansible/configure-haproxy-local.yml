@@ -220,7 +220,7 @@
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
     - { role: "shard-ws-proxy", "tags": "shard-ws-proxy" }
-    - { role: "consul-template", tags: "consul-template" }
+    - { role: "consul-template", tags: "consul-template", consul_template_install_flag: false, consul_template_configure_flag: true }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
   post_tasks:

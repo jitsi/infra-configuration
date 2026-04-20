@@ -1,5 +1,7 @@
 ---
 # defaults file for consul-template
+consul_template_install_flag: true
+consul_template_configure_flag: true
 consul_template_version: "0.30.0"
 consul_template_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 consul_template_release: "consul-template_{{ consul_template_version }}_linux_{{ consul_template_architecture }}"

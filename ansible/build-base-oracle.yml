@@ -89,6 +89,7 @@
     - { role: "openjdk-java", tags: "openjdk-java" }
     - { role: "jitsi-dumper", tags: "jitsi-dumper"}
     - { role: "consul-install", tags: "consul-install" }
+    - { role: "consul-template", tags: "consul-template-install", consul_template_install_flag: true, consul_template_configure_flag: false }
     - { role: "docker", tags: "docker" }
     - { role: "nomad", tags: "nomad", nomad_enabled_on_boot: false }
     - { role: "nomad-extras", tags: "nomad-extras" }
