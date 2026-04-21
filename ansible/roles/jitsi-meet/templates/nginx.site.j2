@@ -307,6 +307,7 @@ server {
     add_header X-Jitsi-Region '{{ shard_region }}';
     add_header X-Jitsi-Release '{{ jitsi_release_number }}';
     add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region";
+    add_header "Cache-Control" "no-cache, no-store";
     set $jitsi_shard "{{ shard_name }}";
     set $jitsi_region "{{ shard_region }}";
     set $prefix "";
@@ -353,6 +354,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "no-cache, no-store";
 
        alias /etc/jitsi/meet/{{ jitsi_meet_domain_name }}-config.js;
     }
@@ -366,6 +368,7 @@ server {
         add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+        add_header "Cache-Control" "public, max-age=300, s-maxage=3600";
         alias {{ jitsi_meet_nginx_root }}/$1/$2;
     }
 
@@ -377,6 +380,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=300, s-maxage=3600";
        alias {{ jitsi_meet_nginx_root }}$uri;
     }
 
@@ -388,6 +392,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=300, s-maxage=3600";
        alias {{ jitsi_meet_nginx_root }}$uri;
     }
 
@@ -399,6 +404,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=60, s-maxage=300";
        alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
     }
 
@@ -410,6 +416,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=60, s-maxage=300";
        root {{ jitsi_meet_nginx_root }}/libs;
     }
 
@@ -435,6 +442,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=2678400, s-maxage=2678400, immutable";
 
        rewrite ^/v1/_cdn/([^/?&:'"]+)/(.*) /$2;
     }
@@ -467,6 +475,7 @@ server {
         add_header 'X-Jitsi-Region' '{{ shard_region }}';
         add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
         add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+        add_header "Cache-Control" "no-cache, no-store";
 
     }
 {% if jitsi_meet_enable_room_api %}
@@ -710,6 +719,7 @@ server {
 {% if jitsi_meet_content_security_policy_on_root %}
         add_header 'Content-Security-Policy' 'frame-ancestors https://{{ jitsi_meet_domain_name }}';
 {% endif %}
+        add_header "Cache-Control" "public, max-age=60, s-maxage=300";
         ssi on;
 
     }
@@ -730,6 +740,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "no-cache, no-store";
 
        alias /etc/jitsi/meet/{{ jitsi_meet_domain_name }}-config.js;
     }
@@ -746,6 +757,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header 'Access-Control-Expose-Headers' "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=300, s-maxage=3600";
        alias {{ jitsi_meet_nginx_root }}/libs/lib-jitsi-meet.min.js;
     }
 
@@ -756,6 +768,7 @@ server {
        add_header 'X-Jitsi-Release' '{{ jitsi_release_number }}';
        add_header 'Access-Control-Allow-Origin' '*';
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
+       add_header "Cache-Control" "public, max-age=60, s-maxage=300";
        alias {{ jitsi_meet_nginx_root }}/libs/external_api.min.js;
     }
 
