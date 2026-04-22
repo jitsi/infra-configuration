@@ -30,7 +30,7 @@ jicofo_enable_source_signaling_delay: true
 jicofo_enable_ssrc_logs: false
 jicofo_enable_health: true
 jicofo_enable_video_layers_allocation: true
-jicofo_enable_mid: true
+jicofo_enable_mid: false
 jicofo_enable_vp8: true
 jicofo_enable_vp9: true
 jicofo_health_cron:
