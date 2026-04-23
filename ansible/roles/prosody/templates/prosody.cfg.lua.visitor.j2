@@ -424,3 +424,15 @@ Component "polls.v{{ item }}.meet.jitsi" "polls_component"
 Component "metadata.v{{ item }}.meet.jitsi" "room_metadata_component"
     muc_component = "conference.v{{ item }}.meet.jitsi"
 {% endif %}
+
+{% if hcv_environment in sip_jibri_shared_secrets %}
+VirtualHost "sipjibri.{{ prosody_domain_name }}"
+    modules_enabled = {
+{% if prosody_xmpp_resume %}
+      "smacks";
+{% endif %}
+    }
+    authentication = "jitsi-shared-secret"
+    shared_secret = "{{ sip_jibri_shared_secrets[hcv_environment] }}"
+    smacks_max_old_sessions = 2000;
+{% endif %}
