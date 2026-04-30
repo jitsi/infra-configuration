@@ -774,11 +774,6 @@ Component "speakerstats.{{ prosody_domain_name }}" "speakerstats_component"
 {% endif %}
     }
 {% endif %}
-{% if prosody_meet_conf_duration_enabled %}
-Component "conferenceduration.{{ prosody_domain_name }}" "conference_duration_component"
-    muc_component = "conference.{{ prosody_domain_name }}"
-{% endif %}
-
 {% if prosody_enable_lobby %}
 Component "lobby.{{ prosody_domain_name }}" "muc"
     storage = "memory"
