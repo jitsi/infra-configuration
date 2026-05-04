@@ -1,0 +1,93 @@
+---
+# Configure additional GoCD agent instances (agent-2, agent-3, etc.)
+- name: Create directories for additional GoCD agents
+  ansible.builtin.file:
+    path: "{{ item[0] }}-{{ item[1] }}"
+    state: directory
+    owner: go
+    group: go
+    mode: 0755
+  loop: "{{ ['/usr/share/go-agent', '/var/lib/go-agent', '/var/log/go-agent'] | product(range(2, gocd_agent_count + 1)) }}"
+  when: gocd_agent_count > 1
+
+- name: Copy go-agent binaries and configs to additional agent directories
+  ansible.builtin.shell: |
+    cp -r /usr/share/go-agent/* /usr/share/go-agent-{{ item }}/
+    chown -R go:go /usr/share/go-agent-{{ item }}
+  args:
+    creates: /usr/share/go-agent-{{ item }}/bin
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
+
+- name: Update wrapper-properties.conf for additional agents
+  ansible.builtin.replace:
+    path: /usr/share/go-agent-{{ item }}/wrapper-config/wrapper-properties.conf
+    regexp: '/var/lib/go-agent'
+    replace: '/var/lib/go-agent-{{ item }}'
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
+
+- name: Update wrapper-properties.conf log directory for additional agents
+  ansible.builtin.replace:
+    path: /usr/share/go-agent-{{ item }}/wrapper-config/wrapper-properties.conf
+    regexp: '/var/log/go-agent'
+    replace: '/var/log/go-agent-{{ item }}'
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
+
+- name: Configure GoCD server URL in wrapper-properties.conf for additional agents
+  ansible.builtin.lineinfile:
+    path: /usr/share/go-agent-{{ item }}/wrapper-config/wrapper-properties.conf
+    regexp: '^wrapper\.app\.parameter\.101='
+    line: 'wrapper.app.parameter.101={{ gocd_server_url }}'
+    backrefs: false
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1 and gocd_server_url is defined
+  notify: Restart additional go-agents
+
+- name: Update wrapper.conf for additional agents
+  ansible.builtin.replace:
+    path: /usr/share/go-agent-{{ item }}/wrapper-config/wrapper.conf
+    regexp: '/var/lib/go-agent'
+    replace: '/var/lib/go-agent-{{ item }}'
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
+
+- name: Create systemd service files for additional agents
+  ansible.builtin.template:
+    src: go-agent.service.j2
+    dest: /etc/systemd/system/go-agent-{{ item }}.service
+    mode: 0644
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
+  notify: Restart additional go-agents
+
+- name: Create config directories for additional agents
+  ansible.builtin.file:
+    path: /var/lib/go-agent-{{ item }}/config
+    state: directory
+    owner: go
+    group: go
+    mode: 0755
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
+
+- name: Configure auto-registration for additional agents
+  ansible.builtin.template:
+    src: autoregister.properties.j2
+    dest: /var/lib/go-agent-{{ item }}/config/autoregister.properties
+    owner: go
+    group: go
+    mode: 0600
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1 and gocd_agent_auto_register_key is defined
+  notify: Restart additional go-agents
+
+- name: Enable and start additional go-agent services
+  ansible.builtin.systemd:
+    name: go-agent-{{ item }}
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
