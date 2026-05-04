@@ -1,0 +1,62 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: ubuntu-focal
+    image: dokken/ubuntu-20.04
+    command: /lib/systemd/systemd
+    capabilities:
+      - SYS_ADMIN
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+  - name: ubuntu-jammy
+    image: dokken/ubuntu-22.04
+    command: /lib/systemd/systemd
+    capabilities:
+      - SYS_ADMIN
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+    verify: verify.yml
+  inventory:
+    host_vars:
+      ubuntu-focal:
+        ansible_user: root
+        locale: "en_US.UTF-8"
+        common_install_pip_flag: true
+        common_install_pip3_flag: true
+        ansible_distribution_major_version: "20"
+        common_cloud_provider: "oracle"
+      ubuntu-jammy:
+        ansible_user: root
+        locale: "en_US.UTF-8"
+        common_install_pip_flag: false
+        common_install_pip3_flag: true
+        ansible_distribution_major_version: "22"
+        common_cloud_provider: "oracle"
+  lint:
+    name: ansible-lint
+verifier:
+  name: ansible
+scenario:
+  name: oracle
+  test_sequence:
+    - lint
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - cleanup
+    - destroy
