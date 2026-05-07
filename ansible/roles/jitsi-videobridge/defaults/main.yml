@@ -67,6 +67,7 @@ jvb_health_check_cron_user: ubuntu
 jvb_host: localhost
 jvb_hostname: "{{ environment_domain_name }}"
 jvb_image_build_flag: false
+jvb_jumbo_frames: true
 jvb_initial_drain_mode: false
 jvb_redact_remote_addresses: true
 jvb_install_flag: true
