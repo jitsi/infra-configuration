@@ -11,6 +11,7 @@ coturn_dpkg_path: "/tmp"
 coturn_dpkg_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/unstable/"
 coturn_health_sns_topic: "arn:aws:sns:us-west-1:103425057857:CoturnHealth-Check-List"
 coturn_install_flag: true
+coturn_jumbo_frames: true
 coturn_install_apt_flag: true
 coturn_install_src_flag: false
 coturn_ipv6_ddns: false
