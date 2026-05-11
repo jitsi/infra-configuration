@@ -155,9 +155,9 @@
 
 # script to configure the secondary VNIC
 - name: Upload configure secondary vnic oracle
-  ansible.builtin.copy:
+  ansible.builtin.template:
     dest: "/usr/local/bin/secondary_vnic_all_configure_oracle.sh"
-    src: "secondary_vnic_all_configure_oracle.sh"
+    src: "secondary_vnic_all_configure_oracle.sh.j2"
     mode: 0755
     owner: root
   when: jvb_cloud_provider == "oracle"
