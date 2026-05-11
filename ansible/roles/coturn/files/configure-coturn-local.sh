@@ -10,6 +10,11 @@ function checkout_repos() {
   mkdir -p $BOOTSTRAP_DIRECTORY
   if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null; fi
 
+  if [ -d "$LOCAL_REPO_DIRECTORY" ]; then
+    echo "Found local repo copies in $LOCAL_REPO_DIRECTORY, setting GIT_ALTERNATE_OBJECT_DIRECTORIES"
+    export GIT_ALTERNATE_OBJECT_DIRECTORIES="$LOCAL_REPO_DIRECTORY/infra-configuration/.git/objects:$LOCAL_REPO_DIRECTORY/infra-customizations/.git/objects"
+  fi
+  echo "Now cloning directly from github"
   git clone $INFRA_CONFIGURATION_REPO $BOOTSTRAP_DIRECTORY/infra-configuration
   git clone $INFRA_CUSTOMIZATIONS_REPO $BOOTSTRAP_DIRECTORY/infra-customizations
   cd $BOOTSTRAP_DIRECTORY/infra-configuration

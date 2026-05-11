@@ -1,21 +1,21 @@
 
-BSD="/tmp/bootstrap"
-LRD="/opt/jitsi/bootstrap"
+BOOTSTRAP_DIRECTORY="/tmp/bootstrap"
+LOCAL_REPO_DIRECTORY="/opt/jitsi/bootstrap"
 function check_private_ip() {
   local counter=1
-  local ips=1
+  local ip_status=1
   while [ $counter -le 2 ]; do
-    local pip=$(curl -s curl http://169.254.169.254/opc/v1/vnics/ | jq .[0].privateIp -r)
-    if [ -z $pip ] || [ $pip == "null" ]; then
+    local my_private_ip=$(curl -s curl http://169.254.169.254/opc/v1/vnics/ | jq .[0].privateIp -r)
+    if [ -z $my_private_ip ] || [ $my_private_ip == "null" ]; then
       sleep 30
       ((counter++))
     else
-      ips=0
+      ip_status=0
       break
     fi
   done
-  if [ $ips -eq 1 ]; then
-    echo "Private IP still not available status: $ips" > $tmp_msg_file
+  if [ $ip_status -eq 1 ]; then
+    echo "Private IP still not available status: $ip_status" > $tmp_msg_file
     return 1
   else
     return 0
@@ -66,6 +66,7 @@ function add_ip_tags() {
         INSTANCE_ETAG=$(echo $INSTANCE_METADATA | jq -r '.etag')
         NEW_FREEFORM_TAGS=$(echo $INSTANCE_METADATA | jq --argjson ITEM "$ITEM" '.data["freeform-tags"] += $ITEM' | jq '.data["freeform-tags"]')
         $OCI_BIN compute instance update --instance-id $INSTANCE_ID --freeform-tags "$NEW_FREEFORM_TAGS" --if-match "$INSTANCE_ETAG" --force
+        rm /tmp/oracle_cache-ocid* || echo "No cache to delete"
     else
       return 2
     fi
@@ -140,12 +141,12 @@ mount_volume() {
   fi
 }
 function get_volumes() {
-  DTS="$1"
-  CID="$(echo $DTS | jq -r .compartmentId)"
-  AD="$(echo $DTS | jq -r .availabilityDomain)"
-  REGION="$(echo $DTS | jq -r .regionInfo.regionIdentifier)"
-  AVS=$($OCI_BIN bv volume list --compartment-id $CID --lifecycle-state AVAILABLE --region $REGION --availability-domain $AD --auth instance_principal)
-  echo $AVS
+  DETAILS="$1"
+  COMPARTMENT_ID="$(echo $DETAILS | jq -r .compartmentId)"
+  AD="$(echo $DETAILS | jq -r .availabilityDomain)"
+  REGION="$(echo $DETAILS | jq -r .regionInfo.regionIdentifier)"
+  ALL_VOLUMES=$($OCI_BIN bv volume list --compartment-id $COMPARTMENT_ID --lifecycle-state AVAILABLE --region $REGION --availability-domain $AD --auth instance_principal)
+  echo $ALL_VOLUMES
   if [[ $? -ne 0 ]]; then
     echo "Failed to get list of volumes"
     return 4
@@ -154,33 +155,33 @@ function get_volumes() {
 function mount_volumes() {
   if [[ "$VOLUMES_ENABLED" == "true" ]]; then
     [ -z "$TAG_NAMESPACE" ] && TAG_NAMESPACE="jitsi"
-    IDATA="$(curl -m 10 -s curl http://169.254.169.254/opc/v1/instance/)"
-    IID="$(echo $IDATA | jq -r .id)"
-    GI="$(echo $IDATA | jq -r '.freeformTags."group-index"')"
-    ROLE="$(echo $IDATA | jq -r .definedTags.$TAG_NAMESPACE."role")"
-    AVS="$(get_volumes "$IDATA")"
+    INSTANCE_DATA="$(curl --connect-timeout 10 -s curl http://169.254.169.254/opc/v1/instance/)"
+    INSTANCE_ID="$(echo $INSTANCE_DATA | jq -r .id)"
+    GROUP_INDEX="$(echo $INSTANCE_DATA | jq -r '.freeformTags."group-index"')"
+    ROLE="$(echo $INSTANCE_DATA | jq -r .definedTags.$TAG_NAMESPACE."role")"
+    ALL_VOLUMES="$(get_volumes "$INSTANCE_DATA")"
     if [[ $? -eq 0 ]]; then
-      RVS="$(echo $AVS | jq ".data | map(select(.\"freeform-tags\".\"volume-role\" == \"$ROLE\"))")"
-      GVS="$(echo $RVS | jq "map(select(.\"freeform-tags\".\"volume-index\" == \"$GI\"))")"
-      GVC="$(echo $GVS | jq length)"
-      if [[ "$GVC" -gt 0 ]]; then
-        for i in `seq 0 $((GVC-1))`; do
-          VD="$(echo $GVS | jq -r ".[$i]")"
-          VT="$(echo $VD | jq -r .\"freeform-tags\".\"volume-type\")"
-          VL="$VT-$GROUP_INDEX"
-          mount_volume "$VD" $VL $IID
+      ROLE_VOLUMES="$(echo $ALL_VOLUMES | jq ".data | map(select(.\"freeform-tags\".\"volume-role\" == \"$ROLE\"))")"
+      GROUP_VOLUMES="$(echo $ROLE_VOLUMES | jq "map(select(.\"freeform-tags\".\"volume-index\" == \"$GROUP_INDEX\"))")"
+      GROUP_VOLUMES_COUNT="$(echo $GROUP_VOLUMES | jq length)"
+      if [[ "$GROUP_VOLUMES_COUNT" -gt 0 ]]; then
+        for i in `seq 0 $((GROUP_VOLUMES_COUNT-1))`; do
+          VOLUME_DETAIL="$(echo $GROUP_VOLUMES | jq -r ".[$i]")"
+          VOLUME_TYPE="$(echo $VOLUME_DETAIL | jq -r .\"freeform-tags\".\"volume-type\")"
+          VOLUME_LABEL="$VOLUME_TYPE-$GROUP_INDEX"
+          mount_volume "$VOLUME_DETAIL" $VOLUME_LABEL $INSTANCE_ID
         done
       else
-        echo "No volumes found matching role $ROLE and group index $GI"
+        echo "No volumes found matching role $ROLE and group index $GROUP_INDEX"
       fi
-      NGVS="$(echo $RVS | jq "map(select(.\"freeform-tags\".\"volume-index\" == null))")"
-      NGVSC="$(echo $NGVS | jq length)"
-      if [[ "$NGVSC" -gt 0 ]]; then
-        for i in `seq 0 $((NGVSC-1))`; do
-          VD="$(echo $NGVS | jq -r ".[$i]")"
-          VT="$(echo $VD | jq -r .\"freeform-tags\".\"volume-type\")"
-          VL="$VOLUME_TYPE"
-          mount_volume "$VD" $VL $IID
+      NON_GROUP_VOLUMES="$(echo $ROLE_VOLUMES | jq "map(select(.\"freeform-tags\".\"volume-index\" == null))")"
+      NON_GROUP_VOLUMES_COUNT="$(echo $NON_GROUP_VOLUMES | jq length)"
+      if [[ "$NON_GROUP_VOLUMES_COUNT" -gt 0 ]]; then
+        for i in `seq 0 $((NON_GROUP_VOLUMES_COUNT-1))`; do
+          VOLUME_DETAIL="$(echo $NON_GROUP_VOLUMES | jq -r ".[$i]")"
+          VOLUME_TYPE="$(echo $VOLUME_DETAIL | jq -r .\"freeform-tags\".\"volume-type\")"
+          VOLUME_LABEL="$VOLUME_TYPE"
+          mount_volume "$VOLUME_DETAIL" $VOLUME_LABEL $INSTANCE_ID || echo "Failed to mount non-group volume $VOLUME_LABEL, may be mounted elsewhere"
         done
       else
         echo "No volumes found matching role $ROLE with no group index"
@@ -206,61 +207,52 @@ function set_hostname() {
     #clear domain if null
     [ "$DOMAIN" == "null" ] && DOMAIN=
     [ -z "$DOMAIN" ] && DOMAIN="oracle.jitsi.net"
-    mcn="$(echo $MY_IP | awk -F. '{print $2"-"$3"-"$4}')"
-    MY_HOSTNAME="$CLOUD_NAME-$TYPE-$mcn.$DOMAIN"
+    MY_COMPONENT_NUMBER="$(echo $MY_IP | awk -F. '{print $2"-"$3"-"$4}')"
+    MY_HOSTNAME="$CLOUD_NAME-$TYPE-$MY_COMPONENT_NUMBER.$DOMAIN"
   fi
   hostname $MY_HOSTNAME
   grep $MY_HOSTNAME /etc/hosts || echo "$MY_IP    $MY_HOSTNAME" >> /etc/hosts
   echo "$MY_HOSTNAME" > /etc/hostname
 }
 function checkout_repos() {
-  [ -d $BSD/infra-configuration ] && rm -rf $BSD/infra-configuration
-  [ -d $BSD/infra-customizations ] && rm -rf $BSD/infra-customizations
+  [ -d $BOOTSTRAP_DIRECTORY/infra-configuration ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-configuration
+  [ -d $BOOTSTRAP_DIRECTORY/infra-customizations ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-customizations
   if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null; fi
-  mkdir -p "$BSD"
-  if [ -d "$LRD" ]; then
-    echo "Found local repo copies in $LRD, using instead of clone"
-    cp -a $LRD/infra-configuration $BSD
-    cp -a $LRD/infra-customizations $BSD
-    cd $BSD/infra-configuration
-    git pull
-    cd -
-    cd $BSD/infra-customizations
-    git pull
-    cd -
-  else
-    echo "No local repos found, cloning directly from github"
-    git clone $INFRA_CONFIGURATION_REPO $BSD/infra-configuration
-    git clone $INFRA_CUSTOMIZATIONS_REPO $BSD/infra-customizations
+  mkdir -p "$BOOTSTRAP_DIRECTORY"
+  if [ -d "$LOCAL_REPO_DIRECTORY" ]; then
+    echo "Found local repo copies in $LOCAL_REPO_DIRECTORY, setting GIT_ALTERNATE_OBJECT_DIRECTORIES"
+    export GIT_ALTERNATE_OBJECT_DIRECTORIES="$LOCAL_REPO_DIRECTORY/infra-configuration/.git/objects:$LOCAL_REPO_DIRECTORY/infra-customizations/.git/objects"
   fi
-  cd $BSD/infra-configuration
+  echo "Now cloning directly from github"
+  git clone $INFRA_CONFIGURATION_REPO $BOOTSTRAP_DIRECTORY/infra-configuration
+  git clone $INFRA_CUSTOMIZATIONS_REPO $BOOTSTRAP_DIRECTORY/infra-customizations
+  cd $BOOTSTRAP_DIRECTORY/infra-configuration
   git checkout $GIT_BRANCH
   git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
-  cd -
-  cd $BSD/infra-customizations
+  cd /root
+  cd $BOOTSTRAP_DIRECTORY/infra-customizations
   git checkout $GIT_BRANCH
   git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
-  cp -a $BSD/infra-customizations/* $BSD/infra-configuration
-  cd -
+  cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
+  cd /root
 }
 function run_ansible_playbook() {
-    cd $BSD/infra-configuration
+    cd $BOOTSTRAP_DIRECTORY/infra-configuration
     PLAYBOOK=$1
     VARS=$2
     DEPLOY_TAGS=${ANSIBLE_TAGS-"all"}
-    sc=0
     ansible-playbook -v \
         -i "127.0.0.1," \
         -c local \
         --tags "$DEPLOY_TAGS" \
         --extra-vars "$VARS" \
         --vault-password-file=/root/.vault-password \
-        ansible/$PLAYBOOK || sc=1
-    if [ $sc -eq 1 ]; then
+        ansible/$PLAYBOOK || status_code=1
+    if [ $status_code -eq 1 ]; then
         echo 'Provisioning stage failed' > $tmp_msg_file;
     fi
-    cd -
-    return $sc
+    cd /root
+    return $status_code
 }
 function default_dump() {
   sudo /usr/local/bin/dump-boot.sh
@@ -276,7 +268,7 @@ function default_main() {
   return $EXIT_CODE
 }
 function default_provision() {
-  local sc=0
+  local status_code=0
   . /usr/local/bin/oracle_cache.sh
   fetch_credentials $ENVIRONMENT
   [ -z "$HOST_ROLE" ] && HOST_ROLE="$SHARD_ROLE"
@@ -297,22 +289,22 @@ function default_provision() {
     export INFRA_CONFIGURATION_REPO="https://github.com/jitsi/infra-configuration.git"
   fi
   checkout_repos
-  run_ansible_playbook "$ANSIBLE_PLAYBOOK"  "$ANSIBLE_VARS" || sc=1
-  return $sc;
+  run_ansible_playbook "$ANSIBLE_PLAYBOOK"  "$ANSIBLE_VARS" || status_code=1
+  return $status_code;
 }
 function default_terminate() {
-  echo "Terminating"
+  echo "Terminating the instance; we enable debug to have more details in case of oci cli failures"
   INSTANCE_ID=`curl --connect-timeout 10 -s curl http://169.254.169.254/opc/v1/instance/ | jq -r .id`
   sudo /usr/local/bin/oci compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
   RET=$?
   # infinite loop on failure
   if [ $RET -gt 0 ]; then
-    echo "Failed to terminate, exit code: $RET, sleep 10 retry"
+    echo "Failed to terminate instance, exit code: $RET, sleeping 10 then retrying"
     sleep 10
     default_terminate
   fi
 }
-# end of postinstall-lib, next line blank
+# end of postinstall-lib, this space intentionally left blank
 
 
 
