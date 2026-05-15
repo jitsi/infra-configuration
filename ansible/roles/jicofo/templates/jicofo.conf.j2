@@ -57,6 +57,15 @@ jicofo {
     }
     load-redistribution {
         enabled = {{ jicofo_enable_load_redistribution }}
+{% if jicofo_load_redistribution_interval is defined %}
+        interval = {{ jicofo_load_redistribution_interval }}
+{% endif %}
+{% if jicofo_load_redistribution_timeout is defined %}
+        timeout = {{ jicofo_load_redistribution_timeout }}
+{% endif %}
+{% if jicofo_load_redistribution_stress_threshold is defined %}
+        stress-threshold = {{ jicofo_load_redistribution_stress_threshold }}
+{% endif %}
     }
   }
   codec {
