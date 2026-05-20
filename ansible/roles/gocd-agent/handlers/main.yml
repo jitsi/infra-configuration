@@ -1,0 +1,14 @@
+---
+- name: Restart go-agent
+  ansible.builtin.systemd:
+    name: go-agent
+    state: restarted
+    daemon_reload: true
+
+- name: Restart additional go-agents
+  ansible.builtin.systemd:
+    name: go-agent-{{ item }}
+    state: restarted
+    daemon_reload: true
+  loop: "{{ range(2, gocd_agent_count + 1) | list }}"
+  when: gocd_agent_count > 1
