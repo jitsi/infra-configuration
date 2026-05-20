@@ -30,6 +30,7 @@
           runtimeArgs: []
     docker_daemon_options_extras: "{{ docker_daemon_nvidia_options if nvidia_docker_flag else {} }}"
     shard_role: nomad-pool
+    nomad_autoscaler_instance_type: "{{ 'whisper' if nomad_pool_type=='whisper' else 'nomad' }}"
     nomad_node_role: client
     nomad_gpu_count: 0
     nomad_node_class: "{{ nomad_pool_type }}"
@@ -145,8 +146,10 @@
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
-    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "nomad", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
+    - { role: "whisper", tags: "whisper", when: nomad_pool_type == "whisper" }
+    - { role: "autoscaler-sidecar", 
+        tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "{{ nomad_autoscaler_instance_type }}", cloud_provider: "oracle", autoscaler_install_flag: false, autoscaler_configure_flag: true, when: nomad_enable_jitsi_autoscaler}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "nvidia-docker", tags: "nvidia-docker", when: nvidia_docker_flag }
     - { role: "docker-daemon-config", tags: "docker-daemon-config" }
