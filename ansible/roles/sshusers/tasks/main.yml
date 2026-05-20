@@ -131,6 +131,7 @@
     createhome: true
     state: present
   with_items: "{{ security_users }}"
+  no_log: true
   when: ssh_ops_account_flag
 
 - name: SSH TrustedCA pem file
