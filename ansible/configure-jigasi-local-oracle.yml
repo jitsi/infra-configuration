@@ -103,6 +103,26 @@
       ansible.builtin.set_fact:
         cloud_provider: oracle
       tags: setup
+    - name: Resolver consul directory
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        mode: 0755
+        state: directory
+      tags: setup
+    - name: Resolve consul DNS on jigasi pools
+      ansible.builtin.copy:
+        mode: 0644
+        content: |
+          [Resolve]
+          DNS=127.0.0.1:8600
+          DNSSEC=false
+          Domains=~consul
+        dest: /etc/systemd/resolved.conf.d/consul.conf
+      tags: setup
+    - name: Restart systemd-resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
     - name: Remove NodeSource deb repository
       ansible.builtin.apt_repository:
         repo: 'deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main'
