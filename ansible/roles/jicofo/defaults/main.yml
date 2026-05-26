@@ -20,6 +20,9 @@ jicofo_enable_colibri2: true
 jicofo_enable_h264: true
 jicofo_enable_ice_failure_detection: true
 jicofo_enable_load_redistribution: true
+jicofo_load_redistribution_interval: 1 minutes
+jicofo_load_redistribution_stress_threshold: 0.9
+jicofo_load_redistribution_timeout: 3 minutes
 jicofo_enable_octo: true
 jicofo_enable_opus_red: false
 # This needs to be kept in sync with jvb_enable_sctp
