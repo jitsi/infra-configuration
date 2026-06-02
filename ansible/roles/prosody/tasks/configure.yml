@@ -236,16 +236,6 @@
     path: "{{ prosody_plugins_path }}/mod_muc_meeting_id.lua"
   register: muc_meeting_id_exists
 
-# TODO: cleanup, we probably no longer need this
-- name: Check whether module mod_external_services exists
-  ansible.builtin.stat:
-    path: /usr/lib/prosody/modules/mod_external_services.lua
-  register: stat_mod_external_services
-
-- name: Set mod_external_services fact
-  ansible.builtin.set_fact:
-    mod_external_services_exists: "{{ stat_mod_external_services.stat.exists }}"
-
 - name: Build prosody.cfg.lua from template
   ansible.builtin.template:
     src: prosody.cfg.lua.j2

@@ -3,9 +3,6 @@
 hcv_environment: all
 jitsi_meet_api_server_name: "signal-api-{{ prosody_domain_name }}"
 jitsi_meet_no_sharding: false
-# This check by default is false, but on configure time we check the installed version of jitsi-meet, whether the module
-# exist and if it is there we enable it in the client prosody config template
-mod_external_services_exists: false
 prosody_admins: "{{ prosody_focus_admins | list }}"
 prosody_amplitude_api_key: false
 prosody_apt_base_name: prosody
@@ -49,8 +46,6 @@ prosody_domain_name: "{{ environment_domain_name | default('domain.local') }}"
 # version vars for url install method
 prosody_dpkg_base_name: prosody
 prosody_dpkg_path: "/tmp/{{ prosody_package_filename }}"
-# Custom prosody version with some performance fixes
-# https://packages.prosody.im/debian/pool/main/p/prosody-0.11/prosody-0.11_1nightly112-1~bionic_amd64.deb
 prosody_dpkg_url: "https://packages.prosody.im/debian/pool/main/p/{{ prosody_package_name }}/{{ prosody_package_filename }}"
 prosody_egress_url: http://127.0.0.1:8062/v1/events
 prosody_egress_fallback_url: https://api-vo-pilot.cloudflare.jitsi.net/vpaas-event-acceptor/v1/forward
@@ -209,14 +204,11 @@ prosody_muc_password_whitelist_jids:
   - "transcribera@recorder.{{ prosody_domain_name }}"
   - "transcriberb@recorder.{{ prosody_domain_name }}"
 prosody_muc_require_token_for_moderation: false
-# prosody 0.11 and later should always use epoll for scalability
 prosody_network_backend: epoll
 # YOLO, reevaluate after the heat dissipates
 prosody_open_file_limit: 999999
 # config only used when prosody_install_from_apt is false (file install method)
 prosody_package_filename: "{{ prosody_package_name }}_{{ prosody_package_version }}.deb"
-# with apt install we use package name from apt variable: 'prosody'
-# with file install we use package name from dpkg variable: 'prosody-0.11'
 prosody_package_name: "{{ prosody_dpkg_base_name if not prosody_install_from_apt else prosody_apt_base_name }}"
 prosody_package_subversion: "5"
 

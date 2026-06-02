@@ -29,7 +29,7 @@ admins = {
 }
 component_admins_as_room_owners = true;
 
--- Enable use of native prosody 0.11 support for epoll over select
+-- Enable epoll network backend for scalability
 network_backend = 'epoll';
 network_settings = {
   tcp_backlog = 511;
@@ -256,9 +256,7 @@ VirtualHost 'v{{ item }}.meet.jitsi'
     modules_enabled = {
       'bosh';
       'ping';
-    {% if mod_external_services_exists %}
       "external_services";
-    {% endif %}
     {% if prosody_xmpp_resume %}
       "smacks";
     {% endif %}

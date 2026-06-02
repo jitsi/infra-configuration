@@ -28,7 +28,7 @@ data_path = "/var/lib/prosody-jvb/"
 c2s_ports = { 6222 }
 console_ports = { 5583 }
 
--- Enable use of native prosody 0.11 support for epoll over select
+-- Enable epoll network backend for scalability
 network_backend = "epoll";
 -- Set the TCP backlog to 511 since the kernel rounds it up to the next power of 2: 512.
 -- This only applies to the epoll backend but it's harmless to set on the select one.
