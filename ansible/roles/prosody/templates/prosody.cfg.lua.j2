@@ -31,7 +31,7 @@ gc = {
 -- use_libevent = true;
 
 {% if prosody_network_backend %}
--- Enable use of native prosody 0.11 support for epoll over select
+-- Enable epoll network backend for scalability
 network_backend = "{{ prosody_network_backend }}";
 -- Set the TCP backlog to 511 since the kernel rounds it up to the next power of 2: 512.
 -- This only applies to the epoll backend but it's harmless to set on the select one.
@@ -73,11 +73,7 @@ modules_enabled = {
       "debug_traceback";
 {% endif %}
 {% if prosody_enable_mod_turncredentials %}
-    {% if mod_external_services_exists %}
       "external_services";
-    {% else %}
-      "turncredentials";
-    {% endif %}
       "turncredentials_http";
 {% endif %}
 {% if prosody_enable_firewall and prosody_disable_messaging %}
@@ -121,19 +117,9 @@ log_slow_events_threshold = {{ prosody_slow_events_threshold }};
 
 {% if prosody_enable_mod_turncredentials %}
 {% if prosody_mod_turncredentials_secret %}
-turncredentials_secret = "{{ prosody_mod_turncredentials_secret }}";
 external_service_secret = "{{ prosody_mod_turncredentials_secret }}";
 {% endif %}
 
-turncredentials = {
-  {% for turnhost in prosody_mod_turncredentials_hosts %}
-  { type = "stun", host = "{{ turnhost }}", port = "{{ prosody_mod_turncredentials_port }}" },
-  { type = "turn", host = "{{ turnhost }}", port = "{{ prosody_mod_turncredentials_port }}", transport = "udp" },
-{% if prosody_mod_turncredentials_enable_tcp %}
-  { type = "turns", host = "{{ turnhost }}", port = "{{ prosody_mod_turncredentials_port }}", transport = "tcp" },
-{% endif %}
-{% endfor %}
-};
 external_services = {
 {% for turnhost in prosody_mod_turncredentials_hosts %}
   { type = "stun", host = "{{ turnhost }}", port = {{ prosody_mod_turncredentials_port }}, transport = "udp" },
