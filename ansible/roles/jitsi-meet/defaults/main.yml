@@ -172,6 +172,7 @@ jitsi_meet_enable_simulcast_vp9: false
 jitsi_meet_enable_source_name_signaling: false
 jitsi_meet_enable_stereo: false
 jitsi_meet_enable_transcription: false
+jitsi_meet_enable_transcription_translation: false
 jitsi_meet_enable_turn_udp_jvb: false
 jitsi_meet_enable_userdirs: false
 jitsi_meet_enable_unsafe_room_warning: false
