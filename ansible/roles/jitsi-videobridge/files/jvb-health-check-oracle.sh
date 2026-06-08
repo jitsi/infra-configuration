@@ -58,7 +58,9 @@ function run_check() {
   fi
 
   CPU_STEAL="$(get_cpu_steal)"
-  if [[ $CPU_STEAL -ge $CPU_STEAL_THRESHOLD ]]; then
+  # CPU_STEAL is a float (e.g. 7.20114), so use awk for the comparison since
+  # bash [[ -ge ]] only does integer arithmetic and errors on the decimal point
+  if [ -n "$CPU_STEAL" ] && awk -v s="$CPU_STEAL" -v t="$CPU_STEAL_THRESHOLD" 'BEGIN { exit !(s >= t) }'; then
     echo "CPU steal $CPU_STEAL HIGHER THAN $CPU_STEAL_THRESHOLD"
     BASIC_HEALTH_PASSED=false
   fi
