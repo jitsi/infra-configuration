@@ -292,10 +292,16 @@
     -out {{ jvb_websockets_ssl_keystore_pkcs12_path }} -passout pass:{{ jvb_websockets_ssl_keystore_password }}
   when: jvb_enable_websockets_ssl
 
+- name: Remove existing jetty keystore so import is deterministic
+  ansible.builtin.file:
+    path: "{{ jvb_websockets_ssl_keystore_path }}"
+    state: absent
+  when: jvb_enable_websockets_ssl
+
 - name: Import pkcs12 store into jetty keystore
   ansible.builtin.command: keytool -destkeystore {{ jvb_websockets_ssl_keystore_path }} -importkeystore -srcstoretype PKCS12 -srckeystore
      {{ jvb_websockets_ssl_keystore_pkcs12_path }} -deststorepass {{ jvb_websockets_ssl_keystore_password }} -srcstorepass
-     {{ jvb_websockets_ssl_keystore_password }}
+     {{ jvb_websockets_ssl_keystore_password }} -noprompt
   when: jvb_enable_websockets_ssl
 
 # provide script for managing the auto-scale group lifecycle queue
