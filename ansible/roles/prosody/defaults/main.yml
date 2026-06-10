@@ -26,6 +26,8 @@ asap_key_shortlived:
 prosody_asap_key_path: /etc/prosody/certs/asap.key
 prosody_asap_shortlived_key_path: /etc/prosody/certs/asap-shortlived.key
 prosody_asap_shortlived_key: "{{ asap_key_shortlived[hcv_environment] if hcv_environment in asap_key_shortlived else asap_key_shortlived['default'] }}"
+# Map of tenant to async transcriber type override, used by mod_muc_password_preset.
+prosody_async_transcriber_type_map: {}
 prosody_auth_domain_name: "auth.{{ prosody_domain_name }}"
 prosody_bosh_max_inactivity: 60
 # assume shard has local prosody-jvb, otherwise use prosody-brewery shared service
