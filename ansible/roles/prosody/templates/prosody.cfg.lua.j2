@@ -202,6 +202,15 @@ prosody_password_public_key_repo_url = "{{ prosody_password_public_key_repo_url 
 {% endif %}
 {% endif %}
 
+{% if prosody_async_transcriber_type_map %}
+-- Map of tenant to async transcriber type override, used by mod_muc_password_preset.
+async_transcriber_type_map = {
+{% for tenant, transcriber_type in prosody_async_transcriber_type_map.items() %}
+    ["{{ tenant }}"] = "{{ transcriber_type }}";
+{% endfor %}
+};
+{% endif %}
+
 {% if prosody_visitors_queue_service_url %}
 visitors_queue_service = '{{ prosody_visitors_queue_service_url }}'
 {% endif %}
