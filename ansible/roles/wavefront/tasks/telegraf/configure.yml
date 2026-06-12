@@ -20,19 +20,6 @@
     - collector
     - configure
 
-- name: Create Wavefront output plugin config 10-wavefront.conf
-  ansible.builtin.template:
-    src: 10-wavefront.conf.j2
-    dest: "{{ telegraf_wavefront_output_plugin_config }}"
-    mode: 0644
-  notify: Restart telegraf
-  tags:
-    - install
-    - redhat
-    - debian
-    - collector
-    - configure
-
 - name: Create Prometheus output plugin config 20-prometheus.conf
   ansible.builtin.template:
     src: 20-prometheus.conf.j2
