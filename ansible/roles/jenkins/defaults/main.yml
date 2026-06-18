@@ -1,5 +1,9 @@
 ---
 jenkins_sitename: "jenkins-opsdev.jitsi.net"
+# Canonical/public URL used as the Jenkins root URL (drives UI links and the
+# SAML Assertion Consumer Service URL). Defaults to the origin sitename; override
+# per-site to front Jenkins behind a different public hostname (e.g. Cloudflare).
+jenkins_root_url: "https://{{ jenkins_sitename }}"
 jenkins_ssl_certificate: "{{ jitsi_net_ssl_certificate }}{{ jitsi_net_ssl_extras }}"
 jenkins_ssl_dest_dir: /etc/nginx/ssl
 jenkins_ssl_key_name: "{{ jitsi_net_ssl_key_name }}"

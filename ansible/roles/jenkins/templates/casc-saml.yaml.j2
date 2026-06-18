@@ -1,3 +1,9 @@
+unclassified:
+  location:
+    # Canonical root URL drives the SAML Assertion Consumer Service URL
+    # (<url>/securityRealm/finishLogin). Set explicitly so it does not depend
+    # on the baked-in casc.yaml's handling of the JENKINS_URL env var.
+    url: "{{ jenkins_root_url }}"
 jenkins:
   securityRealm:
     saml:
