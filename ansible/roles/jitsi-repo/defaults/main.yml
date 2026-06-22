@@ -7,3 +7,10 @@ jitsi_repo_url_old: "https://{{ jitsi_repo_host_old }}/debian"
 jitsi_auth_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian"
 jitsi_auth_url_old: "https://jitsi:j1ts1r3p0@{{ jitsi_repo_host }}/debian"
 jitsi_repo_username: "repo"
+
+# Use a signed-by keyring (verified) instead of apt-key + [trusted=yes]. Required for Debian
+# Trixie / APT 3.0. Enable only after ops-repo publishes the dual-signed InRelease and the
+# combined archive.key (JIT-15930).
+jitsi_repo_signed_by_enabled: true
+jitsi_repo_keyring_armored: /etc/apt/keyrings/jitsi-archive.asc
+jitsi_repo_keyring: /etc/apt/keyrings/jitsi-archive-keyring.gpg
