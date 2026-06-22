@@ -109,6 +109,10 @@ sources:
             strategy: device_and_inode
 {% endif %}
 sinks:
+  # NOTE: healthcheck is intentionally disabled on every loki sink below.
+  # With healthchecks enabled, vector refuses to start if the loki endpoint is
+  # unreachable at boot. That failure propagates up through the ansible boot
+  # process and fails provisioning, churning otherwise-functional nodes.
   loki_syslog:
     remove_timestamp: false
     type: "loki"
