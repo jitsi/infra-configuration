@@ -1,4 +1,26 @@
 ---
+# Existing hosts were provisioned with `deb [trusted=yes] <url> unstable/`. Pointing
+# the same URI at signed-by leaves two entries with conflicting Trusted options, which
+# apt refuses to load ("E: Conflicting values set for option Trusted"). apt_repository
+# can't run while the sources conflict, so strip the legacy trusted=yes line(s) with a
+# plain file edit first -- this also recovers hosts a prior run left half-migrated.
+# See JIT-15930.
+- name: Find apt source files with the legacy trusted=yes jitsi ops-repo entry
+  ansible.builtin.shell: >-
+    grep -rlE 'trusted=yes.*{{ jitsi_repo_host | regex_escape }}/debian' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null || true
+  register: jitsi_legacy_src_files
+  changed_when: false
+  check_mode: false
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Remove legacy [trusted=yes] jitsi ops-repo source lines
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: 'trusted=yes.*{{ jitsi_repo_host | regex_escape }}/debian/?\s+unstable/'
+    state: absent
+  loop: "{{ jitsi_legacy_src_files.stdout_lines | default([]) }}"
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
 - name: Configure jitsi repo auth
   ansible.builtin.template:
     dest: "/etc/apt/auth.conf.d/{{ jitsi_repo_host }}.conf"
