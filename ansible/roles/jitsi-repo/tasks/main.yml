@@ -66,6 +66,24 @@
     update_cache: true
   when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
 
+# The old role imported the legacy DSA key into the deprecated global
+# /etc/apt/trusted.gpg keyring (via apt-key). Now that the repo is verified via
+# the signed-by keyring, drop the stale key so apt stops warning about the
+# legacy trusted.gpg keyring. Uses gpg directly (apt-key is gone on Trixie).
+- name: Check for the deprecated trusted.gpg keyring
+  ansible.builtin.stat:
+    path: /etc/apt/trusted.gpg
+  register: jitsi_apt_trusted_gpg
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Remove the legacy jitsi DSA key from the deprecated trusted.gpg keyring
+  ansible.builtin.command:
+    cmd: gpg --batch --yes --no-default-keyring --keyring /etc/apt/trusted.gpg --delete-keys 040F57608F84BAF1BF844A62C697D823EB0AB654
+  register: jitsi_trustedgpg_delete
+  changed_when: jitsi_trustedgpg_delete.rc == 0
+  failed_when: false
+  when: jitsi_repo_signed_by_enabled and (jitsi_apt_trusted_gpg.stat.exists | default(false)) # noqa yaml[line-length]
+
 # Legacy fallback: EOL Ubuntu (< 18) that predates signed-by, or any host where
 # the modern path is disabled. Guarded so it does not run on signed-by hosts.
 - name: Install apt key (legacy)
