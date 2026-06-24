@@ -1,5 +1,5 @@
 jibri {
-    single-use-mode = true
+    single-use-mode = {{ jibri_single_use_mode | bool | lower }}
     id = "{{ jibri_nick }}"
     recording {
         recordings-directory = "{{ jibri_recordings_dir }}"
