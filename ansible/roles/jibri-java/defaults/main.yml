@@ -70,6 +70,10 @@ jibri_service_version_shell: "{{ jibri_service_version_shell_new if jibri_new_ve
 jibri_service_version_shell_new: "dpkg -s {{ jibri_deb_pkg_name }} | grep Version | awk '{print $2}' | cut -d'-' -f1,2,3"
 jibri_service_version_shell_old: "dpkg -s {{ jibri_deb_pkg_name }} | grep Version | awk '{print $2}' | cut -d'-' -f1 | cut -d'.' -f3"
 jibri_sidecar_webhook: false
+# When true (default) jibri goes to EXPIRED after a single recording/stream so the
+# instance is recycled. Set false (e.g. in stage-8x8) to return jibri to IDLE/ready
+# after each use, allowing the same instance to be reused.
+jibri_single_use_mode: true
 jibri_status_cron:
   hour: "*"
   job: "{{ jibri_path_to_status_script }} > /tmp/status-cron-output 2>&1"
