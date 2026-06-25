@@ -51,6 +51,10 @@ jicofo_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }
 jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 # Note the units are seconds
 jicofo_jibri_pending_timeout: 90
+# When all Jibris are busy, retry selection this many extra times before failing. 0 disables (fail immediately).
+jicofo_jibri_busy_retries: 0
+# Note the units are seconds. How long to wait between busy retries (only used when busy_retries > 0).
+jicofo_jibri_busy_retry_delay: 5
 jicofo_jigasi_brewery_muc: JigasiBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 jicofo_max_audio_senders: 999999

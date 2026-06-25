@@ -126,6 +126,10 @@ jicofo {
     brewery-jid = "{{ jicofo_jibri_brewery_muc }}"
 {% endif %}
     pending-timeout = {{ jicofo_jibri_pending_timeout }} seconds
+{% if jicofo_jibri_busy_retries | int > 0 %}
+    busy-retries = {{ jicofo_jibri_busy_retries }}
+    busy-retry-delay = {{ jicofo_jibri_busy_retry_delay }} seconds
+{% endif %}
   }
 
 {% if jicofo_jigasi_brewery_muc %}
