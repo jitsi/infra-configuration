@@ -1,9 +1,25 @@
 ---
-- name: Install apt key
-  ansible.builtin.apt_key:
-    url: "{{ jitsi_auth_url }}/unstable/archive.key"
-    state: present
-    validate_certs: false
+# Existing hosts were provisioned with `deb [trusted=yes] <url> unstable/`. Pointing
+# the same URI at signed-by leaves two entries with conflicting Trusted options, which
+# apt refuses to load ("E: Conflicting values set for option Trusted"). apt_repository
+# can't run while the sources conflict, so strip the legacy trusted=yes line(s) with a
+# plain file edit first -- this also recovers hosts a prior run left half-migrated.
+# See JIT-15930.
+- name: Find apt source files with the legacy trusted=yes jitsi ops-repo entry
+  ansible.builtin.shell: >-
+    grep -rlE 'trusted=yes.*{{ jitsi_repo_host | regex_escape }}/debian' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null || true
+  register: jitsi_legacy_src_files
+  changed_when: false
+  check_mode: false
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Remove legacy [trusted=yes] jitsi ops-repo source lines
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: 'trusted=yes.*{{ jitsi_repo_host | regex_escape }}/debian/?\s+unstable/'
+    state: absent
+  loop: "{{ jitsi_legacy_src_files.stdout_lines | default([]) }}"
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
 
 - name: Configure jitsi repo auth
   ansible.builtin.template:
@@ -12,16 +28,74 @@
     owner: root
     mode: 0600
 
-- name: Configure jitsi repo source
+# Modern path (Debian >= 11, Ubuntu >= 18): verify the repo with a signed-by
+# keyring instead of the removed apt-key tool and the insecure [trusted=yes]
+# flag. The published archive.key is an ASCII-armored block holding both the
+# legacy DSA key and the modern RSA key, so APT verifies the dual-signed
+# InRelease via whichever key it accepts (Debian Trixie / APT 3.0 uses the
+# modern key, where apt-key and [trusted=yes] no longer work). See JIT-15930.
+#
+# NOTE: requires ops-repo to already publish the dual-signed InRelease and the
+# combined archive.key -- roll out the ops-repo signing change first.
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Fetch jitsi repo signing key (armored)
+  ansible.builtin.get_url:
+    url: "{{ jitsi_auth_url }}/unstable/archive.key"
+    dest: "{{ jitsi_repo_keyring_armored }}"
+    mode: "0644"
+    validate_certs: false
+    force: true
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Dearmor jitsi repo signing key
+  ansible.builtin.command:
+    cmd: "gpg --batch --yes --dearmor -o {{ jitsi_repo_keyring }} {{ jitsi_repo_keyring_armored }}"
+  changed_when: true
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Configure jitsi repo source (signed-by)
   ansible.builtin.apt_repository:
-    repo: "deb [trusted=yes] {{ jitsi_repo_url }} unstable/"
+    repo: "deb [signed-by={{ jitsi_repo_keyring }}] {{ jitsi_repo_url }} unstable/"
     state: present
     update_cache: true
-  when: (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version >= '18') or (ansible_distribution == 'Debian' and ansible_distribution_major_version >= '11') # noqa yaml[line-length]
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
 
-- name: Configure jitsi repo source (older ubuntu)
+# The old role imported the legacy DSA key into the deprecated global
+# /etc/apt/trusted.gpg keyring (via apt-key). Now that the repo is verified via
+# the signed-by keyring, drop the stale key so apt stops warning about the
+# legacy trusted.gpg keyring. Uses gpg directly (apt-key is gone on Trixie).
+- name: Check for the deprecated trusted.gpg keyring
+  ansible.builtin.stat:
+    path: /etc/apt/trusted.gpg
+  register: jitsi_apt_trusted_gpg
+  when: jitsi_repo_signed_by_enabled and ((ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '>=')) or (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('11', '>='))) # noqa yaml[line-length]
+
+- name: Remove the legacy jitsi DSA key from the deprecated trusted.gpg keyring
+  ansible.builtin.command:
+    cmd: gpg --batch --yes --no-default-keyring --keyring /etc/apt/trusted.gpg --delete-keys 040F57608F84BAF1BF844A62C697D823EB0AB654
+  register: jitsi_trustedgpg_delete
+  changed_when: jitsi_trustedgpg_delete.rc == 0
+  failed_when: false
+  when: jitsi_repo_signed_by_enabled and (jitsi_apt_trusted_gpg.stat.exists | default(false)) # noqa yaml[line-length]
+
+# Legacy fallback: EOL Ubuntu (< 18) that predates signed-by, or any host where
+# the modern path is disabled. Guarded so it does not run on signed-by hosts.
+- name: Install apt key (legacy)
+  ansible.builtin.apt_key:
+    url: "{{ jitsi_auth_url }}/unstable/archive.key"
+    state: present
+    validate_certs: false
+  when: not jitsi_repo_signed_by_enabled or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '<'))
+
+- name: Configure jitsi repo source (legacy/older ubuntu)
   ansible.builtin.apt_repository:
     repo: "deb {{ jitsi_repo_url }} unstable/"
     state: present
     update_cache: true
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version < '18'
+  when: not jitsi_repo_signed_by_enabled or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('18', '<'))
