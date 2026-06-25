@@ -20,6 +20,9 @@ jibri_brewery_prosody_jvb_prefix: "{{ internal_jvb_prosody_muc_prefix | default(
 # variables should be added here.
 jibri_call_status_checks_overridden: "{{ true if jibri_all_muted_timeout_override else false }}"
 jibri_chrome_binary_path: /usr/bin/google-chrome
+# Port used by the transient ChromeDriver started during image build to
+# validate the Chrome/ChromeDriver combination (see tasks/validate-chrome.yml).
+jibri_chrome_validation_port: 9515
 jibri_cloud_provider: "{{ cloud_provider | default('aws') }}"
 # use regexp to extract the last two octet of the IP address and use it as the component ID for the jibri
 jibri_component_id: "{{ ansible_default_ipv4.address | regex_replace('^(?P<g1>\\d+).(?P<g2>\\d+).(?P<g3>\\d+).(?P<g4>\\d+)$', '\\g<g2>-\\g<g3>-\\g<g4>') }}"

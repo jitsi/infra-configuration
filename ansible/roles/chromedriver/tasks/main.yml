@@ -1,22 +1,107 @@
 ---
-- name: Grab latest chromedriver version string
+# Resolve which ChromeDriver to install. Precedence:
+#   1. Explicit pin (chromedriver_pin_version)
+#   2. Match the major version of the Chrome installed on this host
+#   3. Fall back to the Chrome-for-Testing "Stable" channel last-known-good
+# The download url/version land in chromedriver_url / chromedriver_version.
+
+- name: Use explicitly pinned ChromeDriver version
+  ansible.builtin.set_fact:
+    chromedriver_version: "{{ chromedriver_pin_version }}"
+    chromedriver_url: "https://storage.googleapis.com/chrome-for-testing-public/{{ chromedriver_pin_version }}/linux64/chromedriver-linux64.zip"
+  when: chromedriver_pin_version | length > 0
+
+# --- match installed Chrome ------------------------------------------------
+- name: Detect installed Google Chrome version
+  ansible.builtin.command: "{{ chromedriver_chrome_binary }} --version"
+  register: chromedriver_chrome_version_result
+  changed_when: false
+  failed_when: false
+  when:
+    - chromedriver_url is not defined
+    - chromedriver_match_installed_chrome
+
+- name: Set installed Chrome major version fact
+  ansible.builtin.set_fact:
+    chromedriver_chrome_major_version: "{{ chromedriver_chrome_version_result.stdout | regex_search('([0-9]+)\\.', '\\1') | first }}"
+  when:
+    - chromedriver_url is not defined
+    - chromedriver_match_installed_chrome
+    - chromedriver_chrome_version_result.rc == 0
+
+- name: Grab Chrome-for-Testing versions per milestone
+  ansible.builtin.uri:
+    url: "{{ chromedriver_milestone_downloads_url }}"
+    return_content: true
+  register: chromedriver_milestone_result
+  when: chromedriver_chrome_major_version is defined
+
+- name: Set ChromeDriver version and url from the matching Chrome milestone
+  ansible.builtin.set_fact:
+    chromedriver_milestone: "{{ (chromedriver_milestone_result.content | from_json).milestones[chromedriver_chrome_major_version] }}"
+  when:
+    - chromedriver_chrome_major_version is defined
+    - chromedriver_chrome_major_version in (chromedriver_milestone_result.content | from_json).milestones
+
+- name: Resolve ChromeDriver download from milestone
+  ansible.builtin.set_fact:
+    chromedriver_version: "{{ chromedriver_milestone.version }}"
+    chromedriver_url: "{{ chromedriver_milestone.downloads.chromedriver | selectattr('platform', 'equalto', 'linux64') | map(attribute='url') | first }}"
+  when: chromedriver_milestone is defined
+
+# --- guard / fallback: Stable channel last-known-good ----------------------
+# Reached when the installed Chrome's major has no CfT milestone yet (apt
+# briefly ahead of Chrome-for-Testing). Fall back to the latest CfT-covered
+# Stable driver; the jibri build-time session test (validate-chrome.yml) is the
+# final arbiter and fails the build if the pair is actually incompatible.
+- name: Warn that installed Chrome major has no matching CfT milestone
+  ansible.builtin.debug:
+    msg: >-
+      No Chrome-for-Testing milestone found for installed Chrome major
+      '{{ chromedriver_chrome_major_version | default("unknown") }}'. Falling back
+      to the latest CfT Stable ChromeDriver; build-time validation will verify
+      compatibility.
+  when:
+    - chromedriver_url is not defined
+    - chromedriver_match_installed_chrome
+
+- name: Grab latest chromedriver version string (Stable channel fallback)
   ansible.builtin.uri:
     url: "{{ chromedriver_latest_release_url }}"
     return_content: true
   register: chromedriver_version_result
-  when: chromedriver_use_latest
+  when:
+    - chromedriver_url is not defined
+    - chromedriver_use_latest
 
 - name: Set chromedriver details fact
   ansible.builtin.set_fact:
     chromedriver_details: "{{ chromedriver_version_result.content | from_json }}"
-  when: chromedriver_use_latest
+  when:
+    - chromedriver_url is not defined
+    - chromedriver_use_latest
 
-- name: Set chromedriver version fact
+- name: Set chromedriver version fact from Stable channel
   ansible.builtin.set_fact:
     chromedriver_version: "{{ chromedriver_details['channels']['Stable']['version'] }}"
     chromedriver_url: "{{ chromedriver_details | json_query('channels.Stable.downloads.chromedriver[?platform==`linux64`].url') | first }}"
-  when: chromedriver_use_latest
+  when:
+    - chromedriver_url is not defined
+    - chromedriver_details is defined
 
+- name: Fail if no ChromeDriver download could be resolved
+  ansible.builtin.fail:
+    msg: >-
+      Could not resolve a ChromeDriver download. Install Chrome before this role
+      (chromedriver_match_installed_chrome), set chromedriver_pin_version, or
+      enable chromedriver_use_latest.
+  when: chromedriver_url is not defined
+
+- name: Show selected ChromeDriver version
+  ansible.builtin.debug:
+    msg: "Installing ChromeDriver {{ chromedriver_version }} from {{ chromedriver_url }}"
+
+# --- download & install -----------------------------------------------------
 - name: Download chromedriver from google
   ansible.builtin.get_url:
     mode: 0644

@@ -1,4 +1,10 @@
 ---
+# Chrome and ChromeDriver are installed via this role's meta dependencies
+# (google-chrome, chromedriver) before these tasks run. Validate the pair is
+# compatible before building the image, failing fast on a bad combination.
+- name: Validate Chrome and ChromeDriver compatibility
+  ansible.builtin.include_tasks: validate-chrome.yml
+
 - name: Install additional fonts for jibri rendering
   ansible.builtin.apt:
     name: fonts-noto
