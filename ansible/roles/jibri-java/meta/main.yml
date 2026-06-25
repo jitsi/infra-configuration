@@ -12,6 +12,8 @@ galaxy_info:
         - jammy
 dependencies:
   - { role: jitsi-repo, when: jibri_install_flag }
-  - { role: chromedriver, when: jibri_install_flag }
+  # google-chrome must precede chromedriver: the chromedriver role matches the
+  # ChromeDriver major version to the Chrome that is already installed.
   - { role: google-chrome, when: jibri_install_flag}
+  - { role: chromedriver, when: jibri_install_flag }
   - { role: openjdk-java, when: jibri_install_flag }

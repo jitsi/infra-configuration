@@ -1,8 +1,22 @@
 ---
+# By default, match ChromeDriver to the Chrome already installed on the host.
+# This lets us run the latest stable Chrome (installed via the google-chrome
+# role) and always pair it with a compatible ChromeDriver of the same major
+# version, which is ChromeDriver's compatibility contract.
+chromedriver_match_installed_chrome: true
+chromedriver_chrome_binary: /usr/bin/google-chrome
+
+# Chrome-for-Testing endpoints. The milestone endpoint is keyed by Chrome major
+# version and returns the matching ChromeDriver download; the last-known-good
+# endpoint is the fallback used when no installed Chrome can be detected.
+chromedriver_milestone_downloads_url: https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json
 chromedriver_latest_release_url: https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json
+chromedriver_use_latest: true
+
+# Optional hard pin. When set (e.g. "144.0.7559.132"), this exact ChromeDriver
+# version is installed and auto-detection is skipped.
+chromedriver_pin_version: ""
+
 chromedriver_path: /usr/bin/chromedriver
 chromedriver_tmp_dir: /tmp/chromedriver_linux64
 chromedriver_tmp_path: /tmp/chromedriver_linux64.zip
-chromedriver_url: https://storage.googleapis.com/chrome-for-testing-public/{{ chromedriver_version }}/linux64/chromedriver-linux64.zip
-chromedriver_use_latest: true
-chromedriver_version: 144.0.7559.132

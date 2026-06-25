@@ -1,0 +1,99 @@
+---
+# Validate that the installed Chrome and ChromeDriver are compatible before
+# baking them into a jibri image. A major-version mismatch produces a runtime
+# SessionNotCreatedException ("This version of ChromeDriver only supports
+# Chrome version NNN") which silently breaks recording/streaming, so we fail
+# the build here rather than ship a broken image.
+
+- name: Get installed Google Chrome version
+  ansible.builtin.command: google-chrome --version
+  register: jibri_chrome_version_raw
+  changed_when: false
+
+- name: Get installed ChromeDriver version
+  ansible.builtin.command: chromedriver --version
+  register: jibri_chromedriver_version_raw
+  changed_when: false
+
+- name: Parse Chrome and ChromeDriver major versions
+  ansible.builtin.set_fact:
+    jibri_chrome_major_version: "{{ jibri_chrome_version_raw.stdout | regex_search('([0-9]+)\\.', '\\1') | first }}"
+    jibri_chromedriver_major_version: "{{ jibri_chromedriver_version_raw.stdout | regex_search('([0-9]+)\\.', '\\1') | first }}"
+
+- name: Assert Chrome and ChromeDriver major versions match
+  ansible.builtin.assert:
+    that:
+      - jibri_chrome_major_version == jibri_chromedriver_major_version
+    fail_msg: >-
+      Chrome ({{ jibri_chrome_version_raw.stdout }}) and ChromeDriver
+      ({{ jibri_chromedriver_version_raw.stdout }}) major versions do not match
+      ({{ jibri_chrome_major_version }} != {{ jibri_chromedriver_major_version }}).
+      Aborting image build to avoid releasing a jibri image with an
+      incompatible Chrome/ChromeDriver combination.
+    success_msg: >-
+      Chrome and ChromeDriver major versions match (v{{ jibri_chrome_major_version }}).
+
+# Beyond matching version strings, actually drive ChromeDriver to launch a
+# headless Chrome session. This reproduces the exact code path jibri exercises
+# and is the definitive check that the pair works together.
+- name: End-to-end validate Chrome/ChromeDriver session creation
+  block:
+    - name: Start ChromeDriver for validation
+      ansible.builtin.command: chromedriver --port={{ jibri_chrome_validation_port }}
+      async: 120
+      poll: 0
+      changed_when: false
+      register: jibri_chromedriver_validation_proc
+
+    - name: Wait for ChromeDriver to become ready
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ jibri_chrome_validation_port }}/status"
+        return_content: true
+      register: jibri_chromedriver_status
+      until: jibri_chromedriver_status.status == 200 and (jibri_chromedriver_status.json.value.ready | default(false))
+      retries: 10
+      delay: 2
+
+    - name: Attempt to create a headless Chrome session
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ jibri_chrome_validation_port }}/session"
+        method: POST
+        body_format: json
+        body:
+          capabilities:
+            alwaysMatch:
+              browserName: chrome
+              "goog:chromeOptions":
+                args:
+                  - "--headless=new"
+                  - "--no-sandbox"
+                  - "--disable-gpu"
+                  - "--disable-dev-shm-usage"
+        status_code: 200
+      register: jibri_chrome_session
+
+    - name: Confirm a session id was returned
+      ansible.builtin.assert:
+        that:
+          - jibri_chrome_session.json.value.sessionId is defined
+        fail_msg: >-
+          ChromeDriver did not return a valid session id; the Chrome/ChromeDriver
+          combination is broken. Aborting image build.
+        success_msg: >-
+          ChromeDriver successfully started a headless Chrome session.
+  always:
+    - name: Delete the validation session if one was created
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ jibri_chrome_validation_port }}/session/{{ jibri_chrome_session.json.value.sessionId }}"
+        method: DELETE
+        status_code: [200, 404]
+      when:
+        - jibri_chrome_session is defined
+        - jibri_chrome_session.json is defined
+        - jibri_chrome_session.json.value.sessionId is defined
+      failed_when: false
+
+    - name: Stop the validation ChromeDriver process
+      ansible.builtin.command: "pkill -f 'chromedriver --port={{ jibri_chrome_validation_port }}'"
+      changed_when: false
+      failed_when: false
