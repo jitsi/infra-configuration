@@ -1,0 +1,74 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    # Verify common baseline tests
+    - name: Check if basic tools are installed
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      check_mode: true
+      register: pkg_status
+      failed_when: pkg_status.changed
+      loop:
+        - atop
+        - mc
+        - htop
+        - tmux
+        - unzip
+        - jq
+        - libffi-dev
+        - libssl-dev
+        - acl
+        - net-tools
+        - sysstat
+        - at
+    
+    # Verify Oracle-specific tools
+    - name: Check for Oracle-specific scripts
+      ansible.builtin.stat:
+        path: "/usr/local/bin/{{ item }}"
+      register: oracle_scripts_stat
+      failed_when: not oracle_scripts_stat.stat.exists
+      loop:
+        - oracle_cache.sh
+        - postinstall.sh
+        - oci-testcert.py
+        - secondary_vnic_all_configure_oracle.sh
+        
+    # Check oci-cli installation
+    - name: Check for OCI CLI
+      ansible.builtin.stat:
+        path: "/usr/local/bin/oci"
+      register: oci_stat
+      
+    - name: Verify OCI CLI installation
+      ansible.builtin.assert:
+        that: 
+          - oci_stat.stat.exists
+          - oci_stat.stat.mode == "0755"
+          
+    # Check for python3 tools
+    - name: Check if python3 tools are installed
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      check_mode: true
+      register: py3_pkg_status
+      failed_when: py3_pkg_status.changed
+      loop:
+        - python3-pip
+        - python3-setuptools
+        
+    # Check correct python-dev package based on distribution and flags
+    - name: Check python-dev-is-python3 on newer Ubuntu
+      ansible.builtin.package:
+        name: python-dev-is-python3
+        state: present
+      check_mode: true
+      register: py_dev_pkg_status
+      failed_when: py_dev_pkg_status.changed
+      when: 
+        - common_install_pip3_flag
+        - ansible_distribution_major_version | int >= 20
