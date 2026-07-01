@@ -34,6 +34,10 @@
     rsyslog_tcp_output_enabled: true
 
   pre_tasks:
+    # Must run before the apt cache update below: clears a conflicting
+    # trusted=yes/signed-by ops-repo source that would fail apt (JIT-15930).
+    - name: Pre-clean conflicting ops-repo apt source
+      ansible.builtin.import_tasks: tasks/preclean-ops-repo-trusted-conflict.yml
     - name: Remove Ansible repository
       ansible.builtin.apt_repository:
         repo: "ppa:ansible/ansible"
