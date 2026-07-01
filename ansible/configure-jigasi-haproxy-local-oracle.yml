@@ -19,6 +19,10 @@
     jigasi_haproxy_hostname: "{{ hcv_environment }}-jigasi-haproxy-{{ jigasi_haproxy_component_id }}.infra.jitsi.net"
     shard_role: jigasi-haproxy
   pre_tasks:
+    # Must run before the apt cache update below: clears a conflicting
+    # trusted=yes/signed-by ops-repo source that would fail apt (JIT-15930).
+    - name: Pre-clean conflicting ops-repo apt source
+      ansible.builtin.import_tasks: tasks/preclean-ops-repo-trusted-conflict.yml
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
         cloud_provider: oracle
