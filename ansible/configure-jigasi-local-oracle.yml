@@ -79,19 +79,6 @@
         state: absent
         update_cache: false
       tags: setup
-    - name: Setup new repo template file
-      ansible.builtin.template:
-        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
-        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
-        owner: root
-        mode: 0600
-      tags: setup
-    - name: Setup new trusted jitsi repo
-      ansible.builtin.apt_repository:
-        repo: "deb [trusted=yes] {{ jitsi_repo_url }} unstable/"
-        state: present
-        update_cache: false
-      tags: setup
     - name: Remove deprecated old repo
       ansible.builtin.apt_repository:
         repo: "deb [trusted=yes] {{ jitsi_repo_url_old }} unstable/"
