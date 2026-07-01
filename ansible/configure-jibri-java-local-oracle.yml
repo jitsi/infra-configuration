@@ -74,14 +74,6 @@
         jibri_version: "{{ jibri_version_cmd.stdout }}"
       changed_when: jibri_version_cmd.rc != 0
       when: not jibri_docker_compose_flag
-    - name: Setup new repo template file
-      ansible.builtin.template:
-        dest: "/etc/apt/auth.conf.d/jitsi-repo.conf"
-        src: "roles/jitsi-repo/templates/jitsi-repo.conf.j2"
-        owner: root
-        mode: 0600
-      tags: setup
-
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
