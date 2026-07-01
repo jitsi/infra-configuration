@@ -1,0 +1,31 @@
+---
+# Boot-time safety net for the ops-repo signed-by migration (JIT-15930).
+#
+# Hosts/images that carry BOTH a legacy `deb [trusted=yes] <ops-repo> unstable/`
+# source and the new `deb [signed-by=...] <ops-repo> unstable/` source fail every
+# apt operation with "E: Conflicting values set for option Trusted". That breaks
+# the boot-time apt cache update *before* the jitsi-repo role can reconcile it, so
+# the fix has to run ahead of that apt update.
+#
+# Remove the legacy trusted=yes line ONLY when a signed-by line for the same repo
+# also exists (a genuine conflict) -- not-yet-migrated hosts (trusted=yes only)
+# keep their source until the jitsi-repo role migrates them normally. Uses a plain
+# file edit because apt / apt_repository cannot run while the sources conflict.
+- name: List ops-repo source files that conflict (trusted=yes and signed-by both present)
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    if grep -rqE 'signed-by=.*{{ jitsi_repo_host | regex_escape }}/debian' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+      grep -rlE 'trusted=yes.*{{ jitsi_repo_host | regex_escape }}/debian' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null || true;
+    fi
+  args:
+    executable: /bin/bash
+  register: ops_repo_trusted_conflict_files
+  changed_when: false
+  check_mode: false
+
+- name: Remove legacy [trusted=yes] ops-repo source lines that conflict with signed-by
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: 'trusted=yes.*{{ jitsi_repo_host | regex_escape }}/debian/?\s+unstable/'
+    state: absent
+  loop: "{{ ops_repo_trusted_conflict_files.stdout_lines | default([]) }}"
