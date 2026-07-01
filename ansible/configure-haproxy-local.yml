@@ -104,6 +104,10 @@
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
+    # Must run before the apt cache update below: clears a conflicting
+    # trusted=yes/signed-by ops-repo source that would fail apt (JIT-15930).
+    - name: Pre-clean conflicting ops-repo apt source
+      ansible.builtin.import_tasks: tasks/preclean-ops-repo-trusted-conflict.yml
     - name: Gather AWS facts
       amazon.aws.ec2_metadata_facts:
       tags: "ec2_facts"
