@@ -160,6 +160,18 @@ jicofo {
     }
     {% endif %}
   }
+  translation {
+    {% if jicofo_translation_url_template %}
+    url-template = "{{ jicofo_translation_url_template }}"
+    {% endif %}
+
+    {% if secrets_jicofo_opus_transcriber_client_id %}
+    http-headers {
+        "CF-Access-Client-Id": {{ secrets_jicofo_opus_transcriber_client_id }}
+        "CF-Access-Client-Secret": {{ secrets_jicofo_opus_transcriber_secret }}
+    }
+    {% endif %}
+  }
 
 
   {% if jicofo_visitors_enabled %}
