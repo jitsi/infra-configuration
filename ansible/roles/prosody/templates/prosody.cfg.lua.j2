@@ -843,6 +843,11 @@ Component "metadata.{{ prosody_domain_name }}" "room_metadata_component"
     breakout_rooms_component = "breakout.{{ prosody_domain_name }}"
 {% endif %}
 
+{% if prosody_meet_audio_translation_enabled %}
+Component "audiotranslation.{{ prosody_domain_name }}" "audio_translation_component"
+    muc_component = "conference.{{ prosody_domain_name }}"
+{% endif %}
+
 {% if prosody_visitors_enabled %}
 Component "visitors.{{ prosody_domain_name }}" "visitors_component"
     {% if prosody_visitors_auto_allow %}

@@ -146,6 +146,7 @@ prosody_log_syslog_hostname: localhost
 prosody_log_syslog_port: 514
 prosody_log_syslog_proto: udp
 prosody_max_number_outgoing_calls: 3
+prosody_meet_audio_translation_enabled: false
 prosody_meet_auth_vpaas_enabled: false
 prosody_meet_av_moderation_enabled: true
 prosody_meet_chat_history_url: false
