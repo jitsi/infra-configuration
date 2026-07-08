@@ -296,8 +296,11 @@ authentication = "internal_hashed"
 -- through modules. An "sql" backend is included by default, but requires
 -- additional dependencies. See http://prosody.im/doc/storage for more info.
 
-storage = "internal" -- Default is "internal" (Debian: "sql" requires one of the
+default_storage = "internal" -- Default is "internal" (Debian: "sql" requires one of the
 -- lua-dbi-sqlite3, lua-dbi-mysql or lua-dbi-postgresql packages to work)
+storage = {
+    smacks_h = "memory";
+}
 
 -- For the "sql" backend, you can uncomment *one* of the below to configure:
 -- sql = { driver = "MySQL", database = "prosody", username = "<< prosody_db_user >>", password = "<< prosody_db_password >>", host = "<< prosody_db_host >>" }
