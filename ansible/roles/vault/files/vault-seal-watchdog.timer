@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the vault seal watchdog periodically
+Documentation=https://developer.hashicorp.com/vault/docs/concepts/seal
+
+[Timer]
+# wait past normal boot/unseal before the first check, then check every minute
+OnBootSec=120
+OnUnitActiveSec=60
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

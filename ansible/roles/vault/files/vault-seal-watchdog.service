@@ -1,0 +1,9 @@
+[Unit]
+Description=Vault seal watchdog - restart vault if it is stuck sealed
+Documentation=https://developer.hashicorp.com/vault/docs/concepts/seal
+After=vault.service
+ConditionFileNotEmpty=/etc/vault.d/vault.hcl
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/vault-seal-watchdog.sh

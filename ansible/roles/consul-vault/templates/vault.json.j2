@@ -1,0 +1,31 @@
+{
+  "service": {
+    "name": "vault",
+    "tags": ["{{ hcv_environment }}", "vault-server"],
+    "meta": {
+      "environment": "{{ hcv_environment }}"
+    },
+    "tagged_addresses": {
+      "lan": {
+        "address": "{{ consul_vault_private_ip }}",
+        "port": 8200
+      },
+      "wan": {
+        "address": "{{ consul_vault_private_ip }}",
+        "port": 8200
+      }
+    },
+    "port": 8200,
+    "checks": [
+      {
+        "id": "vault-health",
+        "name": "Vault health (unsealed)",
+        "http": "https://127.0.0.1:8200/v1/sys/health?standbyok=true&perfstandbyok=true",
+        "method": "GET",
+        "tls_skip_verify": true,
+        "interval": "10s",
+        "timeout": "3s"
+      }
+    ]
+  }
+}
