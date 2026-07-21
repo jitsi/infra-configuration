@@ -22,6 +22,31 @@
     enabled: true
   when: vault_role == "server"
 
+- name: Install vault seal watchdog script
+  ansible.builtin.copy:
+    mode: 0755
+    src: vault-seal-watchdog.sh
+    dest: /usr/local/bin/vault-seal-watchdog.sh
+  when: vault_role == "server" and vault_seal_watchdog_enabled
+
+- name: Install vault seal watchdog systemd units
+  ansible.builtin.copy:
+    mode: 0644
+    src: "{{ item }}"
+    dest: "/usr/lib/systemd/system/{{ item }}"
+  loop:
+    - vault-seal-watchdog.service
+    - vault-seal-watchdog.timer
+  when: vault_role == "server" and vault_seal_watchdog_enabled
+
+- name: Enable vault seal watchdog timer
+  ansible.builtin.systemd:
+    name: vault-seal-watchdog.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: vault_role == "server" and vault_seal_watchdog_enabled
+
 - name: Install vault-proxy pre start script
   ansible.builtin.template:
     mode: 0755

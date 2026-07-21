@@ -13,6 +13,9 @@ vault_lock_bucket_name: "vault-lock"
 vault_log_dir: /var/log
 vault_management_endpoint:
 vault_role: "agent"
+# install a systemd timer that restarts vault if it gets stuck sealed
+# (auto-unseal makes a restart self-recovering); server nodes only
+vault_seal_watchdog_enabled: true
 vault_tls_cert_path: /opt/vault/tls/tls.crt
 vault_tls_key_path: /opt/vault/tls/tls.key
 vault_agent_replace_pattern: _REPLACE_PATTERN_

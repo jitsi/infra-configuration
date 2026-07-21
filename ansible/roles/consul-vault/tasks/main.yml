@@ -1,0 +1,14 @@
+---
+- name: Install consul service file
+  ansible.builtin.template:
+    mode: 0644
+    src: "vault.json.j2"
+    dest: "/etc/consul.d/vault.json"
+  notify: Restart consul for consul-vault
+
+- name: Install consul service enablement # noqa ignore-errors
+  ansible.builtin.systemd:
+    name: consul
+    state: reloaded
+    enabled: true
+  ignore_errors: true
