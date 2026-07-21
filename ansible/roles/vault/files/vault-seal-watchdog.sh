@@ -36,7 +36,7 @@ mkdir -p "$STATE_DIR"
 #   472 DR secondary active           473 performance standby
 #   501 not initialized               503 sealed
 # We only act on 503 (sealed) or a connection failure (000).
-code="$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL" || echo 000)"
+code="$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL")" || code=000
 
 case "$code" in
   200|429|472|473|501)
