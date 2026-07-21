@@ -1,6 +1,7 @@
 {
   "service": {
     "name": "vault",
+    "address": "{{ consul_vault_private_ip }}",
     "tags": ["{{ hcv_environment }}", "vault-server"],
     "meta": {
       "environment": "{{ hcv_environment }}"
