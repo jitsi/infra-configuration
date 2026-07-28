@@ -302,6 +302,8 @@ jitsi_meet_android_download_link: "https://play.google.com/store/apps/details?id
 jitsi_meet_f_droid_url: "https://f-droid.org/en/packages/org.jitsi.meet/"
 jitsi_meet_android_app_package: "org.jitsi.meet"
 jitsi_meet_app_scheme: "org.jitsi.meet"
+# Optional iOS-specific override; falls back to jitsi_meet_app_scheme when unset.
+jitsi_meet_ios_app_scheme: "{{ jitsi_meet_app_scheme }}"
 jitsi_meet__deeplink_hide_logo: false
 jitsi_meet_deeplink_show_image: false
 jitsi_meet_dynamic_linking:
