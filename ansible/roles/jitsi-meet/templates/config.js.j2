@@ -567,8 +567,8 @@ whiteboard: {
         showImage: {{ jitsi_meet_deeplink_show_image | to_json }},
         ios: {
             appName: "{{ jitsi_meet_mobile_app_name }}",
-        {% if jitsi_meet_app_scheme %}
-            appScheme: "{{ jitsi_meet_app_scheme }}",
+        {% if jitsi_meet_ios_app_scheme | default(jitsi_meet_app_scheme) %}
+            appScheme: "{{ jitsi_meet_ios_app_scheme | default(jitsi_meet_app_scheme) }}",
         {% else %}
             appScheme: false,
         {% endif %}
