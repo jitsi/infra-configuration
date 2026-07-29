@@ -10,7 +10,7 @@
     - secrets/consul.yml
     - secrets/repo.yml
     - secrets/nomad.yml
-    - secrets/carbon-black.yml
+    - secrets/crowdstrike.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   vars:
@@ -180,7 +180,7 @@
     #       environment: "{{ hcv_environment }}"
     #       region: "{{ cloud_region }}"
     #       cloud_provider: "{{ cloud_provider }}"
-    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
+    - { role: "falcon-sensor", tags: "falcon-sensor", when: falcon_sensor_install_flag}
   tasks:
     - name: Start nomad
       ansible.builtin.service:

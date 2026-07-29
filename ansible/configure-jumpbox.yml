@@ -7,7 +7,7 @@
   strategy: free
   vars_files:
     - secrets/ssh-users.yml
-    - secrets/carbon-black.yml
+    - secrets/crowdstrike.yml
     - config/vars.yml
     - "sites/{{ hcv_environment }}/vars.yml"
   vars:
@@ -24,11 +24,11 @@
       tags: setup
   roles:
     - { role: "sshusers", tags: "ssh" }
-    - { role: "sshmfa", tags: "sshmfa", when: carbon_black_install_flag}
+    - { role: "sshmfa", tags: "sshmfa", when: falcon_sensor_install_flag}
     - { role: "fail2ban", tags: "fail2ban" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
     - { role: "ntp", tags: "ntp"}
     - { role: "logrotate", tags: "logrotate"}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog"}
-    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
+    - { role: "falcon-sensor", tags: "falcon-sensor", when: falcon_sensor_install_flag}
