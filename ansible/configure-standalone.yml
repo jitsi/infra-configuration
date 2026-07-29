@@ -52,7 +52,7 @@
     - secrets/prosody.yml
     - secrets/prosody-egress-aws.yml
     - secrets/repo.yml
-    - secrets/carbon-black.yml
+    - secrets/crowdstrike.yml
     - secrets/github-deploy.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
@@ -267,7 +267,7 @@
   # initial system pre-requisites
     - { role: "vault", tags: "vault", vault_install_flag: true, vault_configure_flag: true, vault_agent_startup: true }
     # - { role: "bootstrap-repos", tags: "bootstrap-repos" }
-    # - { role: "carbon-black", tags: "carbon-black" }
+    # - { role: "falcon-sensor", tags: "falcon-sensor" }
     - { role: "openjdk-java", tags: "openjdk" }
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "sshusers", tags: "ssh" }

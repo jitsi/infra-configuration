@@ -11,7 +11,7 @@
     - secrets/consul.yml
     - config/vars.yml
     - secrets/repo.yml
-    - secrets/carbon-black.yml
+    - secrets/crowdstrike.yml
     - sites/{{hcv_environment}}/vars.yml
   vars:
     cloud_provider: oracle
@@ -85,4 +85,4 @@
           region: "{{ oracle_to_aws_region_map[region] }}"
           oracle_region: "{{ region }}"
           cloud: "oracle"
-    - { role: "carbon-black", tags: "carbon-black", when: carbon_black_install_flag}
+    - { role: "falcon-sensor", tags: "falcon-sensor", when: falcon_sensor_install_flag}
