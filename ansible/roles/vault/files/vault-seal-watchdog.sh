@@ -32,15 +32,23 @@ MIN_RESTART_INTERVAL="${VAULT_WATCHDOG_MIN_RESTART_INTERVAL:-180}"
 mkdir -p "$STATE_DIR"
 
 # /v1/sys/health status codes:
-#   200 initialized+unsealed+active   429 unsealed+standby
-#   472 DR secondary active           473 performance standby
-#   501 not initialized               503 sealed
-# We only act on 503 (sealed) or a connection failure (000).
+#   200 active            429 standby            472 DR secondary active
+#   473 performance standby   474 standby w/ unhealthy HA connection
+#   501 not initialized   503 sealed
+# Only 503 (sealed) or 000 (curl failure / vault not listening at all) warrant a
+# restart -- auto-unseal makes a restart self-recovering for a sealed node, and a
+# hung/not-listening node may recover on restart. Every other code is left alone:
+# a restart fixes none of them and would loop. In particular 474 (a standby whose
+# HA connection to the active node is unhealthy) must NOT trigger a restart --
+# restarting only tears down and re-establishes the forwarding connection.
 code="$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL")" || code=000
 
 case "$code" in
-  200|429|472|473|501)
-    # healthy (or deliberately uninitialized) -- reset the failure counter
+  503|000)
+    # actionable -- fall through to the failure-counting / restart logic below
+    ;;
+  *)
+    # active / standby / HA-degraded / uninitialized / anything else -- no action
     rm -f "$FAIL_FILE"
     exit 0
     ;;
