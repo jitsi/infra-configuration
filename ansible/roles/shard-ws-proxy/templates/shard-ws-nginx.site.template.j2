@@ -8,6 +8,11 @@ map $arg_tenant $ws_path {
     ~.+       $arg_tenant/xmpp-websocket;
 }
 
+map $arg_tenant $cr_path {
+    default   conference-request/v1;
+    ~.+       $arg_tenant/conference-request/v1;
+}
+
 # upstream definitions
 {% raw -%}
 {{ range $dcidx, $dc := datacenters -}}
@@ -41,6 +46,15 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Proxy-Region {{ shard_ws_proxy_region }};
+        proxy_set_header X-Proxy-Host {{ shard_ws_proxy_host }};
+        tcp_nodelay on;
+    }
+
+    location ~ ^/v1/_ws/(?<shard_name>.+-s\d+)/conference-request/v1(?<cr_subpath>\/.*)?$ {
+        proxy_pass https://shard-$shard_name/$cr_path$cr_subpath$is_args$args;
+        proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Proxy-Region {{ shard_ws_proxy_region }};
         proxy_set_header X-Proxy-Host {{ shard_ws_proxy_host }};

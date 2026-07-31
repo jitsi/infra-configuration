@@ -627,6 +627,14 @@ server {
         rewrite ^ /xmpp-websocket last;
     }
 
+    # handle /v1/_ws/ traffic for conference-request when proxy isn't engaged but URL was rewritten
+    location ~ ^/v1/_ws/[^/]+/conference-request/v1(?<cr_subpath>\/.*)?$ {
+        if ($arg_tenant) {
+            rewrite ^ /$arg_tenant/conference-request/v1$cr_subpath last;
+        }
+        rewrite ^ /conference-request/v1$cr_subpath last;
+    }
+
     # xmpp websockets
     location = /xmpp-websocket {
         proxy_pass http://$prosody_node/xmpp-websocket?prefix=$prefix&$args;
