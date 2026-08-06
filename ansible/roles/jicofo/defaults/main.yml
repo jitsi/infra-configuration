@@ -56,6 +56,12 @@ jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ environme
 jicofo_max_audio_senders: 999999
 # Max participants in a single conference on a single bridge.
 jicofo_max_bridge_participants: 80
+# The interval for jicofo_max_bridge_participants_per_interval.
+jicofo_max_bridge_participants_interval: 1 minute
+# Max participants that a single conference may add to a single bridge within
+# jicofo_max_bridge_participants_interval (-1 to disable). This limits the overshoot when a conference bursts, because
+# the stress level reported by a bridge lags the actual load by 5-10 seconds.
+jicofo_max_bridge_participants_per_interval: 30
 jicofo_max_memory: "1536m"
 jicofo_max_video_senders: 999999
 jicofo_prosody_jvb_hostname: "127.0.0.1"
