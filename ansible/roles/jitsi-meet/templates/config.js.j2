@@ -90,6 +90,8 @@ var config = {
     {% endif %}
 },
     enableP2P: {% if jitsi_meet_enable_p2p %}true{% else %}false{% endif %}, // flag to control P2P connections
+    enableIceRestart: {% if jitsi_meet_enable_ice_restart %}true{% else %}false{% endif %},
+    enableIceRestartOnNetworkChange: {% if jitsi_meet_enable_ice_restart_on_network_change %}true{% else %}false{% endif %},
     // New P2P options
     p2p: {
         enabled: {% if jitsi_meet_enable_p2p %}true{% else %}false{% endif %},
