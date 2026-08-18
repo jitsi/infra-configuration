@@ -154,6 +154,8 @@ jitsi_meet_enable_file_recordings_sharing: false
 jitsi_meet_enable_forced_client_reload: false
 jitsi_meet_enable_graceful_reconnect: false
 jitsi_meet_enable_gzip: false
+jitsi_meet_enable_ice_restart: false
+jitsi_meet_enable_ice_restart_on_network_change: false
 jitsi_meet_enable_insecure_room_name_warning: false
 jitsi_meet_enable_livestreaming: false
 jitsi_meet_enable_local_video_flip: true
