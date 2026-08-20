@@ -230,8 +230,8 @@ prosody_rate_limit_cache_size: 10000
 prosody_rate_limit_login_rate: 3
 prosody_rate_limit_session_rate: 2000
 prosody_rate_limit_timeout: 60
-# whitelist localhost, internal network
-prosody_rate_limit_whitelist: ["127.0.0.1", "10.0.0.0/8"]
+# whitelist localhost (IPv4 and IPv6), internal network
+prosody_rate_limit_whitelist: ["127.0.0.1", "::1", "10.0.0.0/8"]
 prosody_rate_limit_host_whitelist:
   - "recorder.{{ prosody_domain_name }}"
 prosody_region: "{{ ansible_ec2_placement_region if ansible_ec2_placement_region is defined and ansible_ec2_placement_region
