@@ -42,17 +42,27 @@ function restore_oci_connectivity() {
     fi
     echo "Secondary VNIC with IP $secondary_ip found, configuring and routing through it to reach the OCI API"
     /usr/local/bin/secondary_vnic_all_configure_oracle.sh -c || return 1
-    local secondary_device="$(ip addr | egrep '^[0-9]' | egrep -v 'lo|docker' | tail -1 | awk '{print $2}')"
-    secondary_device="${secondary_device::-1}"
-    secondary_device="$(echo $secondary_device | cut -d'@' -f1)"
+    # find the device holding the secondary IP rather than guessing from the
+    # interface list, which can pick a veth device on hosts running workloads
+    local secondary_device="$(ip -o addr show | awk -v ip="$secondary_ip" '$3 == "inet" && index($4, ip"/") == 1 {print $2}' | head -1)"
+    if [ -z "$secondary_device" ]; then
+        echo "No device holds secondary IP $secondary_ip, leaving routes untouched"
+        return 1
+    fi
+    # compute and validate the new default route BEFORE deleting the existing
+    # ones, so a failure here cannot leave the host with no default route
+    local nic2_gateway="$(ip route show | grep "dev $secondary_device" | grep -v default | head -1 | awk '{ print substr($1,1,index($1,"/")-2)1 }')"
+    if [ -z "$nic2_gateway" ]; then
+        echo "Unable to determine gateway via $secondary_device, leaving routes untouched"
+        return 1
+    fi
     # replace any existing default routes with one via the secondary VNIC
     local default_route="$(ip route show | grep default -m 1)"
     while [ -n "$default_route" ]; do
         ip route delete $default_route || return 1
         default_route="$(ip route show | grep default -m 1)"
     done
-    local nic2_route="default via "$(ip route show | grep $secondary_device | awk '{ print substr($1,1,index($1,"/")-2)1 " " $2 " " $3}' | head -1)
-    ip route add $nic2_route
+    ip route add default via $nic2_gateway dev $secondary_device
 }
 
 function default_terminate() {
