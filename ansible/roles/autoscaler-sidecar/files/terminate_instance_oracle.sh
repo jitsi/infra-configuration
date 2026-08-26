@@ -12,16 +12,64 @@ if [ -z "$INSTANCE_ID" ]; then
     INSTANCE_ID=$($CURL_BIN -s http://169.254.169.254/opc/v1/instance/ | $JQ_BIN .id -r)
 fi
 
-function default_terminate() {
-    echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
-    $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force
-    RET=$?
-    # infinite loop on failure
-    if [ $RET -gt 0 ]; then
-        echo "Failed to terminate instance, exit code: $RET, sleeping 10 then retrying"
-        sleep 10
-        default_terminate
+function oci_api_reachable() {
+    local region=$($CURL_BIN --connect-timeout 10 -s http://169.254.169.254/opc/v1/instance/ | jq -r .canonicalRegionName)
+    local http_code=$($CURL_BIN -s -m 10 -o /dev/null -w '%{http_code}' "https://auth.${region}.oraclecloud.com/v1/x509")
+    if [ "$http_code" == "000" ]; then
+        echo "OCI API auth endpoint for region $region is not reachable"
+        return 1
     fi
+    return 0
+}
+
+function restore_oci_connectivity() {
+    # the OCI API is unreachable when the instance has no public IP (e.g. a
+    # boot that failed before one was attached); a secondary VNIC can appear
+    # in instance metadata late, so re-check for one and route through it
+    local secondary_ip=$($CURL_BIN --connect-timeout 10 -s http://169.254.169.254/opc/v1/vnics/ | jq -r '.[1].privateIp')
+    if [ -z "$secondary_ip" ] || [ "$secondary_ip" == "null" ]; then
+        echo "No secondary VNIC in metadata, unable to restore OCI API connectivity"
+        return 1
+    fi
+    echo "Secondary VNIC with IP $secondary_ip found, configuring and routing through it to reach the OCI API"
+    /usr/local/bin/secondary_vnic_all_configure_oracle.sh -c || return 1
+    # find the device holding the secondary IP rather than guessing from the
+    # interface list, which can pick a veth device on hosts running workloads
+    local secondary_device="$(ip -o addr show | awk -v ip="$secondary_ip" '$3 == "inet" && index($4, ip"/") == 1 {print $2}' | head -1)"
+    if [ -z "$secondary_device" ]; then
+        echo "No device holds secondary IP $secondary_ip, leaving routes untouched"
+        return 1
+    fi
+    # compute and validate the new default route BEFORE deleting the existing
+    # ones, so a failure here cannot leave the host with no default route
+    local nic2_gateway="$(ip route show | grep "dev $secondary_device" | grep -v default | head -1 | awk '{ print substr($1,1,index($1,"/")-2)1 }')"
+    if [ -z "$nic2_gateway" ]; then
+        echo "Unable to determine gateway via $secondary_device, leaving routes untouched"
+        return 1
+    fi
+    # replace any existing default routes with one via the secondary VNIC
+    local default_route="$(ip route show | grep default -m 1)"
+    while [ -n "$default_route" ]; do
+        ip route delete $default_route || return 1
+        default_route="$(ip route show | grep default -m 1)"
+    done
+    ip route add default via $nic2_gateway dev $secondary_device
+}
+
+function default_terminate() {
+    # retry in a loop rather than recursing: recursion eventually overflows
+    # the stack and segfaults, silently ending the retries. The instance is
+    # deliberately left RUNNING while retries continue so the autoscaler
+    # counts it as untracked and an operator can intervene.
+    while true; do
+        if ! oci_api_reachable; then
+            restore_oci_connectivity
+        fi
+        echo "Terminate the instance; we enable debug to have more details in case of oci cli failures"
+        $OCI_BIN compute instance terminate --debug --instance-id "$INSTANCE_ID" --preserve-boot-volume false --auth instance_principal --force && break
+        echo "Failed to terminate instance, sleeping 10 then retrying"
+        sleep 10
+    done
 }
 
 # now terminate our instance
