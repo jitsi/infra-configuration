@@ -1,6 +1,13 @@
 ---
 jicofo_auth_domain: "auth.{{ environment_domain_name | default('domain.local') }}"
 jicofo_auth_password: "{{ secrets_jicofo_focus | default('replaceme') }}"
+
+# Distributed tracing (OTLP export to the regional alloy -otel collector, which
+# forwards to Tempo). Gated on the shared tracing_enabled site var -- the same
+# flag the nomad jitsi_meet_backend/jvb packs use. Default off.
+jicofo_tracing_enabled: "{{ tracing_enabled | default(false) }}"
+jicofo_tracing_protocol: "{{ tracing_protocol | default('http') }}"
+jicofo_tracing_otlp_endpoint: "{{ tracing_otlp_endpoint | default('https://' ~ hcv_environment ~ '-' ~ oracle_region ~ '-otel.' ~ (top_level_domain | default('jitsi.net'))) }}"
 jicofo_auth_password_jvb: "{{ secrets_jicofo_focus_jvb | default('replaceme') }}"
 jicofo_auth_password_visitor: "{{ secrets_jicofo_focus_visitor | default('replaceme') }}"
 jicofo_auth_type: XMPP
