@@ -407,6 +407,13 @@ token_verification_allowlist = {
 
 plugin_paths = { "{{ prosody_plugins_path }}/" }
 
+{% if prosody_tracing_enabled | bool %}
+-- Distributed tracing: export OTLP spans to the regional alloy (-otel), which
+-- forwards to Tempo. prosody's mod_trace/otel exporter is HTTP-only and appends
+-- /v1/traces itself. Gated on the shared tracing_enabled site var.
+otlp_endpoint = "{{ prosody_tracing_otlp_endpoint }}/v1/traces"
+{% endif %}
+
 ----------- Virtual hosts -----------
 VirtualHost "{{ prosody_domain_name }}"
         -- enabled = false -- Remove this line to enable this host
@@ -744,6 +751,10 @@ Component "internal.auth.{{ prosody_domain_name }}" "muc"
     modules_enabled = {
 {% if prosody_hide_all_rooms %}
       "muc_hide_all";
+{% endif %}
+{% if prosody_tracing_enabled | bool %}
+      -- distributed tracing (matches docker#2303, trace on the internal MUC)
+      "trace";
 {% endif %}
       "muc_filter_access";
     }

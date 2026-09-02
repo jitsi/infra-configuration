@@ -240,3 +240,14 @@ jicofo {
 {% endif %}
   }
 }
+{% if jicofo_tracing_enabled | bool %}
+
+# Distributed tracing: export OTLP spans to the regional alloy (-otel), which
+# forwards to Tempo. jicoco's HTTP OTLP exporter needs the full /v1/traces URL;
+# grpc takes host:port.
+tracing {
+    enabled = true
+    otlp-protocol = "{{ jicofo_tracing_protocol }}"
+    otlp-endpoint = "{{ jicofo_tracing_otlp_endpoint }}{% if jicofo_tracing_protocol == 'http' %}/v1/traces{% endif %}"
+}
+{% endif %}

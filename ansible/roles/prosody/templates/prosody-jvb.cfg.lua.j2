@@ -123,6 +123,14 @@ log = {
 
 plugin_paths = { "{{ prosody_plugins_path }}/" }
 
+{% if prosody_tracing_enabled | bool %}
+-- Distributed tracing: export OTLP spans to the regional alloy (-otel), which
+-- forwards to Tempo. This brewery prosody hosts the JVB brewery MUC, where the
+-- jicofo->JVB colibri2 conference-modify IQs flow, so mod_trace on that MUC is
+-- what actually emits prosody spans. HTTP-only; the exporter appends /v1/traces.
+otlp_endpoint = "{{ prosody_tracing_otlp_endpoint }}/v1/traces"
+{% endif %}
+
 ----------- Virtual hosts -----------
 VirtualHost "{{ prosody_jvb_auth_domain_name }}"
     modules_enabled = {
@@ -141,6 +149,12 @@ Component "{{ prosody_jvb_muc_name }}" "muc"
       "ping",
 {% if prosody_hide_all_rooms %}
         "muc_hide_all";
+{% endif %}
+{% if prosody_tracing_enabled | bool %}
+      -- distributed tracing: the JVB brewery MUC carries the jicofo->JVB colibri2
+      -- conference-modify IQs, so mod_trace here emits the colibri spans that
+      -- stitch prosody into the jicofo/jvb traces.
+      "trace";
 {% endif %}
       "muc_filter_access";
     }
