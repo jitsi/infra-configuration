@@ -190,7 +190,9 @@ var config = {
     },
 {% if jitsi_meet_enable_audio_translation %}
     audioTranslation: {
-        enabled: true
+        enabled: true,
+        duckedVolume: {{ jitsi_meet_audio_translation_ducked_volume }},
+        enableSendingChangeEvents: true
     },
 {% endif %}
 {% if jitsi_meet_talk_while_muted_enabled %}

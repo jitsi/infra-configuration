@@ -80,6 +80,7 @@ jitsi_meet_assetlinks: |
           "sha256_cert_fingerprints": ["F6:C8:93:15:16:9D:E0:08:0A:B7:EA:36:15:26:24:25:60:93:77:F7:61:79:89:E9:52:05:F4:09:B3:0E:59:44"]
       }
   }]
+jitsi_meet_audio_translation_ducked_volume: 0.15
 jitsi_meet_bosh_host: "{{ environment_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "https://"
@@ -137,7 +138,7 @@ jitsi_meet_dropbox_app_key: false
 jitsi_meet_dump_transcript: false
 jitsi_meet_e2eping_enabled: false
 jitsi_meet_enable_advanced_audio_settings: false
-jitsi_meet_enable_audio_translation: false
+jitsi_meet_enable_audio_translation: true
 jitsi_meet_enable_calendar: false
 jitsi_meet_enable_colibri_websockets: false
 jitsi_meet_enable_conference_request_http: false
