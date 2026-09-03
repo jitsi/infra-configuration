@@ -251,7 +251,7 @@ backend {{ haproxy_backend_name }} from global_defaults
   option httpchk GET /about/health HTTP/1.1\r\nHost:127.0.0.1
 {%- endif %}
   default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
-{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_shards := print "signal@{% endraw %}{{ dc }}{% raw %}|any" }}{{ range $shard := service $dc_shards }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $shard := scratch.Get "shards" }}
 backend {{ $shard.ServiceMeta.shard }} from global_defaults
 {% endraw %}
@@ -260,7 +260,7 @@ backend {{ $shard.ServiceMeta.shard }} from global_defaults
 {{ end }}{% endraw %}
 
 {% if haproxy_test_backends_enabled %}
-{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_standalones := print "all@{% endraw %}{{ dc }}{% raw %}" }}{{ range $shard := service $dc_standalones }}{{ scratch.MapSet "standalones" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $dc_standalones := print "all@{% endraw %}{{ dc }}{% raw %}|any" }}{{ range $shard := service $dc_standalones }}{{ scratch.MapSet "standalones" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}
 {% raw %}{{ range $standalone := scratch.Get "standalones" }}
 backend {{ $standalone.ServiceMeta.shard }} from global_defaults
 {% endraw %}
