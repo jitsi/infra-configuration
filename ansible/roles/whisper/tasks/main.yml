@@ -1,0 +1,6 @@
+- name: Copy graceful shutdown script
+  ansible.builtin.template:
+    src: whisper-graceful-shutdown.sh.j2
+    dest: /usr/local/bin/whisper-graceful-shutdown.sh
+    mode: 0755
+    owner: root
