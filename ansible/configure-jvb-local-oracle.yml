@@ -210,7 +210,6 @@
         jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jvb_flag }}", jvb_ddns_cleanup_flag: false}
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
     - { role: "consul-service-start", tags: "consul-service-start"}
-    - { role: "jvb-ssl", "tags": "jvb-ssl", jvb_ssl_install_flag: false, when: jvb_nginx_ssl_enabled }
     - { role: "jitsi-videobridge", tags: "jitsi-videobridge",
         jvb_image_build_flag: false, jvb_install_flag: false, jvb_configure_flag: true, jvb_ddns_cleanup_flag: false }
     - { role: "consul-template", tags: "consul-template", consul_template_install_flag: false,
