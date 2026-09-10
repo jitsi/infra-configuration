@@ -67,6 +67,8 @@ prosody_enable_health_check_cron: true
 prosody_enable_internal_muc: true
 # enables jiconop2 module, optimizing connection join number of stanzas
 prosody_enable_jiconop_module: true
+# branding module, disabled by default
+prosody_enable_jiconop_extras_module: false
 prosody_enable_jvb_muc_presence_filter: true
 prosody_enable_lobby: false
 prosody_enable_log_filter: false
@@ -77,6 +79,8 @@ prosody_enable_mod_turncredentials: false
 prosody_enable_mod_measure_message_count: false
 prosody_enable_muc_census: true
 prosody_enable_muc_domain_mapper: false
+# branding module, disabled by default
+prosody_enable_muc_occupant_session: false
 prosody_enable_muc_password_whitelist: true
 prosody_enable_muc_rate_limit: true
 prosody_enable_muc_resource_validate: true

@@ -262,6 +262,8 @@ VirtualHost 'v{{ item }}.meet.jitsi'
     {% endif %}
     {% if prosody_enable_jiconop_module %}
       "jiconop";
+    {% endif %}
+    {% if prosody_enable_jiconop_extras_module %}
       "jiconop_extras";
     {% endif %}
     {% if prosody_meet_conf_duration_enabled %}
@@ -274,7 +276,9 @@ VirtualHost 'v{{ item }}.meet.jitsi'
       "short_lived_token";
 {% endif %}
       "features_identity";
+{% if prosody_enable_muc_occupant_session %}
       "muc_occupant_session";
+{% endif %}
     }
     main_muc = 'conference.v{{ item }}.meet.jitsi';
     shard_name = "{{ shard_name }}"
@@ -340,7 +344,9 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_meet_webhooks_enabled %}
         "muc_visitors_webhooks";
 {% endif %}
+{% if prosody_enable_muc_occupant_session %}
         "muc_occupant_session";
+{% endif %}
     }
     muc_room_default_presence_broadcast = {
         visitor = false;
