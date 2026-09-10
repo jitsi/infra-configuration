@@ -598,6 +598,9 @@ whiteboard: {
     },
     testing: {
         enableCodecSelectionAPI: true,
+    {% if jitsi_meet_disable_av1_decode_for_ff %}
+        disableAV1DecodeForFF: true,
+    {% endif %}
     {% if jitsi_meet_mobile_xmpp_ws_threshold %}
         mobileXmppWsThreshold: {{ jitsi_meet_mobile_xmpp_ws_threshold }},
     {% endif %}
