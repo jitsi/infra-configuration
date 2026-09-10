@@ -469,6 +469,8 @@ VirtualHost "{{ prosody_domain_name }}"
 {% endif %}
 {% if prosody_enable_jiconop_module %}
           "jiconop";
+{% endif %}
+{% if prosody_enable_jiconop_extras_module %}
           "jiconop_extras";
 {% endif %}
 {% if prosody_breakout_rooms_enabled %}
@@ -493,7 +495,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_shortlived_tokens %}
       "short_lived_token";
 {% endif %}
+{% if prosody_enable_muc_occupant_session %}
       "muc_occupant_session";
+{% endif %}
         }
         shard_name = "{{ shard_name }}"
         region_name = "{{ prosody_region }}"
@@ -547,9 +551,13 @@ VirtualHost "{{ prosody_guest_domain_name }}"
 {% endif %}
 {% if prosody_enable_jiconop_module %}
           "jiconop";
+{% endif %}
+{% if prosody_enable_jiconop_extras_module %}
           "jiconop_extras";
 {% endif %}
+{% if prosody_enable_muc_occupant_session %}
           "muc_occupant_session";
+{% endif %}
         }
         authentication = "jitsi-anonymous"
 {% if prosody_visitors_enabled %}
@@ -672,7 +680,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% endif %}
         "muc_displayname";
         "muc_cleanup_backend_services";
+{% if prosody_enable_muc_occupant_session %}
         "muc_occupant_session";
+{% endif %}
 {% if prosody_enable_muc_resource_validate %}
         "muc_resource_validate";
 {% endif %}
