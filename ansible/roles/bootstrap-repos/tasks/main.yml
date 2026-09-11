@@ -1,8 +1,15 @@
 ---
+# stub for jitsi group
+- name: Stub group for jitsi in case it doesn't exist yet
+  ansible.builtin.group:
+    name: jitsi
+
 - name: Create jitsi base directory
   ansible.builtin.file:
-    mode: 0755
+    mode: 0775
     state: directory
+    owner: root
+    group: jitsi
     path: "{{ bootstrap_base_dir }}"
 
 - name: Create bootstrap repos directory
