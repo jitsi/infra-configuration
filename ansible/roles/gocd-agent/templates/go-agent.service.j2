@@ -1,0 +1,18 @@
+[Unit]
+Description=GoCD Agent {{ item }}
+Documentation=https://docs.gocd.org
+After=network.target
+
+[Service]
+Type=forking
+User=go
+Group=go
+WorkingDirectory=/var/lib/go-agent-{{ item }}
+PIDFile=/var/run/go-agent-{{ item }}/go-agent.pid
+ExecStart=/usr/share/go-agent-{{ item }}/bin/go-agent start
+ExecStop=/usr/share/go-agent-{{ item }}/bin/go-agent stop
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
