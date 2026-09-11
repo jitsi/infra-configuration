@@ -1,5 +1,11 @@
 ---
 vault_server_api_url: "https://vault.{{ dns_zone_name }}"
+# Address advertised to peers for HA request forwarding. Must be each node's own
+# reachable cluster-listener endpoint (:8201), NOT the load-balancer VIP. When
+# unset, Vault derives it from api_addr with port+1 (e.g. the LB :444), which is
+# not a real cluster endpoint -> ha_connection_healthy=false / HTTP 474 on standbys.
+# Cluster traffic uses Vault's internal cluster TLS, so an IP here is fine.
+vault_server_cluster_addr: "https://{{ ansible_default_ipv4.address }}:8201"
 vault_apt_key: https://apt.releases.hashicorp.com/gpg
 vault_apt_repo: https://apt.releases.hashicorp.com
 vault_architecture: "{{'arm64' if ansible_architecture == 'aarch64' else 'amd64'}}"
