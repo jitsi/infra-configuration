@@ -102,11 +102,43 @@
     - configure_jibri is defined
     - (jibri_config_hosts.keys()|length == 0)
 
-- name: Copy jibri ASAP JWT signing key
-  ansible.builtin.copy:
-    dest: "{{ jibri_asap_key_path }}"
+# Jibri parses the signing key with BouncyCastle's PEMParser and casts the
+# result to PEMKeyPair, which is only what a traditional PKCS#1
+# "-----BEGIN RSA PRIVATE KEY-----" block parses to. Recent BouncyCastle returns
+# PrivateKeyInfo for PKCS#8 "-----BEGIN PRIVATE KEY-----" keys, the cast throws
+# ClassCastException, and jibri silently boots with JWT/ASAP auth disabled.
+# Re-encode whatever format the secret is in to traditional PEM on the way out.
+# OpenSSL 3 (jammy) emits PKCS#8 unless told -traditional; OpenSSL 1.1 (focal)
+# emits traditional PEM by default and does not know the flag.
+- name: Write jibri ASAP JWT signing key as traditional RSA PEM
+  ansible.builtin.shell: |
+    set -eo pipefail
+    umask 077
+    tmp="$(mktemp {{ jibri_asap_key_path }}.XXXXXX)"
+    trap 'rm -f "$tmp"' EXIT
+    traditional=""
+    if openssl rsa -help 2>&1 | grep -q -- '-traditional'; then
+      traditional="-traditional"
+    fi
+    openssl rsa $traditional -out "$tmp"
+    grep -q -- '-----BEGIN RSA PRIVATE KEY-----' "$tmp"
+    if cmp -s "$tmp" "{{ jibri_asap_key_path }}"; then
+      echo unchanged
+    else
+      mv "$tmp" "{{ jibri_asap_key_path }}"
+      echo changed
+    fi
+  args:
+    stdin: "{{ asap_key['key'] }}"
+    executable: /bin/bash
+  register: jibri_asap_key_result
+  changed_when: "'changed' in jibri_asap_key_result.stdout"
+  no_log: true
+
+- name: Set jibri ASAP JWT signing key permissions
+  ansible.builtin.file:
+    path: "{{ jibri_asap_key_path }}"
     mode: 0640
-    content: "{{ asap_key['key'] }}"
     owner: "{{ jibri_username }}"
 
 - name: Remove jibri legacy config file
