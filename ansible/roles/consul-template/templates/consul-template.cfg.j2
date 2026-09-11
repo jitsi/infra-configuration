@@ -22,7 +22,8 @@ template {
   {% if template.cmd is defined %}command = "{{ template.cmd }}"{% endif %}
   {% if template.perms is defined %}perms = {{ template.perms }}{% endif %}
   {% if template.backup is defined %}backup = {{ template.backup|lower }}{% endif %}
-  {% if template.wait is defined %}wait = {{ template.wait|lower }}{% endif %}
+  {% if template.wait is defined %}wait = "{{ template.wait }}"{% endif %}
+  {% if template.command_timeout is defined %}command_timeout = "{{ template.command_timeout }}"{% endif %}
 }{% endfor %}
 {% endif -%}
 {% endif -%}

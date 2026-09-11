@@ -34,7 +34,7 @@ consul_template_wait: <undefined>
 consul_template_template_files: # Copies your templates
     - {src: "template.ctmpl"}
 consul_template_templates: # Defines templates in configuration
-    - {name: "template.ctmpl", dest: "/path/on/disk/where/template/will/render", cmd: "optional command to run when the template is updated", perms: 0600, backup: true, wait: "2s"}
+    - {name: "template.ctmpl", dest: "/path/on/disk/where/template/will/render", cmd: "optional command to run when the template is updated", perms: 0600, backup: true, wait: "2s:10s", command_timeout: "60s"}
 consul_template_template_templates: # Defines j2 versions of templates to be rendered as consul-template templates
     - {name: "template.ctmpl.j2", dest: "/path/on/disk/where/template/will/render", cmd: "optional command to run when the template is updated", perms: 0600, backup: true}
 consul_template_manage_user: false
