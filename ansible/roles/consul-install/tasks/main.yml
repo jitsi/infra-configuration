@@ -3,7 +3,7 @@
 - name: Install consul apt key
   ansible.builtin.apt_key:
     url: "{{ consul_apt_key }}"
-    id: AA16FCBCA621E701
+    id: FC9CA96ACA026560
     state: present
     validate_certs: false
 
