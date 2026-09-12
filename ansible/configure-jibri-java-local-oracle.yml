@@ -31,13 +31,19 @@
     consul_template_template_files:
       - src: roles/jibri-java/files/xmpp.conf.template
     consul_template_templates:
+      # rendered to a candidate file; reconfigure-jibri-wrapper.sh validates it and
+      # promotes it to /etc/jitsi/jibri/xmpp.conf before reloading jibri
       - name: "xmpp.conf.template"
-        dest: "/etc/jitsi/jibri/xmpp.conf"
+        dest: "/etc/jitsi/jibri/xmpp.conf.candidate"
         cmd: "/usr/local/bin/reconfigure-jibri-wrapper.sh"
         user: "root"
         group: "{{ 1000 if jibri_docker_compose_flag else 'jitsi' }}" # uses 1000 for jitsi group in docker image
         perms: 0640
         backup: false
+        # debounce: shard registrations flap during releases, coalesce bursts into one render
+        wait: "{{ jibri_consul_template_wait | default('15s:60s') }}"
+        # the wrapper may wait for jibri to finish (re)starting before reloading it
+        command_timeout: "{{ jibri_consul_template_command_timeout | default('300s') }}"
 
   pre_tasks:
     - name: Get instance's details

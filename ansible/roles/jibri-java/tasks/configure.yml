@@ -235,6 +235,13 @@
     mode: 0755
     owner: root
 
+- name: Upload consul passing-hosts helper for the jibri configurator
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/consul-passing-hosts.py"
+    src: "consul-passing-hosts.py"
+    mode: 0755
+    owner: root
+
   # Run the metric reporting script regularly
 - name: Jibri status script cron
   ansible.builtin.cron:
