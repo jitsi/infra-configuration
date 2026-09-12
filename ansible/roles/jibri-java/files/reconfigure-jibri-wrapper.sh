@@ -27,6 +27,8 @@
 #   XMPP_CONF_CANDIDATE_FILE      rendered candidate (default ${XMPP_CONF_FILE}.candidate)
 #   JIBRI_CONF_FILE               jibri.conf, used to find the internal API port
 #   CONSUL_HTTP_ADDR              local consul agent (default http://127.0.0.1:8500)
+#   CONSUL_PASSING_HOSTS_SCRIPT   helper that lists passing signal/all hosts from consul
+#                                 (default /usr/local/bin/consul-passing-hosts.py)
 #   JIBRI_SHRINK_SETTLE_SECONDS   wait before re-checking consul on a shrink (default 20)
 #   JIBRI_ACTIVE_TIMEOUT_SECONDS  max wait for jibri.service to become active (default 120)
 #   JIBRI_RELOAD_ATTEMPTS         reload attempts (default 3, backoff 5s/10s/20s)
@@ -64,26 +66,11 @@ function count_lines() {
 # print them as "host:port" lines, mirroring what xmpp.conf.template renders.
 # Prints nothing and returns non-zero if consul cannot be queried.
 function consul_passing_hosts() {
-  local out rc
-  out=$(python3 - "$CONSUL_HTTP_ADDR" <<'PYEOF'
-import json, sys, urllib.request
-base = sys.argv[1].rstrip('/')
-hosts = set()
-for svc in ("signal", "all"):
-    with urllib.request.urlopen("%s/v1/health/service/%s?passing" % (base, svc), timeout=5) as r:
-        for entry in json.load(r):
-            s = entry.get("Service", {})
-            addr = s.get("Address") or entry.get("Node", {}).get("Address")
-            if not addr:
-                continue
-            port = (s.get("Meta") or {}).get("prosody_client_port") or "5222"
-            hosts.add("%s:%s" % (addr, port))
-print("\n".join(sorted(hosts)))
-PYEOF
-  )
-  rc=$?
-  echo "$out"
-  return $rc
+  if [ ! -x "$CONSUL_PASSING_HOSTS_SCRIPT" ]; then
+    log_msg "$CONSUL_PASSING_HOSTS_SCRIPT is missing or not executable"
+    return 1
+  fi
+  "$CONSUL_PASSING_HOSTS_SCRIPT" --consul "$CONSUL_HTTP_ADDR" 2>> "$TEMPLATE_LOGFILE"
 }
 
 function jibri_internal_api_port() {
@@ -133,6 +120,7 @@ function wait_for_jibri_ready() {
 [ -z "$XMPP_CONF_CANDIDATE_FILE" ] && XMPP_CONF_CANDIDATE_FILE="${XMPP_CONF_FILE}.candidate"
 [ -z "$JIBRI_CONF_FILE" ] && JIBRI_CONF_FILE="/etc/jitsi/jibri/jibri.conf"
 [ -z "$CONSUL_HTTP_ADDR" ] && CONSUL_HTTP_ADDR="http://127.0.0.1:8500"
+[ -z "$CONSUL_PASSING_HOSTS_SCRIPT" ] && CONSUL_PASSING_HOSTS_SCRIPT="/usr/local/bin/consul-passing-hosts.py"
 [ -z "$JIBRI_SHRINK_SETTLE_SECONDS" ] && JIBRI_SHRINK_SETTLE_SECONDS=20
 [ -z "$JIBRI_ACTIVE_TIMEOUT_SECONDS" ] && JIBRI_ACTIVE_TIMEOUT_SECONDS=120
 [ -z "$JIBRI_RELOAD_ATTEMPTS" ] && JIBRI_RELOAD_ATTEMPTS=3
