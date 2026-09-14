@@ -38,10 +38,19 @@ if [[ $ALLOC_COUNT -gt 0 ]]; then
             DRAIN_COMMAND="/opt/jitsi/jicofo/graceful_shutdown.sh"
         fi
         if [[ "$TASK_TYPE" == "jvb" ]]; then
-            DRAIN_COMMAND="/opt/jitsi/jvb/graceful_shutdown.sh"
+            DRAIN_COMMAND="/usr/share/jitsi-videobridge/graceful_shutdown.sh"
+        fi
+        if [[ -z "$DRAIN_COMMAND" ]]; then
+            echo "No drain command known for task type $TASK_TYPE (allocation $ALLOC_ID), skipping";
+            continue
         fi
         echo "Issuing drain command $DRAIN_COMMAND for allocation $ALLOC_ID";
-        nomad alloc exec -task "$TASK_TYPE" "$ALLOC_ID" "$DRAIN_COMMAND"
+        # a failed drain leaves the application serving traffic until the nomad
+        # drain deadline force-kills it, dropping live conferences, so say so
+        # loudly instead of silently falling through to the wait loop below
+        if ! nomad alloc exec -task "$TASK_TYPE" "$ALLOC_ID" "$DRAIN_COMMAND"; then
+            echo "WARNING: drain command $DRAIN_COMMAND failed for allocation $ALLOC_ID ($TASK_TYPE); it will not shut down gracefully"
+        fi
     done
 fi
 
