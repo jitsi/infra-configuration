@@ -252,7 +252,6 @@ def main():
 
     if len(consul_urls) > 0:
         local_environment = local_data['local_environment']
-        local_domain = local_data['local_domain']
 #        datacenters = local_data['datacenters']
         datacenters = fetch_datacenters(consul_urls, enable_cross_region)
 
@@ -271,10 +270,16 @@ def main():
                     data=urlencode({'passing':'true','filter':'Service.Meta.environment == "%s"'%environment,'dc':dc})
                     response = json_from_url(url+'?'+data, timeout=CONSUL_REQUEST_TIMEOUT)
                     if response:
+                        # every domain registered under this environment is taken.
+                        # there used to be a filter keeping only local_domain, from
+                        # when each environment had a domain of its own; they now
+                        # nearly all share one, so the filter only served to drop the
+                        # handful of standalone environments that a jibri in this pool
+                        # is meant to serve. the consul-template render of the same
+                        # file has never filtered by domain either.
                         for entry in response:
                             service = catalog_service_from_health(entry)
-                            if not local_domain or local_domain == service['ServiceMeta']['domain']:
-                                hosts.append(fact_from_service(service,local_data, dc))
+                            hosts.append(fact_from_service(service,local_data, dc))
 
     else:
         aws_metadata = json_from_url(aws_metadata_url, timeout=AWS_REQUEST_TIMEOUT)
