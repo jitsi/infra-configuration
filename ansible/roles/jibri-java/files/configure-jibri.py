@@ -133,6 +133,32 @@ def fact_from_instance(instance, local_data=None):
 
     return fact
 
+def catalog_service_from_health(entry):
+    """Reshape a /v1/health/service entry into the /v1/catalog/service shape that
+    fact_from_service() consumes.
+
+    The health endpoint nests the service and node under separate keys and names
+    the service metadata "Meta" rather than "ServiceMeta". It is used in place of
+    the catalog endpoint so that only shards passing their consul health checks
+    are written into xmpp.conf; the catalog reports every registration, healthy
+    or not, so a dead shard stayed in the config until it was deregistered.
+    """
+    service = entry.get('Service') or {}
+    node = entry.get('Node') or {}
+    shaped = {
+        # the catalog's "Node" is the node name, used as a fallback id
+        'Node': node.get('Node'),
+        # prefer the service's own address, as consul-template's .Address does,
+        # and fall back to the node address
+        'Address': service.get('Address') or node.get('Address'),
+        'ServiceMeta': service.get('Meta') or {},
+    }
+    tagged = service.get('TaggedAddresses')
+    if tagged:
+        shaped['ServiceTaggedAddresses'] = tagged
+    return shaped
+
+
 def fact_from_service(service, local_data, dc):
     host_port = 5222
     environment = service['ServiceMeta']['environment']
@@ -143,6 +169,10 @@ def fact_from_service(service, local_data, dc):
         shard = service['ServiceMeta']['shard']
     else:
         shard = ''
+    # default to the service address, then let any tagged addresses override it;
+    # tagged addresses carrying neither a lan nor a wan entry used to leave these
+    # unbound and raise NameError
+    private_ip = public_ip = service['Address']
     if 'ServiceTaggedAddresses' in service:
         if 'lan' in service['ServiceTaggedAddresses']:
             private_ip = service['ServiceTaggedAddresses']['lan']['Address']
@@ -152,8 +182,6 @@ def fact_from_service(service, local_data, dc):
             public_ip = service['ServiceTaggedAddresses']['wan']['Address']
         elif 'wan_ipv4' in service['ServiceTaggedAddresses']:
             public_ip = service['ServiceTaggedAddresses']['wan_ipv4']['Address']
-    else:
-        private_ip = public_ip = service['Address']
 
     environment_detail = {}
     for e in local_data['environments']:
@@ -239,11 +267,12 @@ def main():
             consul_url = urls_by_datacenter[dc]
             for environment in environment_names:
                 for consul_service in consul_services:
-                    url='%s/v1/catalog/service/%s'%(consul_url,consul_service)
-                    data=urlencode({'filter':'ServiceMeta.environment == "%s"'%environment,'dc':dc})
+                    url='%s/v1/health/service/%s'%(consul_url,consul_service)
+                    data=urlencode({'passing':'true','filter':'Service.Meta.environment == "%s"'%environment,'dc':dc})
                     response = json_from_url(url+'?'+data, timeout=CONSUL_REQUEST_TIMEOUT)
                     if response:
-                        for service in response:
+                        for entry in response:
+                            service = catalog_service_from_health(entry)
                             if not local_domain or local_domain == service['ServiceMeta']['domain']:
                                 hosts.append(fact_from_service(service,local_data, dc))
 
@@ -321,7 +350,13 @@ def main():
             hosts_by_environment_domain[hkey]['host_addresses'] = []
 
         hosts_by_environment_domain[hkey]['hosts'].append(h)
-        hosts_by_environment_domain[hkey]['host_addresses'].append(h['xmpp_host_private_ip_address'])
+        # "address:port" per host, because shards grouped under one domain can be
+        # on different ports: nomad shards in a pool share a node IP and are told
+        # apart only by port. jibri splits each entry and prefers the port it
+        # carries, falling back to control-login.port only when there is none, so
+        # the group's single host_port can no longer misdescribe a co-domain shard.
+        hosts_by_environment_domain[hkey]['host_addresses'].append(
+            '%s:%s'%(h['xmpp_host_private_ip_address'], h['host_port']))
 
     print(json.dumps({'hosts_by_environment_domain': hosts_by_environment_domain}))
 
