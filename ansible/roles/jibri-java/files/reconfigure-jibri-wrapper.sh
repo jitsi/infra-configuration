@@ -15,24 +15,29 @@
 #     consul-template tears down its whole runner. So we wait for jibri to be
 #     active, retry the reload with backoff, and *always* exit 0. Failures are
 #     reported via statsd metrics and the log file instead.
-#   * A render that drops shards is treated as suspect: the shard registration
-#     in consul flaps during releases, and a render taken from that partial view
-#     would disconnect jibri from a healthy shard. If shards were removed we wait
-#     a short settle period and re-check consul; if any removed shard is healthy
-#     again the candidate is rejected and consul-template's next render (which
-#     will contain the shard again) gets applied instead.
+#   * A render is checked against consul before it is promoted: the shard
+#     registrations flap during releases, and a render taken from that partial
+#     view would disconnect jibri from a healthy shard. check-jibri-xmpp-conf.py
+#     asks whether the candidate still covers every shard consul reports as
+#     passing. The check is absolute rather than a diff against the previous file,
+#     because ansible and consul-template write the same hosts in different
+#     formats, so it also works on the first render after an ansible run. On a
+#     mismatch we settle and re-check; only a mismatch that persists rejects the
+#     candidate, and consul-template's next render gets applied instead.
 #
 # Tunables (environment):
 #   XMPP_CONF_FILE                live config        (default /etc/jitsi/jibri/xmpp.conf)
 #   XMPP_CONF_CANDIDATE_FILE      rendered candidate (default ${XMPP_CONF_FILE}.candidate)
 #   JIBRI_CONF_FILE               jibri.conf, used to find the internal API port
 #   CONSUL_HTTP_ADDR              local consul agent (default http://127.0.0.1:8500)
-#   CONSUL_PASSING_HOSTS_SCRIPT   helper that lists passing signal/all hosts from consul
-#                                 (default /usr/local/bin/consul-passing-hosts.py)
-#   JIBRI_SHRINK_SETTLE_SECONDS   wait before re-checking consul on a shrink (default 20)
+#   XMPP_CONF_CHECK_SCRIPT        helper that checks a rendered config against consul
+#                                 (default /usr/local/bin/check-jibri-xmpp-conf.py)
+#   JIBRI_SETTLE_SECONDS          wait before re-checking consul on a mismatch (default 20)
 #   JIBRI_ACTIVE_TIMEOUT_SECONDS  max wait for jibri.service to become active (default 120)
 #   JIBRI_RELOAD_ATTEMPTS         reload attempts (default 3, backoff 5s/10s/20s)
 #   JIBRI_LOCK_WAIT_SECONDS       max wait for the wrapper lock (default 120)
+#   JIBRI_LOCK_FILE               wrapper lock (default /var/lock/reconfigure-jibri-wrapper.lock)
+#   JIBRI_SERVICE_RELOAD_CMD      reload command (default "/usr/sbin/service jibri reload")
 
 function timestamp() {
   date --utc +%Y-%m-%d_%H:%M:%S.Z
@@ -62,15 +67,21 @@ function count_lines() {
   echo "$1" | sed '/^$/d' | wc -l | tr -d ' '
 }
 
-# Ask the local consul agent for the currently *passing* signal/all services and
-# print them as "host:port" lines, mirroring what xmpp.conf.template renders.
-# Prints nothing and returns non-zero if consul cannot be queried.
-function consul_passing_hosts() {
-  if [ ! -x "$CONSUL_PASSING_HOSTS_SCRIPT" ]; then
-    log_msg "$CONSUL_PASSING_HOSTS_SCRIPT is missing or not executable"
+# Ask check-jibri-xmpp-conf.py whether $1 still covers every shard consul reports.
+# Echoes the helper's findings into the log. Returns the helper's exit status:
+# 0 covered, 1 could not determine, 2 missing shards.
+function check_against_consul() {
+  local config="$1" output rc
+  if [ ! -x "$XMPP_CONF_CHECK_SCRIPT" ]; then
+    log_msg "$XMPP_CONF_CHECK_SCRIPT is missing or not executable"
     return 1
   fi
-  "$CONSUL_PASSING_HOSTS_SCRIPT" --consul "$CONSUL_HTTP_ADDR" 2>> "$TEMPLATE_LOGFILE"
+  output=$("$XMPP_CONF_CHECK_SCRIPT" --consul "$CONSUL_HTTP_ADDR" "$config" 2>&1)
+  rc=$?
+  while IFS= read -r line; do
+    [ -n "$line" ] && log_msg "check: $line"
+  done <<< "$output"
+  return $rc
 }
 
 function jibri_internal_api_port() {
@@ -120,13 +131,14 @@ function wait_for_jibri_ready() {
 [ -z "$XMPP_CONF_CANDIDATE_FILE" ] && XMPP_CONF_CANDIDATE_FILE="${XMPP_CONF_FILE}.candidate"
 [ -z "$JIBRI_CONF_FILE" ] && JIBRI_CONF_FILE="/etc/jitsi/jibri/jibri.conf"
 [ -z "$CONSUL_HTTP_ADDR" ] && CONSUL_HTTP_ADDR="http://127.0.0.1:8500"
-[ -z "$CONSUL_PASSING_HOSTS_SCRIPT" ] && CONSUL_PASSING_HOSTS_SCRIPT="/usr/local/bin/consul-passing-hosts.py"
-[ -z "$JIBRI_SHRINK_SETTLE_SECONDS" ] && JIBRI_SHRINK_SETTLE_SECONDS=20
+[ -z "$XMPP_CONF_CHECK_SCRIPT" ] && XMPP_CONF_CHECK_SCRIPT="/usr/local/bin/check-jibri-xmpp-conf.py"
+[ -z "$JIBRI_SETTLE_SECONDS" ] && JIBRI_SETTLE_SECONDS=20
 [ -z "$JIBRI_ACTIVE_TIMEOUT_SECONDS" ] && JIBRI_ACTIVE_TIMEOUT_SECONDS=120
 [ -z "$JIBRI_RELOAD_ATTEMPTS" ] && JIBRI_RELOAD_ATTEMPTS=3
 [ -z "$JIBRI_LOCK_WAIT_SECONDS" ] && JIBRI_LOCK_WAIT_SECONDS=120
 
-readonly LOCK_FILE="/var/lock/reconfigure-jibri-wrapper.lock"
+[ -z "$JIBRI_LOCK_FILE" ] && JIBRI_LOCK_FILE="/var/lock/reconfigure-jibri-wrapper.lock"
+[ -z "$JIBRI_SERVICE_RELOAD_CMD" ] && JIBRI_SERVICE_RELOAD_CMD="/usr/sbin/service jibri reload"
 readonly LOCK_FD=200
 
 log_msg "starting"
@@ -138,7 +150,7 @@ metric "shards_candidate_rejected" 0
 # ---------------------------------------------------------------------------
 # serialize: never let two invocations race each other
 # ---------------------------------------------------------------------------
-eval "exec $LOCK_FD>$LOCK_FILE"
+eval "exec $LOCK_FD>$JIBRI_LOCK_FILE"
 if ! flock -w "$JIBRI_LOCK_WAIT_SECONDS" $LOCK_FD; then
   log_msg "could not acquire lock within ${JIBRI_LOCK_WAIT_SECONDS}s, another reconfigure is still running; skipping"
   metric "shards_update_lock_timeout" 1
@@ -185,38 +197,59 @@ if [ -f "$XMPP_CONF_FILE" ] && cmp -s "$XMPP_CONF_CANDIDATE_FILE" "$XMPP_CONF_FI
   exit 0
 fi
 
+# ---------------------------------------------------------------------------
+# informational: how the candidate differs from the live file.
+#
+# This is logging only and must not drive the decision. The live file may have
+# been written by ansible, whose xmpp.conf.j2 lists bare addresses with the port
+# on a separate line, while consul-template renders "address:port" per block, so
+# on the first render after an ansible run every host reads as both added and
+# removed. Ports are kept verbatim either way: Nomad shards in a pool share an IP
+# and differ only by port, so normalizing the port away would hide the loss of a
+# co-located shard, which is the very thing being guarded against.
+# ---------------------------------------------------------------------------
 REMOVED_HOSTS=$(set_diff "$LIVE_HOSTS" "$NEW_HOSTS")
 ADDED_HOSTS=$(set_diff "$NEW_HOSTS" "$LIVE_HOSTS")
 REMOVED_COUNT=$(count_lines "$REMOVED_HOSTS")
 ADDED_COUNT=$(count_lines "$ADDED_HOSTS")
 
-[ "$ADDED_COUNT" -gt 0 ] && log_msg "candidate adds $ADDED_COUNT host(s): $(echo $ADDED_HOSTS)"
-
-# ---------------------------------------------------------------------------
-# a shrink is suspect: re-check consul after a settle period
-# ---------------------------------------------------------------------------
-if [ "$REMOVED_COUNT" -gt 0 ]; then
-  log_msg "candidate removes $REMOVED_COUNT host(s): $(echo $REMOVED_HOSTS); settling ${JIBRI_SHRINK_SETTLE_SECONDS}s before re-checking consul"
-  metric "shards_shrink_detected" 1
-  sleep "$JIBRI_SHRINK_SETTLE_SECONDS"
-
-  if CONSUL_HOSTS=$(consul_passing_hosts); then
-    STILL_HEALTHY=$(comm -12 <(echo "$REMOVED_HOSTS" | sed '/^$/d' | sort -u) <(echo "$CONSUL_HOSTS" | sed '/^$/d' | sort -u))
-    STILL_HEALTHY_COUNT=$(count_lines "$STILL_HEALTHY")
-    if [ "$STILL_HEALTHY_COUNT" -gt 0 ]; then
-      log_msg "$STILL_HEALTHY_COUNT removed host(s) are passing in consul again ($(echo $STILL_HEALTHY)); render was taken from a transient view, rejecting candidate and keeping live config"
-      metric "shards_candidate_rejected" 1
-      metric "shards_shrink_transient" "$STILL_HEALTHY_COUNT"
-      exit 0
-    fi
-    log_msg "removed host(s) confirmed absent from consul; accepting shrink"
-  else
-    log_msg "could not query consul at $CONSUL_HTTP_ADDR to verify the shrink; accepting candidate as rendered"
-    metric "shards_shrink_unverified" 1
-  fi
-  metric "shards_removed" "$REMOVED_COUNT"
-fi
+[ "$ADDED_COUNT" -gt 0 ] && log_msg "candidate adds $ADDED_COUNT entry(ies) vs live: $(echo $ADDED_HOSTS)"
+[ "$REMOVED_COUNT" -gt 0 ] && log_msg "candidate drops $REMOVED_COUNT entry(ies) vs live: $(echo $REMOVED_HOSTS)"
 [ "$ADDED_COUNT" -gt 0 ] && metric "shards_added" "$ADDED_COUNT"
+[ "$REMOVED_COUNT" -gt 0 ] && metric "shards_removed" "$REMOVED_COUNT"
+
+# ---------------------------------------------------------------------------
+# the decision: does the candidate still cover every shard consul reports?
+# ---------------------------------------------------------------------------
+check_against_consul "$XMPP_CONF_CANDIDATE_FILE"
+CHECK_RC=$?
+
+if [ $CHECK_RC -eq 2 ]; then
+  log_msg "candidate is missing shard(s) that consul reports as passing; settling ${JIBRI_SETTLE_SECONDS}s and re-checking"
+  metric "shards_candidate_incomplete" 1
+  sleep "$JIBRI_SETTLE_SECONDS"
+
+  check_against_consul "$XMPP_CONF_CANDIDATE_FILE"
+  CHECK_RC=$?
+  case $CHECK_RC in
+    0)
+      log_msg "consul caught up with the candidate; accepting"
+      ;;
+    2)
+      log_msg "candidate is still missing shard(s) after settling; render was taken from a transient view, rejecting candidate and keeping live config"
+      metric "shards_candidate_rejected" 1
+      metric "shards_candidate_incomplete_confirmed" 1
+      exit 0
+      ;;
+    *)
+      log_msg "could not re-check against consul; accepting candidate as rendered"
+      metric "shards_check_unverified" 1
+      ;;
+  esac
+elif [ $CHECK_RC -ne 0 ]; then
+  log_msg "could not check the candidate against consul at $CONSUL_HTTP_ADDR; accepting candidate as rendered"
+  metric "shards_check_unverified" 1
+fi
 
 # ---------------------------------------------------------------------------
 # promote candidate -> live (atomically, preserving ownership/mode)
@@ -251,7 +284,7 @@ ATTEMPT=1
 BACKOFF=5
 while [ $ATTEMPT -le "$JIBRI_RELOAD_ATTEMPTS" ]; do
   log_msg "reloading jibri (attempt $ATTEMPT/$JIBRI_RELOAD_ATTEMPTS)"
-  /usr/sbin/service jibri reload
+  $JIBRI_SERVICE_RELOAD_CMD
   RET=$?
   [ $RET -eq 0 ] && break
   log_msg "jibri reload failed (rc=$RET)"

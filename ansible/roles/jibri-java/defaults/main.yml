@@ -41,6 +41,7 @@ jibri_dropbox_upload_wrapper: /usr/local/bin/dropbox_wrapper
 jibri_enable_consul: true
 jibri_enable_health_cron: true
 jibri_enable_pulse_verbose_logs: false
+jibri_enable_reconcile_cron: true
 jibri_enable_status_cron: true
 jibri_environments: "{{ default_jibri_environments }}"
 jibri_failed_upload_path: /opt/jitsi/jibri/failed
@@ -77,6 +78,10 @@ jibri_sidecar_webhook: false
 # instance is recycled. Set false (e.g. in stage-8x8) to return jibri to IDLE/ready
 # after each use, allowing the same instance to be reused.
 jibri_single_use_mode: true
+jibri_reconcile_cron:
+  hour: "*"
+  job: "/usr/local/bin/reconcile-jibri-xmpp-conf.sh > /dev/null 2>&1"
+  minute: "*/5"
 jibri_status_cron:
   hour: "*"
   job: "{{ jibri_path_to_status_script }} > /tmp/status-cron-output 2>&1"
