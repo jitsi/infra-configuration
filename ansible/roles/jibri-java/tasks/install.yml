@@ -83,12 +83,24 @@
     mode: 0755
     owner: root
 
-- name: Upload consul passing-hosts helper for the jibri configurator
+- name: Upload jibri xmpp.conf checker for the jibri configurator
   ansible.builtin.copy:
-    dest: "/usr/local/bin/consul-passing-hosts.py"
-    src: "consul-passing-hosts.py"
+    dest: "/usr/local/bin/check-jibri-xmpp-conf.py"
+    src: "check-jibri-xmpp-conf.py"
     mode: 0755
     owner: root
+
+- name: Upload jibri xmpp.conf reconcile script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconcile-jibri-xmpp-conf.sh"
+    src: "reconcile-jibri-xmpp-conf.sh"
+    mode: 0755
+    owner: root
+
+- name: Remove superseded consul passing-hosts helper
+  ansible.builtin.file:
+    path: "/usr/local/bin/consul-passing-hosts.py"
+    state: absent
 
 # script to handle stats to cloudwatch
 - name: Copy status cloudwatch script aws

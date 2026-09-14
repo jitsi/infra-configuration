@@ -267,12 +267,24 @@
     mode: 0755
     owner: root
 
-- name: Upload consul passing-hosts helper for the jibri configurator
+- name: Upload jibri xmpp.conf checker for the jibri configurator
   ansible.builtin.copy:
-    dest: "/usr/local/bin/consul-passing-hosts.py"
-    src: "consul-passing-hosts.py"
+    dest: "/usr/local/bin/check-jibri-xmpp-conf.py"
+    src: "check-jibri-xmpp-conf.py"
     mode: 0755
     owner: root
+
+- name: Upload jibri xmpp.conf reconcile script
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/reconcile-jibri-xmpp-conf.sh"
+    src: "reconcile-jibri-xmpp-conf.sh"
+    mode: 0755
+    owner: root
+
+- name: Remove superseded consul passing-hosts helper
+  ansible.builtin.file:
+    path: "/usr/local/bin/consul-passing-hosts.py"
+    state: absent
 
   # Run the metric reporting script regularly
 - name: Jibri status script cron
@@ -296,3 +308,17 @@
     hour: "{{ jibri_health_cron.hour }}"
     job: "{{ jibri_health_cron.job }}"
   when: jibri_enable_health_cron
+
+# Catch a consul-template render that never got promoted (see the script header)
+- name: Jibri xmpp.conf reconcile cron
+  ansible.builtin.cron:
+    user: root
+    state: present
+    name: "Jibri xmpp.conf reconcile"
+    minute: "{{ jibri_reconcile_cron.minute }}"
+    hour: "{{ jibri_reconcile_cron.hour }}"
+    job: "{{ jibri_reconcile_cron.job }}"
+  when:
+    - jibri_enable_reconcile_cron
+    - not jibri_pjsua_flag
+    - jibri_enable_consul_template | default(false)
