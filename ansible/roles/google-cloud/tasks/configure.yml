@@ -1,4 +1,9 @@
 ---
+# jigasi reads this key directly via GOOGLE_APPLICATION_CREDENTIALS (see the
+# jigasi role's config.j2); the Google Java client needs the file, not the
+# gcloud CLI. No site currently selects GoogleCloudTranscriptionService -- every
+# transcriber env sets jigasi_transcriber_oci_flag -- so this is here for the
+# fallback case only.
 - name: Google cloud config directory
   ansible.builtin.file:
     mode: 0755
@@ -16,6 +21,3 @@
     content: "{{ google_cloud_service_key_json }}"
     mode: 0640
     group: jitsi
-
-- name: Activate google cloud service account
-  ansible.builtin.command: gcloud auth activate-service-account --key-file={{ google_cloud_conf_dir }}/google-cloud-s2t-key-file.json
