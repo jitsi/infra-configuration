@@ -34,7 +34,7 @@
     accept_hostkey: true
 
 - name: Install npm Requirements
-  ansible.builtin.command: npm install
+  ansible.builtin.command: npm install --omit=dev --legacy-peer-deps
   become: true
   become_user: "{{ jigasi_rtcstats_push_username }}"
   args:
