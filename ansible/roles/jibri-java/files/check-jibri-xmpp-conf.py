@@ -11,27 +11,32 @@ writes describe the same hosts in different formats. So instead of asking "did t
 render lose hosts", ask "does this render still cover every shard consul knows
 about". That needs no history and works on the very first render.
 
-Shard identity is "address:port", never the address alone: Nomad shards in the same
-pool share a node IP and are told apart only by port, so a new shard can reuse a
-retired shard's IP and two live shards can sit on one IP. The port comes from the
-prosody_client_port service meta, defaulting to 5222 (it is NOT Service.Port, which
-is 5280 for the signal service and 443 for all).
+The check is per host, and a host is "address:port" -- never the address alone.
+Nomad shards in the same pool share a node IP and are told apart only by port, so
+a new shard can reuse a retired shard's IP and two live shards can sit on one IP.
+Normalizing the port away would hide the loss of a co-located shard, which is
+precisely what this guards against. The port comes from the prosody_client_port
+service meta, defaulting to 5222; it is NOT Service.Port, which is 5280 for the
+signal service and 443 for all.
 
-Grouping mirrors the scratch map in xmpp.conf.template: passing "signal" entries are
-keyed by ServiceMeta.shard and passing "all" entries by ServiceMeta.domain, in that
-order, set-if-absent (consul-template's MapSetX). The template renders one block per
-key, so a key is satisfied when *any* of its hosts appears in the config; which one
-the template picked is not predictable from a separate query.
+Every passing host must appear in the config. That is exactly what
+xmpp.conf.template renders: one environment block per domain listing every passing
+host for that domain. (It used to keep only the first host per domain, so this
+check had to be satisfied per domain rather than per shard, and could not see a
+co-domain shard go missing. Both halves were fixed together.)
+
+Hosts present in the config but no longer in consul are not reported. A shard that
+has legitimately left is not a reason to reject a render.
 
 Usage:
     check-jibri-xmpp-conf.py [--consul URL] [--timeout SECONDS] CONFIG
     check-jibri-xmpp-conf.py --list [--consul URL] [--timeout SECONDS]
 
 Exit codes:
-    0  config covers every key consul reports (or, with --list, listing succeeded)
+    0  config covers every host consul reports (or, with --list, listing succeeded)
     1  could not determine: consul unreachable, or the config could not be read
-    2  config is missing at least one key consul reports; the missing keys and the
-       hosts that would satisfy them are printed to stdout
+    2  config is missing at least one host consul reports; the missing hosts are
+       printed to stdout, with the shard each one belongs to
 """
 
 import argparse
@@ -44,8 +49,7 @@ import urllib.request
 DEFAULT_CONSUL = "http://127.0.0.1:8500"
 DEFAULT_PORT = "5222"
 
-# (consul service name, service meta key the template groups that service by)
-SERVICE_KEYS = [("signal", "shard"), ("all", "domain")]
+SERVICES = ["signal", "all"]
 
 HOSTS_LINE = re.compile(r"xmpp-server-hosts")
 QUOTED = re.compile(r'"([^"]+)"')
@@ -62,7 +66,7 @@ def normalize_consul_url(addr):
 
 def service_host(entry):
     """The "address:port" this service entry renders as, mirroring the template's
-    {{ .Address }}:{{ .ServiceMeta.prosody_client_port | default 5222 }}."""
+    {{ .Address }}:{{ or .ServiceMeta.prosody_client_port "5222" }}."""
     service = entry.get("Service") or {}
     node = entry.get("Node") or {}
     # consul-template's .Address falls back to the node address when the service
@@ -74,17 +78,12 @@ def service_host(entry):
     return "%s:%s" % (address, port)
 
 
-def expected_hosts_by_key(consul_url, timeout):
-    """Return {key: {"service": name, "hosts": set()}} for the passing services,
-    grouped as the template groups them. Raises on a consul failure.
-
-    A key claimed by an earlier service keeps only that service's hosts, because
-    MapSetX is set-if-absent and signal is ranged over first. Within one service a
-    key collects every host that could have claimed it, since consul's ordering is
-    not predictable from a separate query and any of them satisfies the key.
-    """
-    by_key = {}
-    for service_name, meta_key in SERVICE_KEYS:
+def passing_hosts(consul_url, timeout):
+    """Return {host: label} for every passing service entry, where label names the
+    shard and domain the host belongs to, for use in error output. Raises on a
+    consul failure."""
+    hosts = {}
+    for service_name in SERVICES:
         url = "%s/v1/health/service/%s?passing" % (consul_url, service_name)
         with urllib.request.urlopen(url, timeout=timeout) as resp:
             entries = json.load(resp)
@@ -93,13 +92,9 @@ def expected_hosts_by_key(consul_url, timeout):
             if not host:
                 continue
             meta = (entry.get("Service") or {}).get("Meta") or {}
-            key = meta.get(meta_key) or ""
-            claimed = by_key.get(key)
-            if claimed is None:
-                by_key[key] = {"service": service_name, "hosts": {host}}
-            elif claimed["service"] == service_name:
-                claimed["hosts"].add(host)
-    return by_key
+            hosts.setdefault(host, "%s shard=%s domain=%s" % (
+                service_name, meta.get("shard") or "?", meta.get("domain") or "?"))
+    return hosts
 
 
 def hosts_in_config(path):
@@ -129,16 +124,13 @@ def main():
 
     consul_url = normalize_consul_url(args.consul)
     try:
-        by_key = expected_hosts_by_key(consul_url, args.timeout)
+        expected = passing_hosts(consul_url, args.timeout)
     except (urllib.error.URLError, OSError, ValueError) as exc:
         print("check-jibri-xmpp-conf: failed to query %s: %s" % (consul_url, exc), file=sys.stderr)
         return 1
 
     if args.list_only:
-        every_host = set()
-        for detail in by_key.values():
-            every_host.update(detail["hosts"])
-        for host in sorted(every_host):
+        for host in sorted(expected):
             print(host)
         return 0
 
@@ -148,18 +140,13 @@ def main():
         print("check-jibri-xmpp-conf: failed to read %s: %s" % (args.config, exc), file=sys.stderr)
         return 1
 
-    missing = {
-        key: detail for key, detail in by_key.items()
-        if not (detail["hosts"] & present)
-    }
+    missing = sorted(host for host in expected if host not in present)
     if not missing:
-        print("ok: %d of %d key(s) covered" % (len(by_key), len(by_key)))
+        print("ok: %d of %d host(s) present" % (len(expected), len(expected)))
         return 0
 
-    for key in sorted(missing):
-        detail = missing[key]
-        print("missing %s %s: none of %s present" % (
-            detail["service"], key or "(unnamed)", ", ".join(sorted(detail["hosts"]))))
+    for host in missing:
+        print("missing %s (%s)" % (host, expected[host]))
     return 2
 
 
