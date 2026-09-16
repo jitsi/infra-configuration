@@ -10,5 +10,6 @@ galaxy_info:
         - focal
         - jammy
 dependencies:
+  - { role: boot-git-mirror }  # shared checkout_repos for the on-disk boot script (JIT-16092)
   - {role: jitsi-repo}
   - {role: monit}
