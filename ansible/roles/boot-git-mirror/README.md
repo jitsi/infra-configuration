@@ -19,10 +19,18 @@ Where `GIT_MIRROR_HOST` comes from on an instance, in order:
 
 1. the environment, when the script is a child of the user-data that exported it
    (first boot);
-2. `/opt/jitsi/boot/git-mirror-host`, which this role records from `ansible_env`
-   during the first-boot ansible run, because reconfigures and later boots inherit
-   nothing from user-data;
-3. otherwise no mirror, github only.
+2. `/opt/jitsi/boot/git-mirror-host`, written by infra-provisioning's user-data
+   (`record_git_mirror_host` in `terraform/lib/postinstall-lib.sh`, called from
+   `postinstall-footer.sh` so every stack passes through it whatever its
+   `MAIN_COMMAND`);
+3. otherwise no mirror, github only. An empty file is case 3, said explicitly, so
+   a stack that opts back out stops using the mirror without an image rebuild.
+
+Case 2 is the one that carries the feature. Reconfigures inherit nothing from
+user-data, and the jvb and jibri postinstalls are invoked through `sudo`, which
+resets the environment, so for those two roles case 1 never happens even on a
+first boot. This role does not write the file: one writer, in the process that
+actually has the variable.
 
 `auto` derives the hostname from `ENVIRONMENT` and `ORACLE_REGION`, which the
 `-oracle` scripts get from `/usr/local/bin/oracle_cache.sh`. The region gate
@@ -59,9 +67,19 @@ by `Cloned <repo> at <ref> from github`.
 
 ## Rollout note
 
-The boot scripts are baked into images and re-copied on every reconfigure. The
-script that clones the repos is itself replaced by a run that already cloned
-them, so a change lands on an instance on the run after the one that ships it.
-Instances that booted before this role existed never saw `GIT_MIRROR_HOST` in an
-ansible run, so they have no recorded host and keep cloning from github until
-they are replaced.
+The boot scripts are baked into images, and which of them refresh without a
+rebuild depends on where the copy task lives. The reconfigure playbooks all pass
+`install_flag: false`:
+
+| Role | Copy task in | Refreshes on reconfigure |
+|---|---|---|
+| jigasi | `install.yml` and `configure.yml` | yes |
+| haproxy (oracle) | `main.yml`, no build gate | yes |
+| selenium-grid | `main.yml`, ungated | yes, non-nomad grids |
+| coturn, jibri, jicofo, jvb | `install.yml` only | no, needs an image rebuild |
+
+The script that clones the repos is itself replaced by a run that already cloned
+them, so even where it refreshes in place the change lands on the run after the
+one that ships it. An instance that booted before infra-provisioning started
+recording the host file has no file and keeps cloning from github until it is
+replaced.
