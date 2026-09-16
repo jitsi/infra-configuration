@@ -1,0 +1,86 @@
+#!/bin/bash
+# {{ ansible_managed }}
+#
+# Reclaim disk on a long-lived standalone node. Only removes caches that
+# regenerate on demand and state that is provably unreachable; anything a human
+# has to decide about is reported, not deleted.
+#
+#   DRY_RUN=1 /usr/local/bin/standalone-housekeeping.sh   # report only
+#
+set -uo pipefail
+
+JH={{ standalone_housekeeping_jenkins_home }}
+NPM_CACHE_DAYS=${NPM_CACHE_DAYS:-{{ standalone_housekeeping_npm_cache_days }}}
+NVM_KEEP_PER_MAJOR=${NVM_KEEP_PER_MAJOR:-{{ standalone_housekeeping_nvm_keep_per_major }}}
+SMACKS_DAYS=${SMACKS_DAYS:-{{ standalone_housekeeping_smacks_days }}}
+DRY_RUN=${DRY_RUN:-0}
+
+log()  { echo "[$(date -u +%FT%TZ)] $*"; }
+run()  { if [ "$DRY_RUN" = 1 ]; then echo "  would run: $*"; else "$@"; fi; }
+size() { du -sh "$@" 2>/dev/null | awk '{print $1}'; }
+
+# Builds here are triggered per-PR, not on a schedule, so there is no dependable
+# idle window -- check for one instead of assuming it. This matches the shell
+# build step wrapper, which lives for the whole build.
+if pgrep -u jenkins -f '/tmp/jenkins[0-9]+\.sh' >/dev/null 2>&1; then
+  log "build in progress; skipping this run"
+  exit 0
+fi
+
+log "before: $(df -h / | awk 'NR==2{print $3" used, "$4" free ("$5")"}')"
+
+# --- npm cacache ------------------------------------------------------------
+CC="$JH/.npm/_cacache"
+if [ -d "$CC/content-v2" ]; then
+  n=$(find "$CC/content-v2" -type f -mtime +"$NPM_CACHE_DAYS" 2>/dev/null | wc -l)
+  log "npm cache: $(size "$CC") total, pruning $n objects older than ${NPM_CACHE_DAYS}d"
+  if [ "$DRY_RUN" = 1 ]; then
+    find "$CC/content-v2" -type f -mtime +"$NPM_CACHE_DAYS" -printf '%s\n' 2>/dev/null \
+      | awk '{s+=$1} END {printf "  would reclaim: %.1f GB\n", s/1024/1024/1024}'
+  else
+    find "$CC/content-v2" -type f -mtime +"$NPM_CACHE_DAYS" -delete
+    find "$CC/content-v2" -type d -empty -delete
+    # leftovers from interrupted downloads; nothing reads these between runs
+    find "$CC/tmp" -mindepth 1 -mtime +1 -exec rm -rf {} + 2>/dev/null
+    # reconcile index-v5 with what is actually left on disk
+    sudo -u jenkins -H bash -lc 'npm cache verify' >/dev/null 2>&1
+  fi
+  run find "$JH/.npm/_logs" -type f -mtime +7 -delete
+fi
+
+# --- nvm toolchains ---------------------------------------------------------
+NVM_DIR="$JH/.nvm"
+if [ -d "$NVM_DIR/versions/node" ]; then
+  keep=$(ls -1 "$NVM_DIR/versions/node" | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n \
+         | awk -F. '{v[$1]=v[$1]" "$0}
+                    END {for (m in v) {n=split(v[m],a," "); for (i=n; i>n-K && i>0; i--) print a[i]}}' \
+               K="$NVM_KEEP_PER_MAJOR")
+  for v in $(ls -1 "$NVM_DIR/versions/node" | sed 's/^v//'); do
+    grep -qx "$v" <<<"$keep" && continue
+    log "nvm: removing v$v ($(size "$NVM_DIR/versions/node/v$v"))"
+    run sudo -u jenkins -H bash -lc ". $NVM_DIR/nvm.sh && nvm uninstall v$v"
+    run rm -rf "$JH/.cache/node-gyp/$v"
+  done
+  # downloaded tarballs; nvm re-fetches on demand
+  if [ -d "$NVM_DIR/.cache/bin" ]; then
+    log "nvm: clearing download cache ($(size "$NVM_DIR/.cache"))"
+    run find "$NVM_DIR/.cache/bin" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+  fi
+fi
+
+# --- prosody smacks hibernation store ---------------------------------------
+for d in /var/lib/prosody/*/smacks_h; do
+  [ -d "$d" ] || continue
+  n=$(find "$d" -name '*.dat' -mtime +"$SMACKS_DAYS" 2>/dev/null | wc -l)
+  [ "$n" -gt 0 ] || continue
+  log "prosody: $d holds $(size "$d"), dropping $n entries older than ${SMACKS_DAYS}d"
+  run find "$d" -name '*.dat' -mtime +"$SMACKS_DAYS" -delete
+done
+
+# --- report only: real data, not cache --------------------------------------
+for f in "$JH"/tmp/jacoco-*.exec; do
+  [ -f "$f" ] || continue
+  log "NOTE: $f is $(size "$f") and grows every run - reset or archive it in the pr-test job"
+done
+
+log "after:  $(df -h / | awk 'NR==2{print $3" used, "$4" free ("$5")"}')"
