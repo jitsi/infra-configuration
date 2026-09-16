@@ -98,6 +98,11 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
 - `haproxy-reload` job must run when shards are added/removed
 - `haproxy-recycle` job replaces instances (breaks websocket connections)
 
+### Boot scripts and the in-region git mirror
+- On-disk boot scripts (`ansible/roles/*/files/configure-*-local*.sh`) clone the infra repos via the shared `/opt/jitsi/boot/git-mirror-lib.sh` from the `boot-git-mirror` role; do not add per-script `git clone` logic
+- The library tries the regional Gitea mirror first and falls back to github; it mirrors infra-provisioning's `terraform/lib/postinstall-lib.sh` and the two must stay in step
+- `ansible/roles/boot-postinstall/files/postinstall-lib.sh` is an abandoned copy that nothing sources; leave it alone
+
 ### Secrets and Vault
 - All secrets in `ansible/secrets/*.yml` are encrypted with Ansible Vault
 - Vault password file: `.vault-password.txt` (not in git)

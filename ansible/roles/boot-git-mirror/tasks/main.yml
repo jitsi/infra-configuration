@@ -1,0 +1,36 @@
+---
+# Shared clone logic for the on-disk boot scripts (configure-*-local*.sh), see
+# files/git-mirror-lib.sh. Roles that ship one of those scripts depend on this
+# role so the library and the script always land in the same run.
+- name: Create the boot library directory
+  ansible.builtin.file:
+    path: "{{ boot_git_mirror_path }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Install the git mirror boot library
+  ansible.builtin.copy:
+    src: git-mirror-lib.sh
+    dest: "{{ boot_git_mirror_lib }}"
+    mode: "0644"
+    owner: root
+    group: root
+
+# The cloud-init user-data exports GIT_MIRROR_HOST (empty when the stack is not
+# opted in, or the region has no mirror), and only the first-boot ansible run is
+# a child of that user-data. Record the value so the on-disk boot scripts, which
+# later run from a fresh environment, make the same mirror decision. Runs that
+# do not see the variable (reconfigures, image builds, remote runs) leave the
+# recorded value alone.
+- name: Record the boot-time GIT_MIRROR_HOST for the on-disk boot scripts
+  ansible.builtin.copy:
+    content: "{{ ansible_env.GIT_MIRROR_HOST }}\n"
+    dest: "{{ boot_git_mirror_host_file }}"
+    mode: "0644"
+    owner: root
+    group: root
+  when:
+    - ansible_env is defined
+    - ansible_env.GIT_MIRROR_HOST is defined

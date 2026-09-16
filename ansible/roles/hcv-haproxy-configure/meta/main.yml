@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: jicofo
+  role_name: hcv_haproxy_configure
   author: Aaron van Meerten
-  description: install and configure jicofo
+  description: configure the HAProxy conference router and its boot script
   license: Apache License Version 2.0
   min_ansible_version: '6.6.0'
   platforms:
@@ -12,5 +12,3 @@ galaxy_info:
         - jammy
 dependencies:
   - { role: boot-git-mirror }  # shared checkout_repos for the on-disk boot script (JIT-16092)
-  - { role: jitsi-repo, when: jicofo_install_flag }
-  - { role: openjdk-java, when: jicofo_install_flag }

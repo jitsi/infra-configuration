@@ -33,6 +33,10 @@
         src: "roles/common/files/oracle_cache.sh"
         dest: "/usr/local/bin/oracle_cache.sh"
         mode: "0755"
+    # configure-haproxy.sh sources the shared checkout_repos from this role
+    - name: Install the git mirror boot library
+      ansible.builtin.include_role:
+        name: boot-git-mirror
     - name: Copy configure-haproxy.sh
       ansible.builtin.copy:
         dest: "/usr/local/bin/configure-haproxy.sh"

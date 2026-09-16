@@ -4,29 +4,10 @@
 export BOOTSTRAP_DIRECTORY="/tmp/bootstrap"
 export LOCAL_REPO_DIRECTORY="/opt/jitsi/bootstrap"
 
-function checkout_repos() {
-  [ -d $BOOTSTRAP_DIRECTORY/infra-configuration ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-configuration
-  [ -d $BOOTSTRAP_DIRECTORY/infra-customizations ] && rm -rf $BOOTSTRAP_DIRECTORY/infra-customizations
-  mkdir -p $BOOTSTRAP_DIRECTORY
-  if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null; fi
-
-  if [ -d "$LOCAL_REPO_DIRECTORY" ]; then
-    echo "Found local repo copies in $LOCAL_REPO_DIRECTORY, setting GIT_ALTERNATE_OBJECT_DIRECTORIES"
-    export GIT_ALTERNATE_OBJECT_DIRECTORIES="$LOCAL_REPO_DIRECTORY/infra-configuration/.git/objects:$LOCAL_REPO_DIRECTORY/infra-customizations/.git/objects"
-  fi
-  echo "Now cloning directly from github"
-  git clone $INFRA_CONFIGURATION_REPO $BOOTSTRAP_DIRECTORY/infra-configuration
-  git clone $INFRA_CUSTOMIZATIONS_REPO $BOOTSTRAP_DIRECTORY/infra-customizations
-  cd $BOOTSTRAP_DIRECTORY/infra-configuration
-  git checkout $GIT_BRANCH
-  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
-  cd -
-  cd $BOOTSTRAP_DIRECTORY/infra-customizations
-  git checkout $GIT_BRANCH
-  git show-ref heads/$GIT_BRANCH || git show-ref tags/$GIT_BRANCH
-  cp -a $BOOTSTRAP_DIRECTORY/infra-customizations/* $BOOTSTRAP_DIRECTORY/infra-configuration
-  cd -
-}
+# checkout_repos: clone the infra repos from the in-region git mirror when this
+# instance booted with one, github otherwise (JIT-16092). Installed by the
+# boot-git-mirror role, which every role shipping this script depends on.
+. /opt/jitsi/boot/git-mirror-lib.sh || { echo "Missing /opt/jitsi/boot/git-mirror-lib.sh, cannot check out the infra repos"; exit 1; }
 
 . /usr/local/bin/aws_cache.sh
 
@@ -54,7 +35,10 @@ fi
 #if there's still no git branch set, assume main
 [ -z "$GIT_BRANCH" ] && GIT_BRANCH="main"
 
-checkout_repos
+if ! checkout_repos; then
+  echo "Failed to check out the infra repos from any source"
+  exit 1
+fi
 
 cd $BOOTSTRAP_DIRECTORY/infra-configuration
 ansible-playbook -v \
