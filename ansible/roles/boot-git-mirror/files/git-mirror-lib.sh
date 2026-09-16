@@ -17,10 +17,13 @@
 # Where GIT_MIRROR_HOST comes from on an instance, in order:
 #   1. the environment, when this script is a child of the cloud-init user-data
 #      that exported it (first boot);
-#   2. $GIT_MIRROR_HOST_FILE, recorded by the boot-git-mirror role from that same
-#      variable during the first-boot ansible run, so reconfigures and later
-#      boots, which inherit nothing, make the same decision;
-#   3. otherwise no mirror.
+#   2. $GIT_MIRROR_HOST_FILE, written by infra-provisioning's user-data
+#      (record_git_mirror_host in terraform/lib/postinstall-lib.sh, called from
+#      postinstall-footer.sh so it covers every stack), so reconfigures and later
+#      boots, which inherit nothing, make the same decision. This is the path
+#      that matters: the jvb and jibri postinstalls are invoked through sudo,
+#      which resets the environment, so for them case 1 never happens at all;
+#   3. otherwise no mirror. An empty file is case 3, said explicitly.
 # "auto" derives $ENVIRONMENT-$ORACLE_REGION-git.$GIT_MIRROR_DNS_ZONE; the -oracle
 # scripts get both from /usr/local/bin/oracle_cache.sh. The region gate (mirrors
 # exist only in an environment's NOMAD_REGIONS) runs when the stack is created,

@@ -1,4 +1,3 @@
 ---
 boot_git_mirror_path: /opt/jitsi/boot
 boot_git_mirror_lib: "{{ boot_git_mirror_path }}/git-mirror-lib.sh"
-boot_git_mirror_host_file: "{{ boot_git_mirror_path }}/git-mirror-host"
