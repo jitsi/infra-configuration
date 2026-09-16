@@ -498,6 +498,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_enable_muc_occupant_session %}
       "muc_occupant_session";
 {% endif %}
+{% if prosody_filter_direct_messages_enabled %}
+      "filter_direct_messages";
+{% endif %}
         }
         shard_name = "{{ shard_name }}"
         region_name = "{{ prosody_region }}"
@@ -557,6 +560,9 @@ VirtualHost "{{ prosody_guest_domain_name }}"
 {% endif %}
 {% if prosody_enable_muc_occupant_session %}
           "muc_occupant_session";
+{% endif %}
+{% if prosody_filter_direct_messages_enabled %}
+          "filter_direct_messages";
 {% endif %}
         }
         authentication = "jitsi-anonymous"

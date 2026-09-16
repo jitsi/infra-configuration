@@ -279,6 +279,9 @@ VirtualHost 'v{{ item }}.meet.jitsi'
 {% if prosody_enable_muc_occupant_session %}
       "muc_occupant_session";
 {% endif %}
+{% if prosody_filter_direct_messages_enabled %}
+      "filter_direct_messages";
+{% endif %}
     }
     main_muc = 'conference.v{{ item }}.meet.jitsi';
     shard_name = "{{ shard_name }}"
