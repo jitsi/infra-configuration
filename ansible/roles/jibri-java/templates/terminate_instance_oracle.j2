@@ -3,6 +3,7 @@ set -x
 
 export OCI_BIN="/usr/local/bin/oci"
 export CURL_BIN="/usr/bin/curl"
+export CONSUL_BIN="/usr/local/bin/consul"
 
 INSTANCE_METADATA=$(curl -s http://169.254.169.254/opc/v1/instance/)
 INSTANCE_ID=$(echo "$INSTANCE_METADATA" | jq .id -r)
@@ -23,7 +24,17 @@ fi
 nomad node drain -self -enable -force -detach -yes
 sleep 10
 service nomad stop
-service consul stop
+# Leave the consul gossip pool gracefully.
+#
+# This used to be "service consul stop", which needs root. This script also runs as
+# jsidecar (see the note above about not using sudo), so the stop silently failed, the
+# agent kept running until the VM was force-terminated, and no leave was ever gossiped --
+# leaving the node "failed" in the catalog for the 72h reap window instead of gone.
+#
+# "consul leave" goes through the local agent's HTTP API on 127.0.0.1:8500, needs no root
+# and no ACL token (clients are configured without ACLs), and both leaves the pool and
+# shuts the agent down. Fall back to the old path in case the API is already unreachable.
+$CONSUL_BIN leave || service consul stop
 
 # notify the sidecar of imminent shutdown
 $CURL_BIN -d '{}' -v localhost:6000/hook/v1/shutdown
