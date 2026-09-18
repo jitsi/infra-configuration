@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+# vector's internal metrics, scraped locally and re-exposed by telegraf.
+# namepass is the keep-list; see roles/vector/defaults/main.yml.
+[[inputs.prometheus]]
+  urls = ["http://localhost:{{ vector_metrics_port }}/metrics"]
+  namepass = {{ vector_telegraf_namepass | to_json }}
+  tagexclude = ["url"]
+  [inputs.prometheus.tags]
+    service = "vector"

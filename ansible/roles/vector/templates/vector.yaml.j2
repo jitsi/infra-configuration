@@ -3,6 +3,9 @@ api:
     enabled: true
     address: "0.0.0.0:8686"
 sources:
+    # vector's own telemetry, exposed by the prometheus_exporter sink below
+    internal_metrics:
+        type: "internal_metrics"
     boot:
         type: "file"
         include:
@@ -109,6 +112,13 @@ sources:
             strategy: device_and_inode
 {% endif %}
 sinks:
+  # Scrape target for vector's internal metrics, read by telegraf on this host
+  # (see templates/telegraf-vector.conf.j2). It holds current values in memory
+  # and is not a delivery sink, so it deliberately has no buffer.
+  prometheus_exporter:
+    type: "prometheus_exporter"
+    inputs: ["internal_metrics"]
+    address: "0.0.0.0:{{ vector_metrics_port }}"
   # NOTE: healthcheck is intentionally disabled on every loki sink below.
   # With healthchecks enabled, vector refuses to start if the loki endpoint is
   # unreachable at boot. That failure propagates up through the ansible boot

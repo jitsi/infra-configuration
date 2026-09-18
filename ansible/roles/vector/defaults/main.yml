@@ -5,6 +5,38 @@ vector_cloud_instance_id: "{{ cloud_instance_id | default('default') }}"
 vector_cloud_region: "{{ oracle_region }}"
 vector_configure_flag: true
 vector_install_flag: true
+# static local port for the prometheus_exporter sink. Not opened to the
+# network: telegraf on the same host scrapes it and re-exposes the kept
+# series on its own 9126 endpoint, the way every other local service is done.
+vector_metrics_port: 9598
+vector_telegraf_config_dir: /etc/telegraf/telegraf.d
+# keep-list applied by telegraf at the source. The raw exporter emits ~2,400
+# series per host, all but these ~80 histogram buckets nothing alerts on.
+# Keep in step with the vector-metrics [[inputs.prometheus]] block in
+# infra-provisioning nomad/telegraf.hcl, the nomad population's copy.
+vector_telegraf_namepass:
+  - vector_build_info
+  - vector_uptime_seconds
+  - vector_started_total
+  - vector_utilization
+  - vector_component_received_events_total
+  - vector_component_received_event_bytes_total
+  - vector_component_sent_events_total
+  - vector_component_sent_event_bytes_total
+  - vector_component_discarded_events_total
+  - vector_component_errors_total
+  - vector_buffer_size_bytes
+  - vector_buffer_max_size_bytes
+  - vector_buffer_size_events
+  - vector_buffer_max_size_events
+  - vector_buffer_byte_size
+  - vector_buffer_max_byte_size
+  - vector_buffer_events
+  - vector_buffer_max_event_size
+  - vector_buffer_discarded_events_total
+  - vector_buffer_received_events_total
+  - vector_buffer_sent_events_total
+  - vector_internal_metrics_cardinality*
 # By default vector routes logs through the Alloy OTEL collector's Loki push API,
 # which forwards on to the regional Loki. Set vector_route_direct_to_loki: true to
 # bypass Alloy and write to Loki directly.

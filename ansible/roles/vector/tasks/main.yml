@@ -93,6 +93,30 @@
     - ansible_facts.getent_group['vault']
     - vector_configure_flag
 
+# Telegraf scrapes vector's prometheus_exporter on localhost and re-exposes
+# the kept series with the host's usual tags, like every other local service.
+# Dropped here rather than passed through telegraf_inputs in each playbook so
+# the input exists exactly where vector is configured. The wavefront role
+# installs telegraf at image build, so the drop-in directory is present on
+# every host type that has it; hosts without telegraf get nothing.
+- name: Check for telegraf drop-in directory
+  ansible.builtin.stat:
+    path: "{{ vector_telegraf_config_dir }}"
+  register: vector_telegraf_dir
+  when: vector_configure_flag
+
+- name: Configure telegraf to scrape vector metrics
+  ansible.builtin.template:
+    src: telegraf-vector.conf.j2
+    dest: "{{ vector_telegraf_config_dir }}/30-vector.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart telegraf for vector
+  when:
+    - vector_configure_flag
+    - vector_telegraf_dir.stat.exists
+
 - name: Start vector
   ansible.builtin.service:
     name: vector

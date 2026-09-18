@@ -3,3 +3,9 @@
   ansible.builtin.service:
     name: vector
     state: restarted
+
+- name: Restart telegraf for vector # noqa ignore-errors
+  ansible.builtin.service:
+    name: telegraf
+    state: restarted
+  ignore_errors: true
