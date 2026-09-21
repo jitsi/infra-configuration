@@ -54,6 +54,36 @@
 
 [[inputs.linux_sysctl_fs]]
 
+# Telegraf's own health: per-input gather errors and gather time, output write
+# errors, write buffer depth, and metrics dropped when that buffer overflows.
+# Without it there is no way to tell a host that is genuinely quiet from one
+# whose telegraf stopped keeping up, and statsd drops (which cost us jvb
+# metrics) are invisible. Costs ~63 series per host.
+#
+# The nomad telegraf job (infra-provisioning nomad/telegraf.hcl) collects the
+# same plugin under the same name_prefix, so one telegraf_internal_* query
+# covers both populations.
+#
+# Until every VM host has been rebuilt onto the 1.29.5 that
+# wavefront_collector_version now pins, this file still has to parse under the
+# 1.22.4 that older images carry, which rules out two things:
+#
+#   - no collect_gostats. 1.22.4's inputs.internal has no such field and
+#     telegraf refuses to start on an unrecognized config key ("configuration
+#     specified the fields [...], but they weren't used"), so adding it early
+#     takes telegraf down on every host still running the old build.
+#   - alert on gather_errors, not gather_timeouts: 1.22.4 emits no
+#     *_gather_timeouts field, so it is absent on whatever is left of the old
+#     fleet.
+#
+# Once no 1.22.4 hosts remain, both of those open up, as does moving this file's
+# fieldpass/fielddrop to fieldinclude/fieldexclude (1.29.0) the way
+# nomad/telegraf.hcl already has.
+[[inputs.internal]]
+  name_prefix = "telegraf_"
+  # go runtime stats are a large series block that we never act on
+  collect_memstats = false
+
 {% if telegraf_inputs is defined %}
 {% for input_item in telegraf_inputs.keys() %}
 {% if telegraf_inputs[input_item] is mapping %}

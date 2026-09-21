@@ -13,30 +13,27 @@
     - debian
     - proxy
 
-- name: Add Telgraf apt repository key.
-  ansible.builtin.apt_key:
-    id: "{{ wavefront_telegraf_repo_gpgkey_id }}"
-    url: "{{ wavefront_telegraf_repo_gpgkey }}"
-    state: present
-    validate_certs: false
-  when:
-    - wavefront_install_collector
-    - wavefront_telegraf_from_apt
+- name: Create apt keyrings directory
+  ansible.builtin.file:
+    path: "{{ wavefront_telegraf_keyring | dirname }}"
+    state: directory
+    mode: 0755
+  when: wavefront_install_collector
   tags:
     - prereqs
     - install
     - debian
     - collector
 
-- name: Add second Telgraf apt repository key.
-  ansible.builtin.apt_key:
-    url: "{{ wavefront_telegraf_repo_gpgkey_2 }}"
-    state: present
-    validate_certs: false
-  when:
-    - wavefront_install_collector
-    - not wavefront_telegraf_repo_gpgkey_2
-    - wavefront_telegraf_from_apt
+# The key is published ASCII-armored and apt reads that form directly, so it
+# goes to disk as-is rather than through apt-key, which is deprecated and gone
+# on the newer bases.
+- name: Add Telegraf apt repository key
+  ansible.builtin.get_url:
+    url: "{{ wavefront_telegraf_repo_gpgkey }}"
+    dest: "{{ wavefront_telegraf_keyring }}"
+    mode: 0644
+  when: wavefront_install_collector
   tags:
     - prereqs
     - install
@@ -48,7 +45,7 @@
     name: ['apt-transport-https']
     state: present
     update_cache: true
-  when: wavefront_proxy_from_apt or wavefront_telegraf_from_apt
+  when: wavefront_proxy_from_apt or wavefront_install_collector
   tags:
     - prereqs
     - install
@@ -72,26 +69,12 @@
 
 - name: Add Wavefront Telegraf apt repository.
   ansible.builtin.apt_repository:
-    repo: "deb {{ wavefront_telegraf_pkg_url }}/ubuntu/ {{ ansible_distribution_release }} {{ wavefront_telegraf_repo_branch }}"
+    repo: "{{ wavefront_telegraf_repo_line }}"
     state: present
     update_cache: true
-  when:
-    - wavefront_install_collector
-    - wavefront_telegraf_from_apt
+  when: wavefront_install_collector
   tags:
     - prereqs
     - install
     - debian
     - collector
-
-- name: Remove Wavefront Telegraf apt repository.
-  ansible.builtin.apt_repository:
-    repo: "deb https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable"
-    state: absent
-  when: wavefront_telegraf_remove_repo
-
-- name: Remove telegraf apt source file
-  ansible.builtin.file:
-    path: /etc/apt/sources.list.d/repos_influxdata_com_ubuntu.list
-    state: absent
-  when: wavefront_telegraf_remove_repo
