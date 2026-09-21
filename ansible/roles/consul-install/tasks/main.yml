@@ -16,7 +16,7 @@
 
 - name: Install consul
   ansible.builtin.apt:
-    name: "consul"
+    name: "consul={{ consul_apt_version }}"
     state: "present"
 
 # remove apt repo after consul install

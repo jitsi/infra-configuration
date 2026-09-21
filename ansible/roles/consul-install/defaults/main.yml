@@ -2,7 +2,13 @@
 consul_apt_key: https://apt.releases.hashicorp.com/gpg
 consul_apt_repo: https://apt.releases.hashicorp.com
 consul_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-consul_download_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_{{ consul_architecture }}.zip"
 consul_log_dir: /var/log/
-consul_version: 1.7.2
-consul_zip_hash: 5ab689cad175c08a226a5c41d16392bc7dd30ceaaf90788411542a756773e698
+# Pinned deliberately. Consul 2.0.4 regressed server-side RPC handling: servers
+# arm a read deadline on idle multiplexed streams and close the connection after
+# limits.rpc_client_timeout (default 60s), while the client pool holds an idle
+# connection for ~127s. The client then hands out a connection the server has
+# already closed and the RPC fails with EOF. Reads are retried by the pool;
+# writes (KVS.Apply, Coordinate.Update) are not, so they fail outright.
+# 2.0.3 is the newest release without the regression.
+# Override with CONSUL_APT_VERSION to build an image on a different release.
+consul_apt_version: "{{ lookup('env','CONSUL_APT_VERSION') | default('2.0.3-1', true) }}"
