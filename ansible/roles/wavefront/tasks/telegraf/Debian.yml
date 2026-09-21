@@ -3,33 +3,34 @@
   ansible.builtin.apt:
     name: "{{ wavefront_collector }}={{ wavefront_collector_version }}"
     state: present
-    force: true
     update_cache: true
   register: result
   until: result is succeeded
-  when: wavefront_telegraf_from_apt
   tags:
     - install
     - debian
     - collector
 
-- name: Download telegraf agent/collector (Ubuntu) from url
-  ansible.builtin.get_url:
-    mode: 0640
-    url: "{{ wavefront_telegraf_deb_url }}"
-    dest: "{{ wavefront_telegraf_deb_path }}"
-  when: not wavefront_telegraf_from_apt
+# The repo exists only for the install above: dropping it again keeps unattended
+# upgrades from moving telegraf underneath a running fleet, which is why the
+# version is pinned in the first place. This has to follow the install, not
+# precede it -- the install refreshes the apt cache, so a repo removed earlier in
+# the run takes the package with it.
+- name: Remove Wavefront Telegraf apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ wavefront_telegraf_repo_line }}"
+    state: absent
+  when: wavefront_telegraf_remove_repo
   tags:
     - install
     - debian
     - collector
 
-- name: Install telegraf agent/collector (Ubuntu) from file
-  ansible.builtin.apt:
-    deb: "{{ wavefront_telegraf_deb_path }}"
-    force: true
-  register: result
-  when: not wavefront_telegraf_from_apt
+- name: Remove Telegraf apt repository key
+  ansible.builtin.file:
+    path: "{{ wavefront_telegraf_keyring }}"
+    state: absent
+  when: wavefront_telegraf_remove_repo
   tags:
     - install
     - debian

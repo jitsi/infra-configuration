@@ -89,8 +89,13 @@ wavefront_api_token: 'DUMMY_WF_URL_API_TOKEN'
 wavefront_api_url: "{{ wavefront_url }}/api"
 wavefront_cmd: wave
 wavefront_collector: 'telegraf'
-# by default use the latest telegraf as influx repo updates on stable release and doesn't keep old versions
-wavefront_collector_version: '*'
+# Pinned rather than floating, and kept equal to the telegraf image tag in
+# infra-provisioning nomad/telegraf.hcl so the VM and nomad populations speak one
+# config dialect and emit one metric set. Do not move this to a newer release
+# without re-testing: telegraf 1.36 removes the protocol-stats behaviour that
+# inputs.net's tcp*/udp* fieldpass relies on, and 1.40 removes fieldpass and
+# fielddrop outright, which between them silently drop ~33 net_* metrics.
+wavefront_collector_version: '1.29.5-1'
 wavefront_config: "{{ wavefront_config_dir }}/wavefront.conf"
 wavefront_config_dir: '/etc/wavefront/{{ wavefront_proxy_pkg }}'
 wavefront_configure_collector: false
@@ -115,23 +120,26 @@ wavefront_repo_base_url: "https://packagecloud.io/install/repositories/wavefront
 wavefront_repo_gpgkey: "https://packagecloud.io/wavefront/proxy/gpgkey"
 wavefront_repo_install_url: "{{ wavefront_repo_base_url }}/config_file.repo?os={{ item.release }}&dist={{ item.version }}&source=script"
 wavefront_tcp_mode: false
-wavefront_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-wavefront_telegraf_deb_file: "telegraf_1.22.4-1_{{ wavefront_architecture }}.deb"
-wavefront_telegraf_deb_path: "/tmp/{{ wavefront_telegraf_deb_file }}"
-wavefront_telegraf_deb_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/{{ wavefront_telegraf_deb_file }}"
-wavefront_telegraf_from_apt: false
+# Scoped to the telegraf repo via signed-by rather than dropped in
+# trusted.gpg.d, so the key cannot vouch for any other source, and removed again
+# with the repo when wavefront_telegraf_remove_repo is set.
+wavefront_telegraf_keyring: /etc/apt/keyrings/wavefront-telegraf.asc
 wavefront_telegraf_pkg_url: "{{ wavefront_telegraf_pkg_url_influx if wavefront_telegraf_use_influx else wavefront_telegraf_pkg_url_pcloud }}"
 wavefront_telegraf_pkg_url_influx: 'https://repos.influxdata.com'
 wavefront_telegraf_pkg_url_pcloud: 'https://packagecloud.io/wavefront/telegraf'
 wavefront_telegraf_remove_repo: true
-wavefront_telegraf_repo_branch: "{{ 'stable' if wavefront_telegraf_use_influx else 'main' }}"
+# InfluxData serves every release from one release-independent suite. Their
+# per-release suites stop at jammy, so the NobleBase images have no dist of their
+# own and only this one resolves for the whole fleet.
+wavefront_telegraf_repo_dist: "{{ 'stable' if wavefront_telegraf_use_influx else ansible_distribution_release }}"
+wavefront_telegraf_repo_branch: "main"
+wavefront_telegraf_repo_line: "deb [signed-by={{ wavefront_telegraf_keyring }}] {{ wavefront_telegraf_pkg_url }}/ubuntu/
+  {{ wavefront_telegraf_repo_dist }} {{ wavefront_telegraf_repo_branch }}"
 wavefront_telegraf_repo_gpgkey: "{{ wavefront_telegraf_repo_gpgkey_influx if wavefront_telegraf_use_influx else wavefront_telegraf_repo_gpgkey_pcloud }}"
-wavefront_telegraf_repo_gpgkey_2: "{{ wavefront_telegraf_repo_gpgkey_influx_2 if wavefront_telegraf_use_influx else false }}"
-# needs to be updated when apt keys change
-wavefront_telegraf_repo_gpgkey_id: D8FF8E1F7DF8B07E
-wavefront_telegraf_repo_gpgkey_id_2: 684A14CF2582E0C5
-wavefront_telegraf_repo_gpgkey_influx: "https://repos.influxdata.com/influxdata-archive_compat.key"
-wavefront_telegraf_repo_gpgkey_influx_2: "https://repos.influxdata.com/influxdb2.key"
+# influxdata-archive.key, not influxdata-archive_compat.key: the suites are now
+# signed by subkey DA61C26A0585BD3B, which only the former carries. The compat
+# key holds just D8FF8E1F7DF8B07E and leaves apt with "NO_PUBKEY".
+wavefront_telegraf_repo_gpgkey_influx: "https://repos.influxdata.com/influxdata-archive.key"
 wavefront_telegraf_repo_gpgkey_pcloud: "https://packagecloud.io/wavefront/telegraf/gpgkey"
 wavefront_telegraf_use_influx: true
 wavefront_url: "https://{{ wavefront_instance }}.wavefront.com"
