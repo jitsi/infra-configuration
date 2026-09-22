@@ -41,6 +41,12 @@
       retries: 10
       delay: 3
 
+    # Everything that can be checked while the host is still serving traffic is
+    # checked here. Past this point a failure leaves the standalone stopped.
+    - name: Run pre-flight checks before stopping anything
+      ansible.builtin.include_tasks: tasks/update-standalone-preflight.yml
+      tags: "upgrade"
+
     - name: Stop Jitsi services before upgrade
       ansible.builtin.systemd:
         name: "{{ item }}"
@@ -51,15 +57,6 @@
         - prosody
         - nginx
       ignore_errors: true
-      tags: "upgrade"
-
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: true
-      async: 300
-      poll: 10
-      retries: 3
-      delay: 10
       tags: "upgrade"
 
     - name: Install ASAP key

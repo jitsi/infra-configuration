@@ -1,0 +1,134 @@
+---
+# Checks that must pass before update-standalone.yml stops nginx, prosody, jicofo
+# and the bridge. Everything here is read-only: if a check fails the host is still
+# serving traffic on the versions it had, and the operator can retry once whatever
+# is missing has been published.
+#
+# The check that prompted this file is the branding one. The branding package is
+# built per jitsi-meet build and installed *after* the shutdown, so a Meet version
+# whose branding build had not landed yet took a standalone down and left it down.
+
+- name: Preflight - refresh apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  async: 300
+  poll: 10
+  retries: 3
+  delay: 10
+
+- name: Preflight - resolve the jitsi-meet-web version this upgrade would install
+  ansible.builtin.shell: |
+    set -o pipefail
+    if [ "{{ jitsi_meet_deb_pkg_version }}" = "*" ]; then
+      apt-cache policy {{ jitsi_meet_deb_pkg_name }} | awk '/Candidate:/ {print $2}'
+    else
+      echo "{{ jitsi_meet_deb_pkg_version }}"
+    fi
+  args:
+    executable: /bin/bash
+  register: preflight_meet_version
+  changed_when: false
+
+- name: Preflight - fail when that version looks nothing like a Meet version
+  ansible.builtin.fail:
+    msg: >-
+      apt has no usable candidate for {{ jitsi_meet_deb_pkg_name }}={{ jitsi_meet_deb_pkg_version }}
+      (got '{{ preflight_meet_version.stdout | trim }}'). Nothing has been stopped.
+  when: preflight_meet_version.stdout | trim is not match('^[0-9]+\\.[0-9]+\\.[0-9]+')
+
+- name: Preflight - take the Meet build number out of that version
+  ansible.builtin.set_fact:
+    # 1.0.10148-1 -> 10148, the same slice the branding install takes from dpkg
+    preflight_meet_build: "{{ (preflight_meet_version.stdout | trim).split('.')[2].split('-')[0] }}"
+
+- name: Preflight - check whether the prosody apt repo is configured yet
+  ansible.builtin.command:
+    cmd: apt-cache policy {{ prosody_package_name }}
+  register: preflight_prosody_policy
+  changed_when: false
+  failed_when: false
+  when: prosody_install_from_apt | bool
+
+- name: Preflight - list the package versions this upgrade would install
+  ansible.builtin.set_fact:
+    # An unpinned version is '*'; drop it so apt resolves the latest candidate.
+    preflight_packages: >-
+      {{ ([
+           'jitsi-videobridge2=' ~ jitsi_videobridge_deb_pkg_version,
+           jicofo_deb_pkg_name ~ '=' ~ jicofo_deb_pkg_version,
+           jitsi_meet_deb_pkg_name ~ '=' ~ jitsi_meet_deb_pkg_version,
+         ] + preflight_prosody_package) | map('regex_replace', '=\*$', '') | list }}
+  vars:
+    # Only once packages.prosody.im is a source for the package. A host still on the
+    # URL install method gets that repo added later in this run, after the shutdown,
+    # so apt cannot resolve prosody_apt_version yet and asking it to would be a false
+    # failure - the distro's own prosody is far older than anything we pin to.
+    preflight_prosody_package: "{{ [prosody_package_name ~ '=' ~ prosody_apt_version]
+      if (prosody_install_from_apt | bool and 'prosody.im' in (preflight_prosody_policy.stdout | default('')))
+      else [] }}"
+
+- name: Preflight - ask apt to resolve those versions without installing anything
+  ansible.builtin.command:
+    argv: "{{ ['apt-get', 'install', '--simulate', '-q', '--allow-downgrades', '--allow-change-held-packages'] + preflight_packages }}"
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  register: preflight_apt_simulate
+  changed_when: false
+  failed_when: false
+
+- name: Preflight - fail when a requested package version is not installable
+  ansible.builtin.fail:
+    msg: |
+      apt cannot install the requested versions, so the upgrade would have failed
+      with the services already stopped. Nothing has been stopped.
+      Requested: {{ preflight_packages | join(' ') }}
+      apt said:
+      {{ preflight_apt_simulate.stderr | default('') | trim }}
+      {{ preflight_apt_simulate.stdout_lines | default([]) | reject('match', '^(Reading|Building|Package lists)') | list }}
+  when: preflight_apt_simulate.rc != 0
+
+- name: Preflight - look for a branding build matching that Meet build
+  ansible.builtin.shell: |
+    set -o pipefail
+    apt-cache madison {{ jitsi_meet_branding_override }} \
+      | awk -F'|' '{gsub(/ /, "", $2); print $2}' \
+      | grep -q '^1\.0\.{{ preflight_meet_build }}'
+  args:
+    executable: /bin/bash
+  register: preflight_branding
+  changed_when: false
+  failed_when: false
+  when: jitsi_meet_branding_override != 'jitsi-meet'
+
+- name: Preflight - fail when there is no branding build for this Meet version
+  ansible.builtin.fail:
+    msg: >-
+      No {{ jitsi_meet_branding_override }} package matching 1.0.{{ preflight_meet_build }}* is in apt,
+      so the branding install would have failed partway through the upgrade. The branding build for
+      jitsi-meet {{ preflight_meet_version.stdout | trim }} has most likely not been published yet.
+      Nothing has been stopped - this host is still running the versions it had.
+  when:
+    - jitsi_meet_branding_override != 'jitsi-meet'
+    - preflight_branding.rc != 0
+
+- name: Preflight - check the secrets the upgrade installs after the shutdown
+  ansible.builtin.assert:
+    that:
+      - asap_key['key'] | default('') | length > 0
+      - (prosody_asap_shortlived_key['key'] | default('') | length > 0) or not prosody_enable_shortlived_tokens
+      - jitsi_meet_ssl_certificate | default('') | length > 0
+      - jitsi_meet_ssl_key_name | default('') | length > 0
+      - jitsi_meet_signal_api_ssl_certificate | default('') | length > 0
+      - jitsi_meet_signal_api_ssl_key_name | default('') | length > 0
+    fail_msg: >-
+      A key or certificate the upgrade writes after the shutdown is missing or empty.
+      Nothing has been stopped; check the vault secrets for {{ hcv_environment }}.
+    success_msg: Keys and certificates are present
+
+- name: Preflight - report what the upgrade will install
+  ansible.builtin.debug:
+    msg: |
+      Preflight passed, stopping services next.
+      Packages: {{ preflight_packages | join(' ') }}
+      {{ 'Branding: ' ~ jitsi_meet_branding_override ~ ' 1.0.' ~ preflight_meet_build ~ '*'
+         if jitsi_meet_branding_override != 'jitsi-meet' else 'Branding: none (stock jitsi-meet)' }}
