@@ -7,6 +7,15 @@
     - debian
     - collector
 
+- name: Work out which telegraf config dialect this host can parse
+  ansible.builtin.include_tasks: detect_version.yml
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
 - name: Write telegraf.conf file with WF config
   ansible.builtin.template:
     src: telegraf.conf.wfcopy.j2

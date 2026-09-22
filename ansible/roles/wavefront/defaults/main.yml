@@ -99,9 +99,11 @@ wavefront_collector: 'telegraf'
 # inputs.net protocol stats (removed in 1.36) to inputs.nstat, and dropping
 # procstat's cmdline_tag/pid_tag (removed in 1.40).
 #
-# Whatever version this names has to be on every host before the template
-# reaches it: telegraf.conf.wfcopy.j2 needs 1.29 or newer to parse at all, and a
-# host keeps the telegraf its base image was built with.
+# This is the version an image build installs, not the version a given host is
+# running: a VM keeps the telegraf its base image was built with. The template
+# reads that binary's version (tasks/telegraf/detect_version.yml) and renders
+# the dialect it accepts, so moving this pin does not have to wait for the
+# fleet, and a newer infra-configuration run against an older image is safe.
 wavefront_collector_version: '1.40.1-1'
 wavefront_config: "{{ wavefront_config_dir }}/wavefront.conf"
 wavefront_config_dir: '/etc/wavefront/{{ wavefront_proxy_pkg }}'

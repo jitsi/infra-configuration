@@ -1,12 +1,15 @@
-# Requires telegraf 1.29 or newer: fieldinclude/fieldexclude were added in
-# 1.29.0 and telegraf treats an unrecognized config key as a startup failure,
-# not a warning, so this file kills telegraf outright on an older build. The
-# wavefront role installs wavefront_collector_version, which is pinned at or
-# above that; nothing should render this file onto a host carrying an older
-# telegraf from an unrebuilt image.
-#
-# Kept in the same dialect as the nomad telegraf job (infra-provisioning
-# nomad/telegraf.hcl) so a filter written for one can be copied to the other.
+{% set fieldinclude = 'fieldinclude' if telegraf_supports_fieldinclude | default(true) | bool else 'fieldpass' %}
+{% set fieldexclude = 'fieldexclude' if telegraf_supports_fieldinclude | default(true) | bool else 'fielddrop' %}
+{# Two dialects, chosen by the telegraf actually installed on this host (see
+   tasks/telegraf/detect_version.yml), because there is no spelling both ends
+   accept: 1.29 renamed fieldpass/fielddrop to fieldinclude/fieldexclude and
+   1.40 removed the old names, and telegraf treats a key it does not recognize
+   as a startup failure rather than a warning. A VM keeps the telegraf its base
+   image was built with, so a newer infra-configuration run against an older
+   image has to render the older dialect. Above 1.29 this file is in the same
+   dialect as the nomad telegraf job (infra-provisioning nomad/telegraf.hcl), so
+   a filter written for one can be copied to the other. #}
+# Rendered for telegraf {{ telegraf_installed_version | default(wavefront_collector_version | regex_replace('-.*$', '')) }}.
 [agent]
   interval = "60s"
   round_interval = false
@@ -27,17 +30,18 @@
   totalcpu = true
   collect_cpu_time = false
   report_active = false
-  fieldexclude = ["time_*"]
-  fieldinclude = ["usage_system*", "usage_user*", "usage_iowait*", "usage_idle*", "usage_steal*"]
+  {{ fieldexclude }} = ["time_*"]
+  {{ fieldinclude }} = ["usage_system*", "usage_user*", "usage_iowait*", "usage_idle*", "usage_steal*"]
 
 [[inputs.disk]]
   ignore_fs = ["tmpfs", "devtmpfs", "devfs", "overlay", "aufs", "squashfs", "nfs", "nfs4"]
-  fieldinclude = ["used_percent", "free", "used", "total"]
+  {{ fieldinclude }} = ["used_percent", "free", "used", "total"]
 
 [[inputs.mem]]
-  fieldinclude = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
+  {{ fieldinclude }} = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
 
 [[inputs.net]]
+{% if telegraf_supports_fieldinclude | default(true) | bool %}
   # Per-interface counters only. This plugin used to also read the protocol
   # stats in /proc/net/snmp, which is where the net_tcp_*, net_udp_* and
   # net_udplite_* series came from; telegraf 1.36 dropped that and nothing in
@@ -45,15 +49,21 @@
   # it by its /proc/net/snmp name through an inputs.nstat in their playbook's
   # telegraf_inputs, the way nomad/telegraf.hcl does.
   fieldinclude = ["bytes*","drop*","packets*","err*"]
+{% else %}
+  # tcp* and udp* are the /proc/net/snmp protocol stats, which this plugin still
+  # collects below 1.36. Keeping them here is what stops an old host losing its
+  # net_tcp_*/net_udp_* series the moment this template is re-rendered.
+  fieldpass = ["bytes*","drop*","packets*","err*","tcp*","udp*"]
+{% endif %}
 
 [[inputs.processes]]
-  fieldinclude = ["blocked", "idle", "paging", "running", "total*"]
+  {{ fieldinclude }} = ["blocked", "idle", "paging", "running", "total*"]
 
 [[inputs.swap]]
-  fieldinclude = ["total", "used"]
+  {{ fieldinclude }} = ["total", "used"]
 
 [[inputs.system]]
-  fieldinclude = ["load*"]
+  {{ fieldinclude }} = ["load*"]
 
 [[inputs.statsd]]
   service_address = ":{{ statsd_port }}"
@@ -82,25 +92,33 @@
   name_prefix = "telegraf_"
   # go runtime and memory stats are large series blocks that we never act on
   collect_memstats = false
+{% if telegraf_supports_fieldinclude | default(true) | bool %}
+  # collect_gostats arrived in 1.29 with the filter rename, so it rides the same
+  # switch; below that it is an unrecognized key and telegraf refuses to start.
   collect_gostats = false
+{% endif %}
 
-{# Per-playbook inputs land in this same file, so they have to speak the same
-   telegraf dialect as everything above: fieldinclude/fieldexclude, never
-   fieldpass/fielddrop, and no procstat cmdline_tag/pid_tag (removed in 1.40,
-   and both were the default anyway). #}
+{# Per-playbook inputs land in this same file, so their field filters are
+   translated to whichever spelling this host's telegraf knows - write either
+   one in a playbook and it comes out right. Anything else passes through
+   verbatim, so a version-specific option elsewhere in a telegraf_inputs entry
+   is still on you: procstat's cmdline_tag/pid_tag, for instance, are fatal
+   from 1.40 on (and were the default, so they are simply gone). #}
+{% set field_filter_keys = {'fieldpass': fieldinclude, 'fieldinclude': fieldinclude,
+                            'fielddrop': fieldexclude, 'fieldexclude': fieldexclude} %}
 {% if telegraf_inputs is defined %}
 {% for input_item in telegraf_inputs.keys() %}
 {% if telegraf_inputs[input_item] is mapping %}
 [[inputs.{{ input_item }}]]
 {% for key, value in telegraf_inputs[input_item].items() %}
-  {{ key }} = {{ value | to_json }}
+  {{ field_filter_keys.get(key, key) }} = {{ value | to_json }}
 {% endfor %}
 
 {% else %}
 {% for item in telegraf_inputs[input_item] %}
 [[inputs.{{ input_item }}]]
 {% for key, value in item.items() %}
-  {{ key }} = {{ value | to_json }}
+  {{ field_filter_keys.get(key, key) }} = {{ value | to_json }}
 {% endfor %}
 
 {% endfor %}
