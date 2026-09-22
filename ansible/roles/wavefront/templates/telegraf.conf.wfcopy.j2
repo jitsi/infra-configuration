@@ -1,3 +1,12 @@
+# Requires telegraf 1.29 or newer: fieldinclude/fieldexclude were added in
+# 1.29.0 and telegraf treats an unrecognized config key as a startup failure,
+# not a warning, so this file kills telegraf outright on an older build. The
+# wavefront role installs wavefront_collector_version, which is pinned at or
+# above that; nothing should render this file onto a host carrying an older
+# telegraf from an unrebuilt image.
+#
+# Kept in the same dialect as the nomad telegraf job (infra-provisioning
+# nomad/telegraf.hcl) so a filter written for one can be copied to the other.
 [agent]
   interval = "60s"
   round_interval = false
@@ -18,27 +27,33 @@
   totalcpu = true
   collect_cpu_time = false
   report_active = false
-  fielddrop = ["time_*"]
-  fieldpass = ["usage_system*", "usage_user*", "usage_iowait*", "usage_idle*", "usage_steal*"]
+  fieldexclude = ["time_*"]
+  fieldinclude = ["usage_system*", "usage_user*", "usage_iowait*", "usage_idle*", "usage_steal*"]
 
 [[inputs.disk]]
   ignore_fs = ["tmpfs", "devtmpfs", "devfs", "overlay", "aufs", "squashfs", "nfs", "nfs4"]
-  fieldpass = ["used_percent", "free", "used", "total"]
+  fieldinclude = ["used_percent", "free", "used", "total"]
 
 [[inputs.mem]]
-  fieldpass = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
+  fieldinclude = [ "active", "available", "buffered", "cached", "free", "total",  "used" ]
 
 [[inputs.net]]
-  fieldpass = ["bytes*","drop*","packets*","err*","tcp*","udp*"]
+  # Per-interface counters only. This plugin used to also read the protocol
+  # stats in /proc/net/snmp, which is where the net_tcp_*, net_udp_* and
+  # net_udplite_* series came from; telegraf 1.36 dropped that and nothing in
+  # inputs.net brings it back. Populations that need a protocol counter ask for
+  # it by its /proc/net/snmp name through an inputs.nstat in their playbook's
+  # telegraf_inputs, the way nomad/telegraf.hcl does.
+  fieldinclude = ["bytes*","drop*","packets*","err*"]
 
 [[inputs.processes]]
-  fieldpass = ["blocked", "idle", "paging", "running", "total*"]
+  fieldinclude = ["blocked", "idle", "paging", "running", "total*"]
 
 [[inputs.swap]]
-  fieldpass = ["total", "used"]
+  fieldinclude = ["total", "used"]
 
 [[inputs.system]]
-  fieldpass = ["load*"]
+  fieldinclude = ["load*"]
 
 [[inputs.statsd]]
   service_address = ":{{ statsd_port }}"
@@ -61,29 +76,18 @@
 # metrics) are invisible. Costs ~63 series per host.
 #
 # The nomad telegraf job (infra-provisioning nomad/telegraf.hcl) collects the
-# same plugin under the same name_prefix, so one telegraf_internal_* query
-# covers both populations.
-#
-# Until every VM host has been rebuilt onto the 1.29.5 that
-# wavefront_collector_version now pins, this file still has to parse under the
-# 1.22.4 that older images carry, which rules out two things:
-#
-#   - no collect_gostats. 1.22.4's inputs.internal has no such field and
-#     telegraf refuses to start on an unrecognized config key ("configuration
-#     specified the fields [...], but they weren't used"), so adding it early
-#     takes telegraf down on every host still running the old build.
-#   - alert on gather_errors, not gather_timeouts: 1.22.4 emits no
-#     *_gather_timeouts field, so it is absent on whatever is left of the old
-#     fleet.
-#
-# Once no 1.22.4 hosts remain, both of those open up, as does moving this file's
-# fieldpass/fielddrop to fieldinclude/fieldexclude (1.29.0) the way
-# nomad/telegraf.hcl already has.
+# same plugin under the same name_prefix and the same two settings, so one
+# telegraf_internal_* query covers both populations.
 [[inputs.internal]]
   name_prefix = "telegraf_"
-  # go runtime stats are a large series block that we never act on
+  # go runtime and memory stats are large series blocks that we never act on
   collect_memstats = false
+  collect_gostats = false
 
+{# Per-playbook inputs land in this same file, so they have to speak the same
+   telegraf dialect as everything above: fieldinclude/fieldexclude, never
+   fieldpass/fielddrop, and no procstat cmdline_tag/pid_tag (removed in 1.40,
+   and both were the default anyway). #}
 {% if telegraf_inputs is defined %}
 {% for input_item in telegraf_inputs.keys() %}
 {% if telegraf_inputs[input_item] is mapping %}
