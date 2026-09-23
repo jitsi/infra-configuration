@@ -87,29 +87,39 @@
       {{ preflight_apt_simulate.stdout_lines | default([]) | reject('match', '^(Reading|Building|Package lists)') | list }}
   when: preflight_apt_simulate.rc != 0
 
-- name: Preflight - look for a branding build matching that Meet build
+# List the builds and match in jinja rather than piping into grep -q: grep closes
+# the pipe on its first match, apt-cache and awk then die on SIGPIPE, and pipefail
+# reports that 141 as the pipeline's status - so a branding build that *is* present
+# reads as missing whenever the package has enough versions to lose the race.
+- name: Preflight - list the branding builds apt can see
   ansible.builtin.shell: |
     set -o pipefail
-    apt-cache madison {{ jitsi_meet_branding_override }} \
-      | awk -F'|' '{gsub(/ /, "", $2); print $2}' \
-      | grep -q '^1\.0\.{{ preflight_meet_build }}'
+    apt-cache madison {{ jitsi_meet_branding_override }} | awk -F'|' '{gsub(/ /, "", $2); print $2}'
   args:
     executable: /bin/bash
-  register: preflight_branding
+  register: preflight_branding_versions
   changed_when: false
   failed_when: false
   when: jitsi_meet_branding_override != 'jitsi-meet'
 
+- name: Preflight - pick out the ones matching this Meet build
+  ansible.builtin.set_fact:
+    # mirrors the 1.0.<build>* glob the branding install uses
+    preflight_branding_matches: "{{ preflight_branding_versions.stdout_lines | default([])
+      | select('match', '^1\\.0\\.' ~ preflight_meet_build) | list }}"
+  when: jitsi_meet_branding_override != 'jitsi-meet'
+
 - name: Preflight - fail when there is no branding build for this Meet version
   ansible.builtin.fail:
-    msg: >-
+    msg: |
       No {{ jitsi_meet_branding_override }} package matching 1.0.{{ preflight_meet_build }}* is in apt,
       so the branding install would have failed partway through the upgrade. The branding build for
       jitsi-meet {{ preflight_meet_version.stdout | trim }} has most likely not been published yet.
       Nothing has been stopped - this host is still running the versions it had.
+      Branding builds apt does have: {{ (preflight_branding_versions.stdout_lines | default([]))[:8] }}
   when:
     - jitsi_meet_branding_override != 'jitsi-meet'
-    - preflight_branding.rc != 0
+    - preflight_branding_matches | default([]) | length == 0
 
 - name: Preflight - check the secrets the upgrade installs after the shutdown
   ansible.builtin.assert:
@@ -130,5 +140,5 @@
     msg: |
       Preflight passed, stopping services next.
       Packages: {{ preflight_packages | join(' ') }}
-      {{ 'Branding: ' ~ jitsi_meet_branding_override ~ ' 1.0.' ~ preflight_meet_build ~ '*'
+      {{ 'Branding: ' ~ jitsi_meet_branding_override ~ ' ' ~ (preflight_branding_matches | default([]) | first | default('?'))
          if jitsi_meet_branding_override != 'jitsi-meet' else 'Branding: none (stock jitsi-meet)' }}
