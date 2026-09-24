@@ -96,7 +96,7 @@ wavefront_collector: 'telegraf'
 # metric names against the version in use: telegraf drops behaviour in minor
 # releases with nothing that would fail a deploy. Getting here from 1.29.5 meant
 # moving fieldpass/fielddrop (removed in 1.40) to fieldinclude/fieldexclude, the
-# inputs.net protocol stats (removed in 1.36) to inputs.nstat, and dropping
+# inputs.net protocol stats (removed in 1.37) to inputs.nstat, and dropping
 # procstat's cmdline_tag/pid_tag (removed in 1.40).
 #
 # This is the version an image build installs, not the version a given host is

@@ -44,14 +44,14 @@
 {% if telegraf_supports_fieldinclude | default(true) | bool %}
   # Per-interface counters only. This plugin used to also read the protocol
   # stats in /proc/net/snmp, which is where the net_tcp_*, net_udp_* and
-  # net_udplite_* series came from; telegraf 1.36 dropped that and nothing in
+  # net_udplite_* series came from; telegraf 1.37 dropped that and nothing in
   # inputs.net brings it back. Populations that need a protocol counter ask for
   # it by its /proc/net/snmp name through an inputs.nstat in their playbook's
   # telegraf_inputs, the way nomad/telegraf.hcl does.
   fieldinclude = ["bytes*","drop*","packets*","err*"]
 {% else %}
   # tcp* and udp* are the /proc/net/snmp protocol stats, which this plugin still
-  # collects below 1.36. Keeping them here is what stops an old host losing its
+  # collects below 1.37. Keeping them here is what stops an old host losing its
   # net_tcp_*/net_udp_* series the moment this template is re-rendered.
   fieldpass = ["bytes*","drop*","packets*","err*","tcp*","udp*"]
 {% endif %}
