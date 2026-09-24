@@ -12,4 +12,8 @@ jibri_pjsua_configure_flag: true
 jibri_pjsua_dns_server: false
 jibri_pjsua_ffmpeg_path: "/usr/bin/ffmpeg"
 jibri_pjsua_install_flag: true
-jibri_pjsua_v4l2_download_url: http://deb.debian.org/debian/pool/main/v/v4l2loopback/v4l2loopback-dkms_0.13.2-1~bpo12+1_all.deb
+jibri_pjsua_v4l2_download_url: "{{ jibri_pjsua_v4l2_download_url_noble if ansible_distribution_major_version | int >= 24
+  else jibri_pjsua_v4l2_download_url_jammy }}"
+jibri_pjsua_v4l2_download_url_jammy: http://deb.debian.org/debian/pool/main/v/v4l2loopback/v4l2loopback-dkms_0.13.2-1~bpo12+1_all.deb
+# 0.13.x no longer builds on kernels >= 6.15 (del_timer_sync/setup_timer removed), which the Noble HWE kernels are
+jibri_pjsua_v4l2_download_url_noble: http://deb.debian.org/debian/pool/main/v/v4l2loopback/v4l2loopback-dkms_0.15.4-1_all.deb
