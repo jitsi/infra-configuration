@@ -172,8 +172,6 @@
     #     telegraf_inputs:
     #       procstat:
     #         - systemd_unit: "consul.service"
-    #           cmdline_tag: false
-    #           pid_tag: false
     #     telegraf_tags:
     #       shard-role: "consul"
     #       role: "consul"

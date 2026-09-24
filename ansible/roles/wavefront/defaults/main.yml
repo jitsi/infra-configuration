@@ -92,10 +92,19 @@ wavefront_collector: 'telegraf'
 # Pinned rather than floating, and kept equal to the telegraf image tag in
 # infra-provisioning nomad/telegraf.hcl so the VM and nomad populations speak one
 # config dialect and emit one metric set. Do not move this to a newer release
-# without re-testing: telegraf 1.36 removes the protocol-stats behaviour that
-# inputs.net's tcp*/udp* fieldpass relies on, and 1.40 removes fieldpass and
-# fielddrop outright, which between them silently drop ~33 net_* metrics.
-wavefront_collector_version: '1.29.5-1'
+# without rendering the config for every population and diffing the emitted
+# metric names against the version in use: telegraf drops behaviour in minor
+# releases with nothing that would fail a deploy. Getting here from 1.29.5 meant
+# moving fieldpass/fielddrop (removed in 1.40) to fieldinclude/fieldexclude, the
+# inputs.net protocol stats (removed in 1.37) to inputs.nstat, and dropping
+# procstat's cmdline_tag/pid_tag (removed in 1.40).
+#
+# This is the version an image build installs, not the version a given host is
+# running: a VM keeps the telegraf its base image was built with. The template
+# reads that binary's version (tasks/telegraf/detect_version.yml) and renders
+# the dialect it accepts, so moving this pin does not have to wait for the
+# fleet, and a newer infra-configuration run against an older image is safe.
+wavefront_collector_version: '1.40.1-1'
 wavefront_config: "{{ wavefront_config_dir }}/wavefront.conf"
 wavefront_config_dir: '/etc/wavefront/{{ wavefront_proxy_pkg }}'
 wavefront_configure_collector: false
