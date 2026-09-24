@@ -8,7 +8,7 @@
 - name: Use explicitly pinned ChromeDriver version
   ansible.builtin.set_fact:
     chromedriver_version: "{{ chromedriver_pin_version }}"
-    chromedriver_url: "https://storage.googleapis.com/chrome-for-testing-public/{{ chromedriver_pin_version }}/linux64/chromedriver-linux64.zip"
+    chromedriver_url: "https://storage.googleapis.com/chrome-for-testing-public/{{ chromedriver_pin_version }}/{{ chromedriver_platform }}/chromedriver-{{ chromedriver_platform }}.zip"
   when: chromedriver_pin_version | length > 0
 
 # --- match installed Chrome ------------------------------------------------
@@ -46,7 +46,7 @@
 - name: Resolve ChromeDriver download from milestone
   ansible.builtin.set_fact:
     chromedriver_version: "{{ chromedriver_milestone.version }}"
-    chromedriver_url: "{{ chromedriver_milestone.downloads.chromedriver | selectattr('platform', 'equalto', 'linux64') | map(attribute='url') | first }}"
+    chromedriver_url: "{{ chromedriver_milestone.downloads.chromedriver | selectattr('platform', 'equalto', chromedriver_platform) | map(attribute='url') | first }}"
   when: chromedriver_milestone is defined
 
 # --- guard / fallback: Stable channel last-known-good ----------------------
@@ -84,7 +84,7 @@
 - name: Set chromedriver version fact from Stable channel
   ansible.builtin.set_fact:
     chromedriver_version: "{{ chromedriver_details['channels']['Stable']['version'] }}"
-    chromedriver_url: "{{ chromedriver_details | json_query('channels.Stable.downloads.chromedriver[?platform==`linux64`].url') | first }}"
+    chromedriver_url: "{{ chromedriver_details.channels.Stable.downloads.chromedriver | selectattr('platform', 'equalto', chromedriver_platform) | map(attribute='url') | first }}"
   when:
     - chromedriver_url is not defined
     - chromedriver_details is defined
@@ -122,7 +122,7 @@
 
 - name: Copy chromedriver binary into place
   ansible.builtin.copy:
-    src: "{{ chromedriver_tmp_dir }}/chromedriver-linux64/chromedriver"
+    src: "{{ chromedriver_tmp_dir }}/chromedriver-{{ chromedriver_platform }}/chromedriver"
     dest: "{{ chromedriver_path }}"
     remote_src: true
     mode: 0755
