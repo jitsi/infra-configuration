@@ -3,12 +3,15 @@ consul_apt_key: https://apt.releases.hashicorp.com/gpg
 consul_apt_repo: https://apt.releases.hashicorp.com
 consul_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 consul_log_dir: /var/log/
-# Pinned deliberately. Consul 2.0.4 regressed server-side RPC handling: servers
-# arm a read deadline on idle multiplexed streams and close the connection after
-# limits.rpc_client_timeout (default 60s), while the client pool holds an idle
-# connection for ~127s. The client then hands out a connection the server has
-# already closed and the RPC fails with EOF. Reads are retried by the pool;
-# writes (KVS.Apply, Coordinate.Update) are not, so they fail outright.
-# 2.0.3 is the newest release without the regression.
+# Pinned deliberately, to the release the production consul servers run.
+# Consul 2.0.4 (and 1.21.18+ent / 1.22.12+ent, same September 2026 release
+# train) arms a read deadline of limits.rpc_handshake_timeout on idle
+# multiplexed RPC streams. The client pool keeps idle connections for longer
+# than that, hands out one the server has already closed, and the RPC fails
+# with EOF. Reads are retried by the pool; writes (KVS.Apply,
+# Coordinate.Update) are not. https://github.com/hashicorp/consul/issues/23923
+# 1.20.6 is the last CE release of the 1.20 line (1.20.7+ are Enterprise-only),
+# so it cannot pick the change up, and it has run the production servers with
+# zero RPC errors. 2.0.x additionally stops emitting the hashicorp/raft metrics.
 # Override with CONSUL_APT_VERSION to build an image on a different release.
-consul_apt_version: "{{ lookup('env','CONSUL_APT_VERSION') | default('2.0.3-1', true) }}"
+consul_apt_version: "{{ lookup('env','CONSUL_APT_VERSION') | default('1.20.6-1', true) }}"
