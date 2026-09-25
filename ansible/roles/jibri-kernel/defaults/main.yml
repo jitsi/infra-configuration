@@ -2,6 +2,10 @@
 jibri_kernel_cloud_provider: "{{ cloud_provider | default('aws') }}"
 jibri_kernel_clean_aws: true
 jibri_kernel_clean_oracle: true
-jibri_kernel_headers_package: "linux-headers-{{ jibri_kernel_package_type }}"
-jibri_kernel_package: "linux-image-{{ jibri_kernel_package_type }}"
+jibri_kernel_headers_package: "linux-headers-{{ jibri_kernel_meta_suffix }}"
+# On Noble and later track the HWE kernel the base image already boots, instead of installing
+# the older GA kernel next to it where it is never booted
+jibri_kernel_meta_suffix: "{{ jibri_kernel_package_type + '-hwe-' + ansible_distribution_version
+  if ansible_distribution_major_version | int >= 24 else jibri_kernel_package_type }}"
+jibri_kernel_package: "linux-image-{{ jibri_kernel_meta_suffix }}"
 jibri_kernel_package_type: generic
