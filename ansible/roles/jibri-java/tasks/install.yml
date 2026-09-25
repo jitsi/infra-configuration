@@ -5,6 +5,23 @@
 - name: Validate Chrome and ChromeDriver compatibility
   ansible.builtin.include_tasks: validate-chrome.yml
 
+# Point Selenium at the installed ChromeDriver. Without the webdriver.chrome.driver
+# property Selenium falls back to Selenium Manager, which has no Linux ARM binary,
+# so every recording fails on aarch64 with "Unable to obtain Selenium Manager Binary".
+- name: Create jibri systemd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/jibri.service.d
+    state: directory
+    mode: 0755
+
+- name: Set ChromeDriver path for the jibri JVM
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/jibri.service.d/chromedriver.conf
+    mode: 0644
+    content: |
+      [Service]
+      Environment="JAVA_TOOL_OPTIONS=-Dwebdriver.chrome.driver={{ jibri_chromedriver_path }}"
+
 - name: Install additional fonts for jibri rendering
   ansible.builtin.apt:
     name: fonts-noto

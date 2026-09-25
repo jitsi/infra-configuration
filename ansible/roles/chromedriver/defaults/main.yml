@@ -17,6 +17,9 @@ chromedriver_use_latest: true
 # version is installed and auto-detection is skipped.
 chromedriver_pin_version: ""
 
+# Chrome-for-Testing platform matching the host CPU (linux-arm64 or linux64).
+chromedriver_platform: "{{ 'linux-arm64' if ansible_architecture == 'aarch64' else 'linux64' }}"
+
 chromedriver_path: /usr/bin/chromedriver
 chromedriver_tmp_dir: /tmp/chromedriver_linux64
 chromedriver_tmp_path: /tmp/chromedriver_linux64.zip
