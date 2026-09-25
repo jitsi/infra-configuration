@@ -37,5 +37,26 @@
   shell: dpkg -l {{ jibri_kernel_package }} | tail -1 | awk '{split($3,a,"."); print a[1]"."a[2]"."a[3]"-"a[4]}' | cut -d'-' -f1,2
   register: apt_kernel_version
 
+# snd-aloop is in linux-modules-extra on older kernels, but in the base linux-modules package on
+# newer ones (e.g. Noble HWE 7.0), which have no linux-modules-extra package at all
+- name: check for a kernel modules-extra package
+  command: apt-cache show "linux-modules-extra-{{ apt_kernel_version.stdout }}-{{ jibri_kernel_package_type }}"
+  register: jibri_kernel_modules_extra
+  changed_when: false
+  failed_when: false
+
 - name: install latest kernel modules
   apt: name="linux-modules-extra-{{ apt_kernel_version.stdout }}-{{ jibri_kernel_package_type }}" state=latest
+  when: jibri_kernel_modules_extra.rc == 0
+
+- name: find snd-aloop module for the installed kernel
+  find:
+    paths: "/lib/modules/{{ apt_kernel_version.stdout }}-{{ jibri_kernel_package_type }}"
+    patterns: "snd-aloop.ko*"
+    recurse: true
+  register: jibri_kernel_snd_aloop
+
+- name: fail if the installed kernel has no snd-aloop module
+  fail:
+    msg: "No snd-aloop module for kernel {{ apt_kernel_version.stdout }}-{{ jibri_kernel_package_type }}, jibri would have no audio"
+  when: jibri_kernel_snd_aloop.matched == 0
