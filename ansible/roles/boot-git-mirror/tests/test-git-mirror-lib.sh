@@ -83,13 +83,27 @@ echo "$out" | sed 's/^/     /'
 check "both from the mirror" '[[ $(echo "$out" | grep -c "from the in-region mirror$") -eq 2 && "$out" == *CHECKOUT_OK* ]]'
 check "github never tried" '[[ "$out" != *"github.invalid"* ]]'
 
-echo "== 7. GIT_FALLBACK_BRANCH: a branch that exists nowhere falls back to main (jvb/jigasi oracle)"
-out=$(run_in_subshell t7 "export GIT_BRANCH=no-such-branch GIT_FALLBACK_BRANCH=main INFRA_CONFIGURATION_REPO=$GH_CONF INFRA_CUSTOMIZATIONS_REPO=$GH_CUST OCI_BIN=/nonexistent/oci" \
+echo "== 7. a branch a repo does not have falls back to main, per repo"
+HEAD_OF='echo "BRANCH=$(git -C "$BOOTSTRAP_DIRECTORY/infra-configuration" rev-parse --abbrev-ref HEAD)/$(git -C "$BOOTSTRAP_DIRECTORY/infra-customizations" rev-parse --abbrev-ref HEAD)"'
+out=$(run_in_subshell t7 "export GIT_BRANCH=no-such-branch INFRA_CONFIGURATION_REPO=$GH_CONF INFRA_CUSTOMIZATIONS_REPO=$GH_CUST OCI_BIN=/nonexistent/oci" \
+  'if ! checkout_repos; then echo CHECKOUT_FAILED; exit 1; fi; echo CHECKOUT_OK; '"$HEAD_OF" 2>&1)
+check "a branch in neither repo: both at main, by default" '[[ "$out" == *CHECKOUT_OK* && "$out" == *"BRANCH=main/main"* && $(echo "$out" | grep -c "trying main") -eq 2 ]]'
+# a feature branch pushed to infra-configuration only: the shape of a jibri boot loop in stage-8x8
+git -C "$T/github/infra-configuration.git" branch conf-only main
+out=$(run_in_subshell t7b "export GIT_BRANCH=conf-only INFRA_CONFIGURATION_REPO=$GH_CONF INFRA_CUSTOMIZATIONS_REPO=$GH_CUST OCI_BIN=/nonexistent/oci" \
+  'if ! checkout_repos; then echo CHECKOUT_FAILED; exit 1; fi; echo CHECKOUT_OK; '"$HEAD_OF" 2>&1)
+echo "$out" | sed 's/^/     /'
+check "a branch in infra-configuration only: that branch there, main of customizations" '[[ "$out" == *CHECKOUT_OK* && "$out" == *"BRANCH=conf-only/main"* ]]'
+check "only customizations fell back" '[[ $(echo "$out" | grep -c "trying main") -eq 1 && "$out" == *"could not get infra-customizations at conf-only"* ]]'
+out=$(run_in_subshell t7c "export GIT_BRANCH=no-such-branch GIT_FALLBACK_BRANCH=no-such-fallback INFRA_CONFIGURATION_REPO=$GH_CONF INFRA_CUSTOMIZATIONS_REPO=$GH_CUST OCI_BIN=/nonexistent/oci" \
   'if ! checkout_repos; then echo CHECKOUT_FAILED; exit 1; fi; echo CHECKOUT_OK' 2>&1)
-check "falls back to main and succeeds" '[[ "$out" == *"trying main"* && "$out" == *CHECKOUT_OK* ]]'
-out=$(run_in_subshell t7b "export GIT_BRANCH=no-such-branch INFRA_CONFIGURATION_REPO=$GH_CONF INFRA_CUSTOMIZATIONS_REPO=$GH_CUST OCI_BIN=/nonexistent/oci" \
-  'if ! checkout_repos; then echo CHECKOUT_FAILED; exit 1; fi; echo CHECKOUT_OK' 2>&1)
-check "without the fallback a missing branch is a failure, not a hang or a crash" '[[ "$out" == *CHECKOUT_FAILED* && "$out" == *"Failed to clone infra-configuration at no-such-branch from github"* ]]'
+check "a fallback that is missing too is a failure, not a hang or a crash" '[[ "$out" == *CHECKOUT_FAILED* && "$out" == *"Failed to clone infra-configuration at no-such-fallback from github"* ]]'
+# pushed to github after the mirror last synced: github has it, the mirror does not
+git -C "$T/github/infra-configuration.git" branch not-yet-mirrored main
+git -C "$T/github/infra-customizations-private.git" branch not-yet-mirrored main
+out=$(run_in_subshell t7d "export GIT_MIRROR_HOST=unused ENVIRONMENT=e ORACLE_REGION=r GIT_BRANCH=not-yet-mirrored INFRA_CONFIGURATION_REPO=$GH_CONF INFRA_CUSTOMIZATIONS_REPO=$GH_CUST INFRA_CONFIGURATION_MIRROR_REPO=file://$T/mirror/jitsi/infra-configuration.git INFRA_CUSTOMIZATIONS_MIRROR_REPO=file://$T/mirror/jitsi/infra-customizations-private.git OCI_BIN=/nonexistent/oci" \
+  'if ! checkout_repos; then echo CHECKOUT_FAILED; exit 1; fi; echo CHECKOUT_OK; '"$HEAD_OF" 2>&1)
+check "a branch the mirror lacks comes from github, not main" '[[ "$out" == *"BRANCH=not-yet-mirrored/not-yet-mirrored"* && $(echo "$out" | grep -c "^Cloned .* at not-yet-mirrored from github$") -eq 2 && "$out" != *"trying main"* ]]'
 
 echo "== 8. credentials: fake oci, set -x and bash -v on, password must not leak"
 mkdir -p "$T/bin"; cat > "$T/bin/oci" <<'OCI'
