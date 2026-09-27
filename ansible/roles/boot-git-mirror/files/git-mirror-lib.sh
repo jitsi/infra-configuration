@@ -195,26 +195,32 @@ function forget_mirror_credentials() {
 }
 
 # git clone at boot: there is no terminal, so fail instead of waiting on a prompt.
+# Only the one ref, at depth 1: the boot needs a working tree, not history, and a
+# full clone of the private repo took most of the clone time. --branch takes a
+# branch or a tag, and a ref the remote lacks fails here, before any download.
 # For the mirror host the read-only credential rides along in this one git
 # process only: a credential helper reads it from git's environment, so it is
 # never in argv (ps, set -x), never on disk, and never offered to github.
 function git_clone_for_boot() {
   local url="$1"
   local target="$2"
+  local ref="${3:-}"
+  local clone_args=(clone --depth 1 --single-branch)
+  [ -n "$ref" ] && clone_args+=(--branch "$ref")
   if [ -z "${MIRROR_GIT_PASSWORD:+set}" ] || [ "$(git_url_host "$url")" != "$MIRROR_GIT_HOST" ]; then
-    GIT_TERMINAL_PROMPT=0 git clone "$url" "$target"
+    GIT_TERMINAL_PROMPT=0 git "${clone_args[@]}" "$url" "$target"
     return $?
   fi
   # the environment prefix would be expanded into the set -x trace
   local xtrace=false
   [[ $- == *x* ]] && xtrace=true
   set +x
-  echo "+ git clone $(loggable_git_url "$url") $target  (mirror credential from the environment, trace off)"
+  echo "+ git ${clone_args[*]} $(loggable_git_url "$url") $target  (mirror credential from the environment, trace off)"
   local rc=0
   GIT_TERMINAL_PROMPT=0 MIRROR_GIT_USERNAME="$MIRROR_GIT_USERNAME" MIRROR_GIT_PASSWORD="$MIRROR_GIT_PASSWORD" \
     git -c credential.helper= \
         -c 'credential.helper=!f() { if [ "$1" = get ]; then printf "username=%s\npassword=%s\n" "$MIRROR_GIT_USERNAME" "$MIRROR_GIT_PASSWORD"; fi; }; f' \
-        clone "$url" "$target" || rc=$?
+        "${clone_args[@]}" "$url" "$target" || rc=$?
   [ "$xtrace" == "true" ] && set -x
   return $rc
 }
@@ -224,11 +230,11 @@ function git_clone_for_boot() {
 function clone_repo_at_ref() {
   local url="$1"
   local target="$2"
-  local ref="$3"
+  local ref="${3:-}"
   [ -z "$url" ] && return 1
   [ -z "$target" ] && return 1
   rm -rf "$target"
-  git_clone_for_boot "$url" "$target" || return 1
+  git_clone_for_boot "$url" "$target" "$ref" || return 1
   git -C "$target" checkout "$ref" || return 1
   # neither infra repo has submodules; if one grows some they fetch from the URL
   # in .gitmodules, not through the mirror credential
