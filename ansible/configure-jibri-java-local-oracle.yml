@@ -12,7 +12,6 @@
     - secrets/asap-keys.yml
     - secrets/repo.yml
     - secrets/consul.yml
-    - secrets/voximplant.yml
     - config/vars.yml
     - roles/jibri-java/defaults/main.yml
     - sites/{{ hcv_environment }}/vars.yml
@@ -44,8 +43,23 @@
         wait: "{{ jibri_consul_template_wait | default('15s:60s') }}"
         # the wrapper may wait for jibri to finish (re)starting before reloading it
         command_timeout: "{{ jibri_consul_template_command_timeout | default('300s') }}"
+    # When consul-template will render xmpp.conf, jibri is started once on that
+    # render (see post_tasks). Starting it on ansible's xmpp.conf.j2 instead means
+    # consul-template's first render, which differs from it, reloads jibri a
+    # minute into its life.
+    jibri_defer_start: "{{ jibri_enable_consul_template and not jibri_pjsua_flag and not jibri_docker_compose_flag }}"
+    jibri_boot_health_url: "http://127.0.0.1:2222/jibri/api/v1.0/health"
 
   pre_tasks:
+    # 2.6MB of secrets, of which this playbook only uses sip_jibri_voximplant_users,
+    # and only on sip-jibri. Ansible rebuilds the variable set for every task, so
+    # carrying it cost about a second per task, around five minutes per boot.
+    - name: Load voximplant secrets for sip-jibri
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/secrets/voximplant.yml"
+      when: jibri_pjsua_flag
+      tags: setup
+
     - name: Get instance's details
       ansible.builtin.uri:
         url: http://169.254.169.254/opc/v1/instance/
@@ -81,10 +95,40 @@
       changed_when: jibri_version_cmd.rc != 0
       when: not jibri_docker_compose_flag
   post_tasks:
-    - name: Restart rsyslog
+    # the wrapper ends every run with one of these, whatever it decided; with jibri
+    # still stopped a promoted render ends in "skipping reload"
+    - name: Wait for consul-template's first xmpp.conf render
+      ansible.builtin.wait_for:
+        path: /var/log/jitsi/jibri-shards/jibri-reconfigure.log
+        search_regex: "complete|nothing to do|rejecting|skipping"
+        timeout: "{{ jibri_first_render_timeout | default(180) }}"
+      failed_when: false
+      when: jibri_defer_start
+
+    - name: Start Jibri XMPP Service
       ansible.builtin.service:
-        name: rsyslog
-        state: restarted
+        name: jibri
+        state: started
+      when: jibri_defer_start
+
+    # The sidecar reports this jibri to the autoscaler from the moment it runs, and
+    # a report without jibri stats counts as an unavailable jibri, which makes the
+    # autoscaler launch another instance. So start it only once jibri is healthy,
+    # and start it regardless after the wait so the instance is still managed.
+    - name: Wait for jibri to report healthy
+      ansible.builtin.uri:
+        url: "{{ jibri_boot_health_url }}"
+      register: jibri_boot_health
+      until: jibri_boot_health.status == 200 and (jibri_boot_health.json.status.health.healthStatus | default('')) == 'HEALTHY'
+      retries: 60
+      delay: 5
+      failed_when: false
+      when: not jibri_docker_compose_flag
+
+    - name: Start autoscaler sidecar
+      ansible.builtin.service:
+        name: "{{ autoscaler_sidecar_service_name | default('jitsi-autoscaler-sidecar') }}"
+        state: started
   roles:
     - { role: "iptables-consul", tags: "iptables"}
     - role: "wavefront"
@@ -107,18 +151,26 @@
         upload_integrations_install_flag: false, upload_integrations_configure_flag: true}
     - { role: "jitsi-upload-customizations", tags: "jitsi-upload-customizations",
         upload_customizations_install_flag: "{{ jibri_docker_compose_flag }}", upload_customizations_configure_flag: true }
-    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
-        autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
-        autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}"}
     - { role: "openjdk-java", tags: "openjdk-java", java_use_11: "{{ jibri_java_11 }}", java_install_flag: false }
     - { role: "consul-agent", tags: "consul", consul_install_flag: false}
+    # before consul is first started, so it starts with telegraf.json in place
+    # instead of being restarted for it at the end of the play
+    - { role: "consul-telegraf", tags: "consul-telegraf", consul_telegraf_restart_consul: false }
     - { role: "consul-service-start", tags: "consul-service-start"}
     - { role: "docker-daemon-config", tags: "docker-daemon-config", when: jibri_docker_compose_flag}
     - { role: "vector", tags: "vector", when: jibri_vector_enabled, vector_install_flag: false, vector_configure_flag: true}
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: true, when: jibri_vector_enabled}
-    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: not jibri_docker_compose_flag}
+    - { role: "jibri-java", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true,
+        jibri_start_service: "{{ not jibri_defer_start }}", when: not jibri_docker_compose_flag}
     - { role: "jibri-docker-compose", tags: "jibri", jibri_install_flag: false, jibri_configure_flag: true, when: jibri_docker_compose_flag}
     - { role: "jibri-pjsua", tags: "jibri-pjsua", jibri_pjsua_install_flag: false, jibri_pjsua_configure_flag: true, when: jibri_pjsua_flag}
-    - { role: "consul-template", tags: "consul-template", consul_template_install_flag: true, consul_template_configure_flag: true, when: jibri_enable_consul_template and not jibri_pjsua_flag }
-    - { role: "consul-telegraf", tags: "consul-telegraf" }
+    # the binary and unit are baked into the image; installing here re-downloaded
+    # the release zip from github on every boot
+    - { role: "consul-template", tags: "consul-template", consul_template_install_flag: false, consul_template_configure_flag: true,
+        when: jibri_enable_consul_template and not jibri_pjsua_flag }
+    # configured last and started from post_tasks once jibri is healthy
+    - { role: "autoscaler-sidecar", tags: "autoscaler-sidecar",
+        autoscaler_instance_type: "{{ 'sip-jibri' if jibri_pjsua_flag else 'jibri' }}", cloud_provider: "oracle",
+        autoscaler_install_flag: false, autoscaler_configure_flag: true, jitsi_autoscaler_sidecar: "{{ autoscaler_sidecar_jibri_flag }}",
+        autoscaler_sidecar_start_service: false }
     - { role: "sip-jibri-sidecar", tags: "sip-jibri-sidecar", sip_jibri_install_flag: false, sip_jibri_configure_flag: true, when: jibri_pjsua_flag}

@@ -73,6 +73,14 @@
     name: "{{ autoscaler_sidecar_service_name }}"
     state: started
     enabled: true
+  when: autoscaler_sidecar_start_service
+
+# for a playbook that starts the sidecar itself once the service it reports on is up
+- name: Enable server service without starting it
+  ansible.builtin.service:
+    name: "{{ autoscaler_sidecar_service_name }}"
+    enabled: true
+  when: not autoscaler_sidecar_start_service
 
 - name: Create directory for AWS credentials
   ansible.builtin.file:

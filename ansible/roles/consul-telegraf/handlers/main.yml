@@ -4,3 +4,4 @@
     name: consul
     state: restarted
   ignore_errors: true
+  when: consul_telegraf_restart_consul
