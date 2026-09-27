@@ -50,7 +50,9 @@
 # optional inputs, so the library is also safe under set -u
 : "${INFRA_CONFIGURATION_MIRROR_REPO:=}"
 : "${INFRA_CUSTOMIZATIONS_MIRROR_REPO:=}"
-: "${GIT_FALLBACK_BRANCH:=}"
+# a repo that lacks $GIT_BRANCH is cloned at this instead: feature branches usually
+# exist in only one of the two repos
+: "${GIT_FALLBACK_BRANCH:=main}"
 : "${ENVIRONMENT:=}"
 : "${ORACLE_REGION:=}"
 MIRROR_GIT_HOST=
@@ -260,10 +262,12 @@ function clone_repo_with_fallback() {
   return 1
 }
 
-# One infra repo at $GIT_BRANCH, mirror then github. When GIT_FALLBACK_BRANCH is
-# set (the jvb and jigasi oracle scripts use main) and $GIT_BRANCH exists in
-# neither source, the same sources are tried again at that branch, which is what
-# those scripts always did.
+# One infra repo at $GIT_BRANCH, mirror then github. When $GIT_BRANCH cannot be
+# had from either source, the same sources are tried again at $GIT_FALLBACK_BRANCH
+# (main). Each repo falls back on its own, so a branch that exists only in
+# infra-configuration gets that branch with main of infra-customizations.
+# Only after github has also failed at $GIT_BRANCH, so a branch the mirror has not
+# synced yet still comes from github rather than being replaced by main.
 function clone_infra_repo() {
   local name="$1"
   local mirror_url="$2"

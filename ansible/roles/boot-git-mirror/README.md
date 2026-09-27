@@ -11,7 +11,11 @@ Tracking: JIT-16092.
 `$BOOTSTRAP_DIRECTORY` at `$GIT_BRANCH`, trying the in-region Gitea mirror
 (`https://<env>-<region>-git.jitsi.net`) first and falling back to github on any
 mirror failure. The mirror is an optimisation and github is the floor: the
-function fails only when github fails too. The semantics are a copy of
+function fails only when github fails too. A repo that has no `$GIT_BRANCH` in
+either source is cloned at `$GIT_FALLBACK_BRANCH` (default `main`) instead, each
+repo on its own: a feature branch pushed only to `infra-configuration` boots with
+that branch plus `main` of `infra-customizations`, rather than failing the
+postinstall and sending the instance round a terminate-and-replace loop. The semantics are a copy of
 infra-provisioning's `terraform/lib/postinstall-lib.sh`, the version inlined into
 cloud-init user-data; keep the two in step.
 
@@ -63,7 +67,9 @@ No GIT_MIRROR_HOST in the environment and no /opt/jitsi/boot/git-mirror-host; cl
 then `Using git mirror <host>`, a credentials line, and per repo either
 `Cloned <repo> at <ref> from the in-region mirror` or
 `WARNING: mirror clone of <repo> at <ref> failed, falling back to github` followed
-by `Cloned <repo> at <ref> from github`.
+by `Cloned <repo> at <ref> from github`. A repo that fell back logs
+`WARNING: could not get <repo> at <ref> from any source, trying main` and then
+the same lines at `main`.
 
 ## Rollout note
 
