@@ -12,6 +12,11 @@
     daemon_reload: true
   when: not jibri_configure_only_flag
 
+- name: Restart rsyslog for jibri
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
+
 - name: Restart Monitor Terminating Instance
   ansible.builtin.service:
     name: monitor-terminating-instance

@@ -2,3 +2,7 @@
 consul_telegraf_cloud_provider: "{{ cloud_provider | default('aws') }}"
 consul_telegraf_private_ip: "{{ ansible_default_ipv4.address }}"
 consul_telegraf_install_flag: false
+# false for a playbook that runs this role before consul is first started: the
+# reload below then starts consul with the service file already in place, and a
+# restart at the end of the play would only bounce a freshly started agent
+consul_telegraf_restart_consul: true

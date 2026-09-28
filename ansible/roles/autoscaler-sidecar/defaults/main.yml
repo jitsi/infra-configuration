@@ -70,6 +70,8 @@ autoscaler_sidecar_instance_version_command_by_type:
 autoscaler_sidecar_private_ip: "{{ ansible_default_ipv4.address }}"
 autoscaler_sidecar_public_ip: "{{ ansible_ec2_public_ipv4 if ansible_ec2_public_ipv4 is defined else false }}"
 autoscaler_sidecar_service_name: jitsi-autoscaler-sidecar
+# false: configure enables the sidecar but leaves starting it to the playbook
+autoscaler_sidecar_start_service: true
 autoscaler_stats_report_url: "https://{{ autoscaler_server_host }}/sidecar/stats"
 autoscaler_stats_retrieve_url: "{{
   autoscaler_stats_retrieve_urls[autoscaler_instance_type]

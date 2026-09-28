@@ -31,6 +31,8 @@ jibri_conference_prefix: "conference."
 jibri_config_hosts: []
 jibri_configure_flag: true
 jibri_configure_only_flag: false
+# false: configure enables jibri but leaves starting it to the playbook
+jibri_start_service: true
 jibri_consul_cross_datacenter: false
 jibri_consul_datacenter: "{{ cloud_name | default('dc1') }}"
 jibri_consul_urls: ['http://localhost:8500']

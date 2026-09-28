@@ -174,17 +174,22 @@
     mode: 0644
     src: "jibri.rsyslogd.conf"
     dest: "/etc/rsyslog.d/23-jibri.conf"
-
-- name: Restart rsyslogd
-  ansible.builtin.service:
-    name: rsyslog
-    state: restarted
+  notify: Restart rsyslog for jibri
 
 - name: Start Jibri XMPP Service
   ansible.builtin.service:
     name: jibri
     state: started
     enabled: true
+  when: jibri_start_service
+
+# for a playbook that starts jibri itself once the rest of its config
+# (consul-template's xmpp.conf) exists
+- name: Enable Jibri XMPP Service without starting it
+  ansible.builtin.service:
+    name: jibri
+    enabled: true
+  when: not jibri_start_service
 
 - name: Start Jibri termination monitoring Service
   ansible.builtin.service:
