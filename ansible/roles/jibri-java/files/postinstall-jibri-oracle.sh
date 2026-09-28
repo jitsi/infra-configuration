@@ -4,15 +4,20 @@ set -x
 
 . /usr/local/bin/oracle_cache.sh
 
+# The current defined tags come from the instance metadata service rather than an
+# oci compute instance get: every oci call pays a python start-up of several
+# seconds at boot. Metadata carries no etag, so the update is unconditional;
+# nothing else writes defined tags this early (add_ip_tags only writes freeform).
 function add_name_tag() {
   INSTANCE_ID=$1
   MY_HOSTNAME=$2
 
-  INSTANCE_METADATA=$($OCI_BIN compute instance get --instance-id $INSTANCE_ID | jq .)
-  INSTANCE_ETAG=$(echo $INSTANCE_METADATA | jq -r '.etag')
+  INSTANCE_METADATA=$(curl -s http://169.254.169.254/opc/v1/instance/)
   DEFINED_TAGS_NAMESPACE="jitsi"
-  NEW_DEFINED_TAGS=$(echo $INSTANCE_METADATA | jq --arg MY_HOSTNAME "$MY_HOSTNAME" --arg DEFINED_TAGS_NAMESPACE "$DEFINED_TAGS_NAMESPACE" '.data["defined-tags"][$DEFINED_TAGS_NAMESPACE] += {"Name": $MY_HOSTNAME}' | jq '.data["defined-tags"]')
-  $OCI_BIN compute instance update --instance-id $INSTANCE_ID --defined-tags "$NEW_DEFINED_TAGS" --if-match "$INSTANCE_ETAG" --force
+  # refuse rather than write back a tag set that lost the namespace
+  NEW_DEFINED_TAGS=$(echo "$INSTANCE_METADATA" | jq -e --arg MY_HOSTNAME "$MY_HOSTNAME" --arg DEFINED_TAGS_NAMESPACE "$DEFINED_TAGS_NAMESPACE" 'select(.definedTags[$DEFINED_TAGS_NAMESPACE] != null) | .definedTags[$DEFINED_TAGS_NAMESPACE] += {"Name": $MY_HOSTNAME} | .definedTags') || return 1
+  [ -n "$NEW_DEFINED_TAGS" ] || return 1
+  $OCI_BIN compute instance update --instance-id $INSTANCE_ID --defined-tags "$NEW_DEFINED_TAGS" --force
 }
 
 MY_IP=$(curl -s curl http://169.254.169.254/opc/v1/vnics/ | jq .[0].privateIp -r)
@@ -66,8 +71,14 @@ chown jibri:jibri /var/run/jibri
 
 #TODO create a generic bucket with no jvb in the name
 BUCKET="jvb-bucket-${ENVIRONMENT}"
-$OCI_BIN os object get -bn "$BUCKET" --name vault-password --file /root/.vault-password
-$OCI_BIN os object get -bn "$BUCKET" --name id_rsa_jitsi_deployment --file /root/.ssh/id_rsa
+# independent downloads, so pay the oci start-up for both at once; set -e still
+# stops the script if either fails
+$OCI_BIN os object get -bn "$BUCKET" --name vault-password --file /root/.vault-password &
+VAULT_PASSWORD_PID=$!
+$OCI_BIN os object get -bn "$BUCKET" --name id_rsa_jitsi_deployment --file /root/.ssh/id_rsa &
+DEPLOY_KEY_PID=$!
+wait $VAULT_PASSWORD_PID
+wait $DEPLOY_KEY_PID
 chmod 400 /root/.ssh/id_rsa
 
 #now make sure we have the dpkg lock before continuing

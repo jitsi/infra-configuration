@@ -141,7 +141,7 @@ check "one log line for the credential outcome" '[[ "$out" == *"Holding mirror c
 check "password absent from the -v -x trace and stdout" '[[ "$out" != *"S3cretPassw0rdXYZ"* ]]'
 check "xtrace restored afterwards" '[[ "$out" == *"+ echo "*"HELD_USER="* ]]'
 check "the helper would return the password to git on get" 'grep -q "password=S3cretPassw0rdXYZ" "$T/helper-out" && grep -q "username=mirror-reader" "$T/helper-out"'
-check "the github clone got no helper at all" 'grep -q "no helper for clone https://github.com/jitsi/infra-configuration.git" "$T/helper-out"'
+check "the github clone got no helper at all" 'grep -q "no helper for clone --depth 1 --single-branch https://github.com/jitsi/infra-configuration.git" "$T/helper-out"'
 check "forgotten after the clones" '[[ "$out" == *"AFTER_FORGET=[]"* ]]'
 check "creds json removed" '[[ -z "$(ls "${TMPDIR:-/tmp}"/gitea-read-user.* 2>/dev/null)" ]]'
 check "nothing written under the fake HOME besides ssh" '[[ -z "$(ls -A "$HOME" | grep -v "^.ssh$")" ]]'
@@ -151,8 +151,32 @@ out=$( set -e; export HOME; . "$LIB"; MIRROR_GIT_HOST=mirror.example; MIRROR_GIT
   git() { echo "GIT_ARGS: $*"; echo "ENV_PW=${MIRROR_GIT_PASSWORD-unset}"; }
   git_clone_for_boot https://github.com/jitsi/x.git /tmp/x; echo ---; git_clone_for_boot https://mirror.example/jitsi/x.git /tmp/y )
 echo "$out" | sed 's/^/     /'
-check "github clone: plain, no helper" '[[ "$out" == *"GIT_ARGS: clone https://github.com/jitsi/x.git /tmp/x"* ]]'
-check "mirror clone: helper attached, password only via env" '[[ "$out" == *"credential.helper=!f()"* && "$out" == *"clone https://mirror.example/jitsi/x.git /tmp/y"* ]]'
+check "github clone: plain, no helper" '[[ "$out" == *"GIT_ARGS: clone --depth 1 --single-branch https://github.com/jitsi/x.git /tmp/x"* ]]'
+check "mirror clone: helper attached, password only via env" '[[ "$out" == *"credential.helper=!f()"* && "$out" == *"clone --depth 1 --single-branch https://mirror.example/jitsi/x.git /tmp/y"* ]]'
+
+echo "== 11. boot clones are shallow and fetch only the ref, branch or tag"
+mk_history() { # a repo with history on two branches and a tag, so depth is observable
+  local d="$1"; mkdir -p "$d"; git -C "$d" init -q -b main
+  for i in 1 2 3; do echo "$i" > "$d/f"; git -C "$d" add -A; git -C "$d" -c user.email=t@t -c user.name=t commit -qm "c$i"; done
+  git -C "$d" tag rel-tag HEAD~1; git -C "$d" branch other HEAD~2
+}
+mk_history "$T/hist/repo"; mv "$T/hist/repo/.git" "$T/hist/repo.git"; HIST="file://$T/hist/repo.git"
+out=$( set -e; . "$LIB"; clone_repo_at_ref "$HIST" "$T/h-branch" main >/dev/null 2>&1; echo "RC=$?"
+  echo "SHALLOW=$(git -C "$T/h-branch" rev-parse --is-shallow-repository)"
+  echo "COMMITS=$(git -C "$T/h-branch" rev-list --count HEAD)"
+  echo "REMOTE_BRANCHES=$(git -C "$T/h-branch" branch -r | grep -vc HEAD)"
+  echo "FILE=$(cat "$T/h-branch/f")" )
+echo "$out" | sed 's/^/     /'
+check "branch clone succeeds" '[[ "$out" == *"RC=0"* ]]'
+check "branch clone is shallow, one commit" '[[ "$out" == *"SHALLOW=true"* && "$out" == *"COMMITS=1"* ]]'
+check "branch clone fetched only that branch" '[[ "$out" == *"REMOTE_BRANCHES=1"* ]]'
+check "branch clone has the branch tip" '[[ "$out" == *"FILE=3"* ]]'
+out=$( set -e; . "$LIB"; clone_repo_at_ref "$HIST" "$T/h-tag" rel-tag >/dev/null 2>&1; echo "RC=$?"
+  echo "AT_TAG=$(git -C "$T/h-tag" describe --tags --exact-match)"; echo "FILE=$(cat "$T/h-tag/f")" )
+echo "$out" | sed 's/^/     /'
+check "tag clone lands on the tag" '[[ "$out" == *"RC=0"* && "$out" == *"AT_TAG=rel-tag"* && "$out" == *"FILE=2"* ]]'
+out=$( . "$LIB"; clone_repo_at_ref "$HIST" "$T/h-missing" no-such-ref >/dev/null 2>&1; echo "RC=$?"; echo "LEFT=$(ls -A "$T/h-missing" 2>/dev/null | wc -l | tr -d " ")" )
+check "a missing ref fails and leaves no checkout" '[[ "$out" == *"RC=1"* && "$out" == *"LEFT=0"* ]]'
 
 echo "== 10. leftover /root/.netrc handling is a no-op we can at least call (not root here)"
 out=$( . "$LIB"; INFRA_CUSTOMIZATIONS_MIRROR_REPO=""; fetch_mirror_credentials && echo RC0 )

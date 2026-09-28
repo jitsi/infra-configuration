@@ -20,11 +20,6 @@ else
   JIBRI_PJSUA_FLAG="false"
 fi
 
-VOLUME_ID=$(oci compute boot-volume-attachment list --all --region "$ORACLE_REGION" --instance-id "$INSTANCE_ID" --availability-domain "$AVAILABILITY_DOMAIN" --compartment-id "$COMPARTMENT_ID" | jq -r '.data[] | select(."lifecycle-state" == "ATTACHED") | ."boot-volume-id"')
-if [ -z "$VOLUME_ID"  ] || [ "$VOLUME_ID" == "null" ]; then
-  VOLUME_ID="undefined"
-fi
-
 # checkout_repos: clone the infra repos from the in-region git mirror when this
 # instance booted with one, github otherwise (JIT-16092). Installed by the
 # boot-git-mirror role, which every role shipping this script depends on.
@@ -63,7 +58,6 @@ ansible-playbook -v \
     --extra-vars "cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN" \
     -e "{oracle_region: $ORACLE_REGION}" \
     -e "{oracle_instance_id: $INSTANCE_ID}" \
-    -e "{instance_volume_id: $VOLUME_ID}" \
     -e "{autoscaler_group: $CUSTOM_AUTO_SCALE_GROUP}" \
     -e "{sip_jibri_group: $CUSTOM_AUTO_SCALE_GROUP}" \
     -e "{jibri_consul_datacenter: $AWS_CLOUD_NAME}" \
