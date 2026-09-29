@@ -9,9 +9,13 @@ map $arg_tenant $ws_path {
 }
 
 # upstream definitions
-{% raw -%}
-{{ range $dcidx, $dc := datacenters -}}
-{{ $service := print "signal@" $dc -}}
+{% set ns = namespace(haproxy_datacenters=[]) -%}
+{% for region in haproxy_regions.split() -%}
+  {% if region in consul_wan_regions_oracle %}
+    {%- set _ = ns.haproxy_datacenters.append(hcv_environment + '-' + region) -%}
+  {% endif -%}
+{% endfor -%}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $service := print "signal@{% endraw %}{{ dc }}{% raw %}" -}}
 {{ range $index, $shard := service $service -}}
 upstream 'shard-{{ $shard.ServiceMeta.shard }}' {
     zone upstreams 64K;
@@ -19,8 +23,7 @@ upstream 'shard-{{ $shard.ServiceMeta.shard }}' {
     keepalive 2;
 }
 {{ end -}}
-{{ end -}}
-{% endraw -%}
+{% endraw %}{% endfor -%}
 # end upstream definitions
 
 server {
