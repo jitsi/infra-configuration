@@ -1,0 +1,488 @@
+# Brings running VMs up to the vector internal-metrics (#969) and telegraf
+# inputs.internal (#970) changes without re-rendering either config.
+#
+# /etc/vector/vector.yaml and /etc/telegraf/telegraf.conf are rendered at boot
+# from per-host-type playbook vars (vector_nginx_enabled on haproxy, shard_name,
+# telegraf_inputs, telegraf_tags, ...), so re-running the roles here would throw
+# those away. Instead this adds only the new blocks to the files already on the
+# host, and never touches anything else in them:
+#
+#   vector.yaml   + sources.internal_metrics, + sinks.prometheus_exporter
+#   telegraf.conf + [[inputs.internal]]
+#   telegraf.d    + 30-vector.conf (from roles/vector/templates)
+#
+# Each file is edited as a staged copy first. vector's copy must pass
+# `vector validate` and parse to exactly the old config plus the new keys;
+# telegraf's must load under `telegraf --test`. Only then are the live files
+# replaced, after a backup under /var/backups/vector-metrics-patch/. Vector is
+# reloaded (not restarted) so its log pipelines keep running; telegraf is
+# restarted. If the new metrics do not show up afterwards, the backups are put
+# back, the service is bounced onto them and the host is marked failed.
+#
+# A host is left alone where the service is not running, and a part is skipped
+# where it is already applied (hosts built from newer images), so re-runs are
+# no-ops. Run with --check --diff first: staging and validation still run, and
+# the diff of each staged file is printed, but nothing live is changed.
+#
+# Hosts go one at a time and the play stops at the first failure. Via
+# patch-nodes.sh, keep every host in one batch so that stop applies to all:
+#
+#   ENVIRONMENT=beta-meet-jit-si ROLE=haproxy BATCH_SIZE=100 \
+#     ANSIBLE_PLAYBOOK_FILE=patch-vector-metrics.yml \
+#     ANSIBLE_ARGS="--check --diff" scripts/patch-nodes.sh
+- name: Patch vector and telegraf metrics onto running hosts
+  hosts: all
+  gather_facts: false
+  become: true
+  become_user: root
+  serial: "{{ vector_metrics_serial | default(1) }}"
+  max_fail_percentage: 0
+  vars_files:
+    - roles/vector/defaults/main.yml
+  vars:
+    vector_metrics_backup_root: /var/backups/vector-metrics-patch
+    # reload keeps vector's unchanged sources and sinks running; set to
+    # restarted for a vector build whose unit has no ExecReload
+    vector_metrics_vector_reload_state: reloaded
+    vector_config_path: /etc/vector/vector.yaml
+    telegraf_conf_path: /etc/telegraf/telegraf.conf
+    # identical to the block in roles/wavefront/templates/telegraf.conf.wfcopy.j2;
+    # see the comment there for why collect_gostats is absent
+    telegraf_internal_block: |
+      [[inputs.internal]]
+        name_prefix = "telegraf_"
+        # go runtime stats are a large series block that we never act on
+        collect_memstats = false
+    # the same two components as roles/vector/templates/vector.yaml.j2, at the
+    # indentation every version of that template has used for each section
+    # (4 under sources, 2 under sinks). |2 keeps that leading indent.
+    vector_source_block: |2
+          internal_metrics:
+              type: "internal_metrics"
+    vector_sink_block: |2
+        prometheus_exporter:
+          type: "prometheus_exporter"
+          inputs: ["internal_metrics"]
+          address: "0.0.0.0:{{ vector_metrics_port }}"
+    # run on the host: parses both copies of vector.yaml and exits non-zero
+    # unless the staged one is exactly the live one plus the two new components
+    vector_compare_script: |
+      import sys, yaml
+      live = yaml.safe_load(open(sys.argv[1]))
+      staged = yaml.safe_load(open(sys.argv[2]))
+      src = staged["sources"]["internal_metrics"]
+      sink = staged["sinks"]["prometheus_exporter"]
+      assert src == {"type": "internal_metrics"}, src
+      assert sink["type"] == "prometheus_exporter", sink
+      assert sink["inputs"] == ["internal_metrics"], sink
+      for section, key in (("sources", "internal_metrics"), ("sinks", "prometheus_exporter")):
+          if key not in (live.get(section) or {}):
+              del staged[section][key]
+      if staged != live:
+          sys.exit("staged vector.yaml differs from the live one beyond the new components")
+      print("ok")
+
+  tasks:
+    - name: Record run timestamp
+      ansible.builtin.set_fact:
+        vector_metrics_backup_dir: "{{ vector_metrics_backup_root }}/{{ lookup('pipe', 'date -u +%Y%m%dT%H%M%SZ') }}"
+
+    # ---- pre-checks: read-only, run in check mode too ----
+
+    - name: Check which configs exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ vector_config_path }}"
+        - "{{ telegraf_conf_path }}"
+        - "{{ vector_telegraf_config_dir }}"
+        - "{{ vector_telegraf_config_dir }}/30-vector.conf"
+      register: vector_metrics_stat
+
+    - name: Check which services are running
+      ansible.builtin.service_facts:
+
+    - name: Set host facts
+      ansible.builtin.set_fact:
+        vector_live: "{{ vector_metrics_stat.results[0].stat.exists and ansible_facts.services['vector.service'].state | default('') == 'running' }}"
+        telegraf_live: >-
+          {{ vector_metrics_stat.results[1].stat.exists and vector_metrics_stat.results[2].stat.exists
+             and ansible_facts.services['telegraf.service'].state | default('') == 'running' }}
+        telegraf_vector_conf_existed: "{{ vector_metrics_stat.results[3].stat.exists }}"
+
+    - name: Read what vector.yaml already has
+      ansible.builtin.command:
+        argv:
+          - python3
+          - -c
+          - |
+            import json, yaml
+            c = yaml.safe_load(open("{{ vector_config_path }}"))
+            print(json.dumps({"source": "internal_metrics" in (c.get("sources") or {}),
+                              "sink": "prometheus_exporter" in (c.get("sinks") or {})}))
+      register: vector_metrics_probe
+      changed_when: false
+      check_mode: false
+      when: vector_live
+
+    - name: Check nothing else holds the vector metrics port
+      ansible.builtin.command: ss -Hltnp 'sport = :{{ vector_metrics_port }}'
+      register: vector_metrics_port_probe
+      changed_when: false
+      check_mode: false
+      when: vector_live
+      failed_when: >-
+        vector_metrics_port_probe.rc != 0 or
+        (vector_metrics_port_probe.stdout | length > 0 and 'vector' not in vector_metrics_port_probe.stdout)
+
+    - name: Check whether telegraf.conf already has inputs.internal
+      ansible.builtin.command: grep -c '^\[\[inputs\.internal\]\]' {{ telegraf_conf_path }}
+      register: vector_metrics_internal_probe
+      changed_when: false
+      failed_when: vector_metrics_internal_probe.rc > 1
+      check_mode: false
+      when: telegraf_live
+
+    - name: Decide what this host needs
+      ansible.builtin.set_fact:
+        need_vector_source: "{{ vector_live and not (vector_metrics_probe.stdout | from_json).source }}"
+        need_vector_sink: "{{ vector_live and not (vector_metrics_probe.stdout | from_json).sink }}"
+        need_telegraf_internal: "{{ telegraf_live and vector_metrics_internal_probe.stdout | int == 0 }}"
+        # only point telegraf at vector where vector is running to be scraped
+        need_telegraf_vector: "{{ telegraf_live and vector_live }}"
+
+    - name: Show the plan for this host
+      ansible.builtin.debug:
+        msg: >-
+          vector running={{ vector_live }} add_source={{ need_vector_source }} add_sink={{ need_vector_sink }};
+          telegraf running={{ telegraf_live }} add_internal={{ need_telegraf_internal }}
+          ensure_30-vector.conf={{ need_telegraf_vector }}
+
+    # ---- vector ----
+
+    - name: Patch vector
+      when: need_vector_source or need_vector_sink
+      block:
+        - name: Create a staging directory for vector
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: vector-metrics
+          register: vector_stage
+          check_mode: false
+
+        - name: Stage a copy of vector.yaml
+          ansible.builtin.copy:
+            src: "{{ vector_config_path }}"
+            dest: "{{ vector_stage.path }}/vector.yaml"
+            remote_src: true
+            mode: preserve
+          check_mode: false
+
+        - name: Add the internal_metrics source to the staged vector.yaml
+          ansible.builtin.blockinfile:
+            path: "{{ vector_stage.path }}/vector.yaml"
+            insertafter: '^sources:\s*$'
+            marker: "    # {mark} internal_metrics source (patch-vector-metrics.yml)"
+            block: "{{ vector_source_block }}"
+          when: need_vector_source
+          check_mode: false
+
+        - name: Add the prometheus_exporter sink to the staged vector.yaml
+          ansible.builtin.blockinfile:
+            path: "{{ vector_stage.path }}/vector.yaml"
+            insertafter: '^sinks:\s*$'
+            marker: "  # {mark} prometheus_exporter sink (patch-vector-metrics.yml)"
+            block: "{{ vector_sink_block }}"
+          when: need_vector_sink
+          check_mode: false
+
+        - name: Validate the staged vector.yaml with vector
+          ansible.builtin.command: vector validate --no-environment --config-yaml {{ vector_stage.path }}/vector.yaml
+          changed_when: false
+          check_mode: false
+
+        - name: Check the staged vector.yaml is the live one plus only the new components
+          ansible.builtin.command:
+            argv: [python3, -c, "{{ vector_compare_script }}", "{{ vector_config_path }}", "{{ vector_stage.path }}/vector.yaml"]
+          changed_when: false
+          check_mode: false
+
+        - name: Diff live and staged vector.yaml
+          ansible.builtin.command: diff -u {{ vector_config_path }} {{ vector_stage.path }}/vector.yaml
+          register: vector_metrics_diff
+          changed_when: false
+          failed_when: vector_metrics_diff.rc > 1
+          check_mode: false
+
+        - name: Show the vector.yaml change
+          ansible.builtin.debug:
+            var: vector_metrics_diff.stdout_lines
+
+        # everything from here on changes the live host, so none of it runs
+        # in check mode
+        - name: Create the backup directory
+          ansible.builtin.file:
+            path: "{{ vector_metrics_backup_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+          when: not ansible_check_mode
+
+        - name: Back up vector.yaml
+          ansible.builtin.copy:
+            src: "{{ vector_config_path }}"
+            dest: "{{ vector_metrics_backup_dir }}/vector.yaml"
+            remote_src: true
+            mode: preserve
+          when: not ansible_check_mode
+
+        - name: Install the patched vector.yaml
+          ansible.builtin.copy:
+            src: "{{ vector_stage.path }}/vector.yaml"
+            dest: "{{ vector_config_path }}"
+            remote_src: true
+            owner: root
+            group: root
+            mode: '0644'
+          when: not ansible_check_mode
+
+        - name: Reload vector # noqa args[module]
+          ansible.builtin.systemd:
+            name: vector
+            state: "{{ vector_metrics_vector_reload_state }}"
+          when: not ansible_check_mode
+
+        - name: Wait for vector's metrics endpoint
+          ansible.builtin.uri:
+            url: "http://127.0.0.1:{{ vector_metrics_port }}/metrics"
+            return_content: true
+          register: vector_metrics_scrape
+          until: vector_metrics_scrape.status == 200 and 'vector_' in vector_metrics_scrape.content
+          retries: 12
+          delay: 5
+          when: not ansible_check_mode
+
+        - name: Check vector is still healthy
+          ansible.builtin.uri:
+            url: http://127.0.0.1:8686/health
+          register: vector_metrics_health
+          until: vector_metrics_health.status == 200
+          retries: 6
+          delay: 5
+          when: not ansible_check_mode
+
+      rescue:
+        - name: Restore vector.yaml from the backup
+          ansible.builtin.copy:
+            src: "{{ vector_metrics_backup_dir }}/vector.yaml"
+            dest: "{{ vector_config_path }}"
+            remote_src: true
+            mode: preserve
+          register: vector_metrics_restored
+          failed_when: false
+
+        - name: Restart vector on the restored config
+          ansible.builtin.systemd:
+            name: vector
+            state: restarted
+          when: vector_metrics_restored is changed
+
+        - name: Fail the host
+          ansible.builtin.fail:
+            msg: >-
+              vector patch failed in '{{ ansible_failed_task.name }}' and was rolled back
+              {{- ' (vector.yaml restored and vector restarted)' if vector_metrics_restored is changed else ' (live config untouched)' }}:
+              {{ ('gave up after ' ~ ansible_failed_result.attempts ~ ' attempts')
+                  if ansible_failed_result.attempts is defined
+                  else ansible_failed_result.msg | default(ansible_failed_result.stderr | default('')) }}
+
+      always:
+        - name: Remove the vector staging directory
+          ansible.builtin.file:
+            path: "{{ vector_stage.path }}"
+            state: absent
+          when: vector_stage.path is defined
+          check_mode: false
+
+    # ---- telegraf ----
+
+    - name: Patch telegraf
+      when: need_telegraf_internal or need_telegraf_vector
+      block:
+        - name: Create a staging directory for telegraf
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: telegraf-metrics
+          register: telegraf_stage
+          check_mode: false
+
+        - name: Stage a copy of the telegraf config
+          ansible.builtin.command: cp -a {{ telegraf_conf_path }} {{ vector_telegraf_config_dir }} {{ telegraf_stage.path }}/
+          changed_when: false
+          check_mode: false
+
+        - name: Add inputs.internal to the staged telegraf.conf
+          ansible.builtin.blockinfile:
+            path: "{{ telegraf_stage.path }}/telegraf.conf"
+            marker: "# {mark} inputs.internal (patch-vector-metrics.yml)"
+            block: "{{ telegraf_internal_block }}"
+          when: need_telegraf_internal
+          check_mode: false
+
+        - name: Stage the telegraf input for vector
+          ansible.builtin.template:
+            src: roles/vector/templates/telegraf-vector.conf.j2
+            dest: "{{ telegraf_stage.path }}/telegraf.d/30-vector.conf"
+            owner: root
+            group: root
+            mode: '0644'
+          when: need_telegraf_vector
+          check_mode: false
+
+        # --input-filter keeps the test from binding statsd's port, which the
+        # running telegraf holds. The whole config still has to parse.
+        - name: Test the staged telegraf config loads
+          ansible.builtin.command: >-
+            telegraf --config {{ telegraf_stage.path }}/telegraf.conf
+            --config-directory {{ telegraf_stage.path }}/telegraf.d
+            --test --input-filter internal
+          register: telegraf_metrics_test
+          changed_when: false
+          check_mode: false
+          failed_when: telegraf_metrics_test.rc != 0 or 'telegraf_internal_' not in telegraf_metrics_test.stdout
+
+        - name: Diff live and staged telegraf config
+          ansible.builtin.command: >-
+            diff -ruN --label live --label staged {{ telegraf_conf_path }} {{ telegraf_stage.path }}/telegraf.conf
+          register: telegraf_metrics_diff_main
+          changed_when: false
+          failed_when: telegraf_metrics_diff_main.rc > 1
+          check_mode: false
+
+        - name: Diff live and staged telegraf.d
+          ansible.builtin.command: diff -ruN {{ vector_telegraf_config_dir }} {{ telegraf_stage.path }}/telegraf.d
+          register: telegraf_metrics_diff_dir
+          changed_when: false
+          failed_when: telegraf_metrics_diff_dir.rc > 1
+          check_mode: false
+
+        - name: Show the telegraf change
+          ansible.builtin.debug:
+            msg: "{{ telegraf_metrics_diff_main.stdout_lines + telegraf_metrics_diff_dir.stdout_lines }}"
+
+        # a host that already has both (built from a newer image) stops here
+        - name: Note whether telegraf needs changing
+          ansible.builtin.set_fact:
+            telegraf_metrics_changes: "{{ telegraf_metrics_diff_main.rc == 1 or telegraf_metrics_diff_dir.rc == 1 }}"
+
+        # everything from here on changes the live host, so none of it runs
+        # in check mode
+        - name: Apply the telegraf change
+          when:
+            - telegraf_metrics_changes
+            - not ansible_check_mode
+          block:
+            - name: Create the backup directory
+              ansible.builtin.file:
+                path: "{{ vector_metrics_backup_dir }}"
+                state: directory
+                owner: root
+                group: root
+                mode: '0700'
+
+            - name: Back up the telegraf config
+              ansible.builtin.copy:
+                src: "{{ item }}"
+                dest: "{{ vector_metrics_backup_dir }}/{{ item | basename }}"
+                remote_src: true
+                mode: preserve
+              loop: "{{ [telegraf_conf_path] + ([vector_telegraf_config_dir ~ '/30-vector.conf'] if telegraf_vector_conf_existed else []) }}"
+
+            - name: Install the patched telegraf.conf
+              ansible.builtin.copy:
+                src: "{{ telegraf_stage.path }}/telegraf.conf"
+                dest: "{{ telegraf_conf_path }}"
+                remote_src: true
+                mode: preserve
+
+            - name: Install the telegraf input for vector
+              ansible.builtin.copy:
+                src: "{{ telegraf_stage.path }}/telegraf.d/30-vector.conf"
+                dest: "{{ vector_telegraf_config_dir }}/30-vector.conf"
+                remote_src: true
+                owner: root
+                group: root
+                mode: '0644'
+              when: need_telegraf_vector
+
+            - name: Restart telegraf
+              ansible.builtin.systemd:
+                name: telegraf
+                state: restarted
+
+            # prometheus_client only serves a metric after its first flush
+            # (flush_interval is 60s), so allow a few intervals
+            - name: Wait for the new metrics on telegraf's prometheus endpoint
+              ansible.builtin.uri:
+                url: http://127.0.0.1:9126/metrics
+                return_content: true
+              register: telegraf_metrics_scrape
+              until: >-
+                telegraf_metrics_scrape.status == 200
+                and telegraf_metrics_scrape.content is search('(?m)^telegraf_internal_')
+                and (not need_telegraf_vector or telegraf_metrics_scrape.content is search('(?m)^vector_'))
+              retries: 20
+              delay: 10
+
+      rescue:
+        - name: Restore telegraf.conf from the backup
+          ansible.builtin.copy:
+            src: "{{ vector_metrics_backup_dir }}/telegraf.conf"
+            dest: "{{ telegraf_conf_path }}"
+            remote_src: true
+            mode: preserve
+          register: telegraf_metrics_restored_main
+          failed_when: false
+
+        - name: Restore 30-vector.conf from the backup
+          ansible.builtin.copy:
+            src: "{{ vector_metrics_backup_dir }}/30-vector.conf"
+            dest: "{{ vector_telegraf_config_dir }}/30-vector.conf"
+            remote_src: true
+            mode: preserve
+          register: telegraf_metrics_restored_vector
+          when: telegraf_vector_conf_existed
+          failed_when: false
+
+        - name: Remove the 30-vector.conf this run added
+          ansible.builtin.file:
+            path: "{{ vector_telegraf_config_dir }}/30-vector.conf"
+            state: absent
+          register: telegraf_metrics_removed_vector
+          when: not telegraf_vector_conf_existed
+
+        - name: Restart telegraf on the restored config
+          ansible.builtin.systemd:
+            name: telegraf
+            state: restarted
+          when: >-
+            telegraf_metrics_restored_main is changed or telegraf_metrics_restored_vector is changed
+            or telegraf_metrics_removed_vector is changed
+
+        - name: Fail the host
+          ansible.builtin.fail:
+            msg: >-
+              telegraf patch failed in '{{ ansible_failed_task.name }}' and was rolled back:
+              {{ ('gave up after ' ~ ansible_failed_result.attempts ~ ' attempts')
+                  if ansible_failed_result.attempts is defined
+                  else ansible_failed_result.msg | default(ansible_failed_result.stderr | default('')) }}
+              {{ telegraf_metrics_test.stderr | default('') }}
+
+      always:
+        - name: Remove the telegraf staging directory
+          ansible.builtin.file:
+            path: "{{ telegraf_stage.path }}"
+            state: absent
+          when: telegraf_stage.path is defined
+          check_mode: false

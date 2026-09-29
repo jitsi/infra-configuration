@@ -13,6 +13,9 @@
 #
 # For example, to patch all jumpboxes with the sshusers role:
 # > ROLE="ssh" ANSIBLE_ROLES="sshusers" ENVIRONMENT_LIST="ALL" ./scripts/patch-nodes.sh
+#
+# ANSIBLE_ARGS is passed through to ansible-playbook as-is, e.g. "--check --diff"
+# for a dry run.
 
 echo "## starting patch-nodes.sh"
 
@@ -50,6 +53,8 @@ ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS-""}"
 if [ -n "$ANSIBLE_EXTRA_VARS" ]; then
   ANSIBLE_EXTRA_VARS="-e '$ANSIBLE_EXTRA_VARS'"
 fi
+
+ANSIBLE_ARGS="${ANSIBLE_ARGS-""}"
 
 if [[ "$ENVIRONMENT_LIST" == "ALL" ]]; then
     ENVIRONMENT_LIST=$(ls $LOCAL_PATH/../sites/)
@@ -105,7 +110,7 @@ for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-*; do
         -i ./batch.inventory \
         -e "ansible_ssh_user=$ANSIBLE_SSH_USER shard_role=$ROLE patch_ansible_roles=\"$ANSIBLE_ROLES\"" \
         $ANSIBLE_EXTRA_VARS --vault-password-file .vault-password.txt \
-        --tags "$DEPLOY_TAGS"
+        --tags "$DEPLOY_TAGS" $ANSIBLE_ARGS
 
     if [[ $? -gt 0 ]]; then
         echo "ERROR: Ansible batch failed for $BATCH_INVENTORY"
