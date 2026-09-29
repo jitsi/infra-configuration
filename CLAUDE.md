@@ -64,7 +64,7 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
 - `common` - Base system configuration
 - `sshusers`, `sshmfa` - SSH access management
 - `iptables*` - Firewall rules (multiple specialized roles)
-- `wavefront`, `vector` - Observability
+- `wavefront` (installs and configures telegraf, exposed for prometheus on :9126; no wavefront proxy any more), `vector` - Observability
 - `vault` - Secrets management
 
 ## Important Patterns
@@ -138,7 +138,7 @@ See `README_HAPROXY.md` for detailed HAProxy operations including:
 2. **Lint with ansible-lint** (optional but recommended)
 3. **Test on standalone instance first** using `configure-standalone-oracle.sh`
 4. **Deploy to target environment** using appropriate configure playbook
-5. **Verify with monitoring** (Wavefront dashboards, Consul health checks)
+5. **Verify with monitoring** (Grafana dashboards, Consul health checks)
 6. **For HAProxy changes**: Run `haproxy-reload` job after configuration updates
 
 ## Notes

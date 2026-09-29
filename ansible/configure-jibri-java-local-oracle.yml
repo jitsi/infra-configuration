@@ -133,7 +133,6 @@
     - { role: "iptables-consul", tags: "iptables"}
     - role: "wavefront"
       tags: "telegraf"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"

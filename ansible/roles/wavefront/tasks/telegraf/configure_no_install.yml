@@ -1,5 +1,5 @@
 ---
-- name: Write telegraf.conf file with WF config
+- name: Write telegraf.conf
   ansible.builtin.template:
     src: telegraf.conf.wfcopy.j2
     dest: "{{ telegraf_main_config }}"
@@ -7,7 +7,6 @@
   notify: Restart telegraf
   tags:
     - install
-    - redhat
     - debian
     - collector
     - configure
@@ -20,7 +19,20 @@
   notify: Restart telegraf
   tags:
     - install
-    - redhat
+    - debian
+    - collector
+    - configure
+
+# Images and hosts configured before #910 still carry the wavefront output,
+# which fails every flush against a proxy that no longer exists and counts
+# each failure in telegraf_internal_write_errors.
+- name: Remove the wavefront output plugin config 10-wavefront.conf
+  ansible.builtin.file:
+    path: "{{ telegraf_legacy_wavefront_output_config }}"
+    state: absent
+  notify: Restart telegraf
+  tags:
+    - install
     - debian
     - collector
     - configure

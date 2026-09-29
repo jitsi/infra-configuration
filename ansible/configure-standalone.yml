@@ -47,7 +47,6 @@
     - secrets/asap-keys.yml
     - secrets/coturn.yml
     - secrets/jvb.yml
-    - secrets/wavefront.yml
     - secrets/consul.yml
     - secrets/prosody.yml
     - secrets/prosody-egress-aws.yml
@@ -324,13 +323,11 @@
     - { role: jitsi-dumper, tags: "jitsi-dumper"}
 # removing until testrtc builds can be sorted out
 #    - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true, testrtc_configure_flag: true }
-    - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "standalone-debconf", tags: "standalone-debconf" }
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ environment_domain_name }}"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"

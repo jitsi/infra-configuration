@@ -65,8 +65,8 @@ Most HAProxy configuration is in the `hcv-haproxy-configure` role.
     * `echo "show table nodes" | sudo -u haproxy socat stdio /var/run/haproxy/admin.sock`
 * Is the tenant pin service working properly on the haproxies?
     * `sudo service tenant-pin status`
-* Are haproxies behaving as expected in the wavefront dashboard?
-    * https://metrics.wavefront.com/u/P6bjgLNKz2?t=8x8 
+* Are haproxies behaving as expected in the Jitsi HAProxy dashboard?
+    * https://eightxeight.grafana.net/d/jitsi-haproxy-prod/jitsi-haproxy
 
 ### live release
 

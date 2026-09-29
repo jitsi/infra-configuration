@@ -6,7 +6,6 @@
   become: true
   vars_files:
     - secrets/ssh-users.yml
-    - secrets/wavefront.yml
     - secrets/consul.yml
     - secrets/repo.yml
     - secrets/nomad.yml
@@ -163,7 +162,6 @@
     # telegraf now run in nomad system service mode
     # - role: "wavefront"
     #   tags: "telegraf"
-    #   wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
     #   wavefront_configure_collector: true
     #   wavefront_install_collector: false
     #   datadog_extensions: "true"
