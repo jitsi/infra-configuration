@@ -10,6 +10,9 @@ jibri {
         ffmpeg = [ ${jibri.ffmpeg.ffmpeg-binary}, "-y", "-v", "{{ jibri_ffmpeg_log_level }}"  ]
 {% endif %}
     }
+    screen {
+        xrandr-enabled = {{ ((jibri_xrandr_enabled | bool) and not (jibri_pjsua_flag | bool)) | lower }}
+    }
     webhook {
       subscribers = [{% if jibri_sidecar_webhook %}"{{ jibri_sidecar_webhook }}"{% endif %}{% if sip_jibri_sidecar_webhook %}{% if jibri_sidecar_webhook %},{% endif %}"{{ sip_jibri_sidecar_webhook }}"{% endif %}]
     }
