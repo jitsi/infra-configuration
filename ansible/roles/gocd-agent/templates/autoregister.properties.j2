@@ -1,0 +1,13 @@
+# GoCD Agent Auto-registration Configuration
+# This file is managed by Ansible - manual changes will be overwritten
+
+agent.auto.register.key={{ gocd_agent_auto_register_key }}
+{% if gocd_agent_auto_register_resources is defined and gocd_agent_auto_register_resources %}
+agent.auto.register.resources={{ gocd_agent_auto_register_resources }}
+{% endif %}
+{% if gocd_agent_auto_register_environments is defined and gocd_agent_auto_register_environments %}
+agent.auto.register.environments={{ gocd_agent_auto_register_environments }}
+{% endif %}
+{% if gocd_agent_auto_register_hostname is defined and gocd_agent_auto_register_hostname %}
+agent.auto.register.hostname={{ gocd_agent_auto_register_hostname }}
+{% endif %}
