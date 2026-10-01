@@ -1,0 +1,26 @@
+---
+# Disk housekeeping for long-lived standalone nodes. Off by default: short-lived
+# shard instances are replaced often enough that nothing accumulates, so this is
+# only worth running where a box stays up for months (e.g. the PR-torture CI agent).
+standalone_housekeeping_enabled: false
+
+# Where the Jenkins agent keeps its caches. Set to false to skip the CI sections
+# entirely on a standalone that isn't also a build agent.
+standalone_housekeeping_jenkins_home: /home/jenkins
+
+# npm's cacache is content-addressed and never pruned by npm itself. mtime is the
+# first-download time (a cache *hit* does not touch the file), so this evicts some
+# still-used packages; that costs a re-download, not a build failure, because npm
+# treats missing content as a cache miss.
+standalone_housekeeping_npm_cache_days: 45
+
+# Builds select a node major line (.nvmrc / nvm alias default), never a pinned
+# patch, so keeping the newest few of each major is safe.
+standalone_housekeeping_nvm_keep_per_major: 2
+
+# mod_smacks writes one .dat per user into the smacks_h store and never removes it.
+# smacks_hibernation_time is 15-60s, so anything older than this is dead state.
+standalone_housekeeping_smacks_days: 7
+
+standalone_housekeeping_cron_minute: "17"
+standalone_housekeeping_cron_hour: "*"
