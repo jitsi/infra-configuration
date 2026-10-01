@@ -1,33 +1,25 @@
 ---
-# Setup tasks
+# Installs and configures telegraf, exposed for prometheus on :9126. The role
+# keeps the wavefront name from the upstream role it was copied from; nothing
+# in it talks to wavefront any more.
 
-- name: Fail_Fast if non-Ubuntu debian
+- name: Fail_Fast if not Ubuntu
   ansible.builtin.fail:
     msg: "We do not currently support your distribution"
-  when: ansible_os_family == "Debian" and ansible_distribution != "Ubuntu"
+  when: ansible_distribution != "Ubuntu"
   tags:
     - install
     - debian
     - check
     - failfast
 
-- name: Install WaveFront Repositories
-  ansible.builtin.include_tasks: "packages/{{ ansible_os_family }}.yml"
-  when: wavefront_install_proxy or wavefront_install_collector
+- name: Install telegraf apt repository
+  ansible.builtin.include_tasks: packages/Debian.yml
+  when: wavefront_install_collector
   tags:
     - prereqs
     - install
     - debian
-    - redhat
-
-- name: Install Wavefront Proxy
-  ansible.builtin.include_tasks: proxy/configure.yml
-  when: wavefront_install_proxy
-  tags:
-    - install
-    - proxy
-    - debian
-    - redhat
 
 - name: Install collector (telegraf)
   ansible.builtin.include_tasks: telegraf/configure.yml
@@ -36,7 +28,6 @@
     - install
     - collector
     - debian
-    - redhat
 
 - name: Configure collector (telegraf)
   ansible.builtin.include_tasks: telegraf/configure_no_install.yml
@@ -45,4 +36,3 @@
     - install
     - collector
     - debian
-    - redhat

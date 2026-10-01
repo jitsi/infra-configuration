@@ -74,20 +74,13 @@ telegraf_jvb_filter: [
     "jitsi_jvb_xmpp_disconnects_total"
 ]
 telegraf_additional_config_dir: "{{ telegraf_config_dir }}/telegraf.d"
-# telegraf variables
-# telegraf_config_wfcopy: "https://raw.githubusercontent.com/wavefrontHQ/integrations/master/telegraf/telegraf.conf"
 telegraf_config_dir: "/etc/telegraf"
 telegraf_hostname: "{{ ansible_fqdn }}"
-telegraf_http_port: 3878
+# no longer rendered: only named so configure can remove it from hosts and
+# images that still carry it
+telegraf_legacy_wavefront_output_config: "{{ telegraf_additional_config_dir }}/10-wavefront.conf"
 telegraf_main_config: "{{ telegraf_config_dir }}/telegraf.conf"
-telegraf_port: 2878
-telegraf_wavefront_output_plugin_config: "{{ telegraf_additional_config_dir }}/10-wavefront.conf"
 telegraf_prometheus_output_plugin_config: "{{ telegraf_additional_config_dir }}/20-prometheus.conf"
-wavefront_agent_config_args:
-wavefront_agent_extra_args:
-wavefront_api_token: 'DUMMY_WF_URL_API_TOKEN'
-wavefront_api_url: "{{ wavefront_url }}/api"
-wavefront_cmd: wave
 wavefront_collector: 'telegraf'
 # Pinned rather than floating, and kept equal to the telegraf image tag in
 # infra-provisioning nomad/telegraf.hcl so the VM and nomad populations speak one
@@ -96,50 +89,22 @@ wavefront_collector: 'telegraf'
 # inputs.net's tcp*/udp* fieldpass relies on, and 1.40 removes fieldpass and
 # fielddrop outright, which between them silently drop ~33 net_* metrics.
 wavefront_collector_version: '1.29.5-1'
-wavefront_config: "{{ wavefront_config_dir }}/wavefront.conf"
-wavefront_config_dir: '/etc/wavefront/{{ wavefront_proxy_pkg }}'
 wavefront_configure_collector: false
-wavefront_create_cred_file: false
-wavefront_cred_file: "{{ lookup('env', 'HOME') }}/.wavefront/credentials"
 wavefront_install_collector: false
-wavefront_install_proxy: false
-# defaults file for wavefront
-wavefront_instance: "metrics"
-# Other pip package related attributes
-wavefront_pip_pkg: wavefront-cli
-wavefront_pkg_state: 'present'
-wavefront_proxy_address: "{{ regional_wavefront_proxy | default('localhost') }}"
-wavefront_proxy_from_apt: true
-wavefront_proxy_json_port: "{{ telegraf_port }}"
-# to set a version of the agent use wavefront-proxy=X.Y.Z
-wavefront_proxy_pkg: 'wavefront-proxy'
-wavefront_proxy_pkg_url: 'https://packagecloud.io/wavefront/proxy'
-wavefront_proxy_port: "{{ telegraf_port }}"
-wavefront_proxy_version: "{{ '12.0-2' if (ansible_distribution_major_version | int) >= 22 else '10.14-1' }}"
-wavefront_repo_base_url: "https://packagecloud.io/install/repositories/wavefront/{{ item.tool }}"
-wavefront_repo_gpgkey: "https://packagecloud.io/wavefront/proxy/gpgkey"
-wavefront_repo_install_url: "{{ wavefront_repo_base_url }}/config_file.repo?os={{ item.release }}&dist={{ item.version }}&source=script"
-wavefront_tcp_mode: false
 # Scoped to the telegraf repo via signed-by rather than dropped in
 # trusted.gpg.d, so the key cannot vouch for any other source, and removed again
 # with the repo when wavefront_telegraf_remove_repo is set.
-wavefront_telegraf_keyring: /etc/apt/keyrings/wavefront-telegraf.asc
-wavefront_telegraf_pkg_url: "{{ wavefront_telegraf_pkg_url_influx if wavefront_telegraf_use_influx else wavefront_telegraf_pkg_url_pcloud }}"
-wavefront_telegraf_pkg_url_influx: 'https://repos.influxdata.com'
-wavefront_telegraf_pkg_url_pcloud: 'https://packagecloud.io/wavefront/telegraf'
+wavefront_telegraf_keyring: /etc/apt/keyrings/influxdata-telegraf.asc
+wavefront_telegraf_pkg_url: 'https://repos.influxdata.com'
 wavefront_telegraf_remove_repo: true
 # InfluxData serves every release from one release-independent suite. Their
 # per-release suites stop at jammy, so the NobleBase images have no dist of their
 # own and only this one resolves for the whole fleet.
-wavefront_telegraf_repo_dist: "{{ 'stable' if wavefront_telegraf_use_influx else ansible_distribution_release }}"
+wavefront_telegraf_repo_dist: stable
 wavefront_telegraf_repo_branch: "main"
 wavefront_telegraf_repo_line: "deb [signed-by={{ wavefront_telegraf_keyring }}] {{ wavefront_telegraf_pkg_url }}/ubuntu/
   {{ wavefront_telegraf_repo_dist }} {{ wavefront_telegraf_repo_branch }}"
-wavefront_telegraf_repo_gpgkey: "{{ wavefront_telegraf_repo_gpgkey_influx if wavefront_telegraf_use_influx else wavefront_telegraf_repo_gpgkey_pcloud }}"
 # influxdata-archive.key, not influxdata-archive_compat.key: the suites are now
 # signed by subkey DA61C26A0585BD3B, which only the former carries. The compat
 # key holds just D8FF8E1F7DF8B07E and leaves apt with "NO_PUBKEY".
-wavefront_telegraf_repo_gpgkey_influx: "https://repos.influxdata.com/influxdata-archive.key"
-wavefront_telegraf_repo_gpgkey_pcloud: "https://packagecloud.io/wavefront/telegraf/gpgkey"
-wavefront_telegraf_use_influx: true
-wavefront_url: "https://{{ wavefront_instance }}.wavefront.com"
+wavefront_telegraf_repo_gpgkey: "https://repos.influxdata.com/influxdata-archive.key"
