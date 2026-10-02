@@ -84,7 +84,7 @@
     dest: /etc/systemd/system/consul-template.service
     owner: root
     group: root
-    mode: 0755
+    mode: 0644
   when: consul_template_use_systemd
 
 - name: Copy consul-template upstart service configuration

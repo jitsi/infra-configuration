@@ -27,6 +27,19 @@
     state: absent
     update_cache: true
 
+# rsyslog creates its log files as root and then chowns them to syslog:adm, but
+# the rsyslogd AppArmor profile denies the chown, so a file rsyslog creates
+# itself stays root:root. Create it with the right owner before rsyslog does.
+- name: Create consul log file owned by syslog
+  ansible.builtin.file:
+    path: "{{ consul_log_dir }}/consul.log"
+    state: touch
+    owner: syslog
+    group: adm
+    mode: 0640
+    modification_time: preserve
+    access_time: preserve
+
 - name: Install rsyslog configuration for consul
   ansible.builtin.template:
     mode: 0644
