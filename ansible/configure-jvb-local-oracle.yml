@@ -188,11 +188,9 @@
           nginx:
             urls: ["http://localhost:888/nginx_status/"]
           nstat:
-            fieldpass: ["UdpInErrors", "Udp6InErrors"]
+            fieldinclude: ["UdpInErrors", "Udp6InErrors"]
           procstat:
             - systemd_unit: "jitsi-videobridge2.service"
-              cmdline_tag: false
-              pid_tag: false
         telegraf_tags:
           shard-role: "JVB"
           role: "JVB"
