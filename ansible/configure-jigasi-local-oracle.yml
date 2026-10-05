@@ -187,8 +187,6 @@
         telegraf_inputs:
           procstat:
             - systemd_unit: "jigasi.service"
-              cmdline_tag: false
-              pid_tag: false
         telegraf_tags:
           role: "{{ jigasi_shard_role }}"
           environment: "{{ hcv_environment }}"

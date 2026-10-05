@@ -73,12 +73,12 @@
       vars:
         telegraf_inputs:
           haproxy:
-            fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr"]
+            fieldinclude: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr"]
             servers: ["http://localhost:8080/haproxy_stats"]
             username: "admin"
             password: "admin"
           nstat:
-            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
+            fieldinclude: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
         telegraf_tags:
           role: "jigasi-haproxy"
           environment: "{{ hcv_environment }}"
