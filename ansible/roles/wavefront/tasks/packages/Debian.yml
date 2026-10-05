@@ -1,24 +1,9 @@
 ---
-- name: Add Wavefront apt repository key.
-  ansible.builtin.apt_key:
-    url: "{{ wavefront_repo_gpgkey }}"
-    state: present
-    validate_certs: false
-  when:
-    - wavefront_install_proxy
-    - wavefront_proxy_from_apt
-  tags:
-    - prereqs
-    - install
-    - debian
-    - proxy
-
 - name: Create apt keyrings directory
   ansible.builtin.file:
     path: "{{ wavefront_telegraf_keyring | dirname }}"
     state: directory
     mode: 0755
-  when: wavefront_install_collector
   tags:
     - prereqs
     - install
@@ -33,46 +18,28 @@
     url: "{{ wavefront_telegraf_repo_gpgkey }}"
     dest: "{{ wavefront_telegraf_keyring }}"
     mode: 0644
-  when: wavefront_install_collector
   tags:
     - prereqs
     - install
     - debian
     - collector
 
-- name: Install Wavefront pre-requisite packages (Ubuntu)
+- name: Install Telegraf pre-requisite packages (Ubuntu)
   ansible.builtin.apt:
     name: ['apt-transport-https']
     state: present
     update_cache: true
-  when: wavefront_proxy_from_apt or wavefront_install_collector
   tags:
     - prereqs
     - install
     - debian
-    - proxy
     - collector
 
-- name: Add Wavefront Proxy apt repository.
-  ansible.builtin.apt_repository:
-    repo: "deb {{ wavefront_proxy_pkg_url }}/ubuntu/ {{ ansible_distribution_release }} main"
-    state: present
-    update_cache: true
-  when:
-    - wavefront_install_proxy
-    - wavefront_proxy_from_apt
-  tags:
-    - prereqs
-    - install
-    - debian
-    - proxy
-
-- name: Add Wavefront Telegraf apt repository.
+- name: Add Telegraf apt repository
   ansible.builtin.apt_repository:
     repo: "{{ wavefront_telegraf_repo_line }}"
     state: present
     update_cache: true
-  when: wavefront_install_collector
   tags:
     - prereqs
     - install

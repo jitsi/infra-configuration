@@ -83,7 +83,6 @@ RESOURCE_NAME_ROOT="$ENVIRONMENT-$ORACLE_REGION-$UNIQUE_ID"
 # cd $CURRENT_PATH
 [ -z "$DATADOG_ENABLED" ] && DATADOG_ENABLED="false"
 [ -z "$TELEGRAF_ENABLED" ] && TELEGRAF_ENABLED="false"
-[ -z "$WF_PROXY_ENABLED" ] && WF_PROXY_ENABLED="false"
 #Standalone JVB websocket port is 9090 no TLS, overriding default 443 for bridge-only nodes
 [ -z "$JVB_WEBSOCKETS_PORT" ] && JVB_WEBSOCKETS_PORT=9090
 [ -z "$JVB_WEBSOCKETS_SSL" ] && JVB_WEBSOCKETS_SSL="false"
@@ -143,7 +142,6 @@ ansible-playbook -v $LOCAL_PATH/../ansible/$PLAYBOOK -i "$PRIVATE_IP," \
 -e "jicofo_deb_pkg_version=$JICOFO_VERSION" \
 -e "jitsi_meet_deb_pkg_version=$JITSI_MEET_VERSION" \
 -e "{\"standalone_telegraf_enabled\":$TELEGRAF_ENABLED}" \
--e "{\"wf_proxy_enabled\":$WF_PROXY_ENABLED}" \
 -e "jvb_websockets_port=$JVB_WEBSOCKETS_PORT" \
 -e "{\"jvb_enable_websockets_ssl\":$JVB_WEBSOCKETS_SSL}" \
 -e "{$PROSODY_APT_FLAG}" \

@@ -175,7 +175,6 @@
     - { role: "sshusers", tags: "ssh", ssh_users_config_flag: false, ssh_users_accounts_flag: false, ssh_users_system_flag: true }
     - role: "wavefront"
       tags: "telegraf"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"

@@ -98,7 +98,6 @@
     - role: "wavefront"
       tags: "telegraf"
       when: not selenium_grid_enable_nomad == "true"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
       wavefront_configure_collector: true
       wavefront_install_collector: true
       datadog_extensions: "true"

@@ -4,4 +4,4 @@
   gather_facts: true
   become: true
   roles:
-    - { role: wavefront, wavefront_install_collector: "true", proxy_address: "localhost" }
+    - { role: wavefront, wavefront_install_collector: true }

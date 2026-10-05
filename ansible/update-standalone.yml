@@ -19,7 +19,6 @@
     - secrets/jigasi.yml
     - secrets/coturn.yml
     - secrets/jvb.yml
-    - secrets/wavefront.yml
     - secrets/consul.yml
     - secrets/prosody.yml
     - secrets/prosody-egress-aws.yml

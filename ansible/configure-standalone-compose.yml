@@ -36,7 +36,6 @@
     - secrets/jicofo.yml
     - secrets/jigasi.yml
     - secrets/asap-keys.yml
-    - secrets/wavefront.yml
     - secrets/consul.yml
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
@@ -67,12 +66,10 @@
 #    - { role: "vector", tags: "vector"}
 #    - { role: "rsyslog", rsyslog_install_flag: false, tags: "rsyslog", rsyslog_tcp_output_enabled: true}
 #    - { role: "consul-standalone", tags: "consul" }
-#    - { role: "wavefront", tags: "wavefront-proxy", wavefront_install_proxy: true, when: wf_proxy_enabled }
 #    - { role: "consul-telegraf", tags: "consul-telegraf" }
     # - role: "wavefront"
     #   tags: "telegraf"
     #   telegraf_hostname: "{{ environment_domain_name }}"
-    #   wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
     #   wavefront_configure_collector: true
     #   wavefront_install_collector: false
     #   datadog_extensions: "true"

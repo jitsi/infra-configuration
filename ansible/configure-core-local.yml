@@ -27,7 +27,6 @@
     - secrets/jibri.yml
     - secrets/jicofo.yml
     - secrets/jigasi.yml
-    - secrets/wavefront.yml
     - secrets/coturn.yml
     - secrets/asap-keys.yml
     - secrets/jvb.yml
@@ -198,7 +197,6 @@
     - { role: "rsyslog", tags: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: "{{ core_vector_enabled }}" }
     - role: "wavefront"
       tags: "telegraf"
-      wavefront_proxy_address: "{{ regional_wavefront_proxy }}"
       wavefront_configure_collector: true
       wavefront_install_collector: false
       datadog_extensions: "true"

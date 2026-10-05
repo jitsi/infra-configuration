@@ -1,0 +1,134 @@
+# Removes the dead wavefront output from telegraf on running VMs.
+#
+# #910 stopped rendering /etc/telegraf/telegraf.d/10-wavefront.conf but never
+# removed it, so every host configured before that still has an
+# [[outputs.wavefront]] pointed at a proxy that no longer exists. telegraf
+# fails that write on every flush, logs an error for it and counts it in
+# telegraf_internal_write_errors. The wavefront role now removes the file at
+# boot; this does the same for hosts that are already running, touching
+# nothing else.
+#
+# The file is backed up to /var/backups/wavefront-output-removal/ before it is
+# removed. telegraf is restarted where it was running, and must come back
+# serving metrics on :9126 with no wavefront output left; otherwise the file is
+# put back, telegraf restarted onto it and the host failed. Hosts without the
+# file are left alone, so re-runs are no-ops. --check --diff shows the file
+# each host would lose without removing it.
+#
+# Hosts go one at a time and the play stops at the first failure. Via
+# patch-nodes.sh, keep every host in one batch so that stop applies to all:
+#
+#   ENVIRONMENT=beta-meet-jit-si ROLE=haproxy BATCH_SIZE=100 \
+#     ANSIBLE_PLAYBOOK_FILE=patch-remove-wavefront-output.yml \
+#     ANSIBLE_ARGS="--check --diff" scripts/patch-nodes.sh
+- name: Remove the wavefront output from telegraf on running hosts
+  hosts: all
+  gather_facts: false
+  become: true
+  become_user: root
+  serial: "{{ wavefront_output_serial | default(1) }}"
+  max_fail_percentage: 0
+  vars:
+    wavefront_output_config: /etc/telegraf/telegraf.d/10-wavefront.conf
+    wavefront_output_backup_root: /var/backups/wavefront-output-removal
+
+  tasks:
+    - name: Record run timestamp
+      ansible.builtin.set_fact:
+        wavefront_output_backup_dir: "{{ wavefront_output_backup_root }}/{{ lookup('pipe', 'date -u +%Y%m%dT%H%M%SZ') }}"
+
+    - name: Check for the wavefront output config
+      ansible.builtin.stat:
+        path: "{{ wavefront_output_config }}"
+      register: wavefront_output_stat
+
+    - name: Check whether telegraf is running
+      ansible.builtin.service_facts:
+      when: wavefront_output_stat.stat.exists
+
+    - name: Read the wavefront output config
+      ansible.builtin.slurp:
+        src: "{{ wavefront_output_config }}"
+      register: wavefront_output_content
+      when: wavefront_output_stat.stat.exists
+
+    - name: Show what this host would lose
+      ansible.builtin.debug:
+        msg: >-
+          {{ (wavefront_output_content.content | b64decode).splitlines()
+             if wavefront_output_stat.stat.exists else 'no ' ~ wavefront_output_config ~ ', nothing to do' }}
+
+    - name: Remove the wavefront output
+      when:
+        - wavefront_output_stat.stat.exists
+        - not ansible_check_mode
+      vars:
+        telegraf_running: "{{ ansible_facts.services['telegraf.service'].state | default('') == 'running' }}"
+      block:
+        - name: Create the backup directory
+          ansible.builtin.file:
+            path: "{{ wavefront_output_backup_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+
+        - name: Back up 10-wavefront.conf
+          ansible.builtin.copy:
+            src: "{{ wavefront_output_config }}"
+            dest: "{{ wavefront_output_backup_dir }}/10-wavefront.conf"
+            remote_src: true
+            mode: preserve
+
+        - name: Remove 10-wavefront.conf
+          ansible.builtin.file:
+            path: "{{ wavefront_output_config }}"
+            state: absent
+
+        - name: Restart telegraf
+          ansible.builtin.systemd:
+            name: telegraf
+            state: restarted
+          when: telegraf_running
+
+        # prometheus_client only serves a metric after its first flush
+        # (flush_interval is 60s), so allow a few intervals
+        - name: Wait for telegraf to serve metrics without a wavefront output
+          ansible.builtin.uri:
+            url: http://127.0.0.1:9126/metrics
+            return_content: true
+          register: wavefront_output_scrape
+          until: >-
+            wavefront_output_scrape.status == 200
+            and wavefront_output_scrape.content is search('(?m)^[a-z]')
+            and 'output="wavefront"' not in wavefront_output_scrape.content
+          retries: 20
+          delay: 10
+          when: telegraf_running
+
+      rescue:
+        - name: Restore 10-wavefront.conf from the backup
+          ansible.builtin.copy:
+            src: "{{ wavefront_output_backup_dir }}/10-wavefront.conf"
+            dest: "{{ wavefront_output_config }}"
+            remote_src: true
+            mode: preserve
+          register: wavefront_output_restored
+          failed_when: false
+
+        - name: Restart telegraf on the restored config
+          ansible.builtin.systemd:
+            name: telegraf
+            state: restarted
+          when:
+            - wavefront_output_restored is changed
+            - telegraf_running
+
+        - name: Fail the host
+          ansible.builtin.fail:
+            msg: >-
+              removing the wavefront output failed in '{{ ansible_failed_task.name }}' and was rolled back
+              {{- ' (10-wavefront.conf restored)' if wavefront_output_restored is changed else ' (nothing changed)' }}:
+              {{ ('gave up after ' ~ ansible_failed_result.attempts ~ ' attempts')
+                  if ansible_failed_result.attempts is defined
+                  else ansible_failed_result.msg | default('') }}

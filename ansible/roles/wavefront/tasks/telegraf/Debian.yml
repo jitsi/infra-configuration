@@ -16,7 +16,7 @@
 # version is pinned in the first place. This has to follow the install, not
 # precede it -- the install refreshes the apt cache, so a repo removed earlier in
 # the run takes the package with it.
-- name: Remove Wavefront Telegraf apt repository
+- name: Remove Telegraf apt repository
   ansible.builtin.apt_repository:
     repo: "{{ wavefront_telegraf_repo_line }}"
     state: absent
