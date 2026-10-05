@@ -77,7 +77,9 @@ telegraf_additional_config_dir: "{{ telegraf_config_dir }}/telegraf.d"
 # telegraf variables
 # telegraf_config_wfcopy: "https://raw.githubusercontent.com/wavefrontHQ/integrations/master/telegraf/telegraf.conf"
 telegraf_config_dir: "/etc/telegraf"
-telegraf_hostname: "{{ ansible_fqdn }}"
+# empty means telegraf asks the OS at startup; a templated name gets baked into
+# images as the packer build VM's hostname on hosts that never re-run this role
+telegraf_hostname: ""
 telegraf_http_port: 3878
 telegraf_main_config: "{{ telegraf_config_dir }}/telegraf.conf"
 telegraf_port: 2878
