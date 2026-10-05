@@ -96,5 +96,10 @@ jibri_xmpp_room_name_default: "JibriBrewery"
 jibri_xmpp_room_name_sip: "SipBrewery"
 jibri_xmpp_room_password: ""
 jibri_xmpp_username: "jibri"
+# Renders jibri.screen.xrandr-enabled. When true, jibri sets the X screen resolution with xrandr before
+# each session, which lets it record a tile layout. The X mode for each canvas must be in the X server
+# config (the jibri package ships it). SIP jibris (jibri_pjsua_flag) always get false: their X server
+# has a 1280x720 virtual screen, so xrandr cannot set the 1920x1080 default resolution there.
+jibri_xrandr_enabled: true
 sip_jibri_nick: "sip-jibri-{{ jibri_component_id }}"
 sip_jibri_sidecar_webhook: false

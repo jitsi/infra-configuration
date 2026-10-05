@@ -2,7 +2,7 @@
 consul_apt_key: https://apt.releases.hashicorp.com/gpg
 consul_apt_repo: https://apt.releases.hashicorp.com
 consul_architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-consul_log_dir: /var/log/
+consul_log_dir: /var/log
 # Pinned deliberately. Consul 2.0.4 regressed server-side RPC handling: servers
 # arm a read deadline on idle multiplexed streams and close the connection after
 # limits.rpc_client_timeout (default 60s), while the client pool holds an idle

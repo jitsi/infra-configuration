@@ -3,9 +3,13 @@ map $http_upgrade $connection_upgrade {
     ''      close;
 }
 
-{% raw -%}
-{{ range $dcidx, $dc := datacenters -}}
-{{ $service := print "jvb@" $dc -}}
+{% set ns = namespace(haproxy_datacenters=[]) -%}
+{% for region in haproxy_regions.split() -%}
+  {% if region in consul_wan_regions_oracle %}
+    {%- set _ = ns.haproxy_datacenters.append(hcv_environment + '-' + region) -%}
+  {% endif -%}
+{% endfor -%}
+{% for dc in ns.haproxy_datacenters %}{% raw %}{{ $service := print "jvb@{% endraw %}{{ dc }}{% raw %}" -}}
 {{ range $index, $item := service $service -}}
 {{ with $item.ServiceMeta.nomad_allocation -}}
 upstream 'jvb-{{ . }}' {
@@ -15,8 +19,7 @@ upstream 'jvb-{{ . }}' {
 }
 {{ end -}}
 {{ end -}}
-{{ end -}}
-{% endraw -%}
+{% endraw %}{% endfor -%}
 
 server {
     proxy_connect_timeout       90s;
