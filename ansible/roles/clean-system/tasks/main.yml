@@ -88,6 +88,31 @@
     path: /root/.ssh/authorized_keys
     state: absent
 
+# atop writes its raw log without O_APPEND, so truncating it underneath a running
+# atop leaves a sparse file whose header is zeros. On a host booted the same day
+# the image was built, atop finds that file, rejects it ("wrong magic number")
+# and exits. Stop it (left enabled, so it starts on first boot) and drop its raw
+# logs instead of truncating them.
+- name: Stop atop if present # noqa ignore-errors
+  ansible.builtin.service:
+    name: atop
+    state: stopped
+  ignore_errors: true
+
+- name: Find atop raw logs
+  ansible.builtin.find:
+    paths: /var/log/atop
+    patterns: "atop_*"
+  register: clean_system_atop_logs
+
+- name: Remove atop raw logs
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ clean_system_atop_logs.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
 # Clean logs
 - name: Log cleanup # noqa no-changed-when
   ansible.builtin.shell: "find /var/log -type f -exec truncate --size 0 {} \\;"
