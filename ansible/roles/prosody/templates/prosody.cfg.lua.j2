@@ -686,10 +686,17 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_muc_resource_validate %}
         "muc_resource_validate";
 {% endif %}
+{% if prosody_enable_time_restricted %}
+        "time_restricted";
+{% endif %}
     }
 
 {% if prosody_enable_muc_resource_validate %}
     anonymous_strict = {{ prosody_muc_resource_validate_anonymous_strict | lower }};
+{% endif %}
+{% if prosody_enable_time_restricted %}
+    conference_max_minutes = {{ prosody_time_restricted_conference_max_minutes }};
+    conference_grace_seconds = {{ prosody_time_restricted_conference_grace_seconds }};
 {% endif %}
 {% if prosody_enable_rate_limit %}
     -- Max allowed join/login rate in events per second.

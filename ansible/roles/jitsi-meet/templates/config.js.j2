@@ -540,6 +540,11 @@ whiteboard: {
 {% if jitsi_meet_disable_reactions_moderation %}
     disableReactionsModeration: true,
 {% endif %}
+{% if jitsi_meet_time_timer_suppress_for_seconds %}
+    timeTimer: {
+        suppressForSeconds: {{ jitsi_meet_time_timer_suppress_for_seconds }}
+    },
+{% endif %}
     screenshotCapture:{
         enabled: {% if jitsi_meet_screenshot_capture_enabled %}true{% else %}false{% endif %} ,
         mode: '{{ jitsi_meet_screenshot_capture_mode }}'

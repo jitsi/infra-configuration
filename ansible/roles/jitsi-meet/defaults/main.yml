@@ -273,6 +273,7 @@ jitsi_meet_stun_hosts:
   us-east-1: all-us-east-1-turn.jitsi.net:443
   us-west-2: all-us-west-2-turn.jitsi.net:443
 jitsi_meet_talk_while_muted_enabled: true
+jitsi_meet_time_timer_suppress_for_seconds: false
 jitsi_meet_title_metadata_override: false
 jitsi_meet_token_auth_inline: false
 jitsi_meet_token_auth_url: false
