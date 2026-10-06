@@ -94,6 +94,8 @@ prosody_enable_presence_identity: false
 prosody_enable_rate_limit: true
 prosody_enable_shortlived_tokens: false
 prosody_enable_system_chat_message: true
+# loads mod_time_restricted under the main muc component, limiting conference duration
+prosody_enable_time_restricted: false
 prosody_enable_token_room_verification: true
 # don't enable tokens by default for now
 prosody_enable_tokens: true
@@ -252,6 +254,8 @@ prosody_stats_server: "localhost"
 # with file version we must set it via variable
 # with apt we use the shell to detect subversion so leave it blank ''
 prosody_subversion: "{{ prosody_package_subversion if not prosody_install_from_apt else '' }}"
+prosody_time_restricted_conference_max_minutes: 120
+prosody_time_restricted_conference_grace_seconds: 30
 prosody_token_allow_empty: true
 prosody_visitor_token_allow_empty: true
 prosody_token_app_id: jitsi
