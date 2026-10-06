@@ -14,8 +14,6 @@
     - sites/{{ hcv_environment }}/vars.yml
   roles:
     - { role: "iptables-jenkins", tags: "iptables"}
-    # the base image runs a consul agent; without this its TCP 8301 is rejected
-    # and the servers' gossip push/pull to this node fails
     - { role: "iptables-serf", tags: "iptables"}
     - { role: "jenkins", tags: "jenkins"}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
