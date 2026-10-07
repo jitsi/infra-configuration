@@ -566,6 +566,9 @@ whiteboard: {
 {% if legal_urls %}
     legalUrls: {{legal_urls | to_json}},
 {% endif %}
+{% if jitsi_meet_system_wide_user_notification %}
+    systemWideUserNotification: {{ jitsi_meet_system_wide_user_notification | to_json }},
+{% endif %}
     deeplinking: {
         desktop: {
             appName: "{{ jitsi_meet_desktop_app_name }}"

@@ -272,6 +272,17 @@ jitsi_meet_stun_hosts:
   eu-west-1: all-eu-west-1-turn.jitsi.net:443
   us-east-1: all-us-east-1-turn.jitsi.net:443
   us-west-2: all-us-west-2-turn.jitsi.net:443
+# A notification shown to every user, with a button which opens a link, e.g.
+# jitsi_meet_system_wide_user_notification:
+#   id: 'announcement-1'
+#   url: 'https://example.com/announcement'
+#   labels:
+#     en:
+#       title: 'Things are changing'
+#       description: 'Read about what is new.'
+#       button: 'Learn more'
+#       dontShowAgain: "Don't show again"
+jitsi_meet_system_wide_user_notification: false
 jitsi_meet_talk_while_muted_enabled: true
 jitsi_meet_time_timer_suppress_for_seconds: false
 jitsi_meet_title_metadata_override: false
