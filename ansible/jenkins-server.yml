@@ -14,6 +14,7 @@
     - sites/{{ hcv_environment }}/vars.yml
   roles:
     - { role: "iptables-jenkins", tags: "iptables"}
+    - { role: "iptables-serf", tags: "iptables"}
     - { role: "jenkins", tags: "jenkins"}
     - { role: "jenkins-sshkey", tags: "jenkins-sshkey"}
     - { role: "ops-git", tags: "ops-git"}
