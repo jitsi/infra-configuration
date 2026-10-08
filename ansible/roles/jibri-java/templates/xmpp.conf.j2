@@ -2,6 +2,8 @@ jibri.api.xmpp.environments = [
 {% for env_key in jibri_config_hosts %}
     {
         name = "{{ jibri_config_hosts[env_key]['environment'] }}"
+{# host_addresses entries are "address:port"; jibri splits each one and prefers
+   the port it carries, so control-login.port below is only a fallback #}
         xmpp-server-hosts = {{ jibri_config_hosts[env_key]['host_addresses']|to_json }},
         xmpp-domain = "{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
         control-login {
