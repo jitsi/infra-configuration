@@ -356,6 +356,15 @@ server {
        add_header Access-Control-Expose-Headers "Content-Type, X-Jitsi-Region, X-Jitsi-Shard, X-Proxy-Region, X-Jitsi-Release";
        add_header "Cache-Control" "no-cache, no-store";
 
+{% if jitsi_meet_enable_shard_ws_proxy %}
+       # The SSI include in index.html (/, /ROOM, /TENANT/ROOM) gets an empty config, the client
+       # fetches config.js itself. In an SSI subrequest $request_uri is still the page's URI, so
+       # direct fetches and the static pages (prejoin, whiteboard, ...) keep the real config.
+       if ($request_uri !~ ^/([^/?]+/)?(config\.js|static/|_load-test/)) {
+           return 200 "";
+       }
+
+{% endif %}
        alias /etc/jitsi/meet/{{ jitsi_meet_domain_name }}-config.js;
     }
 
