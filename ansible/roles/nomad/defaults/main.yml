@@ -102,7 +102,14 @@ nomad_deployment_gc_threshold: "1h"
 nomad_encrypt_enable: "{{ lookup('env','NOMAD_ENCRYPT_ENABLE') | default('false', true) }}"
 nomad_raft_protocol: 3
 nomad_default_scheduler_spread: true
-nomad_heartbeat_grace: "30s"
+# How long the servers wait past a client's heartbeat TTL before marking the
+# node down and replacing its allocations. One raft cluster spans every
+# datacenter of an environment, so a client usually heartbeats to a leader in
+# another region, and a cross-region gap of ~50s has been enough to lose a
+# node and replace its system allocations while the node itself was healthy.
+# 2m covers that with margin; the cost is that a genuinely dead node's service
+# allocations are replaced ~90s later than before.
+nomad_heartbeat_grace: "2m"
 
 #### Client settings
 nomad_node_class: ""
