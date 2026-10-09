@@ -1,0 +1,19 @@
+---
+- name: Install standalone housekeeping script
+  ansible.builtin.template:
+    src: standalone-housekeeping.sh.j2
+    dest: /usr/local/bin/standalone-housekeeping.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+# Hourly rather than daily: the script refuses to run mid-build, so it needs
+# several chances a day to land in a gap between PR runs.
+- name: Enable standalone housekeeping cron
+  ansible.builtin.cron:
+    user: root
+    state: present
+    name: "Standalone disk housekeeping"
+    minute: "{{ standalone_housekeeping_cron_minute }}"
+    hour: "{{ standalone_housekeeping_cron_hour }}"
+    job: "/usr/local/bin/standalone-housekeeping.sh > /var/log/standalone-housekeeping.log 2>&1"

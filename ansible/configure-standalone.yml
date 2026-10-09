@@ -325,6 +325,7 @@
 #    - { role: "testrtc", tags: "testrtc", testrtc_install_flag: true, testrtc_configure_flag: true }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "standalone-debconf", tags: "standalone-debconf" }
+    - { role: "standalone-housekeeping", tags: "standalone-housekeeping", when: standalone_housekeeping_enabled }
     - role: "wavefront"
       tags: "telegraf"
       telegraf_hostname: "{{ environment_domain_name }}"
