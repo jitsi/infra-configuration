@@ -117,7 +117,7 @@ sinks:
   # and is not a delivery sink, so it deliberately has no buffer.
   prometheus_exporter:
     type: "prometheus_exporter"
-    inputs: ["internal_metrics"]
+    inputs: ["internal_metrics", "jicofo_log_levels"]
     address: "0.0.0.0:{{ vector_metrics_port }}"
   # NOTE: healthcheck is intentionally disabled on every loki sink below.
   # With healthchecks enabled, vector refuses to start if the loki endpoint is
@@ -374,6 +374,21 @@ transforms:
             parse_regex(.message, r'^(?P<app>Jicofo) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
+  # one counter per jicofo log line, tagged with its level, so a shard whose
+  # jicofo starts logging SEVERE continuously is visible in prometheus within a
+  # scrape interval instead of only in Loki. Lines the parser above left
+  # without a level are not counted. Picked up by telegraf through the
+  # prometheus_exporter sink; the name is in vector_telegraf_namepass.
+  jicofo_log_levels:
+    type: "log_to_metric"
+    inputs: ["jicofo_to_structure"]
+    metrics:
+      - type: "counter"
+        field: "level"
+        name: "log_lines_total"
+        namespace: "jicofo"
+        tags:
+          level: "{{ '{{' }} .level }}"
   jigasi_to_structure:
     type: "remap"
     inputs: ["jigasi"]
