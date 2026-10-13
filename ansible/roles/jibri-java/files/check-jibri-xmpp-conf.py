@@ -28,9 +28,16 @@ co-domain shard go missing. Both halves were fixed together.)
 Hosts present in the config but no longer in consul are not reported. A shard that
 has legitimately left is not a reason to reject a render.
 
+When the config also joins the JVB brewery prosody (prosody-jvb), every passing
+host must appear a second time, as "address:port" with the port taken from the
+prosody_jvb_client_port service meta, defaulting to 6222. The config says whether
+it does: any control-muc on a muc.jvb. domain turns this on. Deciding from the
+file rather than from a flag keeps the consul-template hook and the reconcile cron
+job, which run with different environments, in agreement.
+
 Usage:
     check-jibri-xmpp-conf.py [--consul URL] [--timeout SECONDS] CONFIG
-    check-jibri-xmpp-conf.py --list [--consul URL] [--timeout SECONDS]
+    check-jibri-xmpp-conf.py --list [--jvb-brewery] [--consul URL] [--timeout SECONDS]
 
 Exit codes:
     0  config covers every host consul reports (or, with --list, listing succeeded)
@@ -48,11 +55,13 @@ import urllib.request
 
 DEFAULT_CONSUL = "http://127.0.0.1:8500"
 DEFAULT_PORT = "5222"
+DEFAULT_JVB_BREWERY_PORT = "6222"
 
 SERVICES = ["signal", "all"]
 
 HOSTS_LINE = re.compile(r"xmpp-server-hosts")
 QUOTED = re.compile(r'"([^"]+)"')
+JVB_BREWERY_MUC_LINE = re.compile(r'domain\s*=\s*"muc\.jvb\.')
 
 
 def normalize_consul_url(addr):
@@ -64,9 +73,10 @@ def normalize_consul_url(addr):
     return addr.rstrip("/")
 
 
-def service_host(entry):
+def service_host(entry, port_meta="prosody_client_port", default_port=DEFAULT_PORT):
     """The "address:port" this service entry renders as, mirroring the template's
-    {{ .Address }}:{{ or .ServiceMeta.prosody_client_port "5222" }}."""
+    {{ .Address }}:{{ or .ServiceMeta.prosody_client_port "5222" }} (or, for the JVB
+    brewery block, prosody_jvb_client_port and 6222)."""
     service = entry.get("Service") or {}
     node = entry.get("Node") or {}
     # consul-template's .Address falls back to the node address when the service
@@ -74,14 +84,14 @@ def service_host(entry):
     address = service.get("Address") or node.get("Address")
     if not address:
         return None
-    port = (service.get("Meta") or {}).get("prosody_client_port") or DEFAULT_PORT
+    port = (service.get("Meta") or {}).get(port_meta) or default_port
     return "%s:%s" % (address, port)
 
 
-def passing_hosts(consul_url, timeout):
+def passing_hosts(consul_url, timeout, jvb_brewery=False):
     """Return {host: label} for every passing service entry, where label names the
-    shard and domain the host belongs to, for use in error output. Raises on a
-    consul failure."""
+    shard and domain the host belongs to, for use in error output. With jvb_brewery,
+    each entry's JVB brewery host is expected as well. Raises on a consul failure."""
     hosts = {}
     for service_name in SERVICES:
         url = "%s/v1/health/service/%s?passing" % (consul_url, service_name)
@@ -92,8 +102,12 @@ def passing_hosts(consul_url, timeout):
             if not host:
                 continue
             meta = (entry.get("Service") or {}).get("Meta") or {}
-            hosts.setdefault(host, "%s shard=%s domain=%s" % (
-                service_name, meta.get("shard") or "?", meta.get("domain") or "?"))
+            label = "%s shard=%s domain=%s" % (
+                service_name, meta.get("shard") or "?", meta.get("domain") or "?")
+            hosts.setdefault(host, label)
+            if jvb_brewery:
+                jvb_host = service_host(entry, "prosody_jvb_client_port", DEFAULT_JVB_BREWERY_PORT)
+                hosts.setdefault(jvb_host, label + " jvb-brewery")
     return hosts
 
 
@@ -108,11 +122,20 @@ def hosts_in_config(path):
     return hosts
 
 
+def joins_jvb_brewery(path):
+    """Whether a rendered xmpp.conf has a control-muc on the JVB brewery prosody."""
+    with open(path, "r") as handle:
+        return any(JVB_BREWERY_MUC_LINE.search(line) for line in handle)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("config", nargs="?", help="rendered xmpp.conf to check")
     parser.add_argument("--list", action="store_true", dest="list_only",
                         help="print the hosts consul reports, one per line, instead of checking")
+    parser.add_argument("--jvb-brewery", action="store_true",
+                        help="with --list, also print each host's JVB brewery entry (a check works this "
+                             "out from the config)")
     parser.add_argument("--consul", default=DEFAULT_CONSUL,
                         help="consul HTTP address, scheme optional (default %(default)s)")
     parser.add_argument("--timeout", type=float, default=5.0,
@@ -122,9 +145,17 @@ def main():
     if not args.list_only and not args.config:
         parser.error("a config path is required unless --list is given")
 
+    jvb_brewery = args.jvb_brewery
+    if not args.list_only:
+        try:
+            jvb_brewery = joins_jvb_brewery(args.config)
+        except OSError as exc:
+            print("check-jibri-xmpp-conf: failed to read %s: %s" % (args.config, exc), file=sys.stderr)
+            return 1
+
     consul_url = normalize_consul_url(args.consul)
     try:
-        expected = passing_hosts(consul_url, args.timeout)
+        expected = passing_hosts(consul_url, args.timeout, jvb_brewery)
     except (urllib.error.URLError, OSError, ValueError) as exc:
         print("check-jibri-xmpp-conf: failed to query %s: %s" % (consul_url, exc), file=sys.stderr)
         return 1

@@ -38,6 +38,8 @@ SHARD_AGE_TAG = "shard-age"
 CONSUL_REQUEST_TIMEOUT=5
 AWS_REQUEST_TIMEOUT=5
 RETRY_SLEEP=10
+# client port of the JVB brewery prosody (prosody-jvb) when the service does not advertise one
+DEFAULT_JVB_BREWERY_PORT=6222
 
 local_data_path = "/etc/jitsi/jibri/environments.json"
 aws_metadata_url = 'http://169.254.169.254/latest/dynamic/instance-identity/document'
@@ -139,6 +141,9 @@ def fact_from_service(service, local_data, dc):
     domain = service['ServiceMeta']['domain']
     if 'prosody_client_port' in service['ServiceMeta']:
         host_port = int(service['ServiceMeta']['prosody_client_port'])
+    host_jvb_port = DEFAULT_JVB_BREWERY_PORT
+    if 'prosody_jvb_client_port' in service['ServiceMeta']:
+        host_jvb_port = int(service['ServiceMeta']['prosody_jvb_client_port'])
     if 'shard' in service['ServiceMeta']:
         shard = service['ServiceMeta']['shard']
     else:
@@ -170,6 +175,7 @@ def fact_from_service(service, local_data, dc):
         'shard': shard,
         'xmpp_domain': domain,
         'host_port': host_port,
+        'host_jvb_port': host_jvb_port,
         'xmpp_host_private_ip_address': private_ip,
         'xmpp_host_public_ip_address': public_ip,
         'id': shard,
@@ -319,9 +325,13 @@ def main():
             hosts_by_environment_domain[hkey] = json.loads(json.dumps(h))
             hosts_by_environment_domain[hkey]['hosts'] = []
             hosts_by_environment_domain[hkey]['host_addresses'] = []
+            hosts_by_environment_domain[hkey]['jvb_host_addresses'] = []
 
         hosts_by_environment_domain[hkey]['hosts'].append(h)
         hosts_by_environment_domain[hkey]['host_addresses'].append(h['xmpp_host_private_ip_address'])
+        # always "address:port": jibri keys its connections by this string, and the JVB brewery shares the address
+        # of the main prosody
+        hosts_by_environment_domain[hkey]['jvb_host_addresses'].append('%s:%s'%(h['xmpp_host_private_ip_address'],h.get('host_jvb_port',DEFAULT_JVB_BREWERY_PORT)))
 
     print(json.dumps({'hosts_by_environment_domain': hosts_by_environment_domain}))
 

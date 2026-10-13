@@ -7,7 +7,7 @@
   hosts it finds. Jibri creates one MucClient per entry in xmpp-server-hosts, so
   a block with several hosts joins the brewery on each of them.
 
-  Two scratch maps are used because this template language cannot append to a
+  Scratch maps are used because this template language cannot append to a
   list. "domains" keeps one sample service per domain, which supplies the
   block-level fields; "hosts" is keyed by "domain|address:port" so that a host
   registered under both services is only listed once. The inner loop then filters
@@ -19,16 +19,30 @@
   a fallback for an entry that carries no port of its own, which is why taking it
   from the sample service is safe.
 
+  With JIBRI_JVB_BREWERY_ENABLED=true each domain gets a second block that joins
+  the JibriBrewery on the JVB brewery prosody (prosody-jvb) as well. Only
+  control-login and control-muc differ: call-login and xmpp-domain stay on the
+  main domain, because chrome joins the call through the main prosody and jibri
+  derives the call URL from xmpp-domain. Its hosts come from a third scratch map,
+  "jvbhosts", keyed by "domain|address:prosody_jvb_client_port". prosody-jvb has
+  the same address as the main prosody, and jibri keeps one connection per
+  xmpp-server-hosts string, so these entries must carry their port as well.
+  check-jibri-xmpp-conf.py sees the muc.jvb control-muc and then requires every
+  passing host's JVB brewery entry too.
+
   Trailing commas in both arrays are deliberate; HOCON permits them and the
   alternative is unreadable in this template language.
 */ -}}
+{{ $jvb_brewery := eq (envOrDefault "JIBRI_JVB_BREWERY_ENABLED" "false") "true" -}}
 {{ range $index, $item := service "signal" -}}
     {{ scratch.MapSetX "domains" $item.ServiceMeta.domain $item -}}
     {{ scratch.MapSet "hosts" (printf "%s|%s:%s" $item.ServiceMeta.domain $item.Address (or $item.ServiceMeta.prosody_client_port "5222")) $item -}}
+    {{ scratch.MapSet "jvbhosts" (printf "%s|%s:%s" $item.ServiceMeta.domain $item.Address (or $item.ServiceMeta.prosody_jvb_client_port "6222")) $item -}}
 {{ end -}}
 {{ range $index, $item := service "all" -}}
     {{ scratch.MapSetX "domains" $item.ServiceMeta.domain $item -}}
     {{ scratch.MapSet "hosts" (printf "%s|%s:%s" $item.ServiceMeta.domain $item.Address (or $item.ServiceMeta.prosody_client_port "5222")) $item -}}
+    {{ scratch.MapSet "jvbhosts" (printf "%s|%s:%s" $item.ServiceMeta.domain $item.Address (or $item.ServiceMeta.prosody_jvb_client_port "6222")) $item -}}
 {{ end -}}
 jibri.api.xmpp.environments = [
 {{ range $dindex, $sample := scratch.MapValues "domains" -}}
@@ -57,5 +71,31 @@ jibri.api.xmpp.environments = [
         trust-all-xmpp-certs = true
         randomize-control-muc-nickname = true
     },
+{{ if $jvb_brewery }}    {
+        name = "{{ $sample.ServiceMeta.environment }}-jvb-brewery"
+        xmpp-server-hosts = [{{ range $hindex, $host := scratch.MapValues "jvbhosts" }}{{ if eq $host.ServiceMeta.domain $domain }}"{{ $host.Address }}:{{ or $host.ServiceMeta.prosody_jvb_client_port "6222" }}", {{ end }}{{ end }}]
+        xmpp-domain = "{{ $domain }}"
+        control-login {
+            domain = "auth.jvb.{{ $domain }}"
+            username = "{{ envOrDefault "JIBRI_USERNAME" "jibri" }}"
+            password = "{{ envOrDefault "JIBRI_PASSWORD" "password" }}"
+            port = {{ or $sample.ServiceMeta.prosody_jvb_client_port "6222" }}
+        }
+        control-muc {
+            domain = "muc.jvb.{{ $domain }}"
+            room-name = "{{ envOrDefault "JIBRI_BREWERY" "JibriBrewery" }}"
+            nickname = "{{ envOrDefault "JIBRI_MUC_NICKNAME" "jibri1" }}"
+        }
+        call-login {
+            domain = "recorder.{{ $domain }}"
+            username = "{{ envOrDefault "RECORDER_USERNAME" "recorder" }}"
+            password = "{{ envOrDefault "RECORDER_PASSWORD" "password" }}"
+        }
+        strip-from-room-domain = "conference."
+        usage-timeout = "{{ envOrDefault "JIBRI_USAGE_TIMEOUT" "0" }} minutes"
+        trust-all-xmpp-certs = true
+        randomize-control-muc-nickname = true
+    },
+{{ end -}}
 {{ end -}}
 ]

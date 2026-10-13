@@ -1,31 +1,56 @@
-jibri.api.xmpp.environments = [
-{% for env_key in jibri_config_hosts %}
+{#
+  One environment block per (environment, domain). With jibri_jvb_brewery_flag a second block per domain joins the
+  JibriBrewery on the JVB brewery prosody (prosody-jvb) too. Only control-login and control-muc differ between the two:
+  call-login and xmpp-domain stay on the main domain, because chrome joins the call through the main prosody and jibri
+  derives the call URL from xmpp-domain.
+
+  The JVB brewery hosts are always "address:port". Jibri keys each connection by its xmpp-server-hosts string and keeps
+  one per key, and prosody-jvb has the same address as the main prosody, so a bare address would collide with it.
+#}
+{% macro environment_block(name, hosts, xmpp_domain, login_domain, login_port, muc_domain, usage_timeout) %}
     {
-        name = "{{ jibri_config_hosts[env_key]['environment'] }}"
-        xmpp-server-hosts = {{ jibri_config_hosts[env_key]['host_addresses']|to_json }},
-        xmpp-domain = "{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+        name = "{{ name }}"
+        xmpp-server-hosts = {{ hosts|to_json }},
+        xmpp-domain = "{{ xmpp_domain }}"
         control-login {
-            domain = "{{ jibri_jid_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+            domain = "{{ login_domain }}"
             username = "{{ jibri_auth_control_user }}"
             password = "{{ jibri_auth_control_pass }}"
-            port = {{ jibri_config_hosts[env_key]['host_port'] if jibri_config_hosts[env_key]['host_port'] is defined else jibri_xmpp_port }}
+            port = {{ login_port }}
         }
         control-muc {
-            domain = "{{ jibri_brewery_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+            domain = "{{ muc_domain }}"
             room-name = "{{ jibri_xmpp_room_name }}"
             nickname = "{{ jibri_nick }}"
         }
         call-login {
-            domain = "{{ jibri_selenium_prefix }}{{ jibri_config_hosts[env_key]['xmpp_domain'] }}"
+            domain = "{{ jibri_selenium_prefix }}{{ xmpp_domain }}"
             username = "{{ jibri_auth_call_user }}"
             password = "{{ jibri_auth_call_pass }}"
         }
         strip-from-room-domain = "{{ jibri_conference_prefix }}"
-        usage-timeout = "{{ jibri_config_hosts[env_key]['usage_timeout'] }} minutes"
+        usage-timeout = "{{ usage_timeout }} minutes"
         trust-all-xmpp-certs = true
     {% if jibri_randomize_control_muc_nickname %}
         randomize-control-muc-nickname = true
     {% endif %}
     },
+{% endmacro %}
+jibri.api.xmpp.environments = [
+{% for env_key in jibri_config_hosts %}
+{% set env = jibri_config_hosts[env_key] %}
+{{ environment_block(env['environment'], env['host_addresses'], env['xmpp_domain'],
+    jibri_jid_prefix ~ env['xmpp_domain'],
+    env['host_port'] if env['host_port'] is defined else jibri_xmpp_port,
+    jibri_brewery_prefix ~ env['xmpp_domain'], env['usage_timeout']) -}}
+{% if jibri_jvb_brewery_flag | bool %}
+{{ environment_block(env['environment'] ~ '-jvb-brewery',
+    env['jvb_host_addresses'] if env['jvb_host_addresses'] is defined
+      else env['host_addresses'] | map('regex_replace', '$', ':' ~ jibri_jvb_brewery_xmpp_port) | list,
+    env['xmpp_domain'],
+    jibri_jvb_brewery_jid_prefix ~ env['xmpp_domain'],
+    jibri_jvb_brewery_xmpp_port,
+    jibri_brewery_prosody_jvb_prefix ~ env['xmpp_domain'], env['usage_timeout']) -}}
+{% endif %}
 {% endfor %}
 ]
