@@ -18,7 +18,9 @@ jibri_brewery_prosody_jvb_prefix: "{{ internal_jvb_prosody_muc_prefix | default(
 # When true, jibri also joins the JibriBrewery on each shard's JVB brewery prosody (prosody-jvb), alongside the one on
 # the main prosody. Only control-login and control-muc move; call-login and xmpp-domain stay on the main domain.
 # SIP jibris never do this: jicofo only looks for them on its client (main prosody) connection.
-jibri_jvb_brewery_enabled: false
+# Every shard and standalone a jibri can reach needs the jibri accounts on prosody-jvb (jibri-auth.yml) first:
+# jibri retries a not-authorized login several times a second.
+jibri_jvb_brewery_enabled: true
 jibri_jvb_brewery_flag: "{{ jibri_jvb_brewery_enabled | bool and not jibri_pjsua_flag | bool }}"
 jibri_jvb_brewery_jid_prefix: "auth.jvb."
 # fallback client port for a prosody-jvb that does not advertise prosody_jvb_client_port in consul
