@@ -13,6 +13,24 @@
     creates: "{{ jibri_brewery_path_B }}"
   when: secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
 
+# prosody-jvb
+- name: Add jibri account A for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jibri_brewery_jvb_config }} adduser "{{ jibri_brewery_username_A }}@{{ jibri_brewery_jvb_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+    creates: "{{ jibri_brewery_jvb_path_A }}"
+  when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
+
+# prosody-jvb
+- name: Add jibri account B for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jibri_brewery_jvb_config }} adduser "{{ jibri_brewery_username_B }}@{{ jibri_brewery_jvb_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+    creates: "{{ jibri_brewery_jvb_path_B }}"
+  when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
+
 - name: Add jibri account A for selenium
   ansible.builtin.command: prosodyctl adduser "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
   args:
@@ -41,6 +59,22 @@
   args:
     stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
   when: secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
+
+# prosody-jvb
+- name: Update jibri account A for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jibri_brewery_jvb_config }} passwd "{{ jibri_brewery_username_A }}@{{ jibri_brewery_jvb_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+  when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
+
+# prosody-jvb
+- name: Update jibri account B for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jibri_brewery_jvb_config }} passwd "{{ jibri_brewery_username_B }}@{{ jibri_brewery_jvb_domain }}"
+  args:
+    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+  when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
 
 - name: Update jibri account A for selenium
   ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
