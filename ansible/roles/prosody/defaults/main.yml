@@ -256,6 +256,8 @@ prosody_stats_server: "localhost"
 prosody_subversion: "{{ prosody_package_subversion if not prosody_install_from_apt else '' }}"
 prosody_time_restricted_conference_max_minutes: 120
 prosody_time_restricted_conference_grace_seconds: 30
+# hours after which a room name blocked for reaching the time limit can be created again, 0 keeps it blocked
+prosody_time_restricted_conference_blocked_cleanup_hours: 0
 prosody_token_allow_empty: true
 prosody_visitor_token_allow_empty: true
 prosody_token_app_id: jitsi
