@@ -697,6 +697,7 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_enable_time_restricted %}
     conference_max_minutes = {{ prosody_time_restricted_conference_max_minutes }};
     conference_grace_seconds = {{ prosody_time_restricted_conference_grace_seconds }};
+    conference_blocked_cleanup_hours = {{ prosody_time_restricted_conference_blocked_cleanup_hours }};
 {% endif %}
 {% if prosody_enable_rate_limit %}
     -- Max allowed join/login rate in events per second.
