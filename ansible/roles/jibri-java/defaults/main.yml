@@ -15,6 +15,14 @@ jibri_auth_control_user: "{{ 'jibria' if jibri_auth_type == 'A' else 'jibrib' }}
 jibri_auth_control_pass: "{{ secrets_jibri_brewery_A if jibri_auth_type == 'A' else secrets_jibri_brewery_B }}"
 jibri_brewery_prefix: "{{ internal_muc_prefix | default('internal.auth') }}."
 jibri_brewery_prosody_jvb_prefix: "{{ internal_jvb_prosody_muc_prefix | default('muc.jvb') }}."
+# When true, jibri also joins the JibriBrewery on each shard's JVB brewery prosody (prosody-jvb), alongside the one on
+# the main prosody. Only control-login and control-muc move; call-login and xmpp-domain stay on the main domain.
+# SIP jibris never do this: jicofo only looks for them on its client (main prosody) connection.
+jibri_jvb_brewery_enabled: false
+jibri_jvb_brewery_flag: "{{ jibri_jvb_brewery_enabled | bool and not jibri_pjsua_flag | bool }}"
+jibri_jvb_brewery_jid_prefix: "auth.jvb."
+# fallback client port for a prosody-jvb that does not advertise prosody_jvb_client_port in consul
+jibri_jvb_brewery_xmpp_port: 6222
 # Whether or not any value in the call-status-checks block is overridden
 # Note: if/when we add overrides for the other values in call-status-checks (like all_muted_timeout above) then those
 # variables should be added here.

@@ -27,6 +27,7 @@
       RECORDER_USERNAME: "{{ jibri_auth_call_user }}"
       RECORDER_PASSWORD: "{{ jibri_auth_call_pass }}"
       JIBRI_USAGE_TIMEOUT: "{{ jibri_max_usage | default(0) }}"
+      JIBRI_JVB_BREWERY_ENABLED: "{{ 'true' if jibri_jvb_brewery_flag | bool else 'false' }}"
     consul_template_template_files:
       - src: roles/jibri-java/files/xmpp.conf.template
     consul_template_templates:
