@@ -7,6 +7,16 @@ jibri_brewery_path_A: "/var/lib/prosody/{{ jibri_brewery_domain | regex_replace(
 jibri_brewery_username_B: jibrib
 jibri_brewery_path_B: "/var/lib/prosody/{{ jibri_brewery_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jibri_brewery_username_B | regex_replace('-', '%2d') }}.dat"
+# The same brewery accounts on the JVB brewery prosody (prosody-jvb), which jibri's control connection is moving to.
+# The domain is spelled out rather than taken from prosody_jvb_auth_domain_name so that jibri-auth.yml, which does
+# not load the prosody role defaults, still resolves it.
+jibri_brewery_jvb_flag: "{{ prosody_jvb_configure_flag | default(false) }}"
+jibri_brewery_jvb_config: "/etc/prosody-jvb/prosody.cfg.lua"
+jibri_brewery_jvb_domain: "auth.jvb.{{ environment_domain_name }}"
+jibri_brewery_jvb_path_A: "/var/lib/prosody-jvb/{{ jibri_brewery_jvb_domain | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jibri_brewery_username_A | regex_replace('-', '%2d') }}.dat"
+jibri_brewery_jvb_path_B: "/var/lib/prosody-jvb/{{ jibri_brewery_jvb_domain | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jibri_brewery_username_B | regex_replace('-', '%2d') }}.dat"
 jibri_selenium_domain: "recorder.{{ environment_domain_name }}"
 jibri_selenium_user_A: jibria
 jibri_selenium_path_A: "/var/lib/prosody/{{ jibri_selenium_domain | regex_replace('\\.', '%2e') |
