@@ -124,7 +124,10 @@ jicofo {
   }
 
   jibri {
-{% if jicofo_jibri_brewery_muc %}
+{% if jicofo_jibri_jvb_brewery_flag | bool %}
+    brewery-jid = "{{ jicofo_jibri_jvb_brewery_muc }}"
+    xmpp-connection-name = Service
+{% elif jicofo_jibri_brewery_muc %}
     brewery-jid = "{{ jicofo_jibri_brewery_muc }}"
 {% endif %}
     pending-timeout = {{ jicofo_jibri_pending_timeout }} seconds

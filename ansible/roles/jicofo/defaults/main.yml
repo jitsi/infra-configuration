@@ -56,6 +56,13 @@ jicofo_ice_failure_detection_threshold: 0.1
 jicofo_install_flag: true
 jicofo_internal_muc_prefix: "{{ internal_muc_prefix | default('internal.auth') }}"
 jicofo_jibri_brewery_muc: JibriBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
+# When true, jicofo looks for jibris in the JibriBrewery on the shard's JVB brewery prosody (prosody-jvb) over its
+# Service connection, instead of the one on the main prosody. Jibris must already join that brewery
+# (jibri_jvb_brewery_enabled). SIP jibris are unaffected: jicofo only looks for them on its Client connection.
+jicofo_jibri_jvb_brewery_enabled: false
+jicofo_jibri_jvb_brewery_muc: "JibriBrewery@{{ prosody_jvb_muc_name }}"
+jicofo_jibri_jvb_brewery_flag: "{{ jicofo_jibri_jvb_brewery_enabled | bool and jicofo_separate_jvb_muc | bool and
+  jicofo_prosody_brewery_shard_enabled | bool }}"
 # Note the units are seconds
 jicofo_jibri_pending_timeout: 90
 jicofo_jigasi_brewery_muc: JigasiBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
