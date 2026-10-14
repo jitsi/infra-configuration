@@ -103,6 +103,17 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
 - The library tries the regional Gitea mirror first and falls back to github; it mirrors infra-provisioning's `terraform/lib/postinstall-lib.sh` and the two must stay in step
 - `ansible/roles/boot-postinstall/files/postinstall-lib.sh` is an abandoned copy that nothing sources; leave it alone
 
+### Standalone updates duplicate role tasks
+- `ansible/update-standalone.yml` does not run the roles that `configure-standalone.yml` runs. It repeats their install and config steps in `ansible/tasks/update-standalone-{preflight,stage,restart}.yml`, so a change to one of these roles needs the same change there:
+  - `prosody`: package install, patches, `prosody.cfg.lua` template, ASAP keys
+  - `jitsi-meet-prosody`: plugin copy, `asap.lib.lua`/`ext_events.lib.lua`, the removed plugins, the stanza_router patch
+  - `jicofo`, `jitsi-videobridge`: package version and `jicofo.conf`/`jvb.conf` templates
+  - `jitsi-meet`, `jitsi-meet-branding`: package, `config.js`, `base.html`, SSL certs and keys, branding install
+- If a role starts writing a new file that its service reads, add that file's directory to the paths that service watches in `update-standalone-restart.yml`; otherwise the update writes the file and never restarts the service
+- A new long-running service on the standalone (like `prosody-jvb` and the `prosody-v*` visitor instances) also needs handling in `update-standalone-restart.yml`; new prosody instances are found automatically from their ExecStart
+- Nothing in the stage may restart a service: it runs with a `policy-rc.d` that exits 101 and `NEEDRESTART_SUSPEND=1`, and the jitsi-videobridge2 install stays last because its postinst stops the bridge anyway
+- Test changes against a stage-8x8 standalone with `scripts/update-standalone.sh`: run it once to upgrade and once more to confirm nothing restarts
+
 ### Secrets and Vault
 - All secrets in `ansible/secrets/*.yml` are encrypted with Ansible Vault
 - Vault password file: `.vault-password.txt` (not in git)
