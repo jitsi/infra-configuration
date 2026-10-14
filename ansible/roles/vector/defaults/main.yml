@@ -39,6 +39,8 @@ vector_telegraf_namepass:
   - vector_buffer_received_events_total
   - vector_buffer_sent_events_total
   - vector_internal_metrics_cardinality*
+  # log-derived counters emitted by vector itself, see vector.yaml.j2 transforms
+  - jicofo_log_lines_total
 # By default vector routes logs through the Alloy OTEL collector's Loki push API,
 # which forwards on to the regional Loki. Set vector_route_direct_to_loki: true to
 # bypass Alloy and write to Loki directly.
