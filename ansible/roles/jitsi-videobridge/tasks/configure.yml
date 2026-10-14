@@ -1,4 +1,7 @@
 ---
+# ansible/tasks/update-standalone-stage.yml repeats the jvb.conf template steps from
+# this file for standalone updates; a change here needs the same change there. See
+# "Standalone updates duplicate role tasks" in CLAUDE.md.
 - name: Force install jitsi-videobridge package
   ansible.builtin.apt:
     name: "{{ jitsi_videobridge_deb_pkg_name }}={{ jitsi_videobridge_force_deb_pkg_version }}"

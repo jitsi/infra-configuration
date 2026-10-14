@@ -6,6 +6,11 @@
   become_user: root
   vars:
     java_use_11: true
+    # Seconds to wait for the standalone to have no conferences before upgrading; 0 skips the wait.
+    standalone_update_idle_wait_seconds: 0
+    # false stages everything on disk and leaves the running services alone.
+    standalone_update_restart: true
+    standalone_update_policy_rc_marker: written by update-standalone.yml, safe to delete
   vars_files:
     - config/vars.yml
     - roles/prosody/defaults/main.yml
@@ -41,203 +46,15 @@
       delay: 3
 
     # Everything that can be checked while the host is still serving traffic is
-    # checked here. Past this point a failure leaves the standalone stopped.
-    - name: Run pre-flight checks before stopping anything
+    # checked here, before anything on the host changes.
+    - name: Run pre-flight checks
       ansible.builtin.include_tasks: tasks/update-standalone-preflight.yml
       tags: "upgrade"
 
-    - name: Stop Jitsi services before upgrade
-      ansible.builtin.systemd:
-        name: "{{ item }}"
-        state: stopped
-      loop:
-        - jitsi-videobridge2
-        - jicofo
-        - prosody
-        - nginx
-      ignore_errors: true
-      tags: "upgrade"
-
-    - name: Install ASAP key
-      ansible.builtin.copy:
-        dest: "{{ prosody_asap_key_path }}"
-        mode: "0644"
-        content: "{{ asap_key['key'] }}"
-
-    - name: Install ASAP shortlived key
-      ansible.builtin.copy:
-        dest: "{{ prosody_asap_shortlived_key_path }}"
-        mode: "0644"
-        content: "{{ prosody_asap_shortlived_key['key'] }}"
-      when: prosody_enable_shortlived_tokens
-
-    - name: Install SSL certificate
-      ansible.builtin.copy:
-        mode: "0644"
-        content: "{{ jitsi_meet_ssl_certificate }}"
-        dest: "{{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_domain_name }}.crt"
-
-    - name: Install SSL private key
-      ansible.builtin.copy:
-        content: "{{ jitsi_meet_ssl_key_name }}"
-        dest: "{{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_domain_name }}.key"
-        mode: "0600"
-
-    - name: Install Signal API SSL certificate
-      ansible.builtin.copy:
-        mode: "0644"
-        content: "{{ jitsi_meet_signal_api_ssl_certificate }}"
-        dest: "{{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_signal_api_server_name }}.crt"
-
-    - name: Install Signal API SSL private key
-      ansible.builtin.copy:
-        content: "{{ jitsi_meet_signal_api_ssl_key_name }}"
-        dest: "{{ jitsi_meet_ssl_dest_dir }}/{{ jitsi_meet_signal_api_server_name }}.key"
-        mode: "0600"
-
-    # now install jitsi-videobridge
-    - name: Mark unhold on jitsi-videobridge package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark unhold jitsi-videobridge2
-
-    - name: Update jitsi-videobridge
-      ansible.builtin.apt:
-        name: "jitsi-videobridge2={{ jitsi_videobridge_deb_pkg_version }}"
-        state: present
-
-    - name: Mark hold on jitsi-videobridge package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark hold jitsi-videobridge2
-
-    # now install prosody, either from URL or via apt
-    - name: Include apt install tasks
-      ansible.builtin.include_tasks: roles/prosody/tasks/install-from-apt.yml
-      when: prosody_install_from_apt
-
-    - name: Include URL install tasks
-      ansible.builtin.include_tasks: roles/prosody/tasks/install-from-url.yml
-      when: not prosody_install_from_apt
-
-    - name: Stop prosody after upgrade
-      ansible.builtin.systemd:
-        name: "prosody"
-        state: stopped
-      ignore_errors: true
-      tags: "upgrade"
-
-    # apply prosody patches
-    - name: Include prosody patches tasks
-      ansible.builtin.include_tasks: roles/prosody/tasks/patches.yml
-
-   # now install jicofo
-    - name: Mark unhold on jicofo package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark unhold {{ jicofo_deb_pkg_name }}
-
-    - name: Update jicofo
-      ansible.builtin.apt:
-        name: "{{ jicofo_deb_pkg_name }}={{ jicofo_deb_pkg_version }}"
-        state: present
-
-    - name: Mark hold on jicofo package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark hold {{ jicofo_deb_pkg_name }}
-
-  # now install jitsi-meet
-    - name: Mark unhold on jitsi-meet package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark unhold {{ jitsi_meet_deb_pkg_name }}
-
-    - name: Install jitsi-meet
-      ansible.builtin.apt:
-        name: "{{ jitsi_meet_deb_pkg_name }}={{ jitsi_meet_deb_pkg_version }}"
-        state: present
-
-    - name: Mark hold on jitsi-meet package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark hold {{ jitsi_meet_deb_pkg_name }}
-
-    # now reconfigure jitsi-videobridge
-    - name: Install jitsi-videobridge new config file
-      ansible.builtin.template:
-        mode: 0644
-        src: roles/jitsi-videobridge/templates/jvb.conf.j2
-        dest: /etc/jitsi/videobridge/jvb.conf
-      when: jvb_configure_from_template_flag
-
-    # now reconfigure prosody
-    - name: Check whether module muc_meeting_id exists
-      ansible.builtin.stat:
-        path: "{{ prosody_plugins_path }}/mod_muc_meeting_id.lua"
-      register: muc_meeting_id_exists
-
-    - name: Build prosody.cfg.lua from template
-      ansible.builtin.template:
-        src: roles/prosody/templates/prosody.cfg.lua.j2
-        dest: /etc/prosody/prosody.cfg.lua
-        mode: 0644
-
-    # now reconfigure jitsi-meet branding
-    - name: Register installed Meet version
-      ansible.builtin.shell: |
-        set -o pipefail
-        dpkg -s jitsi-meet-web | grep Version | awk '{print $2}' | cut -d'.' -f3 | cut -d'-' -f1
-      args:
-        executable: /bin/bash
-      register: jitsi_meet_web_version_shell
-
-    - name: Install branding override when required
-      ansible.builtin.apt:
-        name: "{{ jitsi_meet_branding_override }}=1.0.{{ jitsi_meet_web_version_shell.stdout }}*"
-        allow-downgrades: true
-      environment:
-        DEBIAN_FRONTEND: noninteractive
-      when: jitsi_meet_branding_override != "jitsi-meet"
-
-    - name: Register installed branding version
-      ansible.builtin.shell: |
-        set -o pipefail
-        dpkg -s {{ jitsi_meet_branding_override }} | grep Version | awk '{print $2}' | cut -d'.' -f3,4 | cut -d'-' -f1
-      args:
-        executable: /bin/bash
-      register: jitsi_meet_branding_version_shell
-      when: jitsi_meet_branding_override != "jitsi-meet"
-
-    - name: Set jitsi_meet_branding_version
-      ansible.builtin.set_fact:
-        jitsi_meet_branding_version: "{{ jitsi_meet_branding_version_shell.stdout if (jitsi_meet_branding_override != 'jitsi-meet')
-          else jitsi_meet_web_version_shell.stdout }}"
-
-    # now reconfigure jitsi-meet
-    - name: Deploy config file
-      ansible.builtin.template:
-        src: roles/jitsi-meet/templates/config.js.j2
-        dest: "{{ jitsi_meet_config_path }}/{{ jitsi_meet_domain_name }}-config.js"
-        mode: 0644
-        owner: "www-data"
-
-    - name: Set base HTML contents (no sanitize hack)
-      ansible.builtin.set_fact:
-        jitsi_meet_base_html_content: "<base href=\"{{ jitsi_meet_cdn_base_url }}/{{ jitsi_meet_cdn_prefix }}{{ jitsi_meet_branding_version }}/\" />"
-
-    - name: Add CDN base href for meet index.html
-      ansible.builtin.copy:
-        content: "{{ jitsi_meet_base_html_content }}"
-        dest: "{{ jitsi_meet_nginx_root }}/base.html"
-        mode: 0644
-        owner: "www-data"
-      when: jitsi_meet_cdn_enabled
-
-    - name: Remove CDN base href for meet index.html
-      ansible.builtin.copy:
-        content: ""
-        dest: "{{ jitsi_meet_nginx_root }}/base.html"
-        mode: 0644
-        owner: "www-data"
-      when: not jitsi_meet_cdn_enabled
-
-    # now reconfigure jicofo
-    - name: Jicofo configuration file
-      ansible.builtin.template:
-        src: roles/jicofo/templates/jicofo.conf.j2
-        dest: /etc/jitsi/jicofo/jicofo.conf
-        mode: 0600
-        owner: jicofo
-        group: jitsi
+    # Packages, patches, keys, certificates and config go onto disk while every
+    # service keeps running. The services restart afterwards, in tasks.
+    - name: Stage the upgrade without restarting anything
+      ansible.builtin.include_tasks: tasks/update-standalone-stage.yml
 
   handlers:
     - name: Remove patches # noqa ignore-errors
@@ -250,22 +67,17 @@
 
     - name: Reload prosody
       ansible.builtin.debug:
-        msg: "Skipping prosody reload - service will be started in post_tasks"
+        msg: "Skipping prosody reload - the restart tasks restart prosody if it changed"
 
-  post_tasks:
-    - name: Ensure all services are started
-      ansible.builtin.systemd:
-        name: "{{ item }}"
-        state: started
-        enabled: true
-        daemon_reload: true
-      loop:
-        - prosody
-        - jicofo
-        - jitsi-videobridge2
-        - nginx
+  # Runs after the pre_tasks handlers have flushed, so the prosody patch backups are
+  # already cleaned up.
+  tasks:
+    - name: Restart only the services the upgrade changed
+      ansible.builtin.include_tasks: tasks/update-standalone-restart.yml
+      when: standalone_update_restart | bool
       tags: "upgrade"
 
+  post_tasks:
     - name: Register upgraded Jicofo version
       tags: "gather_versions"
       ansible.builtin.shell: |

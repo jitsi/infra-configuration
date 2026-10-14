@@ -122,6 +122,7 @@ $([ -n "$PROSODY_URL_VERSION" ] && echo "-e prosody_url_version=$PROSODY_URL_VER
 $([ -n "$PROSODY_PACKAGE_NAME" ] && echo "-e prosody_package_name=$PROSODY_PACKAGE_NAME") \
 $([ -n "$JITSI_MEET_PROSODY_VERSION" ] && echo "-e jitsi_meet_prosody_deb_pkg_version=$JITSI_MEET_PROSODY_VERSION") \
 $([ -n "$ORACLE_REGION" ] && echo "-e oracle_region=$ORACLE_REGION") \
+$([ -n "$IDLE_WAIT_SECONDS" ] && echo "-e standalone_update_idle_wait_seconds=$IDLE_WAIT_SECONDS") \
 -e "infra_configuration_repo=$INFRA_CONFIGURATION_REPO" \
 -e "infra_customizations_repo=$INFRA_CUSTOMIZATIONS_REPO" \
 -e "test_id=$UNIQUE_ID" \

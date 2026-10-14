@@ -1,4 +1,8 @@
 ---
+# ansible/tasks/update-standalone-stage.yml repeats the prosody plugin steps from
+# this file for standalone updates; a change here needs the same change there. See
+# "Standalone updates duplicate role tasks" in CLAUDE.md.
+
 # detect currently running prosody (finds either prosody-trunk or prosody))
 - name: Register installed prosody package
   ansible.builtin.shell: |

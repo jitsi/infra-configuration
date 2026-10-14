@@ -1,12 +1,13 @@
 ---
-# Checks that must pass before update-standalone.yml stops nginx, prosody, jicofo
-# and the bridge. Everything here is read-only: if a check fails the host is still
+# Checks that must pass before update-standalone.yml changes anything on the host.
+# Nothing here installs or restarts anything: if a check fails the host is still
 # serving traffic on the versions it had, and the operator can retry once whatever
 # is missing has been published.
 #
 # The check that prompted this file is the branding one. The branding package is
-# built per jitsi-meet build and installed *after* the shutdown, so a Meet version
-# whose branding build had not landed yet took a standalone down and left it down.
+# built per jitsi-meet build, and back when the upgrade stopped every service first,
+# a Meet version whose branding build had not landed yet took a standalone down and
+# left it down.
 
 - name: Preflight - refresh apt cache
   ansible.builtin.apt:
@@ -33,7 +34,7 @@
   ansible.builtin.fail:
     msg: >-
       apt has no usable candidate for {{ jitsi_meet_deb_pkg_name }}={{ jitsi_meet_deb_pkg_version }}
-      (got '{{ preflight_meet_version.stdout | trim }}'). Nothing has been stopped.
+      (got '{{ preflight_meet_version.stdout | trim }}'). Nothing has been installed or restarted.
   when: preflight_meet_version.stdout | trim is not match('^[0-9]+\\.[0-9]+\\.[0-9]+')
 
 - name: Preflight - take the Meet build number out of that version
@@ -60,8 +61,7 @@
          ] + preflight_prosody_package) | map('regex_replace', '=\*$', '') | list }}
   vars:
     # Only once packages.prosody.im is a source for the package. A host still on the
-    # URL install method gets that repo added later in this run, after the shutdown,
-    # so apt cannot resolve prosody_apt_version yet and asking it to would be a false
+    # URL install method gets that repo added later in this run, so apt cannot resolve prosody_apt_version yet and asking it to would be a false
     # failure - the distro's own prosody is far older than anything we pin to.
     preflight_prosody_package: "{{ [prosody_package_name ~ '=' ~ prosody_apt_version]
       if (prosody_install_from_apt | bool and 'prosody.im' in (preflight_prosody_policy.stdout | default('')))
@@ -80,7 +80,7 @@
   ansible.builtin.fail:
     msg: |
       apt cannot install the requested versions, so the upgrade would have failed
-      with the services already stopped. Nothing has been stopped.
+      partway through staging. Nothing has been installed or restarted.
       Requested: {{ preflight_packages | join(' ') }}
       apt said:
       {{ preflight_apt_simulate.stderr | default('') | trim }}
@@ -115,13 +115,13 @@
       No {{ jitsi_meet_branding_override }} package matching 1.0.{{ preflight_meet_build }}* is in apt,
       so the branding install would have failed partway through the upgrade. The branding build for
       jitsi-meet {{ preflight_meet_version.stdout | trim }} has most likely not been published yet.
-      Nothing has been stopped - this host is still running the versions it had.
+      Nothing has been installed or restarted - this host is still running the versions it had.
       Branding builds apt does have: {{ (preflight_branding_versions.stdout_lines | default([]))[:8] }}
   when:
     - jitsi_meet_branding_override != 'jitsi-meet'
     - preflight_branding_matches | default([]) | length == 0
 
-- name: Preflight - check the secrets the upgrade installs after the shutdown
+- name: Preflight - check the secrets the upgrade installs
   ansible.builtin.assert:
     that:
       - asap_key['key'] | default('') | length > 0
@@ -131,14 +131,107 @@
       - jitsi_meet_signal_api_ssl_certificate | default('') | length > 0
       - jitsi_meet_signal_api_ssl_key_name | default('') | length > 0
     fail_msg: >-
-      A key or certificate the upgrade writes after the shutdown is missing or empty.
-      Nothing has been stopped; check the vault secrets for {{ hcv_environment }}.
+      A key or certificate the upgrade writes is missing or empty.
+      Nothing has been installed or restarted; check the vault secrets for {{ hcv_environment }}.
     success_msg: Keys and certificates are present
+
+# The stage turns service restarts off with a policy-rc.d and deletes it afterwards.
+# Only take that over when it is ours, left behind by an interrupted run.
+- name: Preflight - read any policy-rc.d already on the host
+  ansible.builtin.slurp:
+    src: /usr/sbin/policy-rc.d
+  register: preflight_policy_rc
+  failed_when: false
+
+- name: Preflight - fail when a policy-rc.d this upgrade did not write is in place
+  ansible.builtin.fail:
+    msg: >-
+      /usr/sbin/policy-rc.d exists and was not written by this upgrade. The upgrade
+      replaces it while staging and deletes it afterwards, so check what put it there
+      first. Nothing has been installed or restarted.
+  when:
+    - preflight_policy_rc.content is defined
+    - standalone_update_policy_rc_marker not in (preflight_policy_rc.content | b64decode)
+
+# Fetch every .deb now, so the window in which files on disk are newer than the
+# running services is no longer than unpacking and templating.
+- name: Preflight - download the packages this upgrade will install
+  ansible.builtin.command:
+    argv: "{{ ['apt-get', 'install', '--download-only', '-y', '-q', '--allow-downgrades', '--allow-change-held-packages']
+      + preflight_packages + preflight_branding_package }}"
+  vars:
+    preflight_branding_package: "{{ [jitsi_meet_branding_override ~ '=' ~ (preflight_branding_matches | first)]
+      if jitsi_meet_branding_override != 'jitsi-meet' else [] }}"
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  changed_when: false
+  async: 600
+  poll: 10
+
+# With a branding package, prosody loads that package's own plugin directory and the
+# branding install keeps it in step with Meet. Only the stock layout takes its plugins
+# from jitsi-meet-prosody, which is not installed as a package: like
+# roles/jitsi-meet-prosody, the stage unpacks the .deb and copies the plugins in.
+- name: Preflight - work out where the prosody plugins come from
+  ansible.builtin.set_fact:
+    standalone_update_plugins_from_jitsi_meet_prosody: "{{ (prosody_plugins_path | regex_replace('/+$', ''))
+      == '/usr/share/jitsi-meet/prosody-plugins' }}"
+
+- name: Preflight - fetch the jitsi-meet-prosody package for the plugins
+  when: standalone_update_plugins_from_jitsi_meet_prosody
+  block:
+    - name: Preflight - create a directory for the jitsi-meet-prosody download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: jitsi-meet-prosody
+      register: preflight_prosody_plugins_dir
+
+    - name: Preflight - download the jitsi-meet-prosody package the plugins come from # noqa command-instead-of-module
+      ansible.builtin.command:
+        argv:
+          - apt-get
+          - download
+          - "{{ (jitsi_meet_prosody_deb_pkg_name ~ '=' ~ jitsi_meet_prosody_deb_pkg_version) | regex_replace('=\\*$', '') }}"
+        chdir: "{{ preflight_prosody_plugins_dir.path }}"
+      register: preflight_prosody_plugins_download
+      changed_when: false
+      failed_when: false
+
+    - name: Preflight - fail when the jitsi-meet-prosody package is not available
+      ansible.builtin.fail:
+        msg: |
+          apt cannot download {{ jitsi_meet_prosody_deb_pkg_name }}={{ jitsi_meet_prosody_deb_pkg_version }},
+          so the prosody plugins could not be updated. Nothing has been installed or restarted.
+          apt said: {{ preflight_prosody_plugins_download.stderr | default('') | trim }}
+      when: preflight_prosody_plugins_download.rc != 0
+
+# Off by default. When set, give testers on the standalone up to that many seconds
+# to finish their conferences, then upgrade anyway.
+- name: Preflight - wait for the standalone to have no conferences
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8888/stats
+  register: preflight_jicofo_stats
+  until: (preflight_jicofo_stats.json.conferences | default(0) | int) == 0
+  retries: "{{ ((standalone_update_idle_wait_seconds | int) / 15) | round(0, 'ceil') | int }}"
+  delay: 15
+  ignore_errors: true
+  when: standalone_update_idle_wait_seconds | int > 0
+
+- name: Preflight - report the conferences still running when the wait ran out
+  ansible.builtin.debug:
+    msg: >-
+      {{ preflight_jicofo_stats.json.conferences }} conference(s) still running after
+      {{ standalone_update_idle_wait_seconds }}s, upgrading anyway.
+  when:
+    - standalone_update_idle_wait_seconds | int > 0
+    - (preflight_jicofo_stats.json.conferences | default(0) | int) > 0
 
 - name: Preflight - report what the upgrade will install
   ansible.builtin.debug:
     msg: |
-      Preflight passed, stopping services next.
+      Preflight passed, staging the upgrade next with services still running.
       Packages: {{ preflight_packages | join(' ') }}
+      Prosody plugins: {{ 'from ' ~ jitsi_meet_prosody_deb_pkg_name if standalone_update_plugins_from_jitsi_meet_prosody
+         else 'from the branding package, ' ~ prosody_plugins_path }}
       {{ 'Branding: ' ~ jitsi_meet_branding_override ~ ' ' ~ (preflight_branding_matches | default([]) | first | default('?'))
          if jitsi_meet_branding_override != 'jitsi-meet' else 'Branding: none (stock jitsi-meet)' }}
