@@ -3,13 +3,60 @@
 # is healthy again.
 #
 # A service restarts when any file it runs from has a ctime newer than the moment
-# systemd last started it. That catches package upgrades, prosody patches and
-# rewritten config alike, and it still holds when an earlier run staged files but
-# failed before restarting anything. A service that is not running is started.
+# systemd last started it. That catches package upgrades, prosody plugins and patches
+# and rewritten config alike, and it still holds when an earlier run staged files but
+# failed before restarting anything. A core service that is not running is started.
 #
-# Prosody going away ends every conference and drops jicofo and the bridge off
-# XMPP, so a prosody restart restarts those two as well. nginx only reloads, which
+# Besides prosody itself a standalone can run more prosody instances from the same
+# code (prosody-jvb, the visitor prosodies prosody-v0, prosody-v1, ...). Each one
+# running is found from its ExecStart and watched with its own config directory.
+# jicofo and the bridge hold XMPP connections to those instances, so when any prosody
+# restarts they are stopped first and started after it. nginx only reloads, which
 # leaves open websockets on the old workers.
+
+- name: Restart - find the prosody instances on this host
+  ansible.builtin.shell: |
+    set -o pipefail
+    {
+      echo prosody.service
+      systemctl list-units --type=service --state=active --plain --no-legend 'prosody*.service' | awk '{print $1}'
+    } | sort -u | while read -r unit; do
+      exec_start="$(systemctl show --property=ExecStart --value "$unit")"
+      case "$exec_start" in
+        *"path=/usr/bin/prosody "*) ;;
+        *) continue ;;
+      esac
+      config="$(echo "$exec_start" | sed -n 's/.*--config \([^ ;]*\).*/\1/p')"
+      echo "$unit $(dirname "${config:-/etc/prosody/prosody.cfg.lua}")"
+    done
+  args:
+    executable: /bin/bash
+  register: restart_prosody_instances
+  changed_when: false
+
+- name: Restart - list what each service watches
+  ansible.builtin.set_fact:
+    restart_watched: "{{ restart_prosody_watched + restart_java_watched }}"
+  vars:
+    restart_prosody_code:
+      - /usr/lib/prosody
+      - "{{ prosody_basepath | default('/usr/lib/prosody') }}"
+      - "{{ prosody_plugins_path }}"
+    restart_prosody_watched: >-
+      {%- set watched = [] -%}
+      {%- for line in restart_prosody_instances.stdout_lines -%}
+      {%- set _ = watched.append({'unit': line.split()[0], 'paths': (restart_prosody_code + [line.split()[1]]) | unique}) -%}
+      {%- endfor -%}
+      {{ watched }}
+    restart_java_watched:
+      - unit: jicofo.service
+        paths:
+          - /usr/share/jicofo
+          - /etc/jitsi/jicofo
+      - unit: jitsi-videobridge2.service
+        paths:
+          - /usr/share/jitsi-videobridge
+          - /etc/jitsi/videobridge
 
 - name: Restart - list files changed since each service last started
   ansible.builtin.shell: |
@@ -26,21 +73,7 @@
     done
   args:
     executable: /bin/bash
-  loop:
-    - unit: prosody
-      paths:
-        - /usr/lib/prosody
-        - "{{ prosody_basepath | default('/usr/lib/prosody') }}"
-        - "{{ prosody_plugins_path }}"
-        - /etc/prosody
-    - unit: jicofo
-      paths:
-        - /usr/share/jicofo
-        - /etc/jitsi/jicofo
-    - unit: jitsi-videobridge2
-      paths:
-        - /usr/share/jitsi-videobridge
-        - /etc/jitsi/videobridge
+  loop: "{{ restart_watched }}"
   loop_control:
     label: "{{ item.unit }}"
   register: restart_changed_files
@@ -48,17 +81,19 @@
 
 - name: Restart - decide which services to restart
   ansible.builtin.set_fact:
-    standalone_update_restart_prosody: "{{ restart_reasons['prosody'] | length > 0 }}"
-    standalone_update_restart_jicofo: "{{ restart_reasons['prosody'] | length > 0 or restart_reasons['jicofo'] | length > 0 }}"
-    standalone_update_restart_jvb: "{{ restart_reasons['prosody'] | length > 0 or restart_reasons['jitsi-videobridge2'] | length > 0 }}"
+    # prosody.service first, so jicofo's own XMPP server is back soonest
+    standalone_update_restart_prosodies: "{{ (['prosody.service'] | intersect(restart_due))
+      + (restart_due | select('match', '^prosody') | reject('equalto', 'prosody.service') | list) }}"
+    standalone_update_restart_jicofo: "{{ restart_prosody_due or 'jicofo.service' in restart_due }}"
+    standalone_update_restart_jvb: "{{ restart_prosody_due or 'jitsi-videobridge2.service' in restart_due }}"
   vars:
-    restart_reasons: "{{ dict(restart_changed_files.results | map(attribute='item.unit')
-      | zip(restart_changed_files.results | map(attribute='stdout_lines'))) }}"
+    restart_due: "{{ restart_changed_files.results | rejectattr('stdout_lines', 'equalto', []) | map(attribute='item.unit') | list }}"
+    restart_prosody_due: "{{ restart_due | select('match', '^prosody') | list | length > 0 }}"
 
 - name: Restart - report what will restart and why
   ansible.builtin.debug:
     msg: |
-      prosody: {{ 'restart' if standalone_update_restart_prosody else 'unchanged' }}
+      prosody instances: {{ standalone_update_restart_prosodies | join(', ') if standalone_update_restart_prosodies else 'unchanged' }}
       jicofo: {{ 'restart' if standalone_update_restart_jicofo else 'unchanged' }}
       jitsi-videobridge2: {{ 'restart' if standalone_update_restart_jvb else 'unchanged' }}
       nginx: {{ 'reload' if standalone_update_nginx_certs_changed | default(false) else 'unchanged' }}
@@ -74,20 +109,20 @@
   loop:
     - jicofo
     - jitsi-videobridge2
-  when: standalone_update_restart_prosody
+  when: standalone_update_restart_prosodies | length > 0
 
-- name: Restart - restart prosody
+- name: Restart - restart the prosody instances
   ansible.builtin.systemd:
-    name: prosody
+    name: "{{ item }}"
     state: restarted
-  when: standalone_update_restart_prosody
+  loop: "{{ standalone_update_restart_prosodies }}"
 
 - name: Restart - wait for prosody to accept client connections
   ansible.builtin.wait_for:
     host: 127.0.0.1
     port: 5222
     timeout: 60
-  when: standalone_update_restart_prosody
+  when: "'prosody.service' in standalone_update_restart_prosodies"
 
 - name: Restart - restart jicofo
   ansible.builtin.systemd:

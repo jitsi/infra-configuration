@@ -168,6 +168,43 @@
   async: 600
   poll: 10
 
+# With a branding package, prosody loads that package's own plugin directory and the
+# branding install keeps it in step with Meet. Only the stock layout takes its plugins
+# from jitsi-meet-prosody, which is not installed as a package: like
+# roles/jitsi-meet-prosody, the stage unpacks the .deb and copies the plugins in.
+- name: Preflight - work out where the prosody plugins come from
+  ansible.builtin.set_fact:
+    standalone_update_plugins_from_jitsi_meet_prosody: "{{ (prosody_plugins_path | regex_replace('/+$', ''))
+      == '/usr/share/jitsi-meet/prosody-plugins' }}"
+
+- name: Preflight - fetch the jitsi-meet-prosody package for the plugins
+  when: standalone_update_plugins_from_jitsi_meet_prosody
+  block:
+    - name: Preflight - create a directory for the jitsi-meet-prosody download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: jitsi-meet-prosody
+      register: preflight_prosody_plugins_dir
+
+    - name: Preflight - download the jitsi-meet-prosody package the plugins come from # noqa command-instead-of-module
+      ansible.builtin.command:
+        argv:
+          - apt-get
+          - download
+          - "{{ (jitsi_meet_prosody_deb_pkg_name ~ '=' ~ jitsi_meet_prosody_deb_pkg_version) | regex_replace('=\\*$', '') }}"
+        chdir: "{{ preflight_prosody_plugins_dir.path }}"
+      register: preflight_prosody_plugins_download
+      changed_when: false
+      failed_when: false
+
+    - name: Preflight - fail when the jitsi-meet-prosody package is not available
+      ansible.builtin.fail:
+        msg: |
+          apt cannot download {{ jitsi_meet_prosody_deb_pkg_name }}={{ jitsi_meet_prosody_deb_pkg_version }},
+          so the prosody plugins could not be updated. Nothing has been installed or restarted.
+          apt said: {{ preflight_prosody_plugins_download.stderr | default('') | trim }}
+      when: preflight_prosody_plugins_download.rc != 0
+
 # Off by default. When set, give testers on the standalone up to that many seconds
 # to finish their conferences, then upgrade anyway.
 - name: Preflight - wait for the standalone to have no conferences
@@ -194,5 +231,7 @@
     msg: |
       Preflight passed, staging the upgrade next with services still running.
       Packages: {{ preflight_packages | join(' ') }}
+      Prosody plugins: {{ 'from ' ~ jitsi_meet_prosody_deb_pkg_name if standalone_update_plugins_from_jitsi_meet_prosody
+         else 'from the branding package, ' ~ prosody_plugins_path }}
       {{ 'Branding: ' ~ jitsi_meet_branding_override ~ ' ' ~ (preflight_branding_matches | default([]) | first | default('?'))
          if jitsi_meet_branding_override != 'jitsi-meet' else 'Branding: none (stock jitsi-meet)' }}

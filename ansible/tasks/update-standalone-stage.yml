@@ -1,15 +1,24 @@
 ---
-# Puts every package, patch, key, certificate and config file the upgrade needs on
-# disk while nginx, prosody, jicofo and the bridge keep serving on the versions they
-# have in memory. Nothing here starts, stops or restarts a service: the package
-# maintainer scripts would (jvb and jicofo restart after upgrade, prosody restarts
-# from its postinst), so a policy-rc.d that refuses every action is in place for the
-# whole stage. update-standalone-restart.yml then bounces only what changed.
+# Puts every package, prosody plugin, patch, key, certificate and config file the
+# upgrade needs on disk while nginx, the prosody instances, jicofo and the bridge keep
+# serving on the versions they have in memory. update-standalone-restart.yml then
+# bounces only what changed. Three things would otherwise restart services mid-stage:
 #
-# If anything in here fails the services are still up, but on-disk files may be a
-# mix of old and new. Re-run the upgrade rather than restarting services by hand.
+# - the maintainer scripts: jvb and jicofo restart after upgrade and prosody restarts
+#   from its postinst. A policy-rc.d that refuses every action is in place throughout.
+# - needrestart's apt hook, which restarts any daemon whose files were replaced, with
+#   systemctl directly. NEEDRESTART_SUSPEND turns the hook off for every task here.
+# - the jitsi-videobridge2 postinst, which runs `systemctl stop` itself, so neither of
+#   the above can hold it. The bridge is therefore installed last, just before the
+#   restart tasks start it again.
+#
+# If anything in here fails, the services that were running still are, apart from the
+# bridge if its install had begun, but on-disk files may be a mix of old and new.
+# Re-run the upgrade rather than restarting services by hand.
 
 - name: Stage the upgrade with service restarts blocked
+  environment:
+    NEEDRESTART_SUSPEND: "1"
   block:
     - name: Stage - block service restarts from package maintainer scripts
       ansible.builtin.copy:
@@ -21,19 +30,6 @@
           # Exit 101 tells invoke-rc.d and deb-systemd-invoke the action is forbidden,
           # so package upgrades leave running services alone.
           exit 101
-
-    - name: Install ASAP key
-      ansible.builtin.copy:
-        dest: "{{ prosody_asap_key_path }}"
-        mode: "0644"
-        content: "{{ asap_key['key'] }}"
-
-    - name: Install ASAP shortlived key
-      ansible.builtin.copy:
-        dest: "{{ prosody_asap_shortlived_key_path }}"
-        mode: "0644"
-        content: "{{ prosody_asap_shortlived_key['key'] }}"
-      when: prosody_enable_shortlived_tokens
 
     - name: Install SSL certificate
       ansible.builtin.copy:
@@ -68,18 +64,6 @@
         standalone_update_nginx_certs_changed: "{{ [stage_ssl_certificate, stage_ssl_key,
           stage_signal_api_ssl_certificate, stage_signal_api_ssl_key] | selectattr('changed') | list | length > 0 }}"
 
-    # now install jitsi-videobridge
-    - name: Mark unhold on jitsi-videobridge package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark unhold jitsi-videobridge2
-
-    - name: Update jitsi-videobridge
-      ansible.builtin.apt:
-        name: "jitsi-videobridge2={{ jitsi_videobridge_deb_pkg_version }}"
-        state: present
-
-    - name: Mark hold on jitsi-videobridge package version # noqa no-changed-when
-      ansible.builtin.command: apt-mark hold jitsi-videobridge2
-
     # now install prosody, either from URL or via apt
     - name: Include apt install tasks
       ansible.builtin.include_tasks: roles/prosody/tasks/install-from-apt.yml
@@ -92,6 +76,72 @@
     # apply prosody patches
     - name: Include prosody patches tasks
       ansible.builtin.include_tasks: roles/prosody/tasks/patches.yml
+
+    # after the prosody install: its postinst resets /etc/prosody/certs to 0640, and
+    # flipping the keys back to 0644 on the next run would look like a reason to
+    # restart prosody
+    - name: Install ASAP key
+      ansible.builtin.copy:
+        dest: "{{ prosody_asap_key_path }}"
+        mode: "0644"
+        content: "{{ asap_key['key'] }}"
+
+    - name: Install ASAP shortlived key
+      ansible.builtin.copy:
+        dest: "{{ prosody_asap_shortlived_key_path }}"
+        mode: "0644"
+        content: "{{ prosody_asap_shortlived_key['key'] }}"
+      when: prosody_enable_shortlived_tokens
+
+    # now update the prosody plugins, when they come from jitsi-meet-prosody (see the
+    # preflight). rsync -r --checksum (no -a) rewrites only plugins whose contents
+    # changed, so an unchanged set is no reason to restart prosody. Like
+    # roles/jitsi-meet-prosody it copies over the top: a plugin dropped from the
+    # package stays on disk.
+    - name: Stage - update the prosody plugins from jitsi-meet-prosody
+      when: standalone_update_plugins_from_jitsi_meet_prosody
+      block:
+        - name: Stage - unpack the jitsi-meet-prosody package
+          ansible.builtin.shell: dpkg -x {{ jitsi_meet_prosody_deb_pkg_name }}_*.deb unpacked
+          args:
+            chdir: "{{ preflight_prosody_plugins_dir.path }}"
+          changed_when: false
+
+        - name: Stage - update the prosody plugins whose contents changed # noqa command-instead-of-module
+          ansible.builtin.command:
+            argv:
+              - rsync
+              - --recursive
+              - --checksum
+              - --itemize-changes
+              - "{{ preflight_prosody_plugins_dir.path }}/unpacked/usr/share/jitsi-meet/prosody-plugins/"
+              - "{{ prosody_plugins_path }}/"
+          register: stage_prosody_plugins_rsync
+          changed_when: stage_prosody_plugins_rsync.stdout | length > 0
+
+        - name: Stage - install the asap and external events libs
+          ansible.builtin.copy:
+            src: "roles/jitsi-meet-prosody/files/{{ item }}"
+            dest: "{{ prosody_plugins_path }}/"
+            mode: "0644"
+          loop:
+            - ext_events.lib.lua
+            - asap.lib.lua
+
+        - name: Stage - check whether the stanza_router patch shipped with the plugins
+          ansible.builtin.stat:
+            path: "{{ prosody_plugins_path }}/stanza_router_no-log.patch"
+          register: stage_stanza_router_patch
+
+        - name: Stage - apply the stanza_router_no-log patch on prosody 0.12
+          ansible.posix.patch:
+            basedir: "{{ '/usr/share/lua/5.1/prosody/' if ansible_distribution_major_version | int < 24 else '/usr/lib/prosody/' }}"
+            src: "{{ prosody_plugins_path }}/stanza_router_no-log.patch"
+            strip: 1
+            remote_src: true
+          when:
+            - (prosody_minor_version | int) == 12
+            - stage_stanza_router_patch.stat.exists
 
     # now install jicofo
     - name: Mark unhold on jicofo package version # noqa no-changed-when
@@ -154,6 +204,15 @@
         DEBIAN_FRONTEND: noninteractive
       when: jitsi_meet_branding_override != "jitsi-meet"
 
+    # after the branding install, which could bring them back
+    - name: Stage - remove the plugins prosody itself provides
+      ansible.builtin.file:
+        path: "{{ prosody_plugins_path }}/{{ item }}"
+        state: absent
+      loop:
+        - mod_smacks.lua
+        - mod_external_services.lua
+
     - name: Register installed branding version
       ansible.builtin.shell: |
         set -o pipefail
@@ -205,8 +264,27 @@
         owner: jicofo
         group: jitsi
 
+    # now install jitsi-videobridge, last: its postinst stops the bridge whatever
+    # policy-rc.d says, and the restart tasks that start it again come next
+    - name: Mark unhold on jitsi-videobridge package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark unhold jitsi-videobridge2
+
+    - name: Update jitsi-videobridge
+      ansible.builtin.apt:
+        name: "jitsi-videobridge2={{ jitsi_videobridge_deb_pkg_version }}"
+        state: present
+
+    - name: Mark hold on jitsi-videobridge package version # noqa no-changed-when
+      ansible.builtin.command: apt-mark hold jitsi-videobridge2
+
   always:
     - name: Stage - allow service restarts again
       ansible.builtin.file:
         path: /usr/sbin/policy-rc.d
         state: absent
+
+    - name: Stage - remove the jitsi-meet-prosody download
+      ansible.builtin.file:
+        path: "{{ preflight_prosody_plugins_dir.path }}"
+        state: absent
+      when: preflight_prosody_plugins_dir.path is defined
