@@ -100,29 +100,35 @@
 
 {# Per-playbook inputs land in this same file, so their field filters are
    translated to whichever spelling this host's telegraf knows - write either
-   one in a playbook and it comes out right. Anything else passes through
-   verbatim, so a version-specific option elsewhere in a telegraf_inputs entry
-   is still on you: procstat's cmdline_tag/pid_tag, for instance, are fatal
-   from 1.40 on (and were the default, so they are simply gone). #}
+   one in a playbook and it comes out right. procstat's cmdline_tag/pid_tag
+   get the same treatment: 1.29 replaced them with tag_with and 1.40 made them
+   fatal, so from 1.29 on a true one becomes a tag_with entry and a false one
+   (the default) is dropped. Anything else passes through verbatim, so any
+   other version-specific option in a telegraf_inputs entry is still on you. #}
 {% set field_filter_keys = {'fieldpass': fieldinclude, 'fieldinclude': fieldinclude,
                             'fielddrop': fieldexclude, 'fieldexclude': fieldexclude} %}
+{% set procstat_tag_keys = {'cmdline_tag': 'cmdline', 'pid_tag': 'pid'} %}
 {% if telegraf_inputs is defined %}
 {% for input_item in telegraf_inputs.keys() %}
-{% if telegraf_inputs[input_item] is mapping %}
-[[inputs.{{ input_item }}]]
-{% for key, value in telegraf_inputs[input_item].items() %}
-  {{ field_filter_keys.get(key, key) }} = {{ value | to_json }}
-{% endfor %}
-
-{% else %}
-{% for item in telegraf_inputs[input_item] %}
+{% set entries = [telegraf_inputs[input_item]] if telegraf_inputs[input_item] is mapping else telegraf_inputs[input_item] %}
+{% for item in entries %}
+{% set translate_tags = input_item == 'procstat' and telegraf_supports_fieldinclude | default(true) | bool %}
+{% set ns = namespace(tag_with=(item.get('tag_with', []) | list) if translate_tags else []) %}
 [[inputs.{{ input_item }}]]
 {% for key, value in item.items() %}
+{% if translate_tags and key in procstat_tag_keys %}
+{% if value | bool and procstat_tag_keys[key] not in ns.tag_with %}
+{% set ns.tag_with = ns.tag_with + [procstat_tag_keys[key]] %}
+{% endif %}
+{% elif not (translate_tags and key == 'tag_with') %}
   {{ field_filter_keys.get(key, key) }} = {{ value | to_json }}
+{% endif %}
 {% endfor %}
+{% if ns.tag_with %}
+  tag_with = {{ ns.tag_with | to_json }}
+{% endif %}
 
 {% endfor %}
-{% endif %}
 {% endfor %}
 {% endif %}
 
