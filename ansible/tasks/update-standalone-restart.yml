@@ -7,6 +7,10 @@
 # and rewritten config alike, and it still holds when an earlier run staged files but
 # failed before restarting anything. A core service that is not running is started.
 #
+# Only regular files outside hidden directories count. /usr/share/jicofo and
+# /usr/share/jitsi-videobridge are their services' home directories, and the bridge
+# writes a JNA cache under .cache there while it runs.
+#
 # Besides prosody itself a standalone can run more prosody instances from the same
 # code (prosody-jvb, the visitor prosodies prosody-v0, prosody-v1, ...). Each one
 # running is found from its ExecStart and watched with its own config directory.
@@ -68,7 +72,7 @@
     since="@$(date -d "$(systemctl show --property=ActiveEnterTimestamp --value {{ item.unit }})" +%s)"
     for path in {{ item.paths | map('quote') | join(' ') }}; do
       if [ -e "$path" ]; then
-        find "$path" -newerct "$since" -print -quit
+        find -H "$path" -path '*/.*' -prune -o -type f -newerct "$since" -print -quit
       fi
     done
   args:
