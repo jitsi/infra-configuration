@@ -1,0 +1,142 @@
+---
+# Restarts only what update-standalone-stage.yml changed, then checks the standalone
+# is healthy again.
+#
+# A service restarts when any file it runs from has a ctime newer than the moment
+# systemd last started it. That catches package upgrades, prosody patches and
+# rewritten config alike, and it still holds when an earlier run staged files but
+# failed before restarting anything. A service that is not running is started.
+#
+# Prosody going away ends every conference and drops jicofo and the bridge off
+# XMPP, so a prosody restart restarts those two as well. nginx only reloads, which
+# leaves open websockets on the old workers.
+
+- name: Restart - list files changed since each service last started
+  ansible.builtin.shell: |
+    set -o pipefail
+    if [ "$(systemctl is-active {{ item.unit }})" != "active" ]; then
+      echo "{{ item.unit }} is not running"
+      exit 0
+    fi
+    since="@$(date -d "$(systemctl show --property=ActiveEnterTimestamp --value {{ item.unit }})" +%s)"
+    for path in {{ item.paths | map('quote') | join(' ') }}; do
+      if [ -e "$path" ]; then
+        find "$path" -newerct "$since" -print -quit
+      fi
+    done
+  args:
+    executable: /bin/bash
+  loop:
+    - unit: prosody
+      paths:
+        - /usr/lib/prosody
+        - "{{ prosody_basepath | default('/usr/lib/prosody') }}"
+        - "{{ prosody_plugins_path }}"
+        - /etc/prosody
+    - unit: jicofo
+      paths:
+        - /usr/share/jicofo
+        - /etc/jitsi/jicofo
+    - unit: jitsi-videobridge2
+      paths:
+        - /usr/share/jitsi-videobridge
+        - /etc/jitsi/videobridge
+  loop_control:
+    label: "{{ item.unit }}"
+  register: restart_changed_files
+  changed_when: false
+
+- name: Restart - decide which services to restart
+  ansible.builtin.set_fact:
+    standalone_update_restart_prosody: "{{ restart_reasons['prosody'] | length > 0 }}"
+    standalone_update_restart_jicofo: "{{ restart_reasons['prosody'] | length > 0 or restart_reasons['jicofo'] | length > 0 }}"
+    standalone_update_restart_jvb: "{{ restart_reasons['prosody'] | length > 0 or restart_reasons['jitsi-videobridge2'] | length > 0 }}"
+  vars:
+    restart_reasons: "{{ dict(restart_changed_files.results | map(attribute='item.unit')
+      | zip(restart_changed_files.results | map(attribute='stdout_lines'))) }}"
+
+- name: Restart - report what will restart and why
+  ansible.builtin.debug:
+    msg: |
+      prosody: {{ 'restart' if standalone_update_restart_prosody else 'unchanged' }}
+      jicofo: {{ 'restart' if standalone_update_restart_jicofo else 'unchanged' }}
+      jitsi-videobridge2: {{ 'restart' if standalone_update_restart_jvb else 'unchanged' }}
+      nginx: {{ 'reload' if standalone_update_nginx_certs_changed | default(false) else 'unchanged' }}
+      Changed since start (first match per path):
+      {% for result in restart_changed_files.results %}
+        {{ result.item.unit }}: {{ result.stdout_lines | join(', ') if result.stdout_lines else 'nothing' }}
+      {% endfor %}
+
+- name: Restart - stop jicofo and the bridge while prosody restarts
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - jicofo
+    - jitsi-videobridge2
+  when: standalone_update_restart_prosody
+
+- name: Restart - restart prosody
+  ansible.builtin.systemd:
+    name: prosody
+    state: restarted
+  when: standalone_update_restart_prosody
+
+- name: Restart - wait for prosody to accept client connections
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 5222
+    timeout: 60
+  when: standalone_update_restart_prosody
+
+- name: Restart - restart jicofo
+  ansible.builtin.systemd:
+    name: jicofo
+    state: restarted
+  when: standalone_update_restart_jicofo
+
+- name: Restart - restart the bridge
+  ansible.builtin.systemd:
+    name: jitsi-videobridge2
+    state: restarted
+  when: standalone_update_restart_jvb
+
+- name: Restart - check the nginx config and certificates before reloading
+  ansible.builtin.command: nginx -t
+  changed_when: false
+  when: standalone_update_nginx_certs_changed | default(false)
+
+- name: Restart - reload nginx for the new certificates
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+  when: standalone_update_nginx_certs_changed | default(false)
+
+- name: Ensure all services are started
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  loop:
+    - prosody
+    - jicofo
+    - jitsi-videobridge2
+    - nginx
+
+# jicofo reports unhealthy until it has an operational bridge, so check the bridge first.
+- name: Restart - wait for the bridge to report healthy
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8080/about/health
+  register: restart_jvb_health
+  until: restart_jvb_health.status == 200
+  retries: 24
+  delay: 5
+
+- name: Restart - wait for jicofo to report healthy
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8888/about/health
+  register: restart_jicofo_health
+  until: restart_jicofo_health.status == 200
+  retries: 24
+  delay: 5
