@@ -1,6 +1,7 @@
 ---
 - name: Update jicofo user password
   ansible.builtin.command: prosodyctl --config /etc/prosody-v{{ item }}/prosody.cfg.lua passwd focus@auth.meet.jitsi
+  no_log: true
   args:
     stdin: "{{ prosody_focus_visitor_secret }}\n{{ prosody_focus_visitor_secret }}"
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
@@ -10,6 +11,7 @@
 
 - name: Update focus prosody user password
   ansible.builtin.command: prosodyctl passwd focus@auth.{{ environment_domain_name }}
+  no_log: true
   args:
     stdin: "{{ prosody_focus_secret }}\n{{ prosody_focus_secret }}"
   when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"
@@ -17,6 +19,7 @@
 - name: Update focus prosody-jvb user
   ansible.builtin.command: |
     prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua passwd "focus@{{ prosody_jvb_auth_domain_name }}"
+  no_log: true
   args:
     stdin: "{{ prosody_focus_jvb_secret }}\n{{ prosody_focus_jvb_secret }}"
   when: prosody_jvb_configure_flag and prosody_focus_jvb_secret is defined and prosody_focus_jvb_secret and prosody_focus_jvb_secret != "replaceme"
