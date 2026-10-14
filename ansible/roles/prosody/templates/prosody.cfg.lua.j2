@@ -579,7 +579,6 @@ VirtualHost "{{ prosody_auth_domain_name }}"
     {% if prosody_mod_limits_rate %}
         "limits_exception";
     {% endif %}
-        "jibri_session";
         "smacks";
     }
     authentication = "internal_hashed"
