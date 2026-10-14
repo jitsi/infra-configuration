@@ -4,6 +4,7 @@ cluster_name = "vault"
 default_lease_ttl = "5m"
 listener "tcp" {
   address       = "0.0.0.0:8200"
+  cluster_address = "0.0.0.0:8201"
   tls_disable = "false"
   tls_cert_file = "{{ vault_tls_cert_path }}"
   tls_key_file  = "{{ vault_tls_key_path }}"

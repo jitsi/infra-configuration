@@ -5,6 +5,7 @@ vault_server_api_url: "https://vault.{{ dns_zone_name }}"
 # unset, Vault derives it from api_addr with port+1 (e.g. the LB :444), which is
 # not a real cluster endpoint -> ha_connection_healthy=false / HTTP 474 on standbys.
 # Cluster traffic uses Vault's internal cluster TLS, so an IP here is fine.
+# The port must match the listener's cluster_address in server.hcl.j2.
 vault_server_cluster_addr: "https://{{ ansible_default_ipv4.address }}:8201"
 vault_apt_key: https://apt.releases.hashicorp.com/gpg
 vault_apt_repo: https://apt.releases.hashicorp.com
