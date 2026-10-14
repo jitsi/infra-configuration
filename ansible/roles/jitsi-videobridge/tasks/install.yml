@@ -1,4 +1,8 @@
 ---
+# ansible/tasks/update-standalone-stage.yml repeats the jitsi-videobridge2 package
+# install steps from this file for standalone updates; a change here needs the same
+# change there. See "Standalone updates duplicate role tasks" in CLAUDE.md.
+
 # install prerequisite packages
 - name: Install videobridge prereqs
   ansible.builtin.apt:

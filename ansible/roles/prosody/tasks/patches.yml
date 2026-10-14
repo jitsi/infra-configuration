@@ -1,4 +1,7 @@
 ---
+# ansible/tasks/update-standalone-stage.yml includes this file while the
+# standalone's services keep running. Do not restart services from here, and a
+# handler notified here must also exist in ansible/update-standalone.yml.
 - name: Register installed prosody version
   ansible.builtin.shell: |
     set -o pipefail

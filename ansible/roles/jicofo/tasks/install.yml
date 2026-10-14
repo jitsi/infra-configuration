@@ -1,4 +1,7 @@
 ---
+# ansible/tasks/update-standalone-stage.yml repeats the jicofo package install steps
+# from this file for standalone updates; a change here needs the same change there.
+# See "Standalone updates duplicate role tasks" in CLAUDE.md.
 - name: Install jicofo prereq list of packages
   ansible.builtin.apt:
     name: jq

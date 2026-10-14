@@ -1,4 +1,7 @@
 ---
+# ansible/tasks/update-standalone-stage.yml repeats the branding install steps from
+# this file for standalone updates; a change here needs the same change there. See
+# "Standalone updates duplicate role tasks" in CLAUDE.md.
 - name: Register installed Meet version
   ansible.builtin.shell: |
     set -o pipefail
