@@ -426,6 +426,12 @@ transforms:
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
+        # chromedriver's DevTools traffic for jibri's own executeScript polling; the INFO
+        # COMMAND/RESPONSE ExecuteScript lines already carry it. Events (console output) are kept.
+        if match(string(.message) ?? "", r'^\S+: \[[^\]]+\] \[\w+\] DevTools WebSocket (Command|Response): ') {
+            abort
+        }
+    drop_on_abort: true
   prosody_to_structure:
     type: "remap"
     inputs: ["prosody"]
