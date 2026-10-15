@@ -683,6 +683,9 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% if prosody_filter_messages_enabled %}
         "filter_messages";
 {% endif %}
+{% if prosody_message_moderation_enabled %}
+        "muc_message_moderation";
+{% endif %}
         "muc_displayname";
         "muc_cleanup_backend_services";
 {% if prosody_enable_muc_occupant_session %}
@@ -872,6 +875,9 @@ Component "breakout.{{ prosody_domain_name }}" "muc"
 {% endif %}
 {% if prosody_filter_messages_enabled %}
         "filter_messages";
+{% endif %}
+{% if prosody_message_moderation_enabled %}
+        "muc_message_moderation";
 {% endif %}
     }
 {% endif %}
