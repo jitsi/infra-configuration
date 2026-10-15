@@ -7,6 +7,16 @@ jigasi_brewery_path_A: "/var/lib/prosody/{{ jigasi_brewery_domain | regex_replac
   regex_replace('-', '%2d') }}/accounts/{{ jigasi_brewery_username_A }}.dat"
 jigasi_brewery_path_B: "/var/lib/prosody/{{ jigasi_brewery_domain | regex_replace('\\.', '%2e') |
   regex_replace('-', '%2d') }}/accounts/{{ jigasi_brewery_username_B }}.dat"
+# The same brewery accounts on the JVB brewery prosody (prosody-jvb), which jigasi's brewery connection is moving to.
+# The domain is spelled out rather than taken from prosody_jvb_auth_domain_name so that jigasi-auth.yml, which does
+# not load the prosody role defaults, still resolves it.
+jigasi_brewery_jvb_flag: "{{ prosody_jvb_configure_flag | default(false) }}"
+jigasi_brewery_jvb_config: "/etc/prosody-jvb/prosody.cfg.lua"
+jigasi_brewery_jvb_domain: "auth.jvb.{{ environment_domain_name }}"
+jigasi_brewery_jvb_path_A: "/var/lib/prosody-jvb/{{ jigasi_brewery_jvb_domain | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jigasi_brewery_username_A }}.dat"
+jigasi_brewery_jvb_path_B: "/var/lib/prosody-jvb/{{ jigasi_brewery_jvb_domain | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/{{ jigasi_brewery_username_B }}.dat"
 # Note: avoid capital letters and special chars because prosody lowers/encodes them in the filename.
 jigasi_transcriber_domain: "recorder.{{ environment_domain_name }}"
 jigasi_transcriber_username_A: "transcribera"
