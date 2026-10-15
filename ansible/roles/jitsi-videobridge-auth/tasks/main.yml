@@ -38,33 +38,47 @@
 # update all the passwords
 
 - name: Update jvb XMPP control authentication password
-  ansible.builtin.command: prosodyctl passwd "{{ jvb_auth_user }}@{{ jvb_auth_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password "{{ jvb_auth_domain_path }}"
+    "{{ jvb_auth_user }}@{{ jvb_auth_domain }}"
   no_log: true
   args:
-    stdin: "{{ jvb_auth_password }}\n{{ jvb_auth_password }}"
+    stdin: "{{ jvb_auth_password }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: jvb_auth_password is defined and jvb_auth_password and not prosody_jvb_configure_flag
 
 # prosody-jvb
 - name: Update jvb XMPP control authentication for prosody-jvb
-  ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua passwd "{{ jvb_auth_user }}@{{ prosody_jvb_auth_domain_name }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password --config /etc/prosody-jvb/prosody.cfg.lua "{{ jvb_auth_prosody_jvb_domain_path }}"
+    "{{ jvb_auth_user }}@{{ prosody_jvb_auth_domain_name }}"
   no_log: true
   args:
-    stdin: "{{ jvb_auth_password }}\n{{ jvb_auth_password }}"
+    stdin: "{{ jvb_auth_password }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: jvb_auth_password is defined and jvb_auth_password and prosody_jvb_configure_flag
 
 - name: Update jvb XMPP control authentication (B)
-  ansible.builtin.command: prosodyctl passwd "{{ jvb_auth_user_B }}@{{ jvb_auth_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password "{{ jvb_auth_domain_path_B }}"
+    "{{ jvb_auth_user_B }}@{{ jvb_auth_domain }}"
   no_log: true
   args:
-    stdin: "{{ jvb_auth_password_B }}\n{{ jvb_auth_password_B }}"
+    stdin: "{{ jvb_auth_password_B }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: jvb_auth_password_B is defined and jvb_auth_password_B and not prosody_jvb_configure_flag
 
 # prosody-jvb
 - name: Update jvb XMPP control authentication for prosody-jvb (B)
-  ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua passwd "{{ jvb_auth_user_B }}@{{ prosody_jvb_auth_domain_name }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password --config /etc/prosody-jvb/prosody.cfg.lua "{{ jvb_auth_prosody_jvb_domain_path_B }}"
+    "{{ jvb_auth_user_B }}@{{ prosody_jvb_auth_domain_name }}"
   no_log: true
   args:
-    stdin: "{{ jvb_auth_password_B }}\n{{ jvb_auth_password_B }}"
+    stdin: "{{ jvb_auth_password_B }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: jvb_auth_password_B is defined and jvb_auth_password_B and prosody_jvb_configure_flag

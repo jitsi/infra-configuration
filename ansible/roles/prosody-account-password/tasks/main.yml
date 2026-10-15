@@ -1,0 +1,6 @@
+---
+- name: Install prosody-set-password
+  ansible.builtin.copy:
+    src: prosody-set-password.py
+    dest: /usr/local/bin/prosody-set-password
+    mode: "0755"

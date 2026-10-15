@@ -114,6 +114,12 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
 - Nothing in the stage may restart a service: it runs with a `policy-rc.d` that exits 101 and `NEEDRESTART_SUSPEND=1`, and the jitsi-videobridge2 install stays last because its postinst stops the bridge anyway
 - Test changes against a stage-8x8 standalone with `scripts/update-standalone.sh`: run it once to upgrade and once more to confirm nothing restarts
 
+### Prosody account passwords
+- Never run `prosodyctl passwd` unconditionally. It rewrites the credentials even when the password is the same, and the running prosody then closes every session of that account with a `Password changed` stream error
+- On a live shard that drops every jibri, jigasi or jvb logged in with that account. Each busy jibri stops its recording, and jibris are single-use, so each one also retires
+- Set passwords with `/usr/local/bin/prosody-set-password` from the `prosody-account-password` role: it compares the password with the stored SCRAM keys and runs `prosodyctl passwd` only on a mismatch
+- `prosodyctl adduser` is safe behind `creates:` on the account's `.dat` file
+
 ### Secrets and Vault
 - All secrets in `ansible/secrets/*.yml` are encrypted with Ansible Vault
 - Vault password file: `.vault-password.txt` (not in git)

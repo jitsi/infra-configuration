@@ -1,2 +1,6 @@
 ---
 jicofo_auth_visitors_enabled: true
+jicofo_auth_focus_path: "/var/lib/prosody/{{ ('auth.' ~ environment_domain_name) | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/focus.dat"
+jicofo_auth_focus_jvb_path: "/var/lib/prosody-jvb/{{ prosody_jvb_auth_domain_name | regex_replace('\\.', '%2e') |
+  regex_replace('-', '%2d') }}/accounts/focus.dat"

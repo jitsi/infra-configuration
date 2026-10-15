@@ -55,47 +55,69 @@
 # now update passwords
 
 - name: Update jibri account A for XMPP brewery
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password "{{ jibri_brewery_path_A }}"
+    "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
   no_log: true
   args:
-    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+    stdin: "{{ secrets_jibri_brewery_A }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
 
 - name: Update jibri account B for XMPP brewery
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_brewery_username_B }}@{{ jibri_brewery_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password "{{ jibri_brewery_path_B }}"
+    "{{ jibri_brewery_username_B }}@{{ jibri_brewery_domain }}"
   no_log: true
   args:
-    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+    stdin: "{{ secrets_jibri_brewery_B }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
 
 # prosody-jvb
 - name: Update jibri account A for XMPP brewery on prosody-jvb
-  ansible.builtin.command: |
-    prosodyctl --config {{ jibri_brewery_jvb_config }} passwd "{{ jibri_brewery_username_A }}@{{ jibri_brewery_jvb_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password --config {{ jibri_brewery_jvb_config }} "{{ jibri_brewery_jvb_path_A }}"
+    "{{ jibri_brewery_username_A }}@{{ jibri_brewery_jvb_domain }}"
   no_log: true
   args:
-    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+    stdin: "{{ secrets_jibri_brewery_A }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
 
 # prosody-jvb
 - name: Update jibri account B for XMPP brewery on prosody-jvb
-  ansible.builtin.command: |
-    prosodyctl --config {{ jibri_brewery_jvb_config }} passwd "{{ jibri_brewery_username_B }}@{{ jibri_brewery_jvb_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password --config {{ jibri_brewery_jvb_config }} "{{ jibri_brewery_jvb_path_B }}"
+    "{{ jibri_brewery_username_B }}@{{ jibri_brewery_jvb_domain }}"
   no_log: true
   args:
-    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+    stdin: "{{ secrets_jibri_brewery_B }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
 
 - name: Update jibri account A for selenium
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password "{{ jibri_selenium_path_A }}"
+    "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
   no_log: true
   args:
-    stdin: "{{ secrets_jibri_selenium_A }}\n{{ secrets_jibri_selenium_A }}"
+    stdin: "{{ secrets_jibri_selenium_A }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: secrets_jibri_selenium_A is defined and secrets_jibri_selenium_A and secrets_jibri_selenium_A != ""
 
 - name: Update jibri account B for selenium
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_B }}@{{ jibri_selenium_domain }}"
+  ansible.builtin.command: >-
+    /usr/local/bin/prosody-set-password "{{ jibri_selenium_path_B }}"
+    "{{ jibri_selenium_user_B }}@{{ jibri_selenium_domain }}"
   no_log: true
   args:
-    stdin: "{{ secrets_jibri_selenium_B }}\n{{ secrets_jibri_selenium_B }}"
+    stdin: "{{ secrets_jibri_selenium_B }}"
+  register: prosody_set_password
+  changed_when: prosody_set_password.stdout == "changed"
   when: secrets_jibri_selenium_B is defined and secrets_jibri_selenium_B and secrets_jibri_selenium_B != ""
