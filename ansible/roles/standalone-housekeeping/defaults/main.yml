@@ -8,10 +8,9 @@ standalone_housekeeping_enabled: false
 # entirely on a standalone that isn't also a build agent.
 standalone_housekeeping_jenkins_home: /home/jenkins
 
-# npm's cacache is content-addressed and never pruned by npm itself. mtime is the
-# first-download time (a cache *hit* does not touch the file), so this evicts some
-# still-used packages; that costs a re-download, not a build failure, because npm
-# treats missing content as a cache miss.
+# npm's cacache is never pruned by npm itself. Index buckets older than this are
+# dropped, then `npm cache verify` removes the content they referenced. Buckets
+# are appended on revalidation, so their mtime is close to last use.
 standalone_housekeeping_npm_cache_days: 45
 
 # Builds select a node major line (.nvmrc / nvm alias default), never a pinned

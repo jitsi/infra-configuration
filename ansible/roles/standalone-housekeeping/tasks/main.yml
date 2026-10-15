@@ -16,4 +16,4 @@
     name: "Standalone disk housekeeping"
     minute: "{{ standalone_housekeeping_cron_minute }}"
     hour: "{{ standalone_housekeeping_cron_hour }}"
-    job: "/usr/local/bin/standalone-housekeeping.sh > /var/log/standalone-housekeeping.log 2>&1"
+    job: "flock -n /run/standalone-housekeeping.lock /usr/local/bin/standalone-housekeeping.sh 2>&1 | logger -t standalone-housekeeping"

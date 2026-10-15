@@ -9,7 +9,10 @@
 #
 set -uo pipefail
 
-JH={{ standalone_housekeeping_jenkins_home }}
+{% if standalone_housekeeping_jenkins_home %}
+JH="{{ standalone_housekeeping_jenkins_home }}"
+NVM_DIR="$JH/.nvm"
+{% endif %}
 NPM_CACHE_DAYS=${NPM_CACHE_DAYS:-{{ standalone_housekeeping_npm_cache_days }}}
 NVM_KEEP_PER_MAJOR=${NVM_KEEP_PER_MAJOR:-{{ standalone_housekeeping_nvm_keep_per_major }}}
 SMACKS_DAYS=${SMACKS_DAYS:-{{ standalone_housekeeping_smacks_days }}}
@@ -20,36 +23,51 @@ run()  { if [ "$DRY_RUN" = 1 ]; then echo "  would run: $*"; else "$@"; fi; }
 size() { du -sh "$@" 2>/dev/null | awk '{print $1}'; }
 
 # Builds here are triggered per-PR, not on a schedule, so there is no dependable
-# idle window -- check for one instead of assuming it. This matches the shell
-# build step wrapper, which lives for the whole build.
-if pgrep -u jenkins -f '/tmp/jenkins[0-9]+\.sh' >/dev/null 2>&1; then
+# idle window -- check for one instead of assuming it. This matches freestyle and
+# Pipeline shell steps only, so a build can still start mid-run; everything below
+# must stay safe for a build that starts while it runs.
+building() { pgrep -u jenkins -f '/tmp/jenkins[0-9]+\.sh|durable-[^/]*/script\.sh' >/dev/null 2>&1; }
+
+if building; then
   log "build in progress; skipping this run"
   exit 0
 fi
 
 log "before: $(df -h / | awk 'NR==2{print $3" used, "$4" free ("$5")"}')"
 
+{% if standalone_housekeeping_jenkins_home %}
 # --- npm cacache ------------------------------------------------------------
+# Prune index-v5 first and let `npm cache verify` garbage-collect the content
+# nothing references. Deleting content-v2 first leaves index entries that make
+# `npm install` fail instead of re-fetching.
 CC="$JH/.npm/_cacache"
-if [ -d "$CC/content-v2" ]; then
-  n=$(find "$CC/content-v2" -type f -mtime +"$NPM_CACHE_DAYS" 2>/dev/null | wc -l)
-  log "npm cache: $(size "$CC") total, pruning $n objects older than ${NPM_CACHE_DAYS}d"
-  if [ "$DRY_RUN" = 1 ]; then
-    find "$CC/content-v2" -type f -mtime +"$NPM_CACHE_DAYS" -printf '%s\n' 2>/dev/null \
-      | awk '{s+=$1} END {printf "  would reclaim: %.1f GB\n", s/1024/1024/1024}'
-  else
-    find "$CC/content-v2" -type f -mtime +"$NPM_CACHE_DAYS" -delete
-    find "$CC/content-v2" -type d -empty -delete
+VERIFY_PENDING=/var/tmp/standalone-housekeeping.npm-verify-pending
+if [ -d "$CC/index-v5" ]; then
+  n=$(find "$CC/index-v5" -type f -mtime +"$NPM_CACHE_DAYS" 2>/dev/null | wc -l)
+  if [ "$n" -gt 0 ]; then
+    log "npm cache: $(size "$CC") total, dropping $n index buckets older than ${NPM_CACHE_DAYS}d"
+    run find "$CC/index-v5" -type f -mtime +"$NPM_CACHE_DAYS" -delete
+    run find "$CC/index-v5" -mindepth 1 -type d -empty -delete
     # leftovers from interrupted downloads; nothing reads these between runs
-    find "$CC/tmp" -mindepth 1 -mtime +1 -exec rm -rf {} + 2>/dev/null
-    # reconcile index-v5 with what is actually left on disk
-    sudo -u jenkins -H bash -lc 'npm cache verify' >/dev/null 2>&1
+    run find "$CC/tmp" -mindepth 1 -mtime +1 -exec rm -rf {} + 2>/dev/null
+    run touch "$VERIFY_PENDING"
+  fi
+  # verify reads every content file, so run it only after a prune. A build that
+  # started meanwhile defers it to the next run.
+  if [ -f "$VERIFY_PENDING" ] && [ "$DRY_RUN" != 1 ]; then
+    if building; then
+      log "npm cache verify: build started; deferring to next run"
+    elif ! out=$(sudo -u jenkins -H bash -c ". $NVM_DIR/nvm.sh && npm cache verify" 2>&1); then
+      log "npm cache verify FAILED: $out"
+    else
+      rm -f "$VERIFY_PENDING"
+      log "npm cache verify: $(tail -n 3 <<<"$out" | tr '\n' ' ')"
+    fi
   fi
   run find "$JH/.npm/_logs" -type f -mtime +7 -delete
 fi
 
 # --- nvm toolchains ---------------------------------------------------------
-NVM_DIR="$JH/.nvm"
 if [ -d "$NVM_DIR/versions/node" ]; then
   keep=$(ls -1 "$NVM_DIR/versions/node" | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n \
          | awk -F. '{v[$1]=v[$1]" "$0}
@@ -67,6 +85,7 @@ if [ -d "$NVM_DIR/versions/node" ]; then
     run find "$NVM_DIR/.cache/bin" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
   fi
 fi
+{% endif %}
 
 # --- prosody smacks hibernation store ---------------------------------------
 for d in /var/lib/prosody/*/smacks_h; do
@@ -77,10 +96,12 @@ for d in /var/lib/prosody/*/smacks_h; do
   run find "$d" -name '*.dat' -mtime +"$SMACKS_DAYS" -delete
 done
 
+{% if standalone_housekeeping_jenkins_home %}
 # --- report only: real data, not cache --------------------------------------
 for f in "$JH"/tmp/jacoco-*.exec; do
   [ -f "$f" ] || continue
   log "NOTE: $f is $(size "$f") and grows every run - reset or archive it in the pr-test job"
 done
+{% endif %}
 
 log "after:  $(df -h / | awk 'NR==2{print $3" used, "$4" free ("$5")"}')"
