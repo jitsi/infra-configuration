@@ -38,33 +38,33 @@
 # update all the passwords
 
 - name: Update jvb XMPP control authentication password
-  ansible.builtin.command: prosodyctl passwd "{{ jvb_auth_user }}@{{ jvb_auth_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ jvb_auth_password }}\n{{ jvb_auth_password }}"
+  prosody_account_password:
+    jid: "{{ jvb_auth_user }}@{{ jvb_auth_domain }}"
+    account_file: "{{ jvb_auth_domain_path }}"
+    password: "{{ jvb_auth_password }}"
   when: jvb_auth_password is defined and jvb_auth_password and not prosody_jvb_configure_flag
 
 # prosody-jvb
 - name: Update jvb XMPP control authentication for prosody-jvb
-  ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua passwd "{{ jvb_auth_user }}@{{ prosody_jvb_auth_domain_name }}"
-  no_log: true
-  args:
-    stdin: "{{ jvb_auth_password }}\n{{ jvb_auth_password }}"
+  prosody_account_password:
+    jid: "{{ jvb_auth_user }}@{{ prosody_jvb_auth_domain_name }}"
+    account_file: "{{ jvb_auth_prosody_jvb_domain_path }}"
+    password: "{{ jvb_auth_password }}"
+    config: "/etc/prosody-jvb/prosody.cfg.lua"
   when: jvb_auth_password is defined and jvb_auth_password and prosody_jvb_configure_flag
 
 - name: Update jvb XMPP control authentication (B)
-  ansible.builtin.command: prosodyctl passwd "{{ jvb_auth_user_B }}@{{ jvb_auth_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ jvb_auth_password_B }}\n{{ jvb_auth_password_B }}"
+  prosody_account_password:
+    jid: "{{ jvb_auth_user_B }}@{{ jvb_auth_domain }}"
+    account_file: "{{ jvb_auth_domain_path_B }}"
+    password: "{{ jvb_auth_password_B }}"
   when: jvb_auth_password_B is defined and jvb_auth_password_B and not prosody_jvb_configure_flag
 
 # prosody-jvb
 - name: Update jvb XMPP control authentication for prosody-jvb (B)
-  ansible.builtin.command: |
-    prosodyctl --config /etc/prosody-jvb/prosody.cfg.lua passwd "{{ jvb_auth_user_B }}@{{ prosody_jvb_auth_domain_name }}"
-  no_log: true
-  args:
-    stdin: "{{ jvb_auth_password_B }}\n{{ jvb_auth_password_B }}"
+  prosody_account_password:
+    jid: "{{ jvb_auth_user_B }}@{{ prosody_jvb_auth_domain_name }}"
+    account_file: "{{ jvb_auth_prosody_jvb_domain_path_B }}"
+    password: "{{ jvb_auth_password_B }}"
+    config: "/etc/prosody-jvb/prosody.cfg.lua"
   when: jvb_auth_password_B is defined and jvb_auth_password_B and prosody_jvb_configure_flag

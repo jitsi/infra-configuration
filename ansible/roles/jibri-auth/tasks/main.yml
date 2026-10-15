@@ -55,47 +55,47 @@
 # now update passwords
 
 - name: Update jibri account A for XMPP brewery
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+  prosody_account_password:
+    jid: "{{ jibri_brewery_username_A }}@{{ jibri_brewery_domain }}"
+    account_file: "{{ jibri_brewery_path_A }}"
+    password: "{{ secrets_jibri_brewery_A }}"
   when: secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
 
 - name: Update jibri account B for XMPP brewery
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_brewery_username_B }}@{{ jibri_brewery_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+  prosody_account_password:
+    jid: "{{ jibri_brewery_username_B }}@{{ jibri_brewery_domain }}"
+    account_file: "{{ jibri_brewery_path_B }}"
+    password: "{{ secrets_jibri_brewery_B }}"
   when: secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
 
 # prosody-jvb
 - name: Update jibri account A for XMPP brewery on prosody-jvb
-  ansible.builtin.command: |
-    prosodyctl --config {{ jibri_brewery_jvb_config }} passwd "{{ jibri_brewery_username_A }}@{{ jibri_brewery_jvb_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ secrets_jibri_brewery_A }}\n{{ secrets_jibri_brewery_A }}"
+  prosody_account_password:
+    jid: "{{ jibri_brewery_username_A }}@{{ jibri_brewery_jvb_domain }}"
+    account_file: "{{ jibri_brewery_jvb_path_A }}"
+    password: "{{ secrets_jibri_brewery_A }}"
+    config: "{{ jibri_brewery_jvb_config }}"
   when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_A is defined and secrets_jibri_brewery_A and secrets_jibri_brewery_A != ""
 
 # prosody-jvb
 - name: Update jibri account B for XMPP brewery on prosody-jvb
-  ansible.builtin.command: |
-    prosodyctl --config {{ jibri_brewery_jvb_config }} passwd "{{ jibri_brewery_username_B }}@{{ jibri_brewery_jvb_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ secrets_jibri_brewery_B }}\n{{ secrets_jibri_brewery_B }}"
+  prosody_account_password:
+    jid: "{{ jibri_brewery_username_B }}@{{ jibri_brewery_jvb_domain }}"
+    account_file: "{{ jibri_brewery_jvb_path_B }}"
+    password: "{{ secrets_jibri_brewery_B }}"
+    config: "{{ jibri_brewery_jvb_config }}"
   when: jibri_brewery_jvb_flag | bool and secrets_jibri_brewery_B is defined and secrets_jibri_brewery_B and secrets_jibri_brewery_B != ""
 
 - name: Update jibri account A for selenium
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ secrets_jibri_selenium_A }}\n{{ secrets_jibri_selenium_A }}"
+  prosody_account_password:
+    jid: "{{ jibri_selenium_user_A }}@{{ jibri_selenium_domain }}"
+    account_file: "{{ jibri_selenium_path_A }}"
+    password: "{{ secrets_jibri_selenium_A }}"
   when: secrets_jibri_selenium_A is defined and secrets_jibri_selenium_A and secrets_jibri_selenium_A != ""
 
 - name: Update jibri account B for selenium
-  ansible.builtin.command: prosodyctl passwd "{{ jibri_selenium_user_B }}@{{ jibri_selenium_domain }}"
-  no_log: true
-  args:
-    stdin: "{{ secrets_jibri_selenium_B }}\n{{ secrets_jibri_selenium_B }}"
+  prosody_account_password:
+    jid: "{{ jibri_selenium_user_B }}@{{ jibri_selenium_domain }}"
+    account_file: "{{ jibri_selenium_path_B }}"
+    password: "{{ secrets_jibri_selenium_B }}"
   when: secrets_jibri_selenium_B is defined and secrets_jibri_selenium_B and secrets_jibri_selenium_B != ""

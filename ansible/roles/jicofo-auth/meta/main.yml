@@ -1,0 +1,3 @@
+---
+dependencies:
+  - role: prosody-account-password
