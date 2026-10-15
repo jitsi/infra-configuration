@@ -5,6 +5,8 @@
   become: true
   become_user: root
   strategy: free
+  vars:
+    prosody_domain_name: "{{ environment_domain_name }}"
   vars_files:
     - secrets/jigasi.yml
     - config/vars.yml
