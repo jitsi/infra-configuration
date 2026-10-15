@@ -347,6 +347,9 @@ Component 'conference.v{{ item }}.meet.jitsi' 'muc'
 {% if prosody_meet_webhooks_enabled %}
         "muc_visitors_webhooks";
 {% endif %}
+{% if prosody_message_moderation_enabled %}
+        "muc_message_moderation";
+{% endif %}
 {% if prosody_enable_muc_occupant_session %}
         "muc_occupant_session";
 {% endif %}
