@@ -15,6 +15,26 @@
     creates: "{{ jigasi_brewery_path_B }}"
   when: secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
 
+# prosody-jvb
+- name: Add jigasi account A for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jigasi_brewery_jvb_config }} adduser "{{ jigasi_brewery_username_A }}@{{ jigasi_brewery_jvb_domain }}"
+  no_log: true
+  args:
+    stdin: "{{ secrets_jigasi_brewery_A }}\n{{ secrets_jigasi_brewery_A }}"
+    creates: "{{ jigasi_brewery_jvb_path_A }}"
+  when: jigasi_brewery_jvb_flag | bool and secrets_jigasi_brewery_A is defined and secrets_jigasi_brewery_A and secrets_jigasi_brewery_A != ""
+
+# prosody-jvb
+- name: Add jigasi account B for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jigasi_brewery_jvb_config }} adduser "{{ jigasi_brewery_username_B }}@{{ jigasi_brewery_jvb_domain }}"
+  no_log: true
+  args:
+    stdin: "{{ secrets_jigasi_brewery_B }}\n{{ secrets_jigasi_brewery_B }}"
+    creates: "{{ jigasi_brewery_jvb_path_B }}"
+  when: jigasi_brewery_jvb_flag | bool and secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
+
 - name: Add jigasi account A for transcriber
   ansible.builtin.command: prosodyctl adduser "{{ jigasi_transcriber_username_A }}@{{ jigasi_transcriber_domain }}"
   no_log: true
@@ -74,6 +94,24 @@
   args:
     stdin: "{{ secrets_jigasi_brewery_B }}\n{{ secrets_jigasi_brewery_B }}"
   when: secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
+
+# prosody-jvb
+- name: Update jigasi account A for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jigasi_brewery_jvb_config }} passwd "{{ jigasi_brewery_username_A }}@{{ jigasi_brewery_jvb_domain }}"
+  no_log: true
+  args:
+    stdin: "{{ secrets_jigasi_brewery_A }}\n{{ secrets_jigasi_brewery_A }}"
+  when: jigasi_brewery_jvb_flag | bool and secrets_jigasi_brewery_A is defined and secrets_jigasi_brewery_A and secrets_jigasi_brewery_A != ""
+
+# prosody-jvb
+- name: Update jigasi account B for XMPP brewery on prosody-jvb
+  ansible.builtin.command: |
+    prosodyctl --config {{ jigasi_brewery_jvb_config }} passwd "{{ jigasi_brewery_username_B }}@{{ jigasi_brewery_jvb_domain }}"
+  no_log: true
+  args:
+    stdin: "{{ secrets_jigasi_brewery_B }}\n{{ secrets_jigasi_brewery_B }}"
+  when: jigasi_brewery_jvb_flag | bool and secrets_jigasi_brewery_B is defined and secrets_jigasi_brewery_B and secrets_jigasi_brewery_B != ""
 
 - name: Update jigasi account A for transcriber
   ansible.builtin.command: prosodyctl passwd "{{ jigasi_transcriber_username_A }}@{{ jigasi_transcriber_domain }}"
