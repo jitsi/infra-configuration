@@ -117,7 +117,8 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
 ### Prosody account passwords
 - Never run `prosodyctl passwd` unconditionally. It rewrites the credentials even when the password is the same, and the running prosody then closes every session of that account with a `Password changed` stream error
 - On a live shard that drops every jibri, jigasi or jvb logged in with that account. Each busy jibri stops its recording, and jibris are single-use, so each one also retires
-- Set passwords with `/usr/local/bin/prosody-set-password` from the `prosody-account-password` role: it compares the password with the stored SCRAM keys and runs `prosodyctl passwd` only on a mismatch
+- Set passwords with the `prosody_account_password` module from the `prosody-account-password` role (add the role to `meta/main.yml`): it compares the password with the stored SCRAM keys and runs `prosodyctl passwd` only when they do not match or cannot be checked, for example for a non-ASCII password
+- The module marks `password` as `no_log`, so the task needs no `no_log: true`: only the password is hidden from the output and the target's syslog
 - `prosodyctl adduser` is safe behind `creates:` on the account's `.dat` file
 
 ### Secrets and Vault

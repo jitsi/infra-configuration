@@ -1,35 +1,26 @@
 ---
 - name: Update jicofo user password
-  ansible.builtin.command: >-
-    /usr/local/bin/prosody-set-password --config /etc/prosody-v{{ item }}/prosody.cfg.lua
-    /var/lib/prosody-v{{ item }}/auth%2emeet%2ejitsi/accounts/focus.dat focus@auth.meet.jitsi
-  no_log: true
-  args:
-    stdin: "{{ prosody_focus_visitor_secret }}"
-  register: prosody_set_password
-  changed_when: prosody_set_password.stdout == "changed"
+  prosody_account_password:
+    jid: "focus@auth.meet.jitsi"
+    account_file: "/var/lib/prosody-v{{ item }}/auth%2emeet%2ejitsi/accounts/focus.dat"
+    password: "{{ prosody_focus_visitor_secret }}"
+    config: "/etc/prosody-v{{ item }}/prosody.cfg.lua"
   loop: "{{ range(0, prosody_visitors_count | int, 1) | list }}"
   when:
     - jicofo_auth_visitors_enabled
     - prosody_focus_visitor_secret is defined and prosody_focus_visitor_secret and prosody_focus_visitor_secret != "replaceme"
 
 - name: Update focus prosody user password
-  ansible.builtin.command: >-
-    /usr/local/bin/prosody-set-password "{{ jicofo_auth_focus_path }}" focus@auth.{{ environment_domain_name }}
-  no_log: true
-  args:
-    stdin: "{{ prosody_focus_secret }}"
-  register: prosody_set_password
-  changed_when: prosody_set_password.stdout == "changed"
+  prosody_account_password:
+    jid: "focus@auth.{{ environment_domain_name }}"
+    account_file: "{{ jicofo_auth_focus_path }}"
+    password: "{{ prosody_focus_secret }}"
   when: prosody_focus_secret is defined and prosody_focus_secret and prosody_focus_secret != "replaceme"
 
 - name: Update focus prosody-jvb user
-  ansible.builtin.command: >-
-    /usr/local/bin/prosody-set-password --config /etc/prosody-jvb/prosody.cfg.lua
-    "{{ jicofo_auth_focus_jvb_path }}" "focus@{{ prosody_jvb_auth_domain_name }}"
-  no_log: true
-  args:
-    stdin: "{{ prosody_focus_jvb_secret }}"
-  register: prosody_set_password
-  changed_when: prosody_set_password.stdout == "changed"
+  prosody_account_password:
+    jid: "focus@{{ prosody_jvb_auth_domain_name }}"
+    account_file: "{{ jicofo_auth_focus_jvb_path }}"
+    password: "{{ prosody_focus_jvb_secret }}"
+    config: "/etc/prosody-jvb/prosody.cfg.lua"
   when: prosody_jvb_configure_flag and prosody_focus_jvb_secret is defined and prosody_focus_jvb_secret and prosody_focus_jvb_secret != "replaceme"
