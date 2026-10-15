@@ -72,9 +72,9 @@ sources:
         multiline:
             timeout_ms: 300
             mode: halt_before
-            # regexp to match pattern eg: 2024-02-12 21:23:53.552 INFO: [99386] net.java.sip.communicator.plugin.reconnectplugin.PPReconnectWrapper.cancelReconnect: Cancel reconnect ReconnectTask [delay=300000, provider=ProtocolProviderServiceJabberImpl(Jabber:jigasi@auth.beta.meet.jit.si@10.82.184.35)]
-            condition_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
-            start_pattern: "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+            # regexp to match pattern eg: Jibri 2026-10-15 12:59:59.026 INFO: [1018] LoggingUtils$Companion$OutputLogger$1.invoke$lambda$0#42: frame= 1289 fps= 30
+            condition_pattern: "^(Jibri )?(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
+            start_pattern: "^(Jibri )?(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
         include:
             - "/var/log/jitsi/jibri/browser.0.txt"
             - "/var/log/jitsi/jibri/ffmpeg.0.txt"
@@ -420,10 +420,18 @@ transforms:
     # then fall back to this: 2024-02-23 12:10:38.879 blah blah blah
     source: |
         structured =
+            parse_regex(.message, r'^(?P<app>Jibri) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
+            parse_regex(.message, r'^(?P<app>Jibri) (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>\w+): \[(?P<pid>\d+)\] (?P<message>[\S\s]*)$') ??
             parse_regex(.message, r'^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
+        # chromedriver's DevTools traffic for jibri's own executeScript polling; the INFO
+        # COMMAND/RESPONSE ExecuteScript lines already carry it. Events (console output) are kept.
+        if match(string(.message) ?? "", r'^\S+: \[[^\]]+\] \[\w+\] DevTools WebSocket (Command|Response): ') {
+            abort
+        }
+    drop_on_abort: true
   prosody_to_structure:
     type: "remap"
     inputs: ["prosody"]
