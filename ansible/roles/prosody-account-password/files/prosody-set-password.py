@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# Set a prosody account password only when it differs from the stored one.
+# Set a prosody account password unless it provably matches the stored one.
 #
 # prosodyctl passwd always rewrites the credentials, even with the same password, and prosody
 # then closes every session of that account with a "Password changed" stream error. On a live
-# shard that kicks every jibri, jigasi or jvb off its brewery and stops in-progress recordings.
+# shard that kicks every jicofo, jibri, jigasi or jvb off and stops in-progress recordings.
 #
 # Usage: prosody-set-password [--config CFG] ACCOUNT_DAT_FILE USER@DOMAIN
-# The password is read from the first line of stdin. Prints "changed" or "unchanged".
+# The password is read from stdin, one line only. Prints "changed" or "unchanged".
 import argparse
 import hashlib
 import hmac
@@ -22,7 +22,7 @@ def stored_credentials(path):
     try:
         with open(path, encoding="utf-8") as f:
             text = f.read()
-    except FileNotFoundError:
+    except (OSError, UnicodeDecodeError):
         return None
     return dict(re.findall(r'\["(\w+)"\]\s*=\s*"?([^";]*)"?;', text))
 
@@ -30,11 +30,12 @@ def stored_credentials(path):
 def password_matches(password, creds):
     if not creds or not all(k in creds for k in ("salt", "iteration_count", "stored_key", "server_key")):
         return False
-    # prosody SASLprep-normalizes the password first; that is the identity only for printable ASCII.
+    # prosody SASLprep-normalizes the password first. That leaves printable ASCII as is, so any
+    # other password skips the check and is rewritten.
     if not (password.isascii() and password.isprintable()):
         return False
     hasher = HASHES_BY_HEX_LENGTH.get(len(creds["stored_key"]))
-    if hasher is None:
+    if hasher is None or not creds["iteration_count"].isdigit():
         return False
     salted = hashlib.pbkdf2_hmac(
         hasher().name, password.encode(), creds["salt"].encode(), int(creds["iteration_count"])
@@ -53,9 +54,14 @@ def main():
     parser.add_argument("jid")
     args = parser.parse_args()
 
-    password = sys.stdin.readline().rstrip("\n")
+    password = sys.stdin.read()
+    if password.endswith("\n"):
+        password = password[:-1]
     if not password:
         sys.exit("no password on stdin")
+    # prosodyctl reads one line per prompt, so it would silently set only the first line.
+    if "\n" in password:
+        sys.exit("password on stdin has more than one line")
 
     if password_matches(password, stored_credentials(args.account_file)):
         print("unchanged")
