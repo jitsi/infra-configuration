@@ -13,12 +13,31 @@
     - debian
     - collector
 
+# The pinned deb is only for a host that has no telegraf at all. A base image
+# built from a newer branch already carries a newer telegraf, and forcing the old
+# deb over it is a downgrade whose postinst restarts telegraf against the base
+# image's config, which the old version cannot parse. Whatever is installed is
+# kept, and detect_version.yml renders the config dialect that version accepts.
+- name: Check whether telegraf is already installed
+  ansible.builtin.command: telegraf --version
+  register: wavefront_telegraf_preinstalled
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: not wavefront_telegraf_from_apt
+  tags:
+    - install
+    - debian
+    - collector
+
 - name: Download telegraf agent/collector (Ubuntu) from url
   ansible.builtin.get_url:
     mode: 0640
     url: "{{ wavefront_telegraf_deb_url }}"
     dest: "{{ wavefront_telegraf_deb_path }}"
-  when: not wavefront_telegraf_from_apt
+  when:
+    - not wavefront_telegraf_from_apt
+    - (wavefront_telegraf_preinstalled.rc | default(1)) != 0
   tags:
     - install
     - debian
@@ -29,7 +48,9 @@
     deb: "{{ wavefront_telegraf_deb_path }}"
     force: true
   register: result
-  when: not wavefront_telegraf_from_apt
+  when:
+    - not wavefront_telegraf_from_apt
+    - (wavefront_telegraf_preinstalled.rc | default(1)) != 0
   tags:
     - install
     - debian

@@ -1,0 +1,72 @@
+---
+# The config dialect telegraf.conf.wfcopy.j2 renders has to follow the telegraf
+# binary on the host. 1.29 renamed fieldpass/fielddrop to fieldinclude/fieldexclude
+# and procstat's cmdline_tag/pid_tag to tag_with, 1.40 removed the old spellings,
+# and both ends treat a key they do not know as a startup failure. Base images are
+# built from a newer branch than the release that configures them, so the
+# installed telegraf is whatever the base image or this role's install step left
+# behind, and the template is rendered for that.
+
+- name: Read the telegraf version installed on the host
+  ansible.builtin.command: telegraf --version
+  register: wavefront_telegraf_version_cmd
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Fail if telegraf is not installed
+  ansible.builtin.fail:
+    msg: >-
+      telegraf is not installed on this host, so the wavefront role cannot render a
+      config for it. Install it first or run the role with wavefront_install_collector.
+      telegraf --version returned rc={{ wavefront_telegraf_version_cmd.rc | default('n/a') }},
+      stdout "{{ wavefront_telegraf_version_cmd.stdout | default('') }}",
+      error "{{ wavefront_telegraf_version_cmd.msg | default(wavefront_telegraf_version_cmd.stderr | default('')) }}".
+  when: >-
+    (wavefront_telegraf_version_cmd.rc | default(1)) != 0 or
+    (wavefront_telegraf_version_cmd.stdout | default('')) is not search('Telegraf v?[0-9]+\.[0-9]+\.[0-9]+')
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Record the telegraf version this config has to parse under
+  ansible.builtin.set_fact:
+    # "Telegraf 1.22.4 (git: HEAD acf67065)" and "Telegraf 1.40.1 (git: HEAD@26b8f447)"
+    # are the two formats in use.
+    telegraf_installed_version: "{{ wavefront_telegraf_version_cmd.stdout | regex_search('Telegraf v?([0-9]+\\.[0-9]+\\.[0-9]+)', '\\1') | first }}"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Pick the config dialect for that version
+  ansible.builtin.set_fact:
+    telegraf_supports_fieldinclude: "{{ telegraf_installed_version is version('1.29.0', '>=') }}"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Report which telegraf the config is being rendered for
+  ansible.builtin.debug:
+    msg: "telegraf {{ telegraf_installed_version }} on this host: rendering the
+      {{ 'fieldinclude' if telegraf_supports_fieldinclude | bool else 'fieldpass (pre-1.29)' }} dialect"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
