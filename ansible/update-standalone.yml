@@ -11,6 +11,8 @@
     # false stages everything on disk and leaves the running services alone.
     standalone_update_restart: true
     standalone_update_policy_rc_marker: written by update-standalone.yml, safe to delete
+    # Outside every directory a service watches, so writing it restarts nothing.
+    standalone_update_plugins_manifest: /var/lib/update-standalone/prosody-plugins.sha256
   vars_files:
     - config/vars.yml
     - roles/prosody/defaults/main.yml
