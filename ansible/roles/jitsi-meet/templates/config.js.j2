@@ -118,9 +118,9 @@ var config = {
     conferenceRequestUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_conference_request_host }}" -->/<!--# echo var="subdir" default="" -->{{ jitsi_meet_conference_request_path }}',
 {% endif %}
 {% else %}
-    bosh: '{{ jitsi_meet_bosh_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->{{ jitsi_meet_bosh_path }}',
+    bosh: '{{ jitsi_meet_bosh_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_bosh_host }}" -->/{{ jitsi_meet_bosh_path }}',
 {% if jitsi_meet_enable_xmpp_websockets %}
-    websocket: '{{ jitsi_meet_ws_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->{{ jitsi_meet_ws_path }}',
+    websocket: '{{ jitsi_meet_ws_protocol }}<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/{{ jitsi_meet_ws_path }}',
     websocketKeepAliveUrl: 'https://<!--# echo var="http_host" default="{{ jitsi_meet_ws_host }}" -->/_unlock',
 {% endif %}
 {% if jitsi_meet_enable_conference_request_http %}
