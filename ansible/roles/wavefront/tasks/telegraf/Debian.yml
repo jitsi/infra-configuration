@@ -24,6 +24,30 @@
     - debian
     - collector
 
+# The base image may already carry a newer telegraf, installed from apt, whose config
+# dialect this pinned version cannot parse. The pinned package restarts telegraf from its
+# postinst, before this role has written its own config, so clear the inherited config
+# first: the package then restarts on its sample config instead of crash-looping into
+# systemd's start limit, which made the later "Ensure telegraf is running" fail.
+- name: Stop telegraf before replacing it with the pinned version
+  ansible.builtin.service:
+    name: telegraf
+    state: stopped
+  failed_when: false
+  when: not wavefront_telegraf_from_apt
+  tags:
+    - install
+    - debian
+    - collector
+- name: Remove the telegraf config inherited from the base image
+  ansible.builtin.file:
+    path: "{{ telegraf_main_config }}"
+    state: absent
+  when: not wavefront_telegraf_from_apt
+  tags:
+    - install
+    - debian
+    - collector
 - name: Install telegraf agent/collector (Ubuntu) from file
   ansible.builtin.apt:
     deb: "{{ wavefront_telegraf_deb_path }}"
