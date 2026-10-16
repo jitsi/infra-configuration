@@ -30,10 +30,15 @@
   check-jibri-xmpp-conf.py sees the muc.jvb control-muc and then requires every
   passing host's JVB brewery entry too.
 
+  With JIBRI_MAIN_BREWERY_ENABLED=false as well, the main prosody block is left
+  out and jibri joins only the JVB brewery. Without the JVB brewery block the main
+  block is always rendered, so jibri never ends up with no brewery at all.
+
   Trailing commas in both arrays are deliberate; HOCON permits them and the
   alternative is unreadable in this template language.
 */ -}}
 {{ $jvb_brewery := eq (envOrDefault "JIBRI_JVB_BREWERY_ENABLED" "false") "true" -}}
+{{ $main_brewery := or (ne (envOrDefault "JIBRI_MAIN_BREWERY_ENABLED" "true") "false") (not $jvb_brewery) -}}
 {{ range $index, $item := service "signal" -}}
     {{ scratch.MapSetX "domains" $item.ServiceMeta.domain $item -}}
     {{ scratch.MapSet "hosts" (printf "%s|%s:%s" $item.ServiceMeta.domain $item.Address (or $item.ServiceMeta.prosody_client_port "5222")) $item -}}
@@ -46,7 +51,8 @@
 {{ end -}}
 jibri.api.xmpp.environments = [
 {{ range $dindex, $sample := scratch.MapValues "domains" -}}
-{{ $domain := $sample.ServiceMeta.domain }}    {
+{{ $domain := $sample.ServiceMeta.domain -}}
+{{ if $main_brewery }}    {
         name = "{{ $sample.ServiceMeta.environment }}"
         xmpp-server-hosts = [{{ range $hindex, $host := scratch.MapValues "hosts" }}{{ if eq $host.ServiceMeta.domain $domain }}"{{ $host.Address }}:{{ or $host.ServiceMeta.prosody_client_port "5222" }}", {{ end }}{{ end }}]
         xmpp-domain = "{{ $domain }}"
@@ -71,6 +77,7 @@ jibri.api.xmpp.environments = [
         trust-all-xmpp-certs = true
         randomize-control-muc-nickname = true
     },
+{{ end -}}
 {{ if $jvb_brewery }}    {
         name = "{{ $sample.ServiceMeta.environment }}-jvb-brewery"
         xmpp-server-hosts = [{{ range $hindex, $host := scratch.MapValues "jvbhosts" }}{{ if eq $host.ServiceMeta.domain $domain }}"{{ $host.Address }}:{{ or $host.ServiceMeta.prosody_jvb_client_port "6222" }}", {{ end }}{{ end }}]

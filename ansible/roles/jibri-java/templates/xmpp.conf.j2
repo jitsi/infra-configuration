@@ -2,7 +2,7 @@
   One environment block per (environment, domain). With jibri_jvb_brewery_flag a second block per domain joins the
   JibriBrewery on the JVB brewery prosody (prosody-jvb) too. Only control-login and control-muc differ between the two:
   call-login and xmpp-domain stay on the main domain, because chrome joins the call through the main prosody and jibri
-  derives the call URL from xmpp-domain.
+  derives the call URL from xmpp-domain. Without jibri_main_brewery_flag only the JVB brewery block is rendered.
 
   The JVB brewery hosts are always "address:port". Jibri keys each connection by its xmpp-server-hosts string and keeps
   one per key, and prosody-jvb has the same address as the main prosody, so a bare address would collide with it.
@@ -39,10 +39,12 @@
 jibri.api.xmpp.environments = [
 {% for env_key in jibri_config_hosts %}
 {% set env = jibri_config_hosts[env_key] %}
+{% if jibri_main_brewery_flag | bool %}
 {{ environment_block(env['environment'], env['host_addresses'], env['xmpp_domain'],
     jibri_jid_prefix ~ env['xmpp_domain'],
     env['host_port'] if env['host_port'] is defined else jibri_xmpp_port,
     jibri_brewery_prefix ~ env['xmpp_domain'], env['usage_timeout']) -}}
+{% endif %}
 {% if jibri_jvb_brewery_flag | bool %}
 {{ environment_block(env['environment'] ~ '-jvb-brewery',
     env['jvb_host_addresses'] if env['jvb_host_addresses'] is defined
