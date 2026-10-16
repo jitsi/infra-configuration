@@ -60,8 +60,7 @@ prosody_enable_filter_iq_jibri: false
 # plugin to control outbound dialing
 prosody_enable_filter_iq_rayo: false
 prosody_enable_firewall: "{{ true if prosody_disable_messaging else prosody_enable_jvb_muc_presence_filter }}"
-# don't enable guest authentication by default
-prosody_enable_guest_auth: false
+prosody_enable_guest_auth: true
 prosody_enable_health_check_cron: true
 # flag to control the internal.auth{{ prosody_domain_name }} muc for jibri, jigasi and eventually JVB
 prosody_enable_internal_muc: true
@@ -70,7 +69,7 @@ prosody_enable_jiconop_module: true
 # branding module, disabled by default
 prosody_enable_jiconop_extras_module: false
 prosody_enable_jvb_muc_presence_filter: true
-prosody_enable_lobby: false
+prosody_enable_lobby: true
 prosody_enable_log_filter: false
 # plugin to write logs on slow event processing
 prosody_enable_log_slow_events: false
@@ -78,7 +77,7 @@ prosody_enable_mod_turncredentials: false
 # Send "conference_ended" events with duration and message count. Requires amplitude_api_key to be set, inactive without it.
 prosody_enable_mod_measure_message_count: false
 prosody_enable_muc_census: true
-prosody_enable_muc_domain_mapper: false
+prosody_enable_muc_domain_mapper: true
 # branding module, disabled by default
 prosody_enable_muc_occupant_session: false
 prosody_enable_muc_password_whitelist: true
@@ -88,7 +87,7 @@ prosody_muc_resource_validate_anonymous_strict: false
 prosody_enable_muc_size: false
 prosody_enable_password_preset: false
 prosody_enable_persistent_lobby: false
-prosody_enable_end_meeting: false
+prosody_enable_end_meeting: true
 # flag to control whether to publish presence based on incoming user identity discovered from JWT
 prosody_enable_presence_identity: false
 prosody_enable_rate_limit: true
