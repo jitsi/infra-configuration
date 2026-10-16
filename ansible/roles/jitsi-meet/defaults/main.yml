@@ -165,7 +165,7 @@ jitsi_meet_enable_lock_room_ten_digits: false
 jitsi_meet_enable_multi_domain: true
 jitsi_meet_enable_p2p: false
 jitsi_meet_enable_p2p_turn: false
-jitsi_meet_enable_prejoin_page: false
+jitsi_meet_enable_prejoin_page: true
 jitsi_meet_enable_room_api: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
