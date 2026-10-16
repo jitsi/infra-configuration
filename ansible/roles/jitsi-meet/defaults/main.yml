@@ -12,7 +12,7 @@ jitsi_meet_amplitude_api_key: false
 jitsi_meet_amplitude_include_utm: false
 jitsi_meet_analytics_whitelist: false
 jitsi_meet_anonymize_logs: false
-jitsi_meet_anonymousdomain: false
+jitsi_meet_anonymousdomain: "guest.{{ environment_domain_name }}"
 jitsi_meet_api_cdn_enabled: false
 jitsi_meet_api_cdn_host: "{{ environment_domain_name }}"
 jitsi_meet_api_relative_base: '/v1/_jaas'
@@ -141,7 +141,7 @@ jitsi_meet_enable_advanced_audio_settings: false
 jitsi_meet_enable_audio_translation: true
 jitsi_meet_enable_calendar: false
 jitsi_meet_enable_colibri_websockets: false
-jitsi_meet_enable_conference_request_http: false
+jitsi_meet_enable_conference_request_http: true
 jitsi_meet_enable_display_name_in_stats: false
 jitsi_meet_enable_dtx: false
 jitsi_meet_enable_email_in_stats: false
@@ -150,7 +150,7 @@ jitsi_meet_enable_face_landmarks_detect_expressions: false
 jitsi_meet_enable_face_landmarks_display_expressions: false
 jitsi_meet_enable_face_landmarks_enable_rtc_stats: false
 jitsi_meet_enable_local_recording: false
-jitsi_meet_enable_file_recordings: false
+jitsi_meet_enable_file_recordings: true
 jitsi_meet_enable_file_recordings_sharing: false
 jitsi_meet_enable_forced_client_reload: false
 jitsi_meet_enable_graceful_reconnect: false
@@ -158,18 +158,18 @@ jitsi_meet_enable_gzip: false
 jitsi_meet_enable_ice_restart: false
 jitsi_meet_enable_ice_restart_on_network_change: false
 jitsi_meet_enable_insecure_room_name_warning: false
-jitsi_meet_enable_livestreaming: false
+jitsi_meet_enable_livestreaming: true
 jitsi_meet_enable_local_video_flip: true
 jitsi_meet_enable_lock_room_for_all: false
 jitsi_meet_enable_lock_room_ten_digits: false
-jitsi_meet_enable_multi_domain: false
+jitsi_meet_enable_multi_domain: true
 jitsi_meet_enable_p2p: false
 jitsi_meet_enable_p2p_turn: false
 jitsi_meet_enable_prejoin_page: false
 jitsi_meet_enable_room_api: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
-jitsi_meet_enable_shard_ws_proxy: false
+jitsi_meet_enable_shard_ws_proxy: true
 jitsi_meet_enable_simulcast: true
 jitsi_meet_enable_simulcast_av1: false
 jitsi_meet_enable_simulcast_vp9: false
