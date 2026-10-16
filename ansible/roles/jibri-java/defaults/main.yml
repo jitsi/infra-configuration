@@ -25,6 +25,12 @@ jibri_jvb_brewery_flag: "{{ jibri_jvb_brewery_enabled | bool and not jibri_pjsua
 jibri_jvb_brewery_jid_prefix: "auth.jvb."
 # fallback client port for a prosody-jvb that does not advertise prosody_jvb_client_port in consul
 jibri_jvb_brewery_xmpp_port: 6222
+# When false, a jibri that joins the JVB brewery stops joining the JibriBrewery on the main prosody. Set it false only
+# in an environment where the jicofo of every live shard, tenant-pinned releases included, finds jibris on prosody-jvb
+# (jicofo_jibri_jvb_brewery_enabled); an older jicofo sees no jibris at all. A jibri that does not join the JVB
+# brewery (SIP jibris included) always keeps the main one.
+jibri_main_brewery_enabled: true
+jibri_main_brewery_flag: "{{ jibri_main_brewery_enabled | bool or not jibri_jvb_brewery_flag | bool }}"
 # Whether or not any value in the call-status-checks block is overridden
 # Note: if/when we add overrides for the other values in call-status-checks (like all_muted_timeout above) then those
 # variables should be added here.
