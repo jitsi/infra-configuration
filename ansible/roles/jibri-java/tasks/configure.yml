@@ -6,11 +6,17 @@
     state: directory
     mode: 0755
 
-- name: Add chrome profile to avoid banner in chrome 76+
+# CommandLineFlagSecurityWarningsEnabled hides the banner in chrome 76+.
+# CADistrustedCertificates blocks the compromised eMudhra intermediate CA keys
+# (Oct 2026): Chrome under ChromeDriver runs in a throwaway profile and never
+# has a CRLSet or root-store component update when it loads the meeting page,
+# and the compiled-in Chrome Root Store keeps emSign ECC Root CA - G3 until
+# Chrome 158. Safe to drop once every jibri runs Chrome >= 158.
+- name: Add chrome managed policies
   ansible.builtin.copy:
     mode: 0644
+    src: managed_policies.json
     dest: "/etc/opt/chrome/policies/managed/managed_policies.json"
-    content: '{ "CommandLineFlagSecurityWarningsEnabled": false }'
 
 - name: Copy termination monitor script
   ansible.builtin.template:
