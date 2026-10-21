@@ -1,0 +1,216 @@
+# Distrusts the compromised eMudhra (emSign) CA chain on running VMs.
+#
+# In October 2026 the private keys of eight eMudhra intermediate CAs under
+# "emSign ECC Root CA - G3" (also cross-signed under "Comodo AAA Services
+# root") were shown to be recoverable. Browsers blocked them within hours, but
+# our VMs have unattended-upgrades disabled, so every host still carries the
+# trust store baked into its image and accepts certificates signed with the
+# compromised keys. Write-up: docs-private/infra/emudhra-ca-incident-2026-10.md
+#
+# What this does, per host:
+#   1. Upgrades ca-certificates where the archive has the fix (jammy
+#      20260816ubuntu0.22.04.1, noble 20260816ubuntu0.24.04.1; USN-8944-1).
+#      That removes "emSign ECC Root CA - G3" and "Comodo AAA Services root".
+#   2. On hosts that cannot get the fix from the archive (focal needs Ubuntu
+#      Pro, USN-8944-2) it deselects the two roots in /etc/ca-certificates.conf
+#      with the "!" prefix instead. ca-certificates.conf is not a dpkg conffile
+#      and the package postinst preserves "!" entries, so this survives later
+#      upgrades.
+#   3. Runs update-ca-certificates --fresh. Every Debian and Ubuntu OpenJDK
+#      uses /etc/ssl/certs/java/cacerts, maintained by the ca-certificates-java
+#      hook, but that hook never drops aliases for removed roots. The keystore
+#      is deleted first so the hook rebuilds it with only the selected roots.
+#      A JVM starting in the second or two between the two steps would fail
+#      to find its cacerts; running JVMs are unaffected.
+#   4. Verifies the two roots are gone from /etc/ssl/certs and from the Java
+#      keystore, then tries a TLS handshake against a public test endpoint
+#      that serves a chain signed with the compromised key. A successful
+#      handshake fails the host.
+#
+# Caveats:
+#   - Long-running processes cache the trust store at startup (JVMs, and Go
+#     daemons such as nomad, consul, vault, telegraf). They keep trusting the
+#     old bundle until restarted. Nothing is restarted by default; pass
+#     ca_patch_restart_services as a list of systemd units to restart them
+#     where that is safe for the role (never jitsi-videobridge2 or prosody on
+#     a live shard without draining first).
+#   - Docker containers on nomad hosts have their own trust stores and are not
+#     touched here. They need rebuilt images.
+#   - Hosts without egress to the test endpoint pass the live check with a
+#     connection error; only an accepted handshake fails it.
+#
+# Hosts go five at a time and the play stops at the first failure. Via
+# patch-nodes.sh or the patch-nodes Jenkins job:
+#
+#   ENVIRONMENT=stage-8x8 ROLE=JVB BATCH_SIZE=50 \
+#     ANSIBLE_PLAYBOOK_FILE=patch-ca-certificates-emsign.yml \
+#     ANSIBLE_ARGS="--check --diff" scripts/patch-nodes.sh
+#
+# ROLE is the shard-role tag: JVB, core (signal), haproxy, jibri-nomad-pool,
+# nomad-pool, nomad, consul, coturn, jigasi-proxy, vault, ssh.
+- name: Distrust the compromised eMudhra CA chain on running hosts
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  serial: "{{ ca_patch_serial | default(5) }}"
+  max_fail_percentage: 0
+  vars:
+    ca_patch_fixed_version:
+      jammy: 20260816ubuntu0.22.04.1
+      noble: 20260816ubuntu0.24.04.1
+    ca_patch_blacklist:
+      - mozilla/emSign_ECC_Root_CA_-_G3.crt
+      - mozilla/Comodo_AAA_Services_root.crt
+    ca_patch_removed_files:
+      - /etc/ssl/certs/emSign_ECC_Root_CA_-_G3.pem
+      - /etc/ssl/certs/Comodo_AAA_Services_root.pem
+    ca_patch_java_aliases: "emsign_ecc_root_ca_-_g3|comodo_aaa_services_root"
+    ca_patch_test_url: https://dv-g3b-emudhra.we-have-a-problem.com/
+    ca_patch_restart_services: []
+
+  tasks:
+    - name: Record ca-certificates version before
+      ansible.builtin.command: dpkg-query -W -f='${Version}' ca-certificates
+      register: ca_patch_before
+      changed_when: false
+      check_mode: false
+
+    - name: Upgrade ca-certificates from the archive
+      ansible.builtin.apt:
+        name: ca-certificates
+        state: latest
+        update_cache: true
+        cache_valid_time: 3600
+      register: ca_patch_apt
+      retries: 3
+      delay: 10
+      until: ca_patch_apt is succeeded
+      when: ansible_distribution_release in ca_patch_fixed_version
+
+    - name: Record ca-certificates version after
+      ansible.builtin.command: dpkg-query -W -f='${Version}' ca-certificates
+      register: ca_patch_after
+      changed_when: false
+      check_mode: false
+
+    - name: Fail if the archive fix did not arrive
+      ansible.builtin.fail:
+        msg: >-
+          ca-certificates is {{ ca_patch_after.stdout }}, expected at least
+          {{ ca_patch_fixed_version[ansible_distribution_release] }}
+      when:
+        - not ansible_check_mode
+        - ansible_distribution_release in ca_patch_fixed_version
+        - ca_patch_after.stdout is version(ca_patch_fixed_version[ansible_distribution_release], '<')
+
+    - name: Deselect the compromised roots in ca-certificates.conf
+      ansible.builtin.lineinfile:
+        path: /etc/ca-certificates.conf
+        regexp: '^!?({{ item | regex_escape }})$'
+        line: '!\1'
+        backrefs: true
+      loop: "{{ ca_patch_blacklist }}"
+      register: ca_patch_conf
+
+    - name: Check whether ca-certificates-java manages the Java keystore
+      ansible.builtin.command: dpkg-query -W -f='${Status}' ca-certificates-java
+      register: ca_patch_java_pkg
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Count compromised aliases still in the Java keystore
+      ansible.builtin.shell: |
+        set -o pipefail
+        keytool -list -cacerts -storepass changeit 2>/dev/null | grep -Eic '{{ ca_patch_java_aliases }}' || true
+      args:
+        executable: /bin/bash
+      register: ca_patch_java_before
+      changed_when: false
+      check_mode: false
+      when: "'install ok installed' in ca_patch_java_pkg.stdout"
+
+    - name: Decide whether the bundle needs rebuilding
+      ansible.builtin.set_fact:
+        ca_patch_rebuild: >-
+          {{ (ca_patch_apt is changed) or (ca_patch_conf is changed)
+             or ((ca_patch_java_before.stdout | default('0')) | int > 0) }}
+
+    # The jks-keystore hook only adds certificates on a --fresh run; aliases
+    # for removed roots stay in the keystore. Deleting it makes the hook build
+    # it from scratch with only the currently selected roots.
+    - name: Remove the Java keystore so the hook rebuilds it from the bundle
+      ansible.builtin.file:
+        path: /etc/ssl/certs/java/cacerts
+        state: absent
+      when:
+        - ca_patch_rebuild | bool
+        - "'install ok installed' in ca_patch_java_pkg.stdout"
+
+    - name: Rebuild the CA bundle and the Java keystore
+      ansible.builtin.command: update-ca-certificates --fresh
+      when: ca_patch_rebuild | bool
+      changed_when: true
+
+    - name: Restart services that cache the trust store
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop: "{{ ca_patch_restart_services }}"
+
+    - name: Check the removed root files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: "{{ ca_patch_removed_files }}"
+      register: ca_patch_files
+      when: not ansible_check_mode
+
+    - name: Fail if a compromised root is still in /etc/ssl/certs
+      ansible.builtin.fail:
+        msg: "{{ item.item }} still present"
+      loop: "{{ ca_patch_files.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when:
+        - not ansible_check_mode
+        - item.stat is defined
+        - item.stat.exists
+
+    - name: Check the Java keystore
+      ansible.builtin.shell: |
+        set -o pipefail
+        if command -v keytool >/dev/null 2>&1; then
+          keytool -list -cacerts -storepass changeit 2>/dev/null | grep -Eic '{{ ca_patch_java_aliases }}' || true
+        else
+          echo nojava
+        fi
+      args:
+        executable: /bin/bash
+      register: ca_patch_java
+      changed_when: false
+      when: not ansible_check_mode
+
+    - name: Fail if the Java keystore still holds a compromised root
+      ansible.builtin.fail:
+        msg: "Java cacerts still contains {{ ca_patch_java.stdout }} compromised root alias(es)"
+      when:
+        - not ansible_check_mode
+        - ca_patch_java.stdout != 'nojava'
+        - ca_patch_java.stdout | int > 0
+
+    - name: Try a handshake against the compromised test chain
+      ansible.builtin.command: curl -sS -o /dev/null -m 15 {{ ca_patch_test_url }}
+      register: ca_patch_live
+      changed_when: false
+      failed_when: ca_patch_live.rc == 0
+      when: not ansible_check_mode
+
+    - name: Report
+      ansible.builtin.debug:
+        msg: >-
+          {{ ansible_distribution_release }}:
+          ca-certificates {{ ca_patch_before.stdout }} -> {{ ca_patch_after.stdout }},
+          conf blacklist {{ 'changed' if ca_patch_conf is changed else 'unchanged' }},
+          java {{ ca_patch_java.stdout | default('skipped') }},
+          live test rc {{ ca_patch_live.rc | default('skipped') }} (60 = rejected, 0 = still trusted)
