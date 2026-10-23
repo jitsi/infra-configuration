@@ -183,7 +183,7 @@ jitsi_meet_enable_unsafe_room_warning: false
 jitsi_meet_enable_user_roles_based_on_token: false
 jitsi_meet_enable_virtual_background_v2: false
 jitsi_meet_enable_welcome_page: true
-jitsi_meet_enable_webhid_feature: true
+jitsi_meet_enable_webhid_feature: false
 jitsi_meet_enable_xmpp_websockets: true
 jitsi_meet_environment_type: dev
 jitsi_meet_filesharing_api_url: false
