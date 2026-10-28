@@ -99,5 +99,11 @@ jicofo_visitors_enable_live_room: false
 jicofo_visitors_count: "{{ visitors_count | default(0) }}"
 jicofo_visitors_max_participants: false
 jicofo_visitors_max_visitors_per_node: false
+# Voice agents (jicofo.agent): the media relay's websocket; false leaves the feature off. Both secrets are required
+# once it is on, so a missing vault key fails the render instead of producing a relay that refuses the bridge.
+jicofo_voice_agent_relay_secret: "{{ secrets_jicofo_voice_agent_relay }}"  # X-Agent-Token, the relay's AGENT_SHARED_SECRET
+jicofo_voice_agent_status_secret: "{{ secrets_jicofo_voice_agent_status }}"  # prosody's voice_agent_status_secret
+jicofo_voice_agent_status_url: "http://127.0.0.1:5280/voice-agent/status"
+jicofo_voice_agent_url_template: false
 jicofo_xmpp_logging_enabled: false
 shard_number: "65535"
