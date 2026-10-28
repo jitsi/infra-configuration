@@ -178,6 +178,22 @@ jicofo {
     {% endif %}
   }
 
+{% if jicofo_voice_agent_url_template %}
+  agent {
+    url-template = "{{ jicofo_voice_agent_url_template }}"
+    http-headers {
+{% if secrets_jicofo_opus_transcriber_client_id %}
+      "CF-Access-Client-Id": {{ secrets_jicofo_opus_transcriber_client_id }}
+      "CF-Access-Client-Secret": {{ secrets_jicofo_opus_transcriber_secret }}
+{% endif %}
+      "X-Agent-Token": "{{ jicofo_voice_agent_relay_secret }}"
+    }
+    status {
+      url = "{{ jicofo_voice_agent_status_url }}"
+      token = "{{ jicofo_voice_agent_status_secret }}"
+    }
+  }
+{% endif %}
 
   {% if jicofo_visitors_enabled %}
   visitors {

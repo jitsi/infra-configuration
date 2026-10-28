@@ -300,6 +300,15 @@ prosody_visitors_always_supported: false
 prosody_visitors_auto_allow: false
 prosody_visitors_muc_max_occupants: false
 prosody_visitors_queue_service_url: false
+# Voice-agent provisioning API (mod_voice_agent_component on the main host); needs prosody_password_public_key_repo_url.
+# The status and dial secrets are required once it is on, so a missing vault key fails the render instead of producing
+# a module that rejects jicofo and the relay.
+prosody_voice_agent_enabled: false
+# Hosts (exact or .suffix) lifecycle webhooks may be posted to; empty allows any.
+prosody_voice_agent_callback_allowed_hosts: []
+prosody_voice_agent_dial_secret: "{{ secrets_prosody_voice_agent_dial }}"  # the relay's AGENT_PROVISIONING_TOKEN
+prosody_voice_agent_status_secret: "{{ secrets_jicofo_voice_agent_status }}"  # jicofo's agent.status.token
+prosody_voice_agent_webhook_secret: "{{ secrets_prosody_voice_agent_webhook | default(false) }}"
 prosody_vpaas_public_key_repo_url: false
 # Enables SMACKS module in prosody and XMPP stream resume functionality in jitsi-meet
 prosody_xmpp_resume: true

@@ -182,6 +182,8 @@ jitsi_meet_enable_userdirs: false
 jitsi_meet_enable_unsafe_room_warning: false
 jitsi_meet_enable_user_roles_based_on_token: false
 jitsi_meet_enable_virtual_background_v2: false
+# proxy the prosody voice-agent provisioning API (/voice-agent/*) on this host
+jitsi_meet_enable_voice_agent_api: false
 jitsi_meet_enable_welcome_page: true
 jitsi_meet_enable_webhid_feature: false
 jitsi_meet_enable_xmpp_websockets: true
