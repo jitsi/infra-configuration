@@ -1,0 +1,65 @@
+---
+# Which config dialect telegraf.conf.wfcopy.j2 renders has to follow the binary
+# on the host, not wavefront_collector_version. Telegraf changed the spelling of
+# the field filters in 1.29 (fieldpass/fielddrop became
+# fieldinclude/fieldexclude) and treats a key it does not recognize as a startup
+# failure rather than a warning, so getting this wrong takes telegraf down.
+#
+# A VM keeps the telegraf its base image was built with and only re-renders this
+# config at boot or on a reconfigure, and a newer infra-configuration is
+# routinely run against an older image, so the two versions drift apart by
+# design.
+
+- name: Read the telegraf version installed on the host
+  ansible.builtin.command: telegraf --version
+  register: wavefront_telegraf_version_cmd
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Record the telegraf version this config has to parse under
+  ansible.builtin.set_fact:
+    # "Telegraf 1.29.5 (git: HEAD@138d0d54)" is the format on every version we
+    # run. If telegraf is not installed yet, whatever installs it installs
+    # wavefront_collector_version, so that is the right guess.
+    telegraf_installed_version: "{{ (wavefront_telegraf_version_cmd.stdout | default('') |
+      regex_search('Telegraf v?([0-9]+\\.[0-9]+\\.[0-9]+)', '\\1') | first)
+      if ((wavefront_telegraf_version_cmd.rc | default(1)) == 0 and
+          (wavefront_telegraf_version_cmd.stdout | default('')) is search('Telegraf [0-9v]'))
+      else (wavefront_collector_version | regex_replace('-.*$', '')) }}"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Pick the config dialect for that version
+  ansible.builtin.set_fact:
+    # 1.29.0 added fieldinclude/fieldexclude and inputs.internal's
+    # collect_gostats; 1.40 removed fieldpass/fielddrop. There is no spelling
+    # both ends accept, hence the fork.
+    telegraf_supports_fieldinclude: "{{ telegraf_installed_version is version('1.29.0', '>=') }}"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure
+
+- name: Report which telegraf the config is being rendered for
+  ansible.builtin.debug:
+    msg: "telegraf {{ telegraf_installed_version }} on this host: rendering the
+      {{ 'fieldinclude' if telegraf_supports_fieldinclude | bool else 'fieldpass (pre-1.29)' }} dialect"
+  tags:
+    - install
+    - redhat
+    - debian
+    - collector
+    - configure

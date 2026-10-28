@@ -19,6 +19,10 @@
     jigasi_haproxy_hostname: "{{ hcv_environment }}-jigasi-haproxy-{{ jigasi_haproxy_component_id }}.infra.jitsi.net"
     shard_role: jigasi-haproxy
   pre_tasks:
+    # Must run before the apt cache update below: clears a conflicting
+    # trusted=yes/signed-by ops-repo source that would fail apt (JIT-15930).
+    - name: Pre-clean conflicting ops-repo apt source
+      ansible.builtin.import_tasks: tasks/preclean-ops-repo-trusted-conflict.yml
     - name: Set cloud provider to oracle
       ansible.builtin.set_fact:
         cloud_provider: oracle
@@ -69,12 +73,12 @@
       vars:
         telegraf_inputs:
           haproxy:
-            fieldpass: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr"]
+            fieldinclude: ["agent_health", "econ", "ereq", "eresp", "rate", "rate_max", "scur", "wretr"]
             servers: ["http://localhost:8080/haproxy_stats"]
             username: "admin"
             password: "admin"
           nstat:
-            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
+            fieldinclude: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
         telegraf_tags:
           role: "jigasi-haproxy"
           environment: "{{ hcv_environment }}"

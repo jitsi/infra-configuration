@@ -104,6 +104,10 @@
     - config/vars.yml
     - sites/{{ hcv_environment }}/vars.yml
   pre_tasks:
+    # Must run before the apt cache update below: clears a conflicting
+    # trusted=yes/signed-by ops-repo source that would fail apt (JIT-15930).
+    - name: Pre-clean conflicting ops-repo apt source
+      ansible.builtin.import_tasks: tasks/preclean-ops-repo-trusted-conflict.yml
     - name: Gather AWS facts
       amazon.aws.ec2_metadata_facts:
       tags: "ec2_facts"
@@ -197,15 +201,15 @@
             urls: ["http://localhost:888/nginx_status/"]
           haproxy:
             # haproxy field ref: https://cbonte.github.io/haproxy-dconv/2.5/management.html#9.1
-            fieldpass: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response.1xx", "http_response.2xx",
-                        "http_response.3xx", "http_response.4xx", "http_response.5xx", "http_response.other"]
+            fieldinclude: ["agent_health", "ereq", "rate", "rate_max", "scur", "wretr", "wredis", "http_response.1xx", "http_response.2xx",
+                           "http_response.3xx", "http_response.4xx", "http_response.5xx", "http_response.other"]
             servers: ["http://localhost:8080/haproxy_stats"]
             username: "admin"
             password: "admin"
           prometheus:
             urls: ["http://localhost:8405/metrics"]
           nstat:
-            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+            fieldinclude: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
         telegraf_tags:
           role: "haproxy"
           environment: "{{ hcv_environment }}"

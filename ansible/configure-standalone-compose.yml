@@ -83,13 +83,9 @@
     #         urls: ["http://localhost:888/nginx_status/"]
     #       procstat:
     #         - systemd_unit: "prosody.service"
-    #           cmdline_tag: false
-    #           pid_tag: false
     #         - systemd_unit: "prosody-jvb.service"
-    #           cmdline_tag: false
-    #           pid_tag: false
     #       nstat:
-    #         fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
+    #         fieldinclude: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs", "UdpInErrors", "Udp6InErrors"]
     #       prometheus:
     #         urls: ["http://localhost:6000/metrics", "http://localhost:8888/metrics", "http://localhost:8080/metrics"]
     #         namepass: "{{ telegraf_jvb_filter + ['http*', 'signal*'] + [ telegraf_jicofo_filter ] }}"

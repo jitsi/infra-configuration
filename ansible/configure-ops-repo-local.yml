@@ -46,7 +46,7 @@
           nginx:
             urls: ["http://localhost:888/nginx_status/"]
           nstat:
-            fieldpass: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
+            fieldinclude: ["TcpInSegs", "TcpOutSegs", "TcpRetransSegs"]
         telegraf_tags:
           role: "repo"
           environment: "{{ hcv_environment }}"
