@@ -197,9 +197,9 @@ muc_prosody_jitsi_access_manager_url = "{{ jitsi_access_manager_url }}";
 muc_conference_info_url = "{{ prosody_conference_info_url }}";
 -- eventually enable token auth for password API
 
-{% if prosody_password_public_key_repo_url %}
-prosody_password_public_key_repo_url = "{{ prosody_password_public_key_repo_url }}";
 {% endif %}
+{% if prosody_password_public_key_repo_url and (prosody_conference_info_url or prosody_voice_agent_enabled) %}
+prosody_password_public_key_repo_url = "{{ prosody_password_public_key_repo_url }}";
 {% endif %}
 
 {% if prosody_async_transcriber_type_map %}
@@ -359,6 +359,10 @@ consider_websocket_secure = true;
 
 cross_domain_bosh = false;
 consider_bosh_secure = true;
+{% if prosody_voice_agent_enabled %}
+-- jicofo reports agent lifecycle to http://127.0.0.1:5280/voice-agent/status, whose Host header matches no VirtualHost
+http_default_host = "{{ prosody_domain_name }}";
+{% endif %}
 trusted_proxies = {
   {% for proxy in prosody_trusted_proxies %}
   "{{ proxy }}";
@@ -482,6 +486,9 @@ VirtualHost "{{ prosody_domain_name }}"
 {% if prosody_mod_jigasi_invite_enabled %}
           "muc_jigasi_invite";
 {% endif %}
+{% if prosody_voice_agent_enabled %}
+          "voice_agent_component";
+{% endif %}
 {% if prosody_visitors_enabled %}
           "visitors";
 {% endif %}
@@ -520,6 +527,26 @@ VirtualHost "{{ prosody_domain_name }}"
         main_muc = "conference.{{ prosody_domain_name }}"
 {% if prosody_breakout_rooms_enabled %}
         breakout_rooms_muc = "breakout.{{ prosody_domain_name }}"
+{% endif %}
+{% if prosody_voice_agent_enabled %}
+        -- voice-agent provisioning API (/voice-agent/*); the module reads the muc hosts under these names
+        -- (as the *_component modules do), not as main_muc/breakout_rooms_muc
+        muc_component = "conference.{{ prosody_domain_name }}"
+{% if prosody_breakout_rooms_enabled %}
+        breakout_rooms_component = "breakout.{{ prosody_domain_name }}"
+{% endif %}
+        voice_agent_status_secret = "{{ prosody_voice_agent_status_secret }}"
+        voice_agent_dial_secret = "{{ prosody_voice_agent_dial_secret }}"
+{% if prosody_voice_agent_webhook_secret %}
+        voice_agent_webhook_secret = "{{ prosody_voice_agent_webhook_secret }}"
+{% endif %}
+{% if prosody_voice_agent_callback_allowed_hosts %}
+        voice_agent_callback_allowed_hosts = {
+{% for host in prosody_voice_agent_callback_allowed_hosts %}
+          "{{ host }}";
+{% endfor %}
+        }
+{% endif %}
 {% endif %}
 {% if prosody_visitors_enabled %}
         visitors_ignore_list = {
