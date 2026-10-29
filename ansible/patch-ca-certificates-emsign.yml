@@ -22,7 +22,18 @@
 #      is deleted first so the hook rebuilds it with only the selected roots.
 #      A JVM starting in the second or two between the two steps would fail
 #      to find its cacerts; running JVMs are unaffected.
-#   4. Verifies the two roots are gone from /etc/ssl/certs and from the Java
+#   4. Fixes the pip-installed clients, which carry their own CA bundle and
+#      never read /etc/ssl/certs. The common role builds /opt/awscli-venv and
+#      /opt/oci-cli-venv on every host and jigasi adds /opt/jigasi-pip-venv.
+#      awscli 1.46.2 (2026-10-21) is the first release whose vendored botocore
+#      bundle drops both roots; it needs python 3.10, so on older pythons the
+#      venv gets certifi>=2026.10.19 instead, which botocore prefers over its
+#      own bundle whenever it is importable. oci-cli and the datadog client
+#      read certifi.where(), so any venv that has certifi gets the same
+#      upgrade. The bundle each client actually resolves is then parsed with
+#      openssl and must not contain either root. These are short-lived
+#      processes, so the fix applies on the next invocation with no restart.
+#   5. Verifies the two roots are gone from /etc/ssl/certs and from the Java
 #      keystore, then tries a TLS handshake against a public test endpoint
 #      that serves a chain signed with the compromised key. A successful
 #      handshake fails the host.
@@ -38,6 +49,8 @@
 #     touched here. They need rebuilt images.
 #   - Hosts without egress to the test endpoint pass the live check with a
 #     connection error; only an accepted handshake fails it.
+#   - The venv step needs egress to pypi.org (the same egress the image build
+#     used). Set ca_patch_fix_venvs=false to skip it.
 #
 # Hosts go five at a time and the play stops at the first failure. Via
 # patch-nodes.sh or the patch-nodes Jenkins job:
@@ -68,6 +81,10 @@
     ca_patch_java_aliases: "emsign_ecc_root_ca_-_g3|comodo_aaa_services_root"
     ca_patch_test_url: https://dv-g3b-emudhra.we-have-a-problem.com/
     ca_patch_restart_services: []
+    ca_patch_fix_venvs: true
+    ca_patch_awscli_min: 1.46.2
+    ca_patch_certifi_min: 2026.10.19
+    ca_patch_bundle_subjects: "emSign ECC Root CA - G3|AAA Certificate Services"
 
   tasks:
     - name: Record ca-certificates version before
@@ -153,6 +170,60 @@
       when: ca_patch_rebuild | bool
       changed_when: true
 
+    - name: Find pip virtualenvs under /opt
+      ansible.builtin.find:
+        paths: /opt
+        patterns: '*-venv'
+        file_type: directory
+        recurse: false
+      register: ca_patch_venv_dirs
+      when: ca_patch_fix_venvs | bool
+
+    # One line per venv: "<major> <minor> <certifi|-> <awscli|->"
+    - name: Inspect each virtualenv
+      ansible.builtin.command: >-
+        {{ item.path }}/bin/python -c
+        "import sys, importlib.util as u;
+        print(sys.version_info[0], sys.version_info[1],
+        'certifi' if u.find_spec('certifi') else '-',
+        'awscli' if u.find_spec('awscli') else '-')"
+      loop: "{{ ca_patch_venv_dirs.files | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: ca_patch_venv_info
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Upgrade awscli to a release with a clean vendored CA bundle
+      ansible.builtin.pip:
+        name: "awscli>={{ ca_patch_awscli_min }}"
+        executable: "{{ item.item.path }}/bin/pip"
+      loop: "{{ ca_patch_venv_info.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.path }}"
+      when:
+        - item.rc | default(1) == 0
+        - item.stdout.split()[3] == 'awscli'
+        - (item.stdout.split()[0] ~ '.' ~ item.stdout.split()[1]) is version('3.10', '>=')
+
+    # certifi is what oci-cli and datadog load, and what botocore prefers over
+    # its vendored bundle when present. On pythons too old for awscli 1.46
+    # that preference is the only fix for the awscli venv.
+    - name: Upgrade certifi in virtualenvs that use it
+      ansible.builtin.pip:
+        name: "certifi>={{ ca_patch_certifi_min }}"
+        executable: "{{ item.item.path }}/bin/pip"
+      loop: "{{ ca_patch_venv_info.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.path }}"
+      when:
+        - item.rc | default(1) == 0
+        - >-
+          item.stdout.split()[2] == 'certifi'
+          or (item.stdout.split()[3] == 'awscli'
+              and (item.stdout.split()[0] ~ '.' ~ item.stdout.split()[1]) is version('3.10', '<'))
+
     - name: Restart services that cache the trust store
       ansible.builtin.systemd:
         name: "{{ item }}"
@@ -199,6 +270,43 @@
         - ca_patch_java.stdout != 'nojava'
         - ca_patch_java.stdout | int > 0
 
+    # Resolve the bundle the way the client does: awscli through botocore's
+    # where() (vendored bundle or certifi), everything else through certifi.
+    - name: Check the CA bundle each virtualenv client loads
+      ansible.builtin.shell: |
+        set -o pipefail
+        py={{ item.path }}/bin/python
+        if [ -e {{ item.path }}/bin/aws ]; then
+          bundle=$($py -c 'import awscli, botocore.httpsession as h; print(h.where())')
+        elif $py -c 'import certifi' 2>/dev/null; then
+          bundle=$($py -c 'import certifi; print(certifi.where())')
+        else
+          echo "- 0"
+          exit 0
+        fi
+        n=$(openssl crl2pkcs7 -nocrl -certfile "$bundle" | openssl pkcs7 -print_certs -noout \
+          | grep -Ec '{{ ca_patch_bundle_subjects }}' || true)
+        echo "$bundle $n"
+      args:
+        executable: /bin/bash
+      loop: "{{ ca_patch_venv_dirs.files | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: ca_patch_venv_check
+      changed_when: false
+      when: not ansible_check_mode
+
+    - name: Fail if a virtualenv still trusts a compromised root
+      ansible.builtin.fail:
+        msg: "{{ item.stdout.split()[0] }} still contains {{ item.stdout.split()[1] }} compromised root(s)"
+      loop: "{{ ca_patch_venv_check.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.path | default(item.item) }}"
+      when:
+        - not ansible_check_mode
+        - item.stdout is defined
+        - item.stdout.split()[1] | int > 0
+
     - name: Try a handshake against the compromised test chain
       ansible.builtin.command: curl -sS -o /dev/null -m 15 {{ ca_patch_test_url }}
       register: ca_patch_live
@@ -213,4 +321,6 @@
           ca-certificates {{ ca_patch_before.stdout }} -> {{ ca_patch_after.stdout }},
           conf blacklist {{ 'changed' if ca_patch_conf is changed else 'unchanged' }},
           java {{ ca_patch_java.stdout | default('skipped') }},
+          venvs [{{ ca_patch_venv_check.results | default([]) | selectattr('stdout', 'defined')
+                   | map(attribute='stdout') | join(', ') | default('skipped', true) }}],
           live test rc {{ ca_patch_live.rc | default('skipped') }} (60 = rejected, 0 = still trusted)
