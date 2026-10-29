@@ -517,6 +517,9 @@ var config = {
         enableV2: true
     },
 {% endif %}
+{% if jitsi_meet_show_breakout_room_join_permissions_setting %}
+    showBreakoutRoomJoinPermissionsModeratorSetting: true,
+{% endif %}
 {% if jitsi_meet_show_chat_permissions_setting %}
     showChatPermissionsModeratorSetting: true,
 {% endif %}
