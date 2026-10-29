@@ -72,7 +72,7 @@ sources:
         multiline:
             timeout_ms: 300
             mode: halt_before
-            # regexp to match pattern eg: Jibri 2026-10-15 12:59:59.026 INFO: [1018] LoggingUtils$Companion$OutputLogger$1.invoke$lambda$0#42: frame= 1289 fps= 30
+            # regexp to match pattern eg: Jibri 2026-10-15 12:59:59.026 INFO: [1018] LoggingUtils$$Companion$$OutputLogger$$1.invoke$$lambda$$0#42: frame= 1289 fps= 30
             condition_pattern: "^(Jibri )?(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
             start_pattern: "^(Jibri )?(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+: \\[\\d+\\])"
         include:
