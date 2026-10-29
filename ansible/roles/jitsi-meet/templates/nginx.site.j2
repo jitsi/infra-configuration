@@ -184,6 +184,11 @@ server {
         add_header "Cache-Control" "no-cache, no-store";
     }
 
+    # the tenant-prefixed form callers use so HAProxy routes by tenant and ?room=; the module reads the conference
+    location ~ ^/([^/?&:'"]+)/voice-agent/(invite|dismiss|list|get|events|status|dial)$ {
+        rewrite ^/[^/]+/(voice-agent/.*)$ /$1;
+    }
+
 {% endif %}
     location ~ ^/([^/?&:'"]+)/room-password$ {
         set $subdomain "$1.";
@@ -646,6 +651,11 @@ server {
         proxy_buffering off;
         tcp_nodelay on;
         # no add_header here: it would replace the server-level headers (HSTS, Cache-Control)
+    }
+
+    # the tenant-prefixed form callers use so HAProxy routes by tenant and ?room=; the module reads the conference
+    location ~ ^/([^/?&:'"]+)/voice-agent/(invite|dismiss|list|get|events|status|dial)$ {
+        rewrite ^/[^/]+/(voice-agent/.*)$ /$1;
     }
 
 {% endif %}
