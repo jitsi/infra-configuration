@@ -16,6 +16,8 @@
     - roles/prosody/defaults/main.yml
     - roles/jitsi-meet-branding/defaults/main.yml
     - roles/jitsi-meet/defaults/main.yml
+    # shard_region, which the nginx site template reads
+    - roles/jitsi-meet/vars/main.yml
     - roles/jicofo/defaults/main.yml
     - roles/jitsi-videobridge/defaults/main.yml
     - secrets/ssh-users.yml
