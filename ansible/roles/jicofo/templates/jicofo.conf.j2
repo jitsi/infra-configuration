@@ -131,6 +131,12 @@ jicofo {
     brewery-jid = "{{ jicofo_jibri_brewery_muc }}"
 {% endif %}
     pending-timeout = {{ jicofo_jibri_pending_timeout }} seconds
+
+    start-request-rate-limits {
+      min-interval = {{ jicofo_jibri_start_requests_min_interval }} seconds
+      max-requests = {{ jicofo_jibri_start_requests_max_requests }}
+      interval = {{ jicofo_jibri_start_requests_interval }} seconds
+    }
   }
 
 {% if jicofo_jigasi_brewery_muc %}
