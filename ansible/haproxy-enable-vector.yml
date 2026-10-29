@@ -1,0 +1,90 @@
+---
+# Turn on vector log shipping on a running haproxy without the rest of
+# configure-haproxy-local.yml, which would also re-run the haproxy,
+# consul-template and iptables roles. Neither role here reloads haproxy.
+- name: Main
+  hosts: all
+  gather_facts: true
+  gather_timeout: 180
+  become_user: root
+  become: true
+  force_handlers: true
+  vars:
+    cloud_provider: oracle
+    shard_role: haproxy
+    # older vector expands $VAR inside YAML comments and rejects the current
+    # template; 0.60.0 is what jibri runs it with.
+    haproxy_vector_package_version: "0.60.0-1"
+  # The vector defaults are loaded for the validation render below. vars_files
+  # outrank play vars, so the haproxy overrides are role params and task vars.
+  vars_files:
+    - roles/vector/defaults/main.yml
+    - config/vars.yml
+    - sites/{{ hcv_environment }}/vars.yml
+  pre_tasks:
+    - name: Get instance's details
+      ansible.builtin.uri:
+        url: http://169.254.169.254/opc/v1/instance/
+      register: instance_result
+      check_mode: false
+    - name: Set instance id fact
+      ansible.builtin.set_fact:
+        cloud_instance_id: "{{ instance_result.json.id }}"
+    - name: Install datadog apt keys
+      ansible.builtin.apt_key:
+        url: "https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public"
+        state: present
+    - name: Install vector apt repository
+      ansible.builtin.apt_repository:
+        repo: "{{ vector_apt_repo }}"
+        state: present
+        filename: "vector"
+        update_cache: true
+    # check mode adds no repo and refreshes no cache, so apt cannot see the version
+    - name: Upgrade vector
+      ansible.builtin.apt:
+        name: "vector={{ haproxy_vector_package_version }}"
+        state: present
+        dpkg_options: "force-confold,force-confdef"
+      when: not ansible_check_mode
+    - name: Remove vector apt repository
+      ansible.builtin.apt_repository:
+        repo: "{{ vector_apt_repo }}"
+        state: absent
+        filename: "vector"
+    # In check mode the upgrade above did not happen, so validating against
+    # the old binary would fail for the reason the upgrade exists.
+    - name: Validate vector config before the role replaces it
+      when: not ansible_check_mode
+      block:
+        - name: Create temporary vector config file
+          ansible.builtin.tempfile:
+            suffix: .yaml
+          register: vector_candidate
+        - name: Render candidate vector config
+          ansible.builtin.template:
+            src: roles/vector/templates/vector.yaml.j2
+            dest: "{{ vector_candidate.path }}"
+            mode: '0644'
+          vars:
+            vector_nginx_enabled: true
+            vector_nginx_service_name: "shard-ws"
+        - name: Validate candidate vector config
+          ansible.builtin.command: "vector validate --no-environment {{ vector_candidate.path }}"
+          changed_when: false
+        - name: Remove candidate vector config
+          ansible.builtin.file:
+            path: "{{ vector_candidate.path }}"
+            state: absent
+  roles:
+    # vector before rsyslog: rsyslog starts forwarding to vector's tcp 9000
+    # as soon as its handlers flush.
+    - role: "vector"
+      tags: "vector"
+      vector_install_flag: false
+      vector_nginx_enabled: true
+      vector_nginx_service_name: "shard-ws"
+    - role: "rsyslog"
+      tags: "rsyslog"
+      rsyslog_install_flag: false
+      rsyslog_tcp_output_enabled: true
