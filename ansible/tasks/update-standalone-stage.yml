@@ -59,11 +59,6 @@
         mode: "0600"
       register: stage_signal_api_ssl_key
 
-    - name: Stage - note whether nginx needs to pick up new certificates
-      ansible.builtin.set_fact:
-        standalone_update_nginx_certs_changed: "{{ [stage_ssl_certificate, stage_ssl_key,
-          stage_signal_api_ssl_certificate, stage_signal_api_ssl_key] | selectattr('changed') | list | length > 0 }}"
-
     # now install prosody, either from URL or via apt
     - name: Include apt install tasks
       ansible.builtin.include_tasks: roles/prosody/tasks/install-from-apt.yml
@@ -254,6 +249,33 @@
         mode: 0644
         owner: "www-data"
       when: not jitsi_meet_cdn_enabled
+
+    # the nginx config roles/jitsi-meet/tasks/configure.yml renders; nginx reloads in the
+    # restart tasks when it or a certificate changed (shard_region comes from the role's
+    # vars/main.yml, loaded by the playbook)
+    - name: Stage - render the jitsi-meet nginx site
+      ansible.builtin.template:
+        src: roles/jitsi-meet/templates/nginx.site.j2
+        dest: "/etc/nginx/sites-available/{{ jitsi_meet_domain_name }}"
+        mode: 0644
+      vars:
+        # what configure-standalone.yml forces for a standalone, which the site vars (written for
+        # shards behind HAProxy) and the role defaults would otherwise override through vars_files
+        jitsi_meet_redirect_to_ssl: true
+        jitsi_meet_enable_colibri_websockets: true
+      register: stage_nginx_site
+
+    - name: Stage - render the jitsi-meet nginx stream config
+      ansible.builtin.template:
+        src: roles/jitsi-meet/templates/nginx.stream.j2
+        dest: /etc/nginx/conf.stream/prosodylimited.conf
+        mode: 0644
+      register: stage_nginx_stream
+
+    - name: Stage - note whether nginx needs to reload
+      ansible.builtin.set_fact:
+        standalone_update_nginx_changed: "{{ [stage_ssl_certificate, stage_ssl_key, stage_signal_api_ssl_certificate,
+          stage_signal_api_ssl_key, stage_nginx_site, stage_nginx_stream] | selectattr('changed') | list | length > 0 }}"
 
     # now reconfigure jicofo
     - name: Jicofo configuration file

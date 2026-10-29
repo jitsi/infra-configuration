@@ -100,7 +100,7 @@
       prosody instances: {{ standalone_update_restart_prosodies | join(', ') if standalone_update_restart_prosodies else 'unchanged' }}
       jicofo: {{ 'restart' if standalone_update_restart_jicofo else 'unchanged' }}
       jitsi-videobridge2: {{ 'restart' if standalone_update_restart_jvb else 'unchanged' }}
-      nginx: {{ 'reload' if standalone_update_nginx_certs_changed | default(false) else 'unchanged' }}
+      nginx: {{ 'reload' if standalone_update_nginx_changed | default(false) else 'unchanged' }}
       Changed since start (first match per path):
       {% for result in restart_changed_files.results %}
         {{ result.item.unit }}: {{ result.stdout_lines | join(', ') if result.stdout_lines else 'nothing' }}
@@ -143,13 +143,13 @@
 - name: Restart - check the nginx config and certificates before reloading
   ansible.builtin.command: nginx -t
   changed_when: false
-  when: standalone_update_nginx_certs_changed | default(false)
+  when: standalone_update_nginx_changed | default(false)
 
-- name: Restart - reload nginx for the new certificates
+- name: Restart - reload nginx for the new config or certificates
   ansible.builtin.systemd:
     name: nginx
     state: reloaded
-  when: standalone_update_nginx_certs_changed | default(false)
+  when: standalone_update_nginx_changed | default(false)
 
 - name: Ensure all services are started
   ansible.builtin.systemd:
