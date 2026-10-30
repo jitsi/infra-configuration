@@ -65,6 +65,12 @@ jicofo_jibri_jvb_brewery_flag: "{{ jicofo_jibri_jvb_brewery_enabled | bool and j
   jicofo_prosody_brewery_shard_enabled | bool }}"
 # Note the units are seconds
 jicofo_jibri_pending_timeout: 90
+# Rate limits for a conference to start Jibri sessions (recording/live streaming and SIP each get their own budget).
+# They match the per-room limit of prosody's mod_filter_iq_jibri (max_number_room_attempts_per_minute, 3 per minute).
+# Note the units are seconds.
+jicofo_jibri_start_requests_interval: 60
+jicofo_jibri_start_requests_max_requests: 3
+jicofo_jibri_start_requests_min_interval: 0
 jicofo_jigasi_brewery_muc: JigasiBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 jicofo_jvb_brewery_muc: JvbBrewery@{{ jicofo_internal_muc_prefix }}.{{ environment_domain_name }}
 jicofo_max_audio_senders: 999999

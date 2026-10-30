@@ -517,11 +517,17 @@ var config = {
         enableV2: true
     },
 {% endif %}
+{% if jitsi_meet_show_breakout_room_join_permissions_setting %}
+    showBreakoutRoomJoinPermissionsModeratorSetting: true,
+{% endif %}
 {% if jitsi_meet_show_chat_permissions_setting %}
     showChatPermissionsModeratorSetting: true,
 {% endif %}
 {% if jitsi_meet_show_poll_single_answer_setting %}
     showPollSingleAnswerSetting: true,
+{% endif %}
+{% if jitsi_meet_show_shared_video_permissions_setting %}
+    showSharedVideoPermissionsModeratorSetting: true,
 {% endif %}
 faceLandmarks: {
     enableFaceCentering: {% if jitsi_meet_enable_face_landmarks_enable_centering %}true{% else %}false{% endif %},
