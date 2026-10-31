@@ -4,6 +4,7 @@
     repo: "{{ jitsi_torture_assets_git_repo }}"
     version: "{{ jitsi_torture_assets_git_branch }}"
     dest: "{{ jitsi_torture_assets_path }}"
+    force: true
 
 - name: Ensure directory for assets
   ansible.builtin.file:
