@@ -84,6 +84,44 @@ This map is maintained by the `tenant-pin` service, which uses the
 store. If there is a problem with this service, tenant pinning may get out of
 date.
 
+### tenant connection rate limit
+
+HAProxy caps the rate at which a single tenant can open XMPP connections.
+It counts websocket upgrades on `/xmpp-websocket`, `/<tenant>/xmpp-websocket`
+and `/v1/_ws/.../xmpp-websocket`, and new BOSH sessions on `http-bind` (a POST
+whose body has no `sid`). Attempts are counted per tenant in the
+`tenant_connect_rates` stick table over a sliding 10 s window. Each haproxy
+counts on its own, so the cap applies per haproxy. The table is not in the
+peers section, because a peer update overwrites the local counters instead of
+adding to them. A reload starts the count again. Untenanted traffic is not
+counted.
+
+Anything over `haproxy_tenant_connect_rate_10s` (default 150) is a hit. With
+`haproxy_tenant_connect_rate_limit_enforce: true` a hit gets a 429 from the
+`tenant_rate_limited` backend. The client retries with its own backoff, so a
+burst of joins from one customer is spread over minutes instead of landing on
+one shard in one minute, which saturates prosody and wedges jicofo. Reconnects
+count as well. With enforce false (the default) hits are only counted and
+logged, so a new environment can size the cap before it bites.
+
+Observability:
+
+- every hit logs one line at `notice`, with `tenant=`, `rl_hit=`, `ws_rate=`
+  and `enforce=`, even where http logging is off. The line has the path but no
+  query string, because the query string carries the JWT. `option logasap`
+  writes the line when the request is forwarded, not when the websocket closes.
+- `echo "show table tenant_connect_rates" | socat stdio /run/haproxy/admin.sock`
+  shows per tenant the live rate, `gpc0` (hits since the last reload) and
+  `gpc0_rate` (hits per minute)
+- when enforcing, `haproxy_backend_requests_denied_total{proxy="tenant_rate_limited"}`
+  counts the 429s
+
+Disable the whole thing with `haproxy_tenant_connect_rate_limit_enabled: false`.
+`jitsi_meet_enable_shard_ws_proxy` defaults to true in the `jitsi-meet` role.
+When it is on, config.js sends websockets to `/v1/_ws/<shard>/xmpp-websocket`,
+and the load balancer sends that path to the nginx proxy on port 8089. Those
+websockets bypass this limit. Check the site vars before you rely on the cap.
+
 ## haproxy and jigasi
 
 *TBD*

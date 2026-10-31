@@ -56,6 +56,11 @@ haproxy_state_file: '/tmp/server_state'
 haproxy_stats_socket: '/run/haproxy/admin.sock'
 haproxy_systemd_path: '/lib/systemd/system/haproxy.service'
 haproxy_test_backends_enabled: false
+# Per-tenant cap on XMPP connection attempts per haproxy over a sliding 10 s window, to spread a
+# burst of joins from one customer; see README_HAPROXY.md. With enforce false it only counts and logs.
+haproxy_tenant_connect_rate_limit_enabled: true
+haproxy_tenant_connect_rate_limit_enforce: false
+haproxy_tenant_connect_rate_10s: 150
 # roundrobin all backup servers by default
 haproxy_health_up_map_value: "{{ False if haproxy_build_ami or haproxy_boot_flag else True }}"
 haproxy_health_up_map_path: /etc/haproxy/maps/up.map
