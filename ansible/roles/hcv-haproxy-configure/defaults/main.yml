@@ -56,6 +56,13 @@ haproxy_state_file: '/tmp/server_state'
 haproxy_stats_socket: '/run/haproxy/admin.sock'
 haproxy_systemd_path: '/lib/systemd/system/haproxy.service'
 haproxy_test_backends_enabled: false
+# Per-tenant cap on XMPP connection attempts (websocket upgrades and new BOSH sessions). Counted
+# per tenant over a sliding 10 s window, shared between the region's haproxies through the peers
+# section; requests over the cap get a 429 and the client retries with its own backoff. The point
+# is to spread a burst of joins from one customer over minutes instead of letting it land on a
+# single shard in one minute, which saturates prosody and wedges jicofo.
+haproxy_tenant_connect_rate_limit_enabled: true
+haproxy_tenant_connect_rate_10s: 150
 # roundrobin all backup servers by default
 haproxy_health_up_map_value: "{{ False if haproxy_build_ami or haproxy_boot_flag else True }}"
 haproxy_health_up_map_path: /etc/haproxy/maps/up.map

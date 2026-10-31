@@ -84,6 +84,21 @@ This map is maintained by the `tenant-pin` service, which uses the
 store. If there is a problem with this service, tenant pinning may get out of
 date.
 
+### tenant connection rate limit
+
+HAProxy caps the rate at which a single tenant can open XMPP connections
+(websocket upgrades on `/xmpp-websocket`, `/<tenant>/xmpp-websocket` and
+`/v1/_ws/.../xmpp-websocket`, and new BOSH sessions on `http-bind`). Attempts
+are counted per tenant in the `tenant_connect_rates` stick table over a sliding
+10 s window, shared between the region's haproxies through the peers section,
+and anything over `haproxy_tenant_connect_rate_10s` (default 150) gets a 429.
+The client retries with its own backoff, so a burst of joins from one customer
+is spread over minutes instead of landing on one shard in one minute, which
+saturates prosody and wedges jicofo. Reconnects count as well. Untenanted
+traffic is counted under the key `-`. Disable with
+`haproxy_tenant_connect_rate_limit_enabled: false`; inspect the live counters
+with `echo "show table tenant_connect_rates" | socat stdio /run/haproxy/admin.sock`.
+
 ## haproxy and jigasi
 
 *TBD*
