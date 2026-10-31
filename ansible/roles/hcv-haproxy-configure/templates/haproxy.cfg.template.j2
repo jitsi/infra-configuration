@@ -172,37 +172,40 @@ frontend www-http from global_defaults
   http-request set-header X-StickToken %[hdr(X-StickToken),regsub(%25,%,g)]
   http-request set-header X-StickTokenFlag true if room_set not_web
 
-{% if haproxy_tenant_connect_rate_limit_enabled %}
-  # XMPP connection attempts: websocket upgrades on /xmpp-websocket or /<tenant>/xmpp-websocket and
-  # BOSH session creation. Reconnects count too; they are part of the load.
+{% if haproxy_tenant_connect_rate_limit_enabled | bool %}
+  # XMPP connection attempts: websocket upgrades on /xmpp-websocket, /<tenant>/xmpp-websocket or
+  # /v1/_ws/<shard>/xmpp-websocket, and BOSH session creation. Reconnects count too; they are part of the load.
   acl xmpp_ws path_reg ^(/[^/]+)?/xmpp-websocket$
   acl xmpp_ws path_reg ^/v1/_ws/[^/]+/xmpp-websocket$
   acl ws_upgrade hdr(Upgrade) -i websocket
-  # a new BOSH session is a POST whose <body> has no sid attribute; Strophe never puts sid in the URL
+  # a new BOSH session is a POST whose <body> has no sid attribute; Strophe never puts sid in the URL.
+  # A body still missing when the wait ends gets a 408, so go on as soon as any of it is in.
   acl bosh_path path_reg ^(/[^/]+)?/http-bind$
-  http-request wait-for-body time 200ms if bosh_path METH_POST
+  http-request wait-for-body time 2s at-least 1 if bosh_path METH_POST
+  acl bosh_body req.body -m sub <body
   acl bosh_has_sid req.body -m reg [[:space:]]sid=
   http-request set-var(txn.xmpp_connect) always_true if xmpp_ws ws_upgrade
-  http-request set-var(txn.xmpp_connect) always_true if bosh_path METH_POST !bosh_has_sid
+  http-request set-var(txn.xmpp_connect) always_true if bosh_path METH_POST bosh_body !bosh_has_sid
   acl xmpp_connect var(txn.xmpp_connect) -m bool
 
-  # count connection attempts per tenant; the key is the bare tenant name (X-Group without its trailing slash).
-  # Untenanted traffic is not counted.
-  http-request set-var(txn.rl_key) hdr(X-Group),lower,regsub(\/,) if xmpp_connect has_group !not_group
-  # the /v1/_ws/ form carries the tenant in the query string (the shard's nginx rewrites it)
-  http-request set-var(txn.rl_key) url_param(tenant),lower if xmpp_connect { path_beg /v1/_ws/ } { url_param(tenant) -m found }
+  # Untenanted traffic is not counted. Dots become underscores, as config.js does for ?tenant=, so both forms share a key.
+  http-request set-var(txn.rl_key) hdr(X-Group),lower,regsub(\/,),regsub(\.,_,g) if xmpp_connect has_group !not_group !{ path_beg /v1/_ws/ }
+  # the /v1/_ws/ path has no tenant; config.js puts it in ?tenant=, empty for an untenanted room
+  http-request set-var(txn.rl_key) url_param(tenant),lower if xmpp_connect { path_beg /v1/_ws/ } { url_param(tenant) -m reg . }
   acl rl_key_set var(txn.rl_key) -m found
   http-request track-sc0 var(txn.rl_key) table tenant_connect_rates if xmpp_connect rl_key_set
 
-  # over the cap: each haproxy counts on its own, peers only carry the table across a reload. Denied
-  # requests still count, so a retry storm cannot slip through.
+  # over the cap. Denied requests still count, so a retry storm cannot slip through.
   acl tenant_connect_rate_exceeded sc_http_req_rate(0) gt {{ haproxy_tenant_connect_rate_10s }}
   http-request set-var(txn.rl_hit) always_true if xmpp_connect rl_key_set tenant_connect_rate_exceeded
   acl rl_hit var(txn.rl_hit) -m bool
   http-request sc-inc-gpc0(0) if rl_hit
-  # prod has no access log; raise only the hits to notice so they pass the log level filter
+  # with haproxy_http_log_enabled false the log level is notice; raise only the hits so they pass
   http-request set-log-level notice if rl_hit
-  log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %{+Q}r tenant=%[var(txn.rl_key)] rl_hit=%[var(txn.rl_hit)] ws_rate=%[sc_http_req_rate(0)] enforce={{ haproxy_tenant_connect_rate_limit_enforce | lower }}"
+  # a websocket line is otherwise written when the tunnel closes, up to an hour after the hit
+  option logasap
+  # path only: the query string carries the JWT
+  log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %HM %{+Q}HP tenant=%[var(txn.rl_key)] rl_hit=%[var(txn.rl_hit)] ws_rate=%[sc_http_req_rate(0)] enforce={{ haproxy_tenant_connect_rate_limit_enforce | bool | lower }}"
 {% endif %}
 
   http-request add-header X-Forwarded-Proto https
@@ -243,7 +246,7 @@ frontend www-http from global_defaults
   use_backend jvb-colibri-proxy if jvb_path
 {% endif %}
 
-{% if haproxy_tenant_connect_rate_limit_enabled and haproxy_tenant_connect_rate_limit_enforce %}
+{% if haproxy_tenant_connect_rate_limit_enabled | bool and haproxy_tenant_connect_rate_limit_enforce | bool %}
   use_backend tenant_rate_limited if rl_hit
 {% endif %}
 
@@ -269,12 +272,14 @@ backend jvb-colibri-proxy from global_defaults
 backend local_health from global_defaults
   server local 127.0.0.1:8080
 
-{% if haproxy_tenant_connect_rate_limit_enabled %}
-# holds the per-tenant connection-attempt counters used by the frontend; no servers.
-# gpc0 counts denies (or shadow hits) per tenant, visible with "show table tenant_connect_rates"
+{% if haproxy_tenant_connect_rate_limit_enabled | bool %}
+# gpc0 counts denies (or shadow hits) per tenant, visible with "show table tenant_connect_rates".
+# No peers: a peer update overwrites the local counters instead of adding to them, so the count
+# would be whichever haproxy in the mesh wrote last. Without peers each haproxy counts on its own
+# and a reload starts the count again.
 backend tenant_connect_rates from global_defaults
-  stick-table type string len 80 size 20k expire 2m peers mypeers store http_req_rate(10s),gpc0,gpc0_rate(1m)
-{% if haproxy_tenant_connect_rate_limit_enforce %}
+  stick-table type string len 80 size 20k expire 2m store http_req_rate(10s),gpc0,gpc0_rate(1m)
+{% if haproxy_tenant_connect_rate_limit_enforce | bool %}
 # a backend of its own so the denies get a clean prometheus counter
 backend tenant_rate_limited from global_defaults
   http-request deny status 429 hdr Retry-After 10
