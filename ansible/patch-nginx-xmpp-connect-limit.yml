@@ -1,0 +1,249 @@
+# Adds the per-shard cap on new XMPP websocket connections from
+# roles/jitsi-meet/templates/nginx.site.j2 to running core nodes, without
+# re-rendering the site file.
+#
+# The site file is rendered at boot from the release tag and from boot-time
+# vars, and the role's configure path restarts nginx, which drops every
+# websocket on the shard. So this adds only 2 blocks to the site file already
+# on the host, and only reloads nginx:
+#
+#   http level   limit_req_zone, the $xmpp_connect_limited map, log_format
+#   location     = /xmpp-websocket: limit_req, the 2 access_log lines
+#
+# The live site file is edited after a backup under
+# /var/backups/nginx-xmpp-connect-limit-patch/. nginx does not read it until
+# the reload, and `nginx -t` must pass first. If the test fails, or no new
+# workers start after the reload, the backup is put back and the host is
+# marked failed. Old workers keep their websockets until they close, so each
+# reload holds a second set of workers for a while: do not toggle in a loop.
+#
+# The same variables as the role control it. Site vars are not read, so pass
+# them as extra vars:
+#   jitsi_meet_xmpp_connect_rate_limit_dry_run  default true, false enforces
+#   jitsi_meet_xmpp_connect_rate                default 15 (r/s)
+#   jitsi_meet_xmpp_connect_burst               default 100
+#   jitsi_meet_xmpp_connect_rate_limit_enabled  false removes both blocks
+# A re-run with other values replaces the blocks; a re-run with the same
+# values changes nothing and does not reload.
+#
+# A host whose site file already has the limiter from the template (built
+# from a release with it) is left alone. The new log is not rotated and not
+# shipped to Loki on a patched host; it gets a line only per rejection.
+#
+# Run with --check --diff first: it prints the change and touches nothing.
+# Hosts go one at a time (nginx_xmpp_connect_limit_serial raises it) and the
+# play stops at the first failure. Via
+# patch-nodes.sh, keep every host in one batch so that stop applies to all:
+#
+#   ENVIRONMENT=meet-jit-si ROLE=core BATCH_SIZE=500 \
+#     ANSIBLE_PLAYBOOK_FILE=patch-nginx-xmpp-connect-limit.yml \
+#     ANSIBLE_ARGS="--check --diff" scripts/patch-nodes.sh
+#
+# To enforce, add ANSIBLE_EXTRA_VARS="jitsi_meet_xmpp_connect_rate_limit_dry_run=false".
+- name: Patch the nginx xmpp-connect limit onto running core nodes
+  hosts: all
+  gather_facts: false
+  become: true
+  become_user: root
+  serial: "{{ nginx_xmpp_connect_limit_serial | default(1) }}"
+  max_fail_percentage: 0
+  vars_files:
+    - roles/jitsi-meet/defaults/main.yml
+  vars:
+    xmpp_connect_limit_backup_root: /var/backups/nginx-xmpp-connect-limit-patch
+    xmpp_connect_limit_present: "{{ jitsi_meet_xmpp_connect_rate_limit_enabled | bool }}"
+    # extra vars from patch-nodes.sh arrive as strings
+    xmpp_connect_limit_dry_run: "{{ jitsi_meet_xmpp_connect_rate_limit_dry_run | bool }}"
+    xmpp_connect_limit_http_marker: "# {mark} xmpp-connect limit http (patch-nginx-xmpp-connect-limit.yml)"
+    xmpp_connect_limit_location_marker: "        # {mark} xmpp-connect limit location (patch-nginx-xmpp-connect-limit.yml)"
+    # keep both blocks in step with nginx.site.j2, so the vector parser reads the patched log too
+    xmpp_connect_limit_http_block: |
+      limit_req_zone "global" zone=xmpp-connect:1m rate={{ jitsi_meet_xmpp_connect_rate | int }}r/s;
+      map $limit_req_status $xmpp_connect_limited {
+          default 1;
+          "" 0;
+          PASSED 0;
+      }
+      log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=xmpp-connect '
+          'tenant=$prefix shard=$jitsi_shard dry_run={{ xmpp_connect_limit_dry_run | lower }}';
+    xmpp_connect_limit_location_block: |2
+              limit_req zone=xmpp-connect burst={{ jitsi_meet_xmpp_connect_burst | int }} nodelay;
+              limit_req_status 429;
+      {% if xmpp_connect_limit_dry_run %}
+              limit_req_dry_run on;
+      {% endif %}
+              limit_req_log_level info;
+              access_log /var/log/nginx/access.log {{ xmpp_connect_limit_access_format }};
+              access_log /var/log/nginx/xmpp-connect-limit.log xmpp_connect_limit if=$xmpp_connect_limited;
+    xmpp_connect_limit_edits:
+      - marker: "{{ xmpp_connect_limit_http_marker }}"
+        insertbefore: BOF
+        block: "{{ xmpp_connect_limit_http_block }}"
+      - marker: "{{ xmpp_connect_limit_location_marker }}"
+        insertafter: '^\s*location = /xmpp-websocket \{\s*$'
+        block: "{{ xmpp_connect_limit_location_block }}"
+
+  tasks:
+    - name: Record run timestamp
+      ansible.builtin.set_fact:
+        xmpp_connect_limit_backup_dir: "{{ xmpp_connect_limit_backup_root }}/{{ lookup('pipe', 'date -u +%Y%m%dT%H%M%SZ') }}"
+
+    - name: Check which services are running
+      ansible.builtin.service_facts:
+
+    - name: Leave the host alone where nginx is not running
+      ansible.builtin.meta: end_host
+      when: ansible_facts.services['nginx.service'].state | default('') != 'running'
+
+    # sites-enabled holds a symlink; edit its target so the link stays
+    - name: Find the site file with the xmpp-websocket location
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        grep -lE '^\s*location = /xmpp-websocket \{\s*$' /etc/nginx/sites-enabled/* | xargs -r readlink -f | sort -u
+      args:
+        executable: /bin/bash
+      register: xmpp_connect_limit_site_probe
+      changed_when: false
+      check_mode: false
+      failed_when: xmpp_connect_limit_site_probe.stdout_lines | length != 1
+
+    - name: Read the site file
+      ansible.builtin.slurp:
+        src: "{{ xmpp_connect_limit_site_probe.stdout_lines[0] }}"
+      register: xmpp_connect_limit_site_content
+
+    - name: Set host facts
+      ansible.builtin.set_fact:
+        xmpp_connect_limit_site: "{{ xmpp_connect_limit_site_probe.stdout_lines[0] }}"
+        xmpp_connect_limit_patched: "{{ site_text is search('patch-nginx-xmpp-connect-limit.yml') }}"
+        xmpp_connect_limit_templated: "{{ site_text is search('zone=xmpp-connect:') and site_text is not search('patch-nginx-xmpp-connect-limit.yml') }}"
+        # the location-level access_log must repeat the server-level format
+        xmpp_connect_limit_access_format: "{{ 'anon' if site_text is search('(?m)^\\s*access_log /var/log/nginx/access.log anon;') else 'main' }}"
+      vars:
+        site_text: "{{ xmpp_connect_limit_site_content.content | b64decode }}"
+
+    - name: Show the plan for this host
+      ansible.builtin.debug:
+        msg: >-
+          site={{ xmpp_connect_limit_site }} templated={{ xmpp_connect_limit_templated }}
+          patched={{ xmpp_connect_limit_patched }} want={{ 'present' if xmpp_connect_limit_present else 'absent' }}
+          dry_run={{ xmpp_connect_limit_dry_run }} rate={{ jitsi_meet_xmpp_connect_rate }} burst={{ jitsi_meet_xmpp_connect_burst }}
+          access_log_format={{ xmpp_connect_limit_access_format }}
+
+    - name: Leave the host alone where the template already has the limiter
+      ansible.builtin.meta: end_host
+      when: xmpp_connect_limit_templated
+
+    - name: Read the nginx master pid
+      ansible.builtin.command: cat /run/nginx.pid
+      register: xmpp_connect_limit_master
+      changed_when: false
+      check_mode: false
+
+    - name: Read the current nginx workers
+      ansible.builtin.command: pgrep -P {{ xmpp_connect_limit_master.stdout }}
+      register: xmpp_connect_limit_workers_before
+      changed_when: false
+      check_mode: false
+
+    # the same edit in check mode first, so a re-run with the same values
+    # takes no backup; it also prints the diff under --check --diff
+    - name: Check whether the site file needs a change
+      ansible.builtin.blockinfile:
+        path: "{{ xmpp_connect_limit_site }}"
+        insertbefore: "{{ item.insertbefore | default(omit) }}"
+        insertafter: "{{ item.insertafter | default(omit) }}"
+        marker: "{{ item.marker }}"
+        block: "{{ item.block }}"
+        state: "{{ 'present' if xmpp_connect_limit_present else 'absent' }}"
+      loop: "{{ xmpp_connect_limit_edits }}"
+      loop_control:
+        label: "{{ item.marker }}"
+      check_mode: true
+      register: xmpp_connect_limit_probe
+
+    - name: Patch the site file
+      when:
+        - xmpp_connect_limit_probe is changed
+        - not ansible_check_mode
+      block:
+        - name: Create the backup directory
+          ansible.builtin.file:
+            path: "{{ xmpp_connect_limit_backup_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+
+        - name: Back up the site file
+          ansible.builtin.copy:
+            src: "{{ xmpp_connect_limit_site }}"
+            dest: "{{ xmpp_connect_limit_backup_dir }}/{{ xmpp_connect_limit_site | basename }}"
+            remote_src: true
+            mode: preserve
+          register: xmpp_connect_limit_backup
+
+        - name: Edit the site file
+          ansible.builtin.blockinfile:
+            path: "{{ xmpp_connect_limit_site }}"
+            insertbefore: "{{ item.insertbefore | default(omit) }}"
+            insertafter: "{{ item.insertafter | default(omit) }}"
+            marker: "{{ item.marker }}"
+            block: "{{ item.block }}"
+            state: "{{ 'present' if xmpp_connect_limit_present else 'absent' }}"
+          loop: "{{ xmpp_connect_limit_edits }}"
+          loop_control:
+            label: "{{ item.marker }}"
+
+        - name: Test the nginx config
+          ansible.builtin.command: nginx -t
+          changed_when: false
+
+        - name: Reload nginx
+          ansible.builtin.systemd:
+            name: nginx
+            state: reloaded
+          register: xmpp_connect_limit_reload
+
+        # nginx keeps the old config and workers when a reload fails, so new
+        # workers under the same master are the proof that it took the file
+        - name: Wait for new nginx workers under the same master
+          ansible.builtin.shell: >-
+            set -o pipefail;
+            [ "$(cat /run/nginx.pid)" = "{{ xmpp_connect_limit_master.stdout }}" ] &&
+            pgrep -P {{ xmpp_connect_limit_master.stdout }} | grep -vxF -f <(echo "{{ xmpp_connect_limit_workers_before.stdout }}")
+          args:
+            executable: /bin/bash
+          register: xmpp_connect_limit_new_workers
+          changed_when: false
+          until: xmpp_connect_limit_new_workers.rc == 0
+          retries: 15
+          delay: 2
+
+      rescue:
+        - name: Restore the site file from the backup # noqa no-handler
+          ansible.builtin.copy:
+            src: "{{ xmpp_connect_limit_backup_dir }}/{{ xmpp_connect_limit_site | basename }}"
+            dest: "{{ xmpp_connect_limit_site }}"
+            remote_src: true
+            mode: preserve
+          register: xmpp_connect_limit_restored
+          when: xmpp_connect_limit_backup is changed
+          failed_when: false
+
+        - name: Reload nginx onto the restored site file # noqa no-handler
+          ansible.builtin.shell: nginx -t && systemctl reload nginx
+          changed_when: true
+          when:
+            - xmpp_connect_limit_restored is changed
+            - xmpp_connect_limit_reload is defined
+            - xmpp_connect_limit_reload is changed
+
+        - name: Fail the host
+          ansible.builtin.fail:
+            msg: >-
+              nginx xmpp-connect limit patch failed in '{{ ansible_failed_task.name }}'
+              {{- ' and the site file was restored' if xmpp_connect_limit_restored is changed else '' }}:
+              {{ ('gave up after ' ~ ansible_failed_result.attempts ~ ' attempts')
+                  if ansible_failed_result.attempts is defined
+                  else ansible_failed_result.msg | default('') ~ ' ' ~ ansible_failed_result.stderr | default('') }}
