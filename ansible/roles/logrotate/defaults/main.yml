@@ -156,6 +156,7 @@ logrotate_rules_core:
     path:
       - /var/log/nginx/access.log
       - /var/log/nginx/error.log
+      - /var/log/nginx/xmpp-connect-limit.log
   - name: prosody-log-filter
     options:
       - size 100M

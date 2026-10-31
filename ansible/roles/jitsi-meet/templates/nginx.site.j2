@@ -88,6 +88,18 @@ limit_req_zone "global" zone=conference-request-global:10m rate={{ jitsi_meet_co
 {% if jitsi_meet_enable_voice_agent_api %}
 limit_req_zone $limit_key zone=voice-agent:10m rate=10r/s;
 {% endif %}
+{% if jitsi_meet_xmpp_connect_rate_limit_enabled %}
+# per-shard ceiling on new XMPP connections, whoever sends them: one burst of joins on one shard
+# saturates prosody and wedges jicofo. BOSH is not limited here, every poll is a request.
+limit_req_zone "global" zone=xmpp-connect:1m rate={{ jitsi_meet_xmpp_connect_rate }}r/s;
+map $limit_req_status $xmpp_connect_limited {
+    default 1;
+    "" 0;
+    PASSED 0;
+}
+# no client address and no room, so the file is safe where access logs are anonymized
+log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status zone=xmpp-connect tenant=$prefix shard=$jitsi_shard dry_run={{ jitsi_meet_xmpp_connect_rate_limit_dry_run | lower }}';
+{% endif %}
 
 # Set $remote_addr by scanning X-Forwarded-For, while only trusting the defined list of trusted proxies.
 {% for proxy in jitsi_meet_nginx_trusted_proxies %}
@@ -685,6 +697,22 @@ server {
 
     # xmpp websockets
     location = /xmpp-websocket {
+{% if jitsi_meet_xmpp_connect_rate_limit_enabled %}
+        limit_req zone=xmpp-connect burst={{ jitsi_meet_xmpp_connect_burst }} nodelay;
+        limit_req_status 429;
+{% if jitsi_meet_xmpp_connect_rate_limit_dry_run %}
+        limit_req_dry_run on;
+{% endif %}
+        # rejections are recorded in the dedicated log below, keep them out of error.log
+        limit_req_log_level info;
+        # a location-level access_log replaces the server-level one, so repeat it
+{% if jitsi_meet_anonymize_logs %}
+        access_log /var/log/nginx/access.log anon;
+{% else %}
+        access_log /var/log/nginx/access.log;
+{% endif %}
+        access_log /var/log/nginx/xmpp-connect-limit.log xmpp_connect_limit if=$xmpp_connect_limited;
+{% endif %}
         proxy_pass http://$prosody_node/xmpp-websocket?prefix=$prefix&$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
