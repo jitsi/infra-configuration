@@ -93,6 +93,12 @@ sources:
         type: "file"
         include:
             - "/var/log/consul-template/haproxy-template.log"
+    xmpp_connect_limit:
+        type: "file"
+        include:
+            - "/var/log/nginx/xmpp-connect-limit.log"
+        fingerprint:
+            strategy: device_and_inode
 {% if vector_nginx_enabled | default(false) %}
     nginx_access:
         type: "file"
@@ -190,6 +196,24 @@ sinks:
         alloc: "{{ vector_cloud_instance_id }}"
         job: "shard-{{ vector_shard_name }}"
         task: "prosody"
+        group: "signal"
+        namespace: "default"
+        node: "{{ ansible_hostname }}"
+        region: "{{ vector_cloud_region }}"
+        level: "{{ '{{' }} .level }}"
+  loki_xmpp_connect_limit:
+    remove_timestamp: false
+    type: "loki"
+    inputs: ["xmpp_connect_limit_to_structure"]
+    endpoint: "{{ vector_loki_url }}"
+    encoding:
+        codec: "json"
+    healthcheck:
+        enabled: false
+    labels:
+        alloc: "{{ vector_cloud_instance_id }}"
+        job: "shard-{{ vector_shard_name }}"
+        task: "nginx-xmpp-connect-limit"
         group: "signal"
         namespace: "default"
         node: "{{ ansible_hostname }}"
@@ -441,6 +465,21 @@ transforms:
             parse_regex(.message, r'^(?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
+  # e.g., 2026-10-31T10:10:55+00:00 REJECTED 429 request_time=0.000 zone=xmpp-connect tenant=t1 shard=s1 dry_run=false
+  # the tenant comes from the decoded URI and can hold spaces, so it is matched up to " shard="
+  xmpp_connect_limit_to_structure:
+    type: "remap"
+    inputs: ["xmpp_connect_limit"]
+    source: |
+        structured =
+            parse_regex(.message, r'^(?P<time_iso8601>\S+) (?P<limit_req_status>\S+) (?P<status>\d+) request_time=(?P<request_time>\S+) zone=(?P<zone>\S+) tenant=(?P<tenant>.*) shard=(?P<shard>\S*) dry_run=(?P<dry_run>\S+)$') ??
+            {}
+        . = merge(., structured)
+        if .limit_req_status == "REJECTED" {
+            .level = "warn"
+        } else {
+            .level = "info"
+        }
   # e.g., 2025-09-29_14:34:30.Z [3834387] hap-map: starting update-haproxy-map.sh
   haproxy_template_to_structure:
     type: "remap"
