@@ -2,3 +2,24 @@
 skip_list:
   - run_once[play]
   - no-changed-when
+  - yaml  # Don't enforce line length
+  - no-handler  # Don't require handlers for service restarts
+  - role-name  # Don't enforce role naming conventions
+  - command-instead-of-module  # Sometimes shell commands are necessary
+
+# Exclude paths from linting
+exclude_paths:
+  - .github/
+  - .git/
+  - .venv/
+  - ansible/roles/*/molecule/
+
+# Determine whether to fail on warnings
+warn_list:
+  - experimental  # tasks using experimental features
+
+# Be quiet about skipped rules
+quiet: false
+
+# Make output parsable
+parseable: true
