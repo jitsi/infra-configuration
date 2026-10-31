@@ -174,27 +174,35 @@ frontend www-http from global_defaults
 
 {% if haproxy_tenant_connect_rate_limit_enabled %}
   # XMPP connection attempts: websocket upgrades on /xmpp-websocket or /<tenant>/xmpp-websocket and
-  # BOSH session creation (http-bind without a sid). Reconnects count too; they are part of the load.
+  # BOSH session creation. Reconnects count too; they are part of the load.
   acl xmpp_ws path_reg ^(/[^/]+)?/xmpp-websocket$
   acl xmpp_ws path_reg ^/v1/_ws/[^/]+/xmpp-websocket$
   acl ws_upgrade hdr(Upgrade) -i websocket
-  acl bosh_new path_reg ^(/[^/]+)?/http-bind$
-  acl bosh_sid url_param(sid) -m found
+  # a new BOSH session is a POST whose <body> has no sid attribute; Strophe never puts sid in the URL
+  acl bosh_path path_reg ^(/[^/]+)?/http-bind$
+  http-request wait-for-body time 200ms if bosh_path METH_POST
+  acl bosh_has_sid req.body -m reg [[:space:]]sid=
   http-request set-var(txn.xmpp_connect) always_true if xmpp_ws ws_upgrade
-  http-request set-var(txn.xmpp_connect) always_true if bosh_new !bosh_sid
+  http-request set-var(txn.xmpp_connect) always_true if bosh_path METH_POST !bosh_has_sid
   acl xmpp_connect var(txn.xmpp_connect) -m bool
 
-  # count connection attempts per tenant; X-Group is "<tenant>/" lower-cased, untenanted traffic counts as "-"
-  http-request set-var(txn.rl_key) hdr(X-Group),lower if xmpp_connect has_group !not_group
-  http-request set-var(txn.rl_key) str(-) if xmpp_connect !has_group
-  http-request set-var(txn.rl_key) str(-) if xmpp_connect not_group
+  # count connection attempts per tenant; the key is the bare tenant name (X-Group without its trailing slash).
+  # Untenanted traffic is not counted.
+  http-request set-var(txn.rl_key) hdr(X-Group),lower,regsub(\/,) if xmpp_connect has_group !not_group
   # the /v1/_ws/ form carries the tenant in the query string (the shard's nginx rewrites it)
   http-request set-var(txn.rl_key) url_param(tenant),lower if xmpp_connect { path_beg /v1/_ws/ } { url_param(tenant) -m found }
-  http-request track-sc0 var(txn.rl_key) table tenant_connect_rates if xmpp_connect
+  acl rl_key_set var(txn.rl_key) -m found
+  http-request track-sc0 var(txn.rl_key) table tenant_connect_rates if xmpp_connect rl_key_set
 
-  # over the cap: 429, the client retries with backoff. Denied requests still count, so a retry storm cannot slip through.
+  # over the cap: each haproxy counts on its own, peers only carry the table across a reload. Denied
+  # requests still count, so a retry storm cannot slip through.
   acl tenant_connect_rate_exceeded sc_http_req_rate(0) gt {{ haproxy_tenant_connect_rate_10s }}
-  http-request deny deny_status 429 if xmpp_connect tenant_connect_rate_exceeded
+  http-request set-var(txn.rl_hit) always_true if xmpp_connect rl_key_set tenant_connect_rate_exceeded
+  acl rl_hit var(txn.rl_hit) -m bool
+  http-request sc-inc-gpc0(0) if rl_hit
+  # prod has no access log; raise only the hits to notice so they pass the log level filter
+  http-request set-log-level notice if rl_hit
+  log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %{+Q}r tenant=%[var(txn.rl_key)] rl_hit=%[var(txn.rl_hit)] ws_rate=%[sc_http_req_rate(0)] enforce={{ haproxy_tenant_connect_rate_limit_enforce | lower }}"
 {% endif %}
 
   http-request add-header X-Forwarded-Proto https
@@ -235,6 +243,10 @@ frontend www-http from global_defaults
   use_backend jvb-colibri-proxy if jvb_path
 {% endif %}
 
+{% if haproxy_tenant_connect_rate_limit_enabled and haproxy_tenant_connect_rate_limit_enforce %}
+  use_backend tenant_rate_limited if rl_hit
+{% endif %}
+
   # shard-specific backends
 {%- for dc in ns.haproxy_datacenters %}{% raw %}{{ range $shard := service "signal@{% endraw %}{{ dc }}{% raw %}|any" }}{{ scratch.MapSetX "releases" $shard.ServiceMeta.release_number $shard.ServiceMeta.release_number }}{{ scratch.MapSet "shards" $shard.ServiceMeta.shard $shard }}{{ end }}{% endraw %}{% endfor %}{% raw %}{{ range $shard := scratch.Get "shards" }}
   use_backend {{ $shard.ServiceMeta.shard }} if { path_beg /{{ $shard.ServiceMeta.shard }}/ } OR { hdr(X-Room) -m end _{{ $shard.ServiceMeta.shard }} }{{ end }}{% endraw %}
@@ -258,9 +270,15 @@ backend local_health from global_defaults
   server local 127.0.0.1:8080
 
 {% if haproxy_tenant_connect_rate_limit_enabled %}
-# holds the per-tenant connection-attempt counters used by the frontend; no servers
+# holds the per-tenant connection-attempt counters used by the frontend; no servers.
+# gpc0 counts denies (or shadow hits) per tenant, visible with "show table tenant_connect_rates"
 backend tenant_connect_rates from global_defaults
-  stick-table type string len 80 size 20k expire 2m peers mypeers store http_req_rate(10s)
+  stick-table type string len 80 size 20k expire 2m peers mypeers store http_req_rate(10s),gpc0,gpc0_rate(1m)
+{% if haproxy_tenant_connect_rate_limit_enforce %}
+# a backend of its own so the denies get a clean prometheus counter
+backend tenant_rate_limited from global_defaults
+  http-request deny status 429 hdr Retry-After 10
+{% endif %}
 {% endif %}
 
 backend {{ haproxy_backend_name }} from global_defaults

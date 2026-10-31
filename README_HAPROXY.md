@@ -86,18 +86,35 @@ date.
 
 ### tenant connection rate limit
 
-HAProxy caps the rate at which a single tenant can open XMPP connections
-(websocket upgrades on `/xmpp-websocket`, `/<tenant>/xmpp-websocket` and
-`/v1/_ws/.../xmpp-websocket`, and new BOSH sessions on `http-bind`). Attempts
-are counted per tenant in the `tenant_connect_rates` stick table over a sliding
-10 s window, shared between the region's haproxies through the peers section,
-and anything over `haproxy_tenant_connect_rate_10s` (default 150) gets a 429.
-The client retries with its own backoff, so a burst of joins from one customer
-is spread over minutes instead of landing on one shard in one minute, which
-saturates prosody and wedges jicofo. Reconnects count as well. Untenanted
-traffic is counted under the key `-`. Disable with
-`haproxy_tenant_connect_rate_limit_enabled: false`; inspect the live counters
-with `echo "show table tenant_connect_rates" | socat stdio /run/haproxy/admin.sock`.
+HAProxy caps the rate at which a single tenant can open XMPP connections.
+It counts websocket upgrades on `/xmpp-websocket`, `/<tenant>/xmpp-websocket`
+and `/v1/_ws/.../xmpp-websocket`, and new BOSH sessions on `http-bind` (a POST
+whose body has no `sid`). Attempts are counted per tenant in the
+`tenant_connect_rates` stick table over a sliding 10 s window. Each haproxy
+counts on its own. The peers section carries the table across a reload, but it
+does not add the counters of the two haproxies up, so the cap applies per
+haproxy. Untenanted traffic is not counted.
+
+Anything over `haproxy_tenant_connect_rate_10s` (default 150) is a hit. With
+`haproxy_tenant_connect_rate_limit_enforce: true` a hit gets a 429 from the
+`tenant_rate_limited` backend. The client retries with its own backoff, so a
+burst of joins from one customer is spread over minutes instead of landing on
+one shard in one minute, which saturates prosody and wedges jicofo. Reconnects
+count as well. With enforce false (the default) hits are only counted and
+logged, so a new environment can size the cap before it bites.
+
+Observability:
+
+- every hit logs one line at `notice`, with `tenant=`, `rl_hit=`, `ws_rate=`
+  and `enforce=`, even where http logging is off
+- `echo "show table tenant_connect_rates" | socat stdio /run/haproxy/admin.sock`
+  shows per tenant the live rate, `gpc0` (hits total) and `gpc0_rate` (hits per minute)
+- when enforcing, `haproxy_backend_requests_denied_total{proxy="tenant_rate_limited"}`
+  counts the 429s
+
+Disable the whole thing with `haproxy_tenant_connect_rate_limit_enabled: false`.
+If `jitsi_meet_enable_shard_ws_proxy` is turned on, websockets reach the shard
+through the nginx proxy on port 8089 and bypass this limit.
 
 ## haproxy and jigasi
 
