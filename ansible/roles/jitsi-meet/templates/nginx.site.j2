@@ -98,7 +98,8 @@ map $limit_req_status $xmpp_connect_limited {
     PASSED 0;
 }
 # no client address and no room, so the file is safe where access logs are anonymized
-log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status zone=xmpp-connect tenant=$prefix shard=$jitsi_shard dry_run={{ jitsi_meet_xmpp_connect_rate_limit_dry_run | lower }}';
+# a websocket that upgrades is logged when it closes: the connect time is the log time minus request_time
+log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=xmpp-connect tenant=$prefix shard=$jitsi_shard dry_run={{ jitsi_meet_xmpp_connect_rate_limit_dry_run | lower }}';
 {% endif %}
 
 # Set $remote_addr by scanning X-Forwarded-For, while only trusting the defined list of trusted proxies.
@@ -705,11 +706,11 @@ server {
 {% endif %}
         # rejections are recorded in the dedicated log below, keep them out of error.log
         limit_req_log_level info;
-        # a location-level access_log replaces the server-level one, so repeat it
+        # a location-level access_log drops every inherited one, so repeat it with the same format
 {% if jitsi_meet_anonymize_logs %}
         access_log /var/log/nginx/access.log anon;
 {% else %}
-        access_log /var/log/nginx/access.log;
+        access_log /var/log/nginx/access.log main;
 {% endif %}
         access_log /var/log/nginx/xmpp-connect-limit.log xmpp_connect_limit if=$xmpp_connect_limited;
 {% endif %}
