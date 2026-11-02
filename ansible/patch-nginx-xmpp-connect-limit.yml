@@ -17,9 +17,7 @@
 #
 # The jitsi_meet_xmpp_connect_* variables from roles/jitsi-meet/defaults
 # control it; ..._rate_limit_enabled=false removes both blocks. Site vars are
-# not read, so pass them with -e in ANSIBLE_ARGS. ANSIBLE_EXTRA_VARS does not
-# work: patch-nodes.sh keeps its quotes, so ansible gets a variable named
-# "'jitsi_meet_..." and the run stays on the defaults.
+# not read, so pass them as extra vars.
 # A re-run with other values replaces the blocks; a re-run with the same
 # values changes nothing and does not reload.
 #
@@ -36,8 +34,7 @@
 #     ANSIBLE_PLAYBOOK_FILE=patch-nginx-xmpp-connect-limit.yml \
 #     ANSIBLE_ARGS="--check --diff" scripts/patch-nodes.sh
 #
-# To enforce:
-#   ANSIBLE_ARGS="-e jitsi_meet_xmpp_connect_rate_limit_dry_run=false"
+# To enforce, add ANSIBLE_EXTRA_VARS="jitsi_meet_xmpp_connect_rate_limit_dry_run=false".
 - name: Patch the nginx xmpp-connect limit onto running core nodes
   hosts: all
   gather_facts: false

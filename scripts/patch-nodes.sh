@@ -50,9 +50,6 @@ ANSIBLE_PLAYBOOK="$LOCAL_PATH/../ansible/$ANSIBLE_PLAYBOOK_FILE"
 ANSIBLE_ROLES="${ANSIBLE_ROLES-"sshusers"}"
 
 ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS-""}"
-if [ -n "$ANSIBLE_EXTRA_VARS" ]; then
-  ANSIBLE_EXTRA_VARS="-e '$ANSIBLE_EXTRA_VARS'"
-fi
 
 ANSIBLE_ARGS="${ANSIBLE_ARGS-""}"
 
@@ -109,7 +106,7 @@ for BATCH_INVENTORY in .batch/${ROLE}-${ORACLE_REGION}-*; do
     ansible-playbook $ANSIBLE_PLAYBOOK \
         -i ./batch.inventory \
         -e "ansible_ssh_user=$ANSIBLE_SSH_USER shard_role=$ROLE patch_ansible_roles=\"$ANSIBLE_ROLES\"" \
-        $ANSIBLE_EXTRA_VARS --vault-password-file .vault-password.txt \
+        ${ANSIBLE_EXTRA_VARS:+-e "$ANSIBLE_EXTRA_VARS"} --vault-password-file .vault-password.txt \
         --tags "$DEPLOY_TAGS" $ANSIBLE_ARGS
 
     if [[ $? -gt 0 ]]; then
