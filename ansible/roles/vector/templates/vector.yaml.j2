@@ -465,7 +465,7 @@ transforms:
             parse_regex(.message, r'^(?P<component>[^\s]+)(\s+)(?P<level>\w+)\t(?P<message>[\S\s]*)$') ??
             {}
         . = merge(., structured)
-  # e.g., 2026-10-31T10:10:55+00:00 REJECTED 429 request_time=0.000 zone=xmpp-connect tenant=t1 shard=s1 dry_run=false
+  # e.g., 2026-10-31T10:10:55+00:00 REJECTED 429 request_time=0.000 zone=xmpp-new-connect tenant=t1 shard=s1 dry_run=false
   # the tenant comes from the decoded URI and can hold spaces, so it is matched up to " shard="
   xmpp_connect_limit_to_structure:
     type: "remap"

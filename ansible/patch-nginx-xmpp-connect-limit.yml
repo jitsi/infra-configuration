@@ -52,17 +52,23 @@
     xmpp_connect_limit_http_marker: "# {mark} xmpp-connect limit http (patch-nginx-xmpp-connect-limit.yml)"
     xmpp_connect_limit_location_marker: "        # {mark} xmpp-connect limit location (patch-nginx-xmpp-connect-limit.yml)"
     # keep both blocks in step with nginx.site.j2, so patched and templated hosts write the same log line
+    # nginx refuses a reload that changes the key of an existing zone (nginx -t passes), so a new
+    # key needs a new zone name
     xmpp_connect_limit_http_block: |
-      limit_req_zone "global" zone=xmpp-connect:1m rate={{ jitsi_meet_xmpp_connect_rate | int }}r/s;
+      map $arg_previd $xmpp_connect_limit_key {
+          default "";
+          "" global;
+      }
+      limit_req_zone $xmpp_connect_limit_key zone=xmpp-new-connect:1m rate={{ jitsi_meet_xmpp_connect_rate | int }}r/s;
       map $limit_req_status $xmpp_connect_limited {
           default 1;
           "" 0;
           PASSED 0;
       }
-      log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=xmpp-connect '
+      log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=xmpp-new-connect '
           'tenant=$prefix shard=$jitsi_shard dry_run={{ xmpp_connect_limit_dry_run | lower }}';
     xmpp_connect_limit_location_block: |2
-              limit_req zone=xmpp-connect burst={{ jitsi_meet_xmpp_connect_burst | int }} nodelay;
+              limit_req zone=xmpp-new-connect burst={{ jitsi_meet_xmpp_connect_burst | int }} nodelay;
               limit_req_status 429;
       {% if xmpp_connect_limit_dry_run %}
               limit_req_dry_run on;
@@ -117,7 +123,7 @@
       ansible.builtin.set_fact:
         xmpp_connect_limit_site: "{{ xmpp_connect_limit_site_probe.stdout_lines[0] }}"
         xmpp_connect_limit_patched: "{{ site_text is search('patch-nginx-xmpp-connect-limit.yml') }}"
-        xmpp_connect_limit_templated: "{{ site_text is search('zone=xmpp-connect:') and site_text is not search('patch-nginx-xmpp-connect-limit.yml') }}"
+        xmpp_connect_limit_templated: "{{ site_text is search('zone=xmpp-(new-)?connect:') and site_text is not search('patch-nginx-xmpp-connect-limit.yml') }}"
         # the location-level access_log must repeat the inherited format
         xmpp_connect_limit_access_format: "{{ 'anon' if site_text is search('(?m)^\\s*access_log /var/log/nginx/access.log anon;') else 'main' }}"
       vars:
