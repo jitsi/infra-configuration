@@ -5,10 +5,8 @@
 # The site file is rendered at boot from the release tag and from boot-time
 # vars, and the role's configure path restarts nginx, which drops every
 # websocket on the shard. So this adds only 2 blocks to the site file already
-# on the host, and only reloads nginx:
-#
-#   http level   limit_req_zone, the $xmpp_connect_limited map, log_format
-#   location     = /xmpp-websocket: limit_req, the 2 access_log lines
+# on the host, one at http level and one in `location = /xmpp-websocket`, and
+# only reloads nginx.
 #
 # The live site file is edited after a backup under
 # /var/backups/nginx-xmpp-connect-limit-patch/. nginx does not read it until
@@ -17,12 +15,11 @@
 # marked failed. Old workers keep their websockets until they close, so each
 # reload holds a second set of workers for a while: do not toggle in a loop.
 #
-# The same variables as the role control it. Site vars are not read, so pass
-# them as extra vars:
-#   jitsi_meet_xmpp_connect_rate_limit_dry_run  default true, false enforces
-#   jitsi_meet_xmpp_connect_rate                default 15 (r/s)
-#   jitsi_meet_xmpp_connect_burst               default 100
-#   jitsi_meet_xmpp_connect_rate_limit_enabled  false removes both blocks
+# The jitsi_meet_xmpp_connect_* variables from roles/jitsi-meet/defaults
+# control it; ..._rate_limit_enabled=false removes both blocks. Site vars are
+# not read, so pass them with -e in ANSIBLE_ARGS. ANSIBLE_EXTRA_VARS does not
+# work: patch-nodes.sh keeps its quotes, so ansible gets a variable named
+# "'jitsi_meet_..." and the run stays on the defaults.
 # A re-run with other values replaces the blocks; a re-run with the same
 # values changes nothing and does not reload.
 #
@@ -39,7 +36,8 @@
 #     ANSIBLE_PLAYBOOK_FILE=patch-nginx-xmpp-connect-limit.yml \
 #     ANSIBLE_ARGS="--check --diff" scripts/patch-nodes.sh
 #
-# To enforce, add ANSIBLE_EXTRA_VARS="jitsi_meet_xmpp_connect_rate_limit_dry_run=false".
+# To enforce:
+#   ANSIBLE_ARGS="-e jitsi_meet_xmpp_connect_rate_limit_dry_run=false"
 - name: Patch the nginx xmpp-connect limit onto running core nodes
   hosts: all
   gather_facts: false
@@ -56,7 +54,7 @@
     xmpp_connect_limit_dry_run: "{{ jitsi_meet_xmpp_connect_rate_limit_dry_run | bool }}"
     xmpp_connect_limit_http_marker: "# {mark} xmpp-connect limit http (patch-nginx-xmpp-connect-limit.yml)"
     xmpp_connect_limit_location_marker: "        # {mark} xmpp-connect limit location (patch-nginx-xmpp-connect-limit.yml)"
-    # keep both blocks in step with nginx.site.j2, so the vector parser reads the patched log too
+    # keep both blocks in step with nginx.site.j2, so patched and templated hosts write the same log line
     xmpp_connect_limit_http_block: |
       limit_req_zone "global" zone=xmpp-connect:1m rate={{ jitsi_meet_xmpp_connect_rate | int }}r/s;
       map $limit_req_status $xmpp_connect_limited {
@@ -91,11 +89,17 @@
     - name: Check which services are running
       ansible.builtin.service_facts:
 
+    # end_host prints nothing and drops the host from the recap, so say it here
+    - name: Report that nginx is not running
+      ansible.builtin.debug:
+        msg: "SKIPPED: nginx.service is not running, the site file was not patched"
+      when: ansible_facts.services['nginx.service'].state | default('') != 'running'
+
     - name: Leave the host alone where nginx is not running
       ansible.builtin.meta: end_host
       when: ansible_facts.services['nginx.service'].state | default('') != 'running'
 
-    # sites-enabled holds a symlink; edit its target so the link stays
+    # sites-enabled holds a symlink; resolve it so the rescue's copy restores the target, not over the link
     - name: Find the site file with the xmpp-websocket location
       ansible.builtin.shell: >-
         set -o pipefail;
@@ -117,7 +121,7 @@
         xmpp_connect_limit_site: "{{ xmpp_connect_limit_site_probe.stdout_lines[0] }}"
         xmpp_connect_limit_patched: "{{ site_text is search('patch-nginx-xmpp-connect-limit.yml') }}"
         xmpp_connect_limit_templated: "{{ site_text is search('zone=xmpp-connect:') and site_text is not search('patch-nginx-xmpp-connect-limit.yml') }}"
-        # the location-level access_log must repeat the server-level format
+        # the location-level access_log must repeat the inherited format
         xmpp_connect_limit_access_format: "{{ 'anon' if site_text is search('(?m)^\\s*access_log /var/log/nginx/access.log anon;') else 'main' }}"
       vars:
         site_text: "{{ xmpp_connect_limit_site_content.content | b64decode }}"
@@ -221,15 +225,18 @@
           delay: 2
 
       rescue:
-        - name: Restore the site file from the backup # noqa no-handler
+        # ignore_errors, not failed_when: false, so the fail message below can report a failed restore
+        - name: Restore the site file from the backup # noqa no-handler ignore-errors
           ansible.builtin.copy:
             src: "{{ xmpp_connect_limit_backup_dir }}/{{ xmpp_connect_limit_site | basename }}"
             dest: "{{ xmpp_connect_limit_site }}"
             remote_src: true
             mode: preserve
           register: xmpp_connect_limit_restored
-          when: xmpp_connect_limit_backup is changed
-          failed_when: false
+          when:
+            - xmpp_connect_limit_backup is defined
+            - xmpp_connect_limit_backup is changed
+          ignore_errors: true
 
         - name: Reload nginx onto the restored site file # noqa no-handler
           ansible.builtin.shell: nginx -t && systemctl reload nginx
@@ -243,7 +250,9 @@
           ansible.builtin.fail:
             msg: >-
               nginx xmpp-connect limit patch failed in '{{ ansible_failed_task.name }}'
-              {{- ' and the site file was restored' if xmpp_connect_limit_restored is changed else '' }}:
+              {{- ' and the site file was restored' if xmpp_connect_limit_restored is changed else '' }}
+              {{- (' and THE RESTORE FAILED, ' ~ xmpp_connect_limit_site ~ ' still holds the patch: ' ~ xmpp_connect_limit_restored.msg | default(''))
+                  if xmpp_connect_limit_restored is failed else '' }}:
               {{ ('gave up after ' ~ ansible_failed_result.attempts ~ ' attempts')
                   if ansible_failed_result.attempts is defined
                   else ansible_failed_result.msg | default('') ~ ' ' ~ ansible_failed_result.stderr | default('') }}
