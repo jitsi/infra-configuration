@@ -96,7 +96,7 @@ peers section, because a peer update overwrites the local counters instead of
 adding to them. A reload starts the count again. Untenanted traffic is not
 counted.
 
-Anything over `haproxy_tenant_connect_rate_10s` (default 150) is a hit. With
+Anything over `haproxy_tenant_connect_rate_10s` (default 100) is a hit. With
 `haproxy_tenant_connect_rate_limit_enforce: true` a hit gets a 429 from the
 `tenant_rate_limited` backend. The client retries with its own backoff, so a
 burst of joins from one customer is spread over minutes instead of landing on
