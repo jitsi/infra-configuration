@@ -7,6 +7,11 @@ jaas_feedback_metadata_url_path: /webhook-proxy/feedback
 # URL for branding to redirect users to standalone offering
 jitsi_meet_8x8_video_meetings_url: false
 jitsi_meet_conference_request_global_rate: 50
+# per-shard cap on new XMPP websocket connections per second; dry run only logs
+jitsi_meet_xmpp_connect_rate_limit_enabled: true
+jitsi_meet_xmpp_connect_rate_limit_dry_run: true
+jitsi_meet_xmpp_connect_rate: 15
+jitsi_meet_xmpp_connect_burst: 100
 jitsi_meet_custom_landing_page_url: false
 jitsi_meet_amplitude_api_key: false
 jitsi_meet_amplitude_include_utm: false
