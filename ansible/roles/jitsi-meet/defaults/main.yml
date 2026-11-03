@@ -12,9 +12,10 @@ jitsi_meet_xmpp_connect_rate_limit_enabled: true
 jitsi_meet_xmpp_connect_rate_limit_dry_run: true
 jitsi_meet_xmpp_connect_rate: 15
 jitsi_meet_xmpp_connect_burst: 100
-# stream resumes (previd=) have their own cap; a haproxy recycle resumes every websocket on the shard within ~3 s
+# stream resumes (previd=) have their own cap; a haproxy recycle resumes every websocket on the shard within ~3 s.
+# Oct-Nov 2026: the busiest shard peaked at ~3,100 client connections plus ~280 visitors; steady resumes peaked near 2/s.
 jitsi_meet_xmpp_resume_rate: 150
-jitsi_meet_xmpp_resume_burst: 1000
+jitsi_meet_xmpp_resume_burst: 4000
 jitsi_meet_custom_landing_page_url: false
 jitsi_meet_amplitude_api_key: false
 jitsi_meet_amplitude_include_utm: false
