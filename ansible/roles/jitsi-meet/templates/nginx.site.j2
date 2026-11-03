@@ -91,7 +91,23 @@ limit_req_zone $limit_key zone=voice-agent:10m rate=10r/s;
 {% if jitsi_meet_xmpp_connect_rate_limit_enabled %}
 # per-shard ceiling on new XMPP connections, whoever sends them: one burst of joins on one shard
 # saturates prosody and wedges jicofo. BOSH is not limited here, every poll is a request.
-limit_req_zone "global" zone=xmpp-connect:1m rate={{ jitsi_meet_xmpp_connect_rate }}r/s;
+# a stream resume (previd= in the URL) costs no MUC join and no jicofo work, and the client reloads
+# the page after 2 failed resumes: it gets its own, much higher cap, so a haproxy recycle passes
+# but a storm of resumes, real or with a fake previd, is still bounded. An empty key skips a zone.
+map $arg_previd $xmpp_connect_limit_key {
+    default "";
+    "" global;
+}
+map $arg_previd $xmpp_resume_limit_key {
+    default global;
+    "" "";
+}
+map $arg_previd $xmpp_connect_limit_zone {
+    default xmpp-resume;
+    "" xmpp-new-connect;
+}
+limit_req_zone $xmpp_connect_limit_key zone=xmpp-new-connect:1m rate={{ jitsi_meet_xmpp_connect_rate }}r/s;
+limit_req_zone $xmpp_resume_limit_key zone=xmpp-resume:1m rate={{ jitsi_meet_xmpp_resume_rate }}r/s;
 map $limit_req_status $xmpp_connect_limited {
     default 1;
     "" 0;
@@ -99,7 +115,7 @@ map $limit_req_status $xmpp_connect_limited {
 }
 # no client address and no room, so the file is safe where access logs are anonymized
 # a websocket that upgrades is logged when it closes: the connect time is the log time minus request_time
-log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=xmpp-connect tenant=$prefix shard=$jitsi_shard dry_run={{ jitsi_meet_xmpp_connect_rate_limit_dry_run | lower }}';
+log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=$xmpp_connect_limit_zone tenant=$prefix shard=$jitsi_shard dry_run={{ jitsi_meet_xmpp_connect_rate_limit_dry_run | lower }}';
 {% endif %}
 
 # Set $remote_addr by scanning X-Forwarded-For, while only trusting the defined list of trusted proxies.
@@ -699,7 +715,8 @@ server {
     # xmpp websockets
     location = /xmpp-websocket {
 {% if jitsi_meet_xmpp_connect_rate_limit_enabled %}
-        limit_req zone=xmpp-connect burst={{ jitsi_meet_xmpp_connect_burst }} nodelay;
+        limit_req zone=xmpp-new-connect burst={{ jitsi_meet_xmpp_connect_burst }} nodelay;
+        limit_req zone=xmpp-resume burst={{ jitsi_meet_xmpp_resume_burst }} nodelay;
         limit_req_status 429;
 {% if jitsi_meet_xmpp_connect_rate_limit_dry_run %}
         limit_req_dry_run on;
