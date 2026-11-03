@@ -107,7 +107,7 @@ logged, so a new environment can size the cap before it bites.
 A stream resume is a websocket upgrade with `previd=` in the URL. It does not
 count against `haproxy_tenant_connect_rate_10s`. Resumes are counted in the
 `tenant_resume_rates` table against `haproxy_tenant_resume_rate_10s` (default
-1000). A resume costs no MUC join, and the client reloads the page after 2
+5000). A resume costs no MUC join, and the client reloads the page after 2
 failed resumes. A haproxy recycle resumes every websocket of a tenant within
 about 3 s, so this cap must stay well above the new-connect cap. It still
 stops a storm of resumes, real or with a fake `previd`.
