@@ -59,16 +59,26 @@
           default "";
           "" global;
       }
+      map $arg_previd $xmpp_resume_limit_key {
+          default global;
+          "" "";
+      }
+      map $arg_previd $xmpp_connect_limit_zone {
+          default xmpp-resume;
+          "" xmpp-new-connect;
+      }
       limit_req_zone $xmpp_connect_limit_key zone=xmpp-new-connect:1m rate={{ jitsi_meet_xmpp_connect_rate | int }}r/s;
+      limit_req_zone $xmpp_resume_limit_key zone=xmpp-resume:1m rate={{ jitsi_meet_xmpp_resume_rate | int }}r/s;
       map $limit_req_status $xmpp_connect_limited {
           default 1;
           "" 0;
           PASSED 0;
       }
-      log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=xmpp-new-connect '
+      log_format xmpp_connect_limit '$time_iso8601 $limit_req_status $status request_time=$request_time zone=$xmpp_connect_limit_zone '
           'tenant=$prefix shard=$jitsi_shard dry_run={{ xmpp_connect_limit_dry_run | lower }}';
     xmpp_connect_limit_location_block: |2
               limit_req zone=xmpp-new-connect burst={{ jitsi_meet_xmpp_connect_burst | int }} nodelay;
+              limit_req zone=xmpp-resume burst={{ jitsi_meet_xmpp_resume_burst | int }} nodelay;
               limit_req_status 429;
       {% if xmpp_connect_limit_dry_run %}
               limit_req_dry_run on;
@@ -135,6 +145,7 @@
           site={{ xmpp_connect_limit_site }} templated={{ xmpp_connect_limit_templated }}
           patched={{ xmpp_connect_limit_patched }} want={{ 'present' if xmpp_connect_limit_present else 'absent' }}
           dry_run={{ xmpp_connect_limit_dry_run }} rate={{ jitsi_meet_xmpp_connect_rate }} burst={{ jitsi_meet_xmpp_connect_burst }}
+          resume_rate={{ jitsi_meet_xmpp_resume_rate }} resume_burst={{ jitsi_meet_xmpp_resume_burst }}
           access_log_format={{ xmpp_connect_limit_access_format }}
 
     - name: Leave the host alone where the template already has the limiter
