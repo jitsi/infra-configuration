@@ -62,6 +62,8 @@ haproxy_tenant_connect_rate_limit_enabled: true
 haproxy_tenant_connect_rate_limit_enforce: false
 # Oct 2026 prod-8x8: the normal per-tenant peak was ~70 joins per 10 s per haproxy; a shard failed near 115.
 haproxy_tenant_connect_rate_10s: 100
+# stream resumes (previd=) have their own cap; a haproxy recycle resumes every websocket of a tenant within ~3 s
+haproxy_tenant_resume_rate_10s: 1000
 # roundrobin all backup servers by default
 haproxy_health_up_map_value: "{{ False if haproxy_build_ami or haproxy_boot_flag else True }}"
 haproxy_health_up_map_path: /etc/haproxy/maps/up.map
