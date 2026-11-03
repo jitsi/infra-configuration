@@ -104,14 +104,22 @@ one shard in one minute, which saturates prosody and wedges jicofo. Reconnects
 count as well. With enforce false (the default) hits are only counted and
 logged, so a new environment can size the cap before it bites.
 
+A stream resume is a websocket upgrade with `previd=` in the URL. It does not
+count against `haproxy_tenant_connect_rate_10s`. Resumes are counted in the
+`tenant_resume_rates` table against `haproxy_tenant_resume_rate_10s` (default
+5000). A resume costs no MUC join, and the client reloads the page after 2
+failed resumes. A haproxy recycle resumes every websocket of a tenant within
+about 3 s, so this cap must stay well above the new-connect cap. It still
+stops a storm of resumes, real or with a fake `previd`.
+
 Observability:
 
-- every hit logs one line at `notice`, with `tenant=`, `rl_hit=`, `ws_rate=`
-  and `enforce=`, even where http logging is off. The line has the path but no
+- every hit logs one line at `notice`, with `tenant=`, `rl_hit=`, `ws_rate=`,
+  `resume_rate=` and `enforce=`, even where http logging is off. The line has the path but no
   query string, because the query string carries the JWT. `option logasap`
   writes the line when the request is forwarded, not when the websocket closes.
 - `echo "show table tenant_connect_rates" | socat stdio /run/haproxy/admin.sock`
-  shows per tenant the live rate, `gpc0` (hits since the last reload) and
+  (or `tenant_resume_rates`) shows per tenant the live rate, `gpc0` (hits since the last reload) and
   `gpc0_rate` (hits per minute)
 - when enforcing, `haproxy_backend_requests_denied_total{proxy="tenant_rate_limited"}`
   counts the 429s

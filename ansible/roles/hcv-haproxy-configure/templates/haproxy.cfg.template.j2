@@ -175,6 +175,8 @@ frontend www-http from global_defaults
 {% if haproxy_tenant_connect_rate_limit_enabled | bool %}
   # XMPP connection attempts: websocket upgrades on /xmpp-websocket, /<tenant>/xmpp-websocket or
   # /v1/_ws/<shard>/xmpp-websocket, and BOSH session creation. Reconnects count too; they are part of the load.
+  # A stream resume (previd= on the websocket URL) costs no MUC join, and the client reloads the page after
+  # 2 failed resumes, so resumes have their own, much higher cap: a haproxy recycle passes, a storm does not.
   acl xmpp_ws path_reg ^(/[^/]+)?/xmpp-websocket$
   acl xmpp_ws path_reg ^/v1/_ws/[^/]+/xmpp-websocket$
   acl ws_upgrade hdr(Upgrade) -i websocket
@@ -187,25 +189,30 @@ frontend www-http from global_defaults
   http-request set-var(txn.xmpp_connect) always_true if xmpp_ws ws_upgrade
   http-request set-var(txn.xmpp_connect) always_true if bosh_path METH_POST bosh_body !bosh_has_sid
   acl xmpp_connect var(txn.xmpp_connect) -m bool
+  acl xmpp_resume url_param(previd) -m reg .
 
   # Untenanted traffic is not counted. Dots become underscores, as config.js does for ?tenant=, so both forms share a key.
   http-request set-var(txn.rl_key) hdr(X-Group),lower,regsub(\/,),regsub(\.,_,g) if xmpp_connect has_group !not_group !{ path_beg /v1/_ws/ }
   # the /v1/_ws/ path has no tenant; config.js puts it in ?tenant=, empty for an untenanted room
   http-request set-var(txn.rl_key) url_param(tenant),lower if xmpp_connect { path_beg /v1/_ws/ } { url_param(tenant) -m reg . }
   acl rl_key_set var(txn.rl_key) -m found
-  http-request track-sc0 var(txn.rl_key) table tenant_connect_rates if xmpp_connect rl_key_set
+  http-request track-sc0 var(txn.rl_key) table tenant_connect_rates if xmpp_connect rl_key_set !xmpp_resume
+  http-request track-sc1 var(txn.rl_key) table tenant_resume_rates if xmpp_connect rl_key_set xmpp_resume
 
   # over the cap. Denied requests still count, so a retry storm cannot slip through.
   acl tenant_connect_rate_exceeded sc_http_req_rate(0) gt {{ haproxy_tenant_connect_rate_10s }}
-  http-request set-var(txn.rl_hit) always_true if xmpp_connect rl_key_set tenant_connect_rate_exceeded
+  acl tenant_resume_rate_exceeded sc_http_req_rate(1) gt {{ haproxy_tenant_resume_rate_10s }}
+  http-request set-var(txn.rl_hit) always_true if xmpp_connect rl_key_set !xmpp_resume tenant_connect_rate_exceeded
+  http-request set-var(txn.rl_hit) always_true if xmpp_connect rl_key_set xmpp_resume tenant_resume_rate_exceeded
   acl rl_hit var(txn.rl_hit) -m bool
-  http-request sc-inc-gpc0(0) if rl_hit
+  http-request sc-inc-gpc0(0) if rl_hit !xmpp_resume
+  http-request sc-inc-gpc0(1) if rl_hit xmpp_resume
   # with haproxy_http_log_enabled false the log level is notice; raise only the hits so they pass
   http-request set-log-level notice if rl_hit
   # a websocket line is otherwise written when the tunnel closes, up to an hour after the hit
   option logasap
   # path only: the query string carries the JWT
-  log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %HM %{+Q}HP tenant=%[var(txn.rl_key)] rl_hit=%[var(txn.rl_hit)] ws_rate=%[sc_http_req_rate(0)] enforce={{ haproxy_tenant_connect_rate_limit_enforce | bool | lower }}"
+  log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %HM %{+Q}HP tenant=%[var(txn.rl_key)] rl_hit=%[var(txn.rl_hit)] ws_rate=%[sc_http_req_rate(0)] resume_rate=%[sc_http_req_rate(1)] enforce={{ haproxy_tenant_connect_rate_limit_enforce | bool | lower }}"
 {% endif %}
 
   http-request add-header X-Forwarded-Proto https
@@ -278,6 +285,8 @@ backend local_health from global_defaults
 # would be whichever haproxy in the mesh wrote last. Without peers each haproxy counts on its own
 # and a reload starts the count again.
 backend tenant_connect_rates from global_defaults
+  stick-table type string len 80 size 20k expire 2m store http_req_rate(10s),gpc0,gpc0_rate(1m)
+backend tenant_resume_rates from global_defaults
   stick-table type string len 80 size 20k expire 2m store http_req_rate(10s),gpc0,gpc0_rate(1m)
 {% if haproxy_tenant_connect_rate_limit_enforce | bool %}
 # a backend of its own so the denies get a clean prometheus counter
