@@ -1,0 +1,48 @@
+diff -r 919a9784b40a -r 15dd6cfc44ae plugins/muc/muc.lib.lua
+--- a/plugins/muc/muc.lib.lua	Wed Nov 04 10:37:32 2026 -0600
++++ b/plugins/muc/muc.lib.lua	Wed Nov 04 10:37:32 2026 -0600
+@@ -260,7 +260,7 @@
+ 		if full_p == nil then
+ 			full_x = st.clone(x.full or base_x);
+ 			self:build_item_list(occupant, full_x, false, nick, actor_nick, actor, reason);
+-			full_p = st.clone(base_presence):add_child(full_x);
++			full_p = st.share(st.clone(base_presence):add_child(full_x));
+ 		end
+ 		return full_p, full_x;
+ 	end
+@@ -270,7 +270,7 @@
+ 		if anon_p == nil then
+ 			anon_x = st.clone(x.anon or base_x);
+ 			self:build_item_list(occupant, anon_x, true, nick, actor_nick, nil, reason);
+-			anon_p = st.clone(base_presence):add_child(anon_x);
++			anon_p = st.share(st.clone(base_presence):add_child(anon_x));
+ 		end
+ 		return anon_p, anon_x;
+ 	end
+@@ -315,6 +315,10 @@
+ 		end
+ 	end
+ 
++	-- full_p and anon_p were serialised once for all the occupants above, they are not shared any more
++	if full_p then st.unshare(full_p); end
++	if anon_p then st.unshare(anon_p); end
++
+ 	-- Presences for occupant itself
+ 	self_x:tag("status", {code = "110";}):up();
+ 	if occupant.role == nil then
+diff -r 15dd6cfc44ae -r ea90b7b190a9 plugins/mod_websocket.lua
+--- a/plugins/mod_websocket.lua	Wed Nov 04 10:37:32 2026 -0600
++++ b/plugins/mod_websocket.lua	Wed Nov 04 10:37:33 2026 -0600
+@@ -324,6 +324,12 @@
+ 	end);
+ 
+ 	add_filter(session, "stanzas/out", function(stanza)
++		if st.is_shared(stanza) then
++			-- A shared stanza is a copy made for one broadcast (see share() in util.stanza), so xmlns can be set
++			-- in place. A clone would not keep its serialised form.
++			stanza.attr.xmlns = stanza.attr.xmlns or xmlns_client;
++			return stanza;
++		end
+ 		stanza = st.clone(stanza);
+ 		local attr = stanza.attr;
+ 		attr.xmlns = attr.xmlns or xmlns_client;
