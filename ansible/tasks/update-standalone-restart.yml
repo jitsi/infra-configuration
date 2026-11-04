@@ -7,6 +7,11 @@
 # and rewritten config alike, and it still holds when an earlier run staged files but
 # failed before restarting anything. A core service that is not running is started.
 #
+# The prosody plugins are the exception. With a branding package they ship in it, so
+# every web client upgrade rewrites them all, unchanged or not. Their contents are
+# compared instead, against checksums saved once prosody runs on what is on disk.
+# Until the first run saves them, the plugins count by ctime like everything else.
+#
 # Only regular files outside hidden directories count. /usr/share/jicofo and
 # /usr/share/jitsi-videobridge are their services' home directories, and the bridge
 # writes a JNA cache under .cache there while it runs.
@@ -38,14 +43,35 @@
   register: restart_prosody_instances
   changed_when: false
 
+- name: Restart - checksum the prosody plugins on disk
+  ansible.builtin.shell: |
+    set -o pipefail
+    cd {{ prosody_plugins_path | quote }}
+    find -H . -path '*/.*' -prune -o -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum
+  args:
+    executable: /bin/bash
+  register: restart_plugins_checksums
+  changed_when: false
+
+- name: Restart - read the prosody plugin checksums saved at the last restart
+  ansible.builtin.slurp:
+    src: "{{ standalone_update_plugins_manifest }}"
+  register: restart_plugins_manifest
+  failed_when: false
+
+- name: Restart - list the prosody plugins whose contents changed
+  ansible.builtin.set_fact:
+    restart_plugins_changed: "{{ restart_plugins_checksums.stdout_lines
+      | symmetric_difference((restart_plugins_manifest.content | b64decode).splitlines())
+      | map('regex_replace', '^\\S+\\s+\\./', '') | unique | list }}"
+  when: restart_plugins_manifest.content is defined
+
 - name: Restart - list what each service watches
   ansible.builtin.set_fact:
     restart_watched: "{{ restart_prosody_watched + restart_java_watched }}"
   vars:
-    restart_prosody_code:
-      - /usr/lib/prosody
-      - "{{ prosody_basepath | default('/usr/lib/prosody') }}"
-      - "{{ prosody_plugins_path }}"
+    restart_prosody_code: "{{ ['/usr/lib/prosody', prosody_basepath | default('/usr/lib/prosody')]
+      + ([] if restart_plugins_changed is defined else [prosody_plugins_path]) }}"
     restart_prosody_watched: >-
       {%- set watched = [] -%}
       {%- for line in restart_prosody_instances.stdout_lines -%}
@@ -91,7 +117,10 @@
     standalone_update_restart_jicofo: "{{ restart_prosody_due or 'jicofo.service' in restart_due }}"
     standalone_update_restart_jvb: "{{ restart_prosody_due or 'jitsi-videobridge2.service' in restart_due }}"
   vars:
-    restart_due: "{{ restart_changed_files.results | rejectattr('stdout_lines', 'equalto', []) | map(attribute='item.unit') | list }}"
+    restart_due_by_ctime: "{{ restart_changed_files.results | rejectattr('stdout_lines', 'equalto', []) | map(attribute='item.unit') | list }}"
+    restart_due_by_plugins: "{{ restart_watched | map(attribute='unit') | select('match', '^prosody') | list
+      if restart_plugins_changed | default([]) | length > 0 else [] }}"
+    restart_due: "{{ (restart_due_by_ctime + restart_due_by_plugins) | unique }}"
     restart_prosody_due: "{{ restart_due | select('match', '^prosody') | list | length > 0 }}"
 
 - name: Restart - report what will restart and why
@@ -101,6 +130,8 @@
       jicofo: {{ 'restart' if standalone_update_restart_jicofo else 'unchanged' }}
       jitsi-videobridge2: {{ 'restart' if standalone_update_restart_jvb else 'unchanged' }}
       nginx: {{ 'reload' if standalone_update_nginx_certs_changed | default(false) else 'unchanged' }}
+      Prosody plugins with new contents: {{ (restart_plugins_changed | join(', ') or 'none')
+        if restart_plugins_changed is defined else 'no saved checksums, plugins compared by ctime' }}
       Changed since start (first match per path):
       {% for result in restart_changed_files.results %}
         {{ result.item.unit }}: {{ result.stdout_lines | join(', ') if result.stdout_lines else 'nothing' }}
@@ -162,6 +193,19 @@
     - jicofo
     - jitsi-videobridge2
     - nginx
+
+# Every prosody instance now runs the plugins on disk, restarted or not.
+- name: Restart - create the directory for the saved plugin checksums
+  ansible.builtin.file:
+    path: "{{ standalone_update_plugins_manifest | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Restart - save the prosody plugin checksums for the next upgrade
+  ansible.builtin.copy:
+    dest: "{{ standalone_update_plugins_manifest }}"
+    content: "{{ restart_plugins_checksums.stdout }}\n"
+    mode: "0644"
 
 # jicofo reports unhealthy until it has an operational bridge, so check the bridge first.
 - name: Restart - wait for the bridge to report healthy
