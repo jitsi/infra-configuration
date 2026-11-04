@@ -256,6 +256,7 @@ prosody_recording_autostart_enabled: false
 prosody_recording_rate_per_minute_per_ip: false
 prosody_server_public_key_repo_url: false
 prosody_slow_events_threshold: 0.5
+prosody_smacks_max_unacked_stanzas: 20
 prosody_ssh_key_crt_local_path: jitsi.example.com.crt
 prosody_ssh_key_key_local_path: jitsi.example.com.key
 prosody_stats_port: 8125
