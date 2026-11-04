@@ -15,6 +15,15 @@ jicofo_auth_url: "{{ environment_domain_name }}"
 jicofo_auth_url_enable: false
 jicofo_auth_user: focus
 jicofo_average_participant_stress: 0.005
+# The capabilities that endpoints are expected to advertise (jicofo.conference.client-requirements.requirements). The
+# key is the name of a feature known to jicofo, the value is the level: "soft" (the endpoint is invited and warned),
+# "hard" (the endpoint is not invited, only if jicofo enforcement is enabled, otherwise it is warned like "soft") or
+# "off" (write it in quotes, because YAML reads a bare off as false). An empty map renders nothing. A site override
+# replaces the whole map.
+jicofo_client_requirements:
+  JSON_SOURCES: soft
+  SOURCE_NAMES: hard
+  SSRC_REWRITING_V1: soft
 jicofo_configure_flag: true
 # INFO (default), FINE (more details but no protocol messages), FINEST/ALL (include protocol messages)
 jicofo_colibri2_log_level: "INFO"
