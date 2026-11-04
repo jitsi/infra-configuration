@@ -1,0 +1,23 @@
+---
+# test-all-roles.yml - Playbook to test all roles together
+- name: Test all roles
+  hosts: all
+  become: true
+  roles:
+    - role: common
+      tags: common
+      vars:
+        locale: "en_US.UTF-8"
+        common_install_pip_flag: true
+        common_install_pip3_flag: true
+        common_cloud_provider: "{{ cloud_provider | default('aws') }}"
+        
+    # Add additional roles as needed
+    # - role: another_role
+    #   tags: another_role
+    #   vars:
+    #     role_specific_var: value
+
+  vars:
+    # Default variables that apply to all hosts
+    ansible_distribution_major_version: "{{ ansible_distribution_major_version }}"
