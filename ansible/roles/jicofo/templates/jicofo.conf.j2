@@ -106,6 +106,16 @@ jicofo {
 
     use-ssrc-rewriting = {{ jicofo_ssrc_rewriting }}
 
+{% if jicofo_client_requirements %}
+    client-requirements {
+      requirements {
+{% for feature, level in jicofo_client_requirements | dictsort %}
+        {{ feature }} { level = "{{ level }}" }
+{% endfor %}
+      }
+    }
+{% endif %}
+
     {% if jicofo_enable_source_signaling_delay %}
     source-signaling-delays = {{ jicofo_source_signaling_delay | to_json }}
     {% endif %}
