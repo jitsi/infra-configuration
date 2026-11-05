@@ -1,0 +1,68 @@
+diff -r 38499c0d6796 -r 919a9784b40a util/stanza.lua
+--- a/util/stanza.lua	Fri Oct 23 16:33:32 2026 +0100
++++ b/util/stanza.lua	Wed Nov 04 10:37:32 2026 -0600
+@@ -369,7 +369,54 @@
+ 		t_insert(buf, "</"..name..">");
+ 	end
+ end
++-- A stanza that is sent unchanged to many recipients, such as a MUC presence broadcast, can be marked with
++-- share(). Its serialised form without the 'to' attribute is then kept on the first tostring(), and later
++-- calls only add the current 'to'. The kept form is rebuilt when 'from', 'type', 'xmlns' or the number of
++-- child nodes changes. Any other change must be made on a clone, which is not shared, or after unshare().
++local shared = setmetatable({}, { __mode = "k" });
++
++local function share(stanza)
++	if not is_stanza(stanza) then
++		error("bad argument to share: expected stanza, got "..type(stanza));
++	end
++	shared[stanza] = {};
++	return stanza;
++end
++
++local function unshare(stanza)
++	shared[stanza] = nil;
++	return stanza;
++end
++
++local function is_shared(stanza)
++	return shared[stanza] ~= nil;
++end
++
++local function shared_tostring(t, kept)
++	local attr = t.attr;
++	local to = attr.to;
++	if not (kept.head and kept.from == attr.from and kept.type == attr.type and kept.xmlns == attr.xmlns
++			and kept.n == #t) then
++		local buf = {};
++		attr.to = nil;
++		_dostring(t, buf, _dostring, xml_escape, nil);
++		attr.to = to;
++		local str = t_concat(buf);
++		local split = #t.name + 2; -- after "<name"
++		kept.head, kept.tail = s_sub(str, 1, split - 1), s_sub(str, split);
++		kept.from, kept.type, kept.xmlns, kept.n = attr.from, attr.type, attr.xmlns, #t;
++	end
++	if to == nil then
++		return kept.head..kept.tail;
++	end
++	return kept.head.." to='"..xml_escape(to).."'"..kept.tail;
++end
++
+ function stanza_mt.__tostring(t)
++	local kept = shared[t];
++	if kept then
++		return shared_tostring(t, kept);
++	end
+ 	local buf = {};
+ 	_dostring(t, buf, _dostring, xml_escape, nil);
+ 	return t_concat(buf);
+@@ -619,6 +666,9 @@
+ 	preserialize = preserialize;
+ 	deserialize = deserialize;
+ 	clone = clone;
++	share = share;
++	unshare = unshare;
++	is_shared = is_shared;
+ 	message = message;
+ 	iq = iq;
+ 	reply = reply;

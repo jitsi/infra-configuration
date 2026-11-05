@@ -1,0 +1,62 @@
+diff -r 919a9784b40a -r 9eb4220f1873 plugins/muc/muc.lib.lua
+--- a/plugins/muc/muc.lib.lua	Wed Nov 04 10:37:32 2026 -0600
++++ b/plugins/muc/muc.lib.lua	Wed Nov 04 16:36:52 2026 -0600
+@@ -260,7 +260,7 @@
+ 		if full_p == nil then
+ 			full_x = st.clone(x.full or base_x);
+ 			self:build_item_list(occupant, full_x, false, nick, actor_nick, actor, reason);
+-			full_p = st.clone(base_presence):add_child(full_x);
++			full_p = st.share(st.clone(base_presence):add_child(full_x));
+ 		end
+ 		return full_p, full_x;
+ 	end
+@@ -270,7 +270,7 @@
+ 		if anon_p == nil then
+ 			anon_x = st.clone(x.anon or base_x);
+ 			self:build_item_list(occupant, anon_x, true, nick, actor_nick, nil, reason);
+-			anon_p = st.clone(base_presence):add_child(anon_x);
++			anon_p = st.share(st.clone(base_presence):add_child(anon_x));
+ 		end
+ 		return anon_p, anon_x;
+ 	end
+@@ -297,7 +297,11 @@
+ 	end
+ 
+ 	if recipient then
+-		return self:route_to_occupant(recipient, get_p(recipient));
++		self:route_to_occupant(recipient, get_p(recipient));
++		-- As after the broadcast below, stop sharing full_p and anon_p.
++		if full_p then st.unshare(full_p); end
++		if anon_p then st.unshare(anon_p); end
++		return;
+ 	end
+ 
+ 	local broadcast_roles = self:get_presence_broadcast();
+@@ -315,6 +319,11 @@
+ 		end
+ 	end
+ 
++	-- The broadcast to the other occupants is done. Stop sharing full_p and anon_p, so that a later
++	-- change to them, for example by a handler that kept a reference, is not hidden by the kept form.
++	if full_p then st.unshare(full_p); end
++	if anon_p then st.unshare(anon_p); end
++
+ 	-- Presences for occupant itself
+ 	self_x:tag("status", {code = "110";}):up();
+ 	if occupant.role == nil then
+diff -r 9eb4220f1873 -r d493b60f1760 plugins/mod_websocket.lua
+--- a/plugins/mod_websocket.lua	Wed Nov 04 16:36:52 2026 -0600
++++ b/plugins/mod_websocket.lua	Wed Nov 04 10:37:33 2026 -0600
+@@ -324,6 +324,12 @@
+ 	end);
+ 
+ 	add_filter(session, "stanzas/out", function(stanza)
++		if st.is_shared(stanza) then
++			-- A shared stanza is a copy made for one broadcast (see share() in util.stanza), so xmlns can be set
++			-- in place. A clone would not keep its serialised form.
++			stanza.attr.xmlns = stanza.attr.xmlns or xmlns_client;
++			return stanza;
++		end
+ 		stanza = st.clone(stanza);
+ 		local attr = stanza.attr;
+ 		attr.xmlns = attr.xmlns or xmlns_client;

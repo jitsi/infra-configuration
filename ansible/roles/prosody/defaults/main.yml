@@ -76,6 +76,8 @@ prosody_enable_log_slow_events: false
 prosody_enable_mod_turncredentials: false
 # Send "conference_ended" events with duration and message count. Requires amplitude_api_key to be set, inactive without it.
 prosody_enable_mod_measure_message_count: false
+# patches prosody 13.0 to serialise a MUC presence broadcast once instead of once per recipient, see tasks/patches.yml
+prosody_enable_muc_broadcast_serialise_once: false
 prosody_enable_muc_census: true
 prosody_enable_muc_domain_mapper: true
 # branding module, disabled by default
