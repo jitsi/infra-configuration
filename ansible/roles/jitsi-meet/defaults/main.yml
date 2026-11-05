@@ -90,6 +90,9 @@ jitsi_meet_assetlinks: |
       }
   }]
 jitsi_meet_audio_translation_ducked_volume: 0.15
+# target languages offered in the audio translation picker, as the codes the speech-to-speech provider
+# accepts; false leaves the client default (the 13 languages every provider supports)
+jitsi_meet_audio_translation_languages: false
 jitsi_meet_bosh_host: "{{ environment_domain_name }}"
 jitsi_meet_bosh_path: "http-bind"
 jitsi_meet_bosh_protocol: "https://"

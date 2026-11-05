@@ -190,6 +190,9 @@ var config = {
 {% if jitsi_meet_enable_audio_translation %}
     audioTranslation: {
         enabled: true,
+{% if jitsi_meet_audio_translation_languages %}
+        translationLanguages: {{ jitsi_meet_audio_translation_languages | to_json }},
+{% endif %}
         duckedVolume: {{ jitsi_meet_audio_translation_ducked_volume }}
     },
 {% endif %}
