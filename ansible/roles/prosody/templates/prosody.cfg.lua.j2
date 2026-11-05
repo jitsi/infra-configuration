@@ -103,6 +103,9 @@ modules_enabled = {
 {% if prosody_mod_measure_stanza_counts %}
       "measure_stanza_counts";
 {% endif %}
+{% if prosody_enable_hot_path_cache %}
+      "hot_path_cache";
+{% endif %}
 {% if prosody_visitors_enabled %}
       "s2s_bidi";
       "certs_s2soutinjection";
@@ -113,6 +116,10 @@ modules_enabled = {
 
 {% if prosody_enable_log_slow_events %}
 log_slow_events_threshold = {{ prosody_slow_events_threshold }};
+{% endif %}
+
+{% if prosody_enable_hot_path_cache %}
+hot_path_cache_enabled = true;
 {% endif %}
 
 {% if prosody_enable_mod_turncredentials %}

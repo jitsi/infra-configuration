@@ -62,6 +62,8 @@ prosody_enable_filter_iq_rayo: false
 prosody_enable_firewall: "{{ true if prosody_disable_messaging else prosody_enable_jvb_muc_presence_filter }}"
 prosody_enable_guest_auth: true
 prosody_enable_health_check_cron: true
+# caches the results of xml_escape and jid.split for large room broadcasts (mod_hot_path_cache from jitsi-meet)
+prosody_enable_hot_path_cache: false
 # flag to control the internal.auth{{ prosody_domain_name }} muc for jibri, jigasi and eventually JVB
 prosody_enable_internal_muc: true
 # enables jiconop2 module, optimizing connection join number of stanzas
