@@ -77,18 +77,31 @@
   when: (prosody_major_version | int) == 13
 
 # A MUC sends an occupant's presence to every other occupant. These patches serialise it once per broadcast
-# instead of once per recipient. The module patch needs util.stanza share(), so the stanza patch goes first.
+# instead of once per recipient. They are off by default and applied on 13.0 only when
+# prosody_enable_muc_broadcast_serialise_once is true; with the flag off they are reverted if a host has them.
+# The module patch needs util.stanza share(), so the stanza patch is applied first and reverted last.
 - name: Register util/stanza.lua real path
   ansible.builtin.command: realpath {{ prosody_basepath }}/util/stanza.lua
   register: stanza_lua_realpath
   changed_when: false
   when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0
 
-- name: Apply util/stanza.lua patch to serialise shared stanzas once on 13.0
+- name: Revert MUC and websocket patch to serialise broadcast presences once on 13.0
+  ansible.posix.patch:
+    basedir: /usr/lib/prosody/modules
+    src: "{{ role_path | default('roles/prosody') }}/files/muc_websocket_shared_broadcast.patch"
+    strip: 2
+    state: absent
+  when:
+    - (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0
+    - not (prosody_enable_muc_broadcast_serialise_once | bool)
+
+- name: Apply or revert util/stanza.lua patch to serialise shared stanzas once on 13.0
   ansible.posix.patch:
     dest: "{{ stanza_lua_realpath.stdout }}"
     src: "{{ role_path | default('roles/prosody') }}/files/util_stanza_share.patch"
     strip: 1
+    state: "{{ 'present' if (prosody_enable_muc_broadcast_serialise_once | bool) else 'absent' }}"
   when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0
 
 - name: Apply MUC and websocket patch to serialise broadcast presences once on 13.0
@@ -96,4 +109,6 @@
     basedir: /usr/lib/prosody/modules
     src: "{{ role_path | default('roles/prosody') }}/files/muc_websocket_shared_broadcast.patch"
     strip: 2
-  when: (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0
+  when:
+    - (prosody_major_version | int) == 13 and (prosody_minor_version | int) == 0
+    - prosody_enable_muc_broadcast_serialise_once | bool
