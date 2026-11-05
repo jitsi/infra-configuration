@@ -19,7 +19,20 @@ diff -r 919a9784b40a -r 9eb4220f1873 plugins/muc/muc.lib.lua
  		end
  		return anon_p, anon_x;
  	end
-@@ -315,6 +315,11 @@
+@@ -297,7 +297,11 @@
+ 	end
+ 
+ 	if recipient then
+-		return self:route_to_occupant(recipient, get_p(recipient));
++		self:route_to_occupant(recipient, get_p(recipient));
++		-- As after the broadcast below, stop sharing full_p and anon_p.
++		if full_p then st.unshare(full_p); end
++		if anon_p then st.unshare(anon_p); end
++		return;
+ 	end
+ 
+ 	local broadcast_roles = self:get_presence_broadcast();
+@@ -315,6 +319,11 @@
  		end
  	end
  
