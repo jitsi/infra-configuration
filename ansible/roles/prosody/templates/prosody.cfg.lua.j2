@@ -202,6 +202,9 @@ muc_prosody_jitsi_access_manager_url = "{{ jitsi_access_manager_url }}";
 
 {% if prosody_conference_info_url %}
 muc_conference_info_url = "{{ prosody_conference_info_url }}";
+{% if prosody_conference_info_domain %}
+muc_conference_info_domain = "{{ prosody_conference_info_domain }}";
+{% endif %}
 -- eventually enable token auth for password API
 
 {% endif %}
