@@ -14,9 +14,13 @@ When every home-region shard of a release is unusable, new rooms spread over all
 The next region comes from `haproxy_regions_by_region` in `config/vars.yml`.
 Existing meetings stay on their shard, in every region.
 
-The change is in the `hcv-haproxy-configure` role, mainly in
-`ansible/roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2`.
-It needs no change to signal-sidecar, and it ships first.
+The change is mainly in `ansible/roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2`.
+`ansible/configure-haproxy-local.yml` adds the switch map to consul-template.
+
+It ships in phases. First, a separate change makes HAProxy keep agent state across a reload.
+Then the tier backends and rules ship with the switch off.
+Last, a Consul key in each region turns the switch on.
+It needs no change to signal-sidecar.
 A separate signal-sidecar change adds a prosody CPU drain at 80%.
 That change ships only after this change runs in production.
 
@@ -74,15 +78,16 @@ If the next region is also near its limit, the overflow moves on to the region a
     This includes cross-region meetings and meetings on shards of other releases.
 5.  HAProxy uses shards of other releases only when no region of the release has a usable server.
 6.  Every release gets tier backends, canary releases included.
-7.  Agent drain state and agent weight survive an HAProxy reload.
-8.  A runtime map entry turns the tier rules on and off with no reload.
-9.  On-call gets a page when an HAProxy has 0 usable servers in all tier and release backends.
-10. Metrics show tier failovers per region per hour, and the backend that served each request.
-11. These measures do not rise: split rooms, 503 responses, and join errors.
+    If no tier of a pinned release has a usable server, new rooms use the tiers of the live release.
+7.  A Consul key in each region turns the tier rules on and off with no reload. A new HAProxy reads the current value.
+8.  On-call gets a page when an HAProxy has 0 usable servers in all tier and release backends.
+9.  Metrics show tier failovers per region per hour, and the backend that served each request.
+10. These measures do not rise: split rooms, 503 responses, and join errors.
 
 ## Non-Goals
 
 *   Any change to signal-sidecar. The prosody CPU drain is a separate change.
+*   Agent state across reloads as part of the tier change. It ships first, as a separate change. This design depends on it (section 4).
 *   A change to the `release-N` backends or to the `nbsrv` check of the tenant pin rule.
 *   A maintenance response for `xmpp-websocket`, a user-facing 503 page, or a client change. These are separate follow-up work.
 *   Changes to shard-specific backends and paths. They use `no-check` and ignore drain.
@@ -95,7 +100,7 @@ If the next region is also near its limit, the overflow moves on to the region a
 *   **Unverified HAProxy behavior**: The design depends on 2 claims from the HAProxy 2.8 source. No lab test confirms them yet.
     *   `nbsrv` returns 1 when no active server is usable but a backup is usable.
     *   A weight-0 server that uses `track` follows the UP and DOWN state of an agent-checked server.
-*   **Server-state file**: A lab test must show that agent drain and weight survive a reload with `load-server-state-from-file`.
+*   **Server-state file**: A lab test must show that agent drain and weight survive a reload with `load-server-state-from-file`. This test is the gate of Phase 1.
 *   **Metric cardinality**: telegraf and the Prometheus exporter on port 8405 collect metrics for every server line.
     Tier backends multiply the server lines by about (regions + 1). The lab must count the series before production.
     A drop rule for server-level series of tier backends is possible, but it also hides 5xx counts on weight-0 copies.
@@ -130,12 +135,18 @@ If the next region is also near its limit, the overflow moves on to the region a
 ### CUJ 5: On-call turns the tiers off
 
 *   **Given**: The tier switch is on, and tier routing misbehaves.
-*   **When**: On-call runs the switch playbook with the value `off` for 1 HAProxy, 1 region, or all HAProxies.
-*   **Then**: New requests use today's rules at once, with no reload. The value stays `off` after a reload or a rerun of the role.
+*   **When**: On-call sets the Consul key `haproxy/<env>/tiers` to `off` in 1 region, or in every region.
+*   **Then**: consul-template writes the map, and `update-haproxy-map.sh` loads it with no reload. New requests use today's rules. The value stays `off` after a reload and on a new HAProxy.
+
+### CUJ 6: A pinned release with no usable shard uses the live tiers
+
+*   **Given**: The tier switch is on. Tenant `acme` is pinned to `release-7070`. No shard of release 7070 is usable in any region.
+*   **When**: A user of `acme` opens a new room through the ap-mumbai-1 HAProxy.
+*   **Then**: HAProxy uses `release-7068-t1-ap-mumbai-1`, the tier 1 backend of the live release. New rooms spread over the live-release shards of ap-mumbai-1.
 
 ## Technical Plan (Architecture)
 
-All changes are in the `hcv-haproxy-configure` role, except the alert rules.
+All changes are in the `hcv-haproxy-configure` role and in `ansible/configure-haproxy-local.yml`, except the alert rules.
 The template has 2 render stages.
 Ansible (Jinja) knows the region order of this HAProxy.
 consul-template knows the releases and the shards.
@@ -146,8 +157,10 @@ consul-template writes 1 tier backend for each release R and each region k in th
 The name is `release-R-tk-<region>`, for example `release-7068-t2-eu-frankfurt-1`.
 The region order comes from `ns.haproxy_datacenters`, so tier numbers differ between HAProxies in different regions.
 
-Each tier backend copies the balance and stick lines of `release-N`:
-`balance hdr(X-StickToken)`, `hash-type consistent`, `hash-balance-factor 150`, and `stick match` and `stick store-request` on the `nodes` table.
+Each tier backend copies the `default-server`, balance, and stick lines of `release-N`.
+The `default-server` line sets `inter`, `fall`, and `rise` from the role defaults.
+The other lines are `balance hdr(X-StickToken)`, `hash-type consistent`, `hash-balance-factor 150`, and `stick match` and `stick store-request` on the `nodes` table.
+The same `fall` and `rise` values make both backends change a shard's state after the same number of checks.
 The `nodes` table uses `srvkey addr`, so a stick match finds a server by address and port in any backend.
 
 Each tier backend lists every Consul-passing shard of every release, in 2 kinds of server lines:
@@ -185,12 +198,25 @@ consul-template writes 1 rule for each release R and each tier k, after the shar
 use_backend release-R-tk-<region> if { var(req.tiers_on) -m str on } { var(req.route_release) -m str release-R } { nbsrv(release-R-tk-<region>) gt 0 }
 ```
 
+After these rules, consul-template writes a second set for the live release.
+Each rule in this set checks `req.live_backend`, the live release from `live.map`:
+
+```
+use_backend release-R-tk-<region> if { var(req.tiers_on) -m str on } { var(req.live_backend) -m str release-R } { var(req.route_release) -m reg ^release-[0-9]+$ } { nbsrv(release-R-tk-<region>) gt 0 }
+```
+
+This set catches a pinned release when no tier of that release has a usable server.
+Without it, the pin rule sends the request to `release-<pin>`, which lists live-release shards as backups.
+That puts every new room on 1 live-release shard, the failure of 2026-11-04.
+The live tiers spread the same rooms over the live release, in the same region order.
+The regex check keeps `?release=<shard>` on the pin rule, so a direct shard override still works.
+
 Every backend name in these rules is static, so `haproxy -c` rejects a missing backend.
-The rules for 1 release follow its tier order. For 3 releases and 9 regions, that is 27 rules.
+The rules for 1 release follow its tier order. For 3 releases and 9 regions, that is 54 rules: 27 in each set.
 HAProxy stops at the first false condition, so most rules cost 1 string compare.
 
 The pin rule and the live rule stay as they are, after the tier rules.
-They catch a request when every tier of its release has `nbsrv` 0, or when the switch is off.
+They catch a request when every tier of its release and of the live release has `nbsrv` 0, or when the switch is off.
 Then `release-N` falls back to other releases through its backup chain, as today.
 
 ```text
@@ -201,6 +227,10 @@ request
   +-- tiers on AND route_release = R:
   |      nbsrv(release-R-t1-<home>) > 0 --> tier 1: hash over home shards of R
   |      nbsrv(release-R-t2-<next>) > 0 --> tier 2: hash over next-region shards of R
+  |      ...                                ...through tier 9
+  |
+  +-- tiers on AND route_release is release-<n> AND live release = L:
+  |      nbsrv(release-L-t1-<home>) > 0 --> tier 1 of the live release
   |      ...                                ...through tier 9
   |
   +-- pin has servers --> release-<pin>                                (unchanged)
@@ -218,17 +248,28 @@ If the new live release has no rendered rules yet, requests fall through to the 
 ### 3. Runtime switch
 
 A new map file `/etc/haproxy/maps/tiers.map` holds 1 line, `tiers on` or `tiers off`.
-It works like `up.map`:
+It works like `live.map` and `tenant.map`:
 
-*   The role writes the file with `haproxy_tier_map_value` (default `off`). If the file exists, the role keeps its current value.
-*   A new playbook writes the file and sends `set map` to the admin socket. A limit on the inventory selects 1 HAProxy, 1 region, or all.
-*   A reload reads the file, so the runtime value and the file value stay the same.
+*   The Consul key `haproxy/<env>/tiers` holds the value. Consul KV is separate in each region, so each region has its own switch.
+*   consul-template renders `tiers.map.template` to the map file. The file gets `tiers on` only if the key is exactly `on`. A missing key or any other value gives `tiers off`.
+*   The template command runs `update-haproxy-map.sh`, which loads the map through the admin socket with no reload.
+*   A reload and a new HAProxy both read the file. So every HAProxy in a region follows the key, also after a recycle.
 
-### 4. Agent state across reloads
+On-call sets the switch for 1 region with `consul kv put -datacenter=<env>-<region> haproxy/<env>/tiers on`.
+To set all regions, on-call runs that command once for each region.
+
+To test 1 HAProxy, send `set map /etc/haproxy/maps/tiers.map tiers on` to its admin socket.
+That value lasts only until the next reload or the next render of the map. Then the HAProxy reads the file again.
+If Consul is down, this `set map` is the only way to change the switch.
+
+### 4. Prerequisite: agent state across reloads
+
+This part ships as a separate change, before the tier backends (Phase 1 of the implementation plan).
+It applies to every backend through `defaults global_defaults`, `release-N` included. The tier switch does not control it.
 
 `ExecReload` in `haproxy.service.j2` already writes `show servers state` to `haproxy_state_file` before each reload.
-The config never reads that file. This design adds `server-state-file` to `global` and `load-server-state-from-file global` to `defaults global_defaults`.
-After a reload, servers keep their drain state and agent weight. They do not start at UP and weight 256.
+The config never reads that file. The change adds `server-state-file` to `global` and `load-server-state-from-file global` to `defaults global_defaults`.
+If lab test 8 confirms it, servers keep their drain state and agent weight after a reload. They do not start at UP and weight 256.
 
 Without this, every drained home shard counts in `nbsrv` for up to 10 seconds after each reload.
 Reloads follow every change in Consul passing state in any of 9 regions, so they are likely during an incident.
@@ -237,9 +278,9 @@ Reloads follow every change in Consul passing state in any of 9 regions, so they
 This gives the stick table time to fill from the local peer before traffic returns.
 The state file adds agent state to that protection.
 
-A crash restart skips `ExecStop`, so HAProxy can load a stale file.
-The agent check corrects each server within 1 agent interval, 10 seconds.
-That is the same worst case as today.
+After a crash, systemd still runs `ExecStop`. socat cannot reach the socket of the dead process, so the shell redirect empties the file.
+HAProxy then starts with no saved state, as it does today. The agent check sets each server within 1 agent interval, 10 seconds.
+Lab test 8 also checks that HAProxy starts with an empty state file.
 
 ### 5. Telemetry and alerts
 
@@ -335,15 +376,17 @@ That is the same worst case as today.
 
 ## Non-Functional Requirements
 
-*   **Rollout**:
-    1.  Deploy the role with `haproxy_tier_map_value: off`. The tier backends exist, but no rule sends traffic to them.
+*   **Rollout**: The Detailed Implementation Plan gives the phases and the gate of each phase. These are the switch steps:
+    1.  Deploy Phase 3 with no Consul key. The switch is `off`, so no rule sends traffic to the tier backends.
     2.  On 1 stage-8x8 HAProxy, check `show stat` and `nbsrv` of each tier backend.
-    3.  Turn the switch on for 1 HAProxy in ap-mumbai-1, then all ap-mumbai-1 HAProxies, then each other region.
-    4.  A mixed fleet works, because the stick-table key and `srvkey addr` do not change.
+    3.  Test 1 stage-8x8 HAProxy with `set map`. Then set the key `on` in 1 stage-8x8 region.
+    4.  Set the key `on` in ap-mumbai-1, then in each other region.
+    5.  A mixed fleet works, because the stick-table key and `srvkey addr` do not change.
 *   **Rollback**:
     1.  If the signal-sidecar CPU drain is on in the region, turn it off.
-    2.  Turn the tier switch off. This needs no reload.
-    3.  Revert the template change and run the role.
+    2.  Set the key `haproxy/<env>/tiers` to `off` in each region. This needs no reload.
+    3.  Revert the Phase 3 change and deploy a new HAProxy release.
+    The Phase 1 state-file change has its own rollback: revert it and deploy a new HAProxy release.
 *   **Performance**: The server lines grow by about (regions + 1) times. Each HAProxy sends 1 more agent check to each shard.
     Measure render time, `haproxy -c` time, reload time, and memory on stage-8x8 before production.
 *   **Security**: `X-Proxy-Backend` shows the release number to clients. `?release=` already exposes release numbers, so this adds no new information.
@@ -352,22 +395,47 @@ That is the same worst case as today.
 
 ## Detailed Implementation Plan
 
-### Target Files to Create/Modify
+### Phases
+
+Each phase is 1 pull request, except Phase 2, which is a lab gate.
+A phase starts only after the gate of the phase before it passes.
+An infra-configuration change reaches an HAProxy only on a new HAProxy release branch.
+`haproxy-create-release` builds that release, and `haproxy-recycle` replaces the instances.
+
+| Phase | Change | Repository | Gate before the next phase |
+|---|---|---|---|
+| 1 | State file: item 1 | infra-configuration | Lab test 8 passes. On stage-8x8, a reload keeps drained servers drained. The change runs in production for 7 days with no reload problem. |
+| 2 | Lab tests 1-7 and 9-12 on the Phase 3 code | none (scratch directory) | Every test passes. If an HAProxy claim fails, stop and revise this design. |
+| 3 | Tier backends, rules, and switch: items 2-6 | infra-configuration | The render check on stage-8x8 passes with no Consul key. |
+| 4 | Alerts: item 7 | infra-provisioning | Prometheus loads the 2 alerts. |
+| 5 | Switch on, region by region | Consul KV | The production checks pass after each region. |
+
+### Phase 1: agent state across reloads
 
 #### 1. `ansible/roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2` (Modify)
 
 *   **Type / Scope**: Jinja template that renders a consul-template template for `haproxy.cfg`.
 *   **Proposed Changes**:
+    1.  Add `server-state-file {{ haproxy_state_file }}` to `global`.
+    2.  Add `load-server-state-from-file global` to `defaults global_defaults`.
+    3.  In `README_HAPROXY.md`, "configuring haproxy", add 1 line: a reload restores agent state from `haproxy_state_file`.
+*   **Why**: Technical Plan section 4. `ExecReload` and `ExecStop` already write the file, so no other file changes.
+
+### Phase 3: tier backends, rules, and switch
+
+#### 2. `ansible/roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2` (Modify)
+
+*   **Type / Scope**: Jinja template that renders a consul-template template for `haproxy.cfg`.
+*   **Proposed Changes**:
     1.  **Region list.** In the namespace block at lines 58-63, also append the bare region to a new list `ns.haproxy_tier_regions`.
         The index in this list is the tier number minus 1. The region is part of the tier backend name.
-    2.  **State file.** Add `server-state-file {{ haproxy_state_file }}` to `global`. Add `load-server-state-from-file global` to `defaults global_defaults`.
-    3.  **Switch variable.** After the tenant pin lines (line 229), add:
+    2.  **Switch variable.** After the tenant pin lines (line 229), add:
         `http-request set-var(req.tiers_on) str(tiers),map({{ haproxy_tier_map_path }},off)`.
-    4.  **Route variable.** After the switch variable, add 2 lines.
+    3.  **Route variable.** After the switch variable, add 2 lines.
         The first sets `req.route_release` from `req.live_backend`.
         The second overrides it with `req.tenant_pin` if the pin is found and `var(req.tenant_pin),nbsrv gt 0`. This is the same condition as the pin rule at line 271.
-    5.  **Response header.** Next to line 247, add `http-response add-header X-Proxy-Backend %b`.
-    6.  **Tier rules.** Put them after the standalone backend rules (line 268) and before the pin rule (line 270).
+    4.  **Response header.** Next to line 247, add `http-response add-header X-Proxy-Backend %b`.
+    5.  **Tier rules.** Put them after the standalone backend rules (line 268) and before the pin rule (line 270).
         Add a consul-template `range` over `scratch.MapValues "releases"`.
         Inside it, a Jinja loop over the tier regions writes 1 rule per tier:
 
@@ -376,14 +444,21 @@ That is the same worst case as today.
         ```
 
         The `releases` scratch map is already filled at line 261, so it is ready at this point.
-    7.  **Tier backends.** After the `release-N` loop (line 368), add a consul-template `range` over the releases. Inside it, a Jinja loop over tier k writes 1 backend:
+        After that range, add a second `range` over the releases with the same Jinja loop. It writes the live-release rules:
+
+        ```
+        use_backend release-<R>-t<k>-<region k> if { var(req.tiers_on) -m str on } { var(req.live_backend) -m str release-<R> } { var(req.route_release) -m reg ^release-[0-9]+$ } { nbsrv(release-<R>-t<k>-<region k>) gt 0 }
+        ```
+
+        `req.live_backend` is the existing variable that line 221 sets from `live.map`.
+    6.  **Tier backends.** After the `release-N` loop (line 368), add a consul-template `range` over the releases. Inside it, a Jinja loop over tier k writes 1 backend:
 
         ```
         backend release-<R>-t<k>-<region k> from global_defaults
           acl stick_token hdr_reg(X-Room) .+
           acl stick_token_flag hdr_reg(X-StickTokenFlag) .+
           option forwardfor
-          default-server maxconn 2000000
+          default-server maxconn 2000000 inter {{ haproxy_check_interval }} fall {{ haproxy_backend_fall_count }} rise {{ haproxy_backend_rise_count }}
           balance hdr(X-StickToken)
           hash-type consistent {{ haproxy_hash_function }}
           hash-balance-factor 150
@@ -395,50 +470,62 @@ That is the same worst case as today.
           server <R>-fallback-<S> <addr>:<http_backend_port> id <shard_id+10> ssl verify none weight 0 track release-<release(S)>-t<j>-<region j>/<release(S)>-<S>
         ```
 
+        Copy the `default-server` line from `release-N` (line 347) exactly.
+        Without `fall` and `rise`, HAProxy uses its own defaults, 3 and 2, not the role values 2 and 3.
         The weight-0 lines get no `check` and no `agent-check`, because a tracking server must not have its own check.
         The shard data comes from `service "signal@<dc>"` without `|any`, as in `release-N`.
 *   **Why**: This file holds all routing. Each change maps to 1 part of the Technical Plan.
 
-#### 2. `ansible/roles/hcv-haproxy-configure/defaults/main.yml` (Modify)
+#### 3. `ansible/roles/hcv-haproxy-configure/defaults/main.yml` (Modify)
 
 *   **Type / Scope**: Role defaults.
-*   **Proposed Changes**: Add `haproxy_tier_map_path: /etc/haproxy/maps/tiers.map` and `haproxy_tier_map_value: "off"`.
-*   **Why**: The template, the role tasks, and the switch playbook read these 2 values.
+*   **Proposed Changes**: Add `haproxy_tier_map_path: /etc/haproxy/maps/tiers.map`.
+*   **Why**: The template and `configure-haproxy-local.yml` read this path.
 
-#### 3. `ansible/roles/hcv-haproxy-configure/tasks/main.yml` (Modify)
+#### 4. `ansible/roles/hcv-haproxy-configure/files/tiers.map.template` (Create)
 
-*   **Type / Scope**: Role tasks.
-*   **Proposed Changes**: Add 4 tasks after the task "Write health map file" (line 212).
-    They mirror the 4 health map tasks at lines 189-216.
-    1.  Stat `haproxy_tier_map_path`.
-    2.  If the file exists, read the value of the `tiers` key.
-    3.  If the read succeeds, set `haproxy_tier_map_value` from it.
-    4.  Write the file with the content `tiers <value>`.
-*   **Why**: HAProxy cannot load a config if a map file that it reads does not exist.
-    This role runs before the `consul-template` role in `configure-haproxy-local.yml`, so the file exists before the first render.
-    A rerun of the role keeps the value that on-call set.
+*   **Type / Scope**: consul-template template for the switch map.
+*   **Proposed Changes**: The file has 1 line:
 
-#### 4. `ansible/haproxy-tier-value.yml` (Create)
+    ```
+    {{ $tiers_key := print "haproxy/" (env "ENVIRONMENT") "/tiers" }}tiers {{ if eq (keyOrDefault $tiers_key "off") "on" }}on{{ else }}off{{ end }}
+    ```
 
-*   **Type / Scope**: Playbook.
-*   **Proposed Changes**: A copy of `ansible/haproxy-health-value.yml` for the tier map.
-    It writes `tiers <haproxy_tier_map_value>` to `haproxy_tier_map_path`.
-    Then it sends `set map <path> tiers <value>` to the admin socket.
-    The caller selects hosts with the inventory and `--limit`.
-*   **Why**: The runtime switch must change with no reload, and the file must match the runtime value.
+*   **Why**: The value is a plain string with no JSON encoding. Only the exact value `on` turns the tiers on.
+    `keyOrDefault` does not wait for a missing key, so a new environment renders `tiers off`.
 
-#### 5. `README_HAPROXY.md` (Modify)
+#### 5. `ansible/configure-haproxy-local.yml` (Modify)
+
+*   **Type / Scope**: Playbook that configures consul-template on each HAProxy.
+*   **Proposed Changes**:
+    1.  Add this entry to `consul_template_templates_default`, after the `tenant.map.template` entry:
+
+        ```yaml
+              - name: "tiers.map.template"
+                dest: "{{ haproxy_tier_map_path }}"
+                cmd: "/usr/local/bin/update-haproxy-map.sh {{ haproxy_tier_map_path }}"
+                perms: 0640
+                backup: false
+        ```
+
+    2.  Add `- src: roles/hcv-haproxy-configure/files/tiers.map.template` to `consul_template_template_files`.
+*   **Why**: `live.map` and `tenant.map` use the same path. `update-haproxy-map.sh` loads the map through the admin socket with no reload.
+    consul-template also renders the map on a new HAProxy, so a recycle keeps the value of the key.
+
+#### 6. `README_HAPROXY.md` (Modify)
 
 *   **Type / Scope**: Documentation.
 *   **Proposed Changes**: Add a section "region failover tiers" after "tenant pinning". It describes:
     *   The tier backend names, and that tier numbers differ for each HAProxy region.
     *   That the order comes from `haproxy_regions_by_region`, without regions that are not in `consul_wan_regions_oracle`.
-    *   The switch: the map file, the playbook, and how to limit it to 1 HAProxy.
+    *   The live-release rules that catch a pinned release with no usable tier.
+    *   The switch: the Consul key `haproxy/<env>/tiers`, the `consul kv put -datacenter` command for 1 region, and the `set map` test on 1 HAProxy.
     *   The Prometheus queries for tier failovers and for the backend that served a request.
-    *   That `/tmp/server_state` now restores agent state on reload.
 *   **Why**: On-call needs the switch and the queries during an incident.
 
-#### 6. `nomad/prometheus.hcl` in infra-provisioning (Modify, separate pull request)
+### Phase 4: alerts
+
+#### 7. `nomad/prometheus.hcl` in infra-provisioning (Modify, separate pull request)
 
 *   **Type / Scope**: Prometheus alert rules, in a different repository.
 *   **Proposed Changes**: Add 2 alerts to the `core_service_alerts` group.
@@ -446,45 +533,48 @@ That is the same worst case as today.
     *   `HAProxy_No_Usable_Shards` (severe, page): `sum by (instance) (haproxy_backend_active_servers{proxy=~"release-.*"} + haproxy_backend_backup_servers{proxy=~"release-.*"}) == 0` for 1 minute.
     Do not change `Shard_HTTP_5xx_Elevated`. Its server-name regex already matches the tier server names.
 *   **Why**: The goals need a failover signal and a page when HAProxy has no usable shard.
-
-#### 7. `scripts/set-haproxy-tier-value.sh` in infra-provisioning (Create, separate pull request)
-
-*   **Type / Scope**: Shell wrapper, in a different repository.
-*   **Proposed Changes**: A copy of `scripts/set-haproxy-health-value.sh` that runs `ansible/haproxy-tier-value.yml`.
-    It reads `HAPROXY_TIER_VALUE` for the value and `HAPROXY_TIER_LIMIT` for `--limit`.
-*   **Why**: On-call runs the health switch through this kind of wrapper today. The limit gives the rollout steps of 1 HAProxy, then 1 region.
+    The alerts must exist before Phase 5 turns the switch on.
 
 #### Files checked that need no change
 
 *   `ansible/roles/hcv-haproxy-configure/templates/haproxy.service.j2`: `ExecReload` and `ExecStop` already write the state file.
 *   `ansible/roles/hcv-haproxy-configure/files/haproxy-configurator-payload.sh`: it reloads with `service haproxy reload`, so `ExecReload` runs.
-*   `ansible/configure-haproxy-local.yml`: the role order already puts `hcv-haproxy-configure` before `consul-template`.
+*   `ansible/roles/hcv-haproxy-configure/files/update-haproxy-map.sh`: it loads any map file through the admin socket.
+*   `ansible/roles/hcv-haproxy-configure/tasks/main.yml`: consul-template writes the tier map, so the role needs no map task.
 *   `ansible/jvb-colibri-proxy-nginx.yml`: it renders the Jinja stage only for the colibri template. The tier map exists from the main configure run.
 *   `ansible/roles/hcv-haproxy-configure/files/live.map.template` and `tenant.map.template`: the tier rules read the maps as they are.
 
 ### Verification Plan
 
 *   **Static Analysis & Linting**:
-    *   `ansible-lint ansible/haproxy-tier-value.yml ansible/roles/hcv-haproxy-configure`.
-    *   `ansible-playbook --syntax-check --vault-password-file .vault-password.txt ansible/configure-haproxy-local.yml ansible/haproxy-tier-value.yml`.
-*   **Render check on stage-8x8**: Run the role on 1 stage-8x8 HAProxy with the switch `off`. Then:
+    *   `ansible-lint ansible/configure-haproxy-local.yml ansible/roles/hcv-haproxy-configure`.
+    *   `ansible-playbook --syntax-check --vault-password-file .vault-password.txt ansible/configure-haproxy-local.yml`.
+*   **Render check on stage-8x8**: Run the role on 1 stage-8x8 HAProxy with no Consul key `haproxy/stage-8x8/tiers`. Then:
     *   `haproxy -c -f /etc/haproxy/haproxy.cfg` passes.
+    *   `/etc/haproxy/maps/tiers.map` holds `tiers off`.
     *   `show stat` lists `release-<R>-t<k>-<region>` for each release and each region.
     *   Each tier backend has exactly the expected weight-256 servers.
     *   Record render time, `haproxy -c` time, reload time, and memory, before and after.
     *   Record the number of series on port 8405 and in telegraf, before and after.
-*   **Lab tests** (HAProxy 2.8, 2 peered HAProxies, 3 regions with 2-3 stub agents each, in a scratch directory, not committed):
+*   **Lab tests** (HAProxy 2.8, 2 peered HAProxies, 3 regions with 2-3 stub agents each, in a scratch directory, not committed).
+    Test 8 is the gate of Phase 1. The other tests are the Phase 2 gate:
     1.  Record `nbsrv` and `haproxy_backend_active_servers` for these states: `up ready`, `up drain`, `up ready 0%`, `down`, a stopped agent after a drain, and a backend with backups. Confirm that the 2 values are equal when a backend has no backups.
     2.  Confirm that `haproxy -c` accepts a `track` to an agent-only server in a backend that comes later in the file.
     3.  Confirm that a weight-0 `track` server goes DOWN and UP with its agent-checked server.
+        Count the agent `down` replies that mark a server DOWN in `release-N` and in a tier backend. The 2 counts are equal.
     4.  Send 1000 new stick tokens. They stay in the home region. With the home region drained, they spread over region 2. The busiest shard gets at most 1.5 times the mean. With region 2 also drained, they move to region 3.
     5.  A live room stays on a drained home shard through both HAProxies. A room created during failover stays on its region-2 shard after the home region recovers. Test with and without `X-Room`.
     6.  Repeat test 4 with a tenant pin and with `?release=release-<n>`. Pinned rooms use the tiers of the pinned release.
     7.  Change `live.map` with `set map`. New rooms use the tiers of the new live release with no reload.
     8.  Drain shards, then reload with the state file. Drained servers stay drained, and agent weights stay the same.
+        Start HAProxy with an empty state file. HAProxy starts.
     9.  Run 2 HAProxies with agent timers out of phase. Count split rooms during drain changes.
     10. Drain every shard. HAProxy returns 503, and `HAProxy_No_Usable_Shards` fires.
-    11. Turn the switch on and off with the playbook. Routing changes with no reload. A rerun of the role keeps the value.
+    11. Set the Consul key to `on`, then to `off`. Routing changes with no reload.
+        Set the key to `On` and then to `true`. The map holds `tiers off` both times.
+        Start a new HAProxy. It renders the current value of the key.
+    12. Drain every shard of a pinned release in every region. Pinned rooms spread over tier 1 of the live release.
+        Send `?release=<shard>`. The room goes to that shard backend.
 *   **Not in this plan**: Stick-table survival across a reload is checked separately. It works today, behind the load balancer drain.
 *   **Production checks after each rollout step**: Watch `haproxy_backend_sessions_total` of the tier backends, 503 responses, `haproxy_wredis`, and join errors on `jitsi-oci-hosts-prod-01-oci-metrics`.
 
