@@ -297,6 +297,11 @@ After a crash, systemd still runs `ExecStop`. socat cannot reach the socket of t
 HAProxy then starts with no saved state, as it does today. The agent check sets each server within 1 agent interval, 10 seconds.
 Lab test 8 also checks that HAProxy starts with an empty state file.
 
+The state file also keeps a manual `set server ... drain` or `maint` across a reload. Today a reload clears it.
+On an agent-checked server, the next agent reply overrides it within 1 agent interval, as today.
+signal-sidecar sends `ready`, `drain`, or `maint` in every reply (`signal-sidecar/src/app.ts` lines 459-461), so a stale drain also clears.
+On a `no-check` server, such as a shard backend, a manual state now stays until an operator clears it.
+
 ### 5. Telemetry and alerts
 
 *   The Prometheus exporter already gives `haproxy_backend_active_servers` and `haproxy_backend_sessions_total` for each backend.
@@ -409,10 +414,11 @@ Lab test 8 also checks that HAProxy starts with an empty state file.
 
 *   **Rollout**: The Detailed Implementation Plan gives the phases and the gate of each phase. These are the switch steps:
     1.  Deploy Phase 3 with no Consul key. The switch is `off`, so no rule sends traffic to the tier backends.
-    2.  On 1 stage-8x8 HAProxy, check `show stat` and `nbsrv` of each tier backend.
-    3.  Test 1 stage-8x8 HAProxy with `set map`. Then set the key `on` in 1 stage-8x8 region.
-    4.  Set the key `on` in ap-mumbai-1, then in each other region.
-    5.  Existing meetings keep their shard in a mixed fleet, because the stick-table key and `srvkey addr` do not change.
+    2.  Change the dashboard and alert queries that select 1 exact `release-N` backend. With the switch on, those backends carry fallback traffic only.
+    3.  On 1 stage-8x8 HAProxy, check `show stat` and `nbsrv` of each tier backend.
+    4.  Test 1 stage-8x8 HAProxy with `set map`. Then set the key `on` in 1 stage-8x8 region.
+    5.  Set the key `on` in ap-mumbai-1, then in each other region.
+    6.  Existing meetings keep their shard in a mixed fleet, because the stick-table key and `srvkey addr` do not change.
 *   **Rollback**:
     1.  If the signal-sidecar CPU drain is on in the region, turn it off. With tiers off, each CPU drain sends new rooms to 1 shard.
     2.  Set the key `haproxy/<env>/tiers` to `off` in each region. This needs no reload.
@@ -460,7 +466,8 @@ A phase merges, and stage-8x8 gets a release. The stage check passes before the 
 #### 2. `README_HAPROXY.md` (Modify)
 
 *   **Type / Scope**: Documentation.
-*   **Proposed Changes**: In "configuring haproxy", add 1 line: a reload restores agent state from `haproxy_state_file`.
+*   **Proposed Changes**: In "configuring haproxy", add 2 lines. A reload restores agent state from `haproxy_state_file`.
+    A manual `drain` or `maint` on a `no-check` server, such as a shard backend, now survives a reload.
 *   **Why**: Lab test 8 passes before this merges, so the line states a checked fact.
 
 ### Phase 3: tier backends, rules, and switch
@@ -521,6 +528,7 @@ A phase merges, and stage-8x8 gets a release. The stage check passes before the 
         Copy the `default-server` line from `release-N` (line 347) exactly.
         Without `fall` and `rise`, HAProxy uses its own defaults, 3 and 2, not the role values 2 and 3 (`defaults/main.yml` lines 6 and 9).
         The weight-0 lines get no `check` and no `agent-check`, because a tracking server must not have its own check.
+        `option httpchk` and the `http-check` lines are left out. Every server line has `no-check`, so they have no effect in `release-N` either.
         The shard data comes from `service "signal@<dc>"` without `|any`, as in `release-N`.
 *   **Why**: Changes 1 and 5 implement Technical Plan section 1. Changes 3 and 4 implement section 2. Change 2 implements section 3.
 
@@ -595,6 +603,8 @@ A phase merges, and stage-8x8 gets a release. The stage check passes before the 
         *   The live-release rules that catch a pinned release with no usable tier.
         *   The switch: the Consul key `haproxy/<env>/tiers`, the `consul kv put -datacenter` command for 1 region, and the `set map` test on 1 HAProxy.
         *   The query for sessions per tier backend: `sum by (host, proxy) (rate(haproxy_backend_sessions_total{proxy=~"release-[0-9]+-t[123]"}[5m]))`.
+        *   With the switch on, normal traffic goes through `release-R-t1`, and `release-N` is a fallback only. Queries on 1 exact `release-N` go quiet.
+            Queries on `proxy=~"release-.*"` already include the tier backends.
     2.  In "haproxy for jitsi shards" and in the upgrade checklist, mark the `monitor haproxy` job deprecated. Baron alerts on split brains.
 *   **Why**: On-call needs the switch and the query during an incident. The README still describes `monitor haproxy` as active.
 
@@ -637,6 +647,8 @@ A phase merges, and stage-8x8 gets a release. The stage check passes before the 
     ```
 
     The page rule has no `scope: global`, because the problem is in 1 region's HAProxy.
+    A pinned or canary release with no shard in the home region always uses tier 2. `HAProxy_Region_Tier_Failover` then stays on for that `proxy`.
+    The summary names the `proxy`, so on-call can tell this case from a real failover.
 
     `host` names 1 HAProxy, as in `HAProxy_Reconfig_Failed`. The stage check confirms that `haproxy_backend_*` series carry `host`.
     `core_service_alerts` renders only where `var.core_deployment` is true. Deploy with `scripts/deploy-nomad-prometheus.sh`.
@@ -679,6 +691,7 @@ A phase merges, and stage-8x8 gets a release. The stage check passes before the 
         Render the Jinja stage with `ansible localhost -m template`. Then render with `consul-template -once` against the region-1 agent.
     *   **Functional lab:** 4 regions with 2-3 shards each, and 2 releases. 2 HAProxies with a `peers` section of the 2.
         With `haproxy_tier_2_region_count: 2`, tier 2 holds regions 2 and 3, and tier 3 holds region 4.
+    *   **Early estimate:** Before the lab, count the server lines in 1 prod-8x8 `haproxy.cfg`, and the series on port 8405 of that HAProxy. Multiply by 4.
     *   **Cost render:** 10 regions, with the prod-8x8 shard count of each region from `consul catalog`. Measure the Performance limits on this render, against the same render of the template before Phase 3.
     *   **Stub shard:** 1 `listen` section per shard: `bind :<port> ssl crt <lab cert>` and `http-request return status 200 string <shard>`.
     *   **Stub agent:** `socat TCP-LISTEN:<port>,fork SYSTEM:'cat /tmp/agent-<n>'`. The file holds the reply, for example `up ready 100%`.
@@ -698,6 +711,8 @@ A phase merges, and stage-8x8 gets a release. The stage check passes before the 
     7.  Change `live.map` with `set map`. New rooms use the tiers of the new live release with no reload.
     8.  Drain shards, then reload with the state file. Drained servers stay drained, and agent weights stay the same.
         Start HAProxy with an empty state file. HAProxy starts. Start HAProxy with no state file. HAProxy starts.
+        Restore a drained server from the state file while its agent replies `up ready`. The server is ready again within 1 agent interval.
+        Run every part of test 8 with the global `chroot /var/lib/haproxy`, as in production.
     9.  Run 2 HAProxies with agent timers out of phase. Count split rooms during drain changes, first with the switch off and then on.
         The split count with the switch on is not higher than with it off.
     10. Drain every shard. HAProxy returns 503, and the `HAProxy_No_Usable_Shards` promtool case fires.
