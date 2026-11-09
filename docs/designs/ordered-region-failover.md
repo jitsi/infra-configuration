@@ -90,7 +90,8 @@ If the next region is also near its limit, the overflow moves on to the region a
 7.  A Consul key in each region turns the tier rules on and off with no reload. A new HAProxy reads the current value.
 8.  On-call gets a page when an HAProxy has 0 UP servers in every `release-N` backend.
 9.  Metrics show sessions per tier backend, so a failover to tier 2 or tier 3 is visible.
-10. After a region turns the switch on, its 503 rate in the next 24 hours is not above the 24 hours before. Lab test 9 counts split rooms.
+10. After a region turns the switch on, its `www-http` 5xx ratio for 24 hours is at most 1.5 times the 24 hours before.
+    Lab test 9 counts split rooms.
 
 ## Non-Goals
 
@@ -418,11 +419,11 @@ Lab test 8 also checks that HAProxy starts with an empty state file.
     3.  Revert the Phase 3 change and deploy a new HAProxy release.
     The Phase 1 state-file change has its own rollback: revert it and deploy a new HAProxy release.
 *   **Performance**: The server lines grow by about 4 times. Each HAProxy sends 1 more agent check to each shard.
-    The Phase 3 gate on stage-8x8 has these limits, compared with the baseline before Phase 3:
+    The Phase 2 cost render in the lab (10 regions, prod-8x8 shard counts) has these limits, compared with the same render before Phase 3:
     *   Render time, `haproxy -c` time, and reload time: at most 2 times.
     *   Memory: at most 1.5 times.
     *   Prometheus series per HAProxy: at most 5 times.
-    If a limit fails, set `haproxy_tier_2_region_count` lower, or drop tier 3.
+    If a limit fails, set `haproxy_tier_2_region_count` to 8 or more. Tier 3 is then empty and not rendered, which gives 2 tiers (Alternative G2).
 *   **Security**: `?release=` can already name any backend, shard backends included. Tier backends add more names that it can reach. A pattern check on `?release=` is separate work.
 
 --------------------------------------------------------------------------------
@@ -431,18 +432,20 @@ Lab test 8 also checks that HAProxy starts with an empty state file.
 
 ### Phases
 
-Each phase is 1 pull request, except Phase 2, which is a lab gate.
+Phases 1, 3, and 4 are pull requests. Phase 2 is a lab gate. Phase 5 is Consul KV writes.
 A phase starts only after the gate of the phase before it passes.
+
 An infra-configuration change reaches an HAProxy only on a new HAProxy release branch.
 `haproxy-create-release` builds that release, and `haproxy-recycle` replaces the instances.
+A phase merges, and stage-8x8 gets a release. The stage check passes before the prod-8x8 release.
 
-| Phase | Change | Repository | Gate before the next phase |
+| Phase | Change | Where | Gate |
 |---|---|---|---|
-| 1 | State file: item 1 | infra-configuration | Lab test 8 passes. On stage-8x8, a reload keeps drained servers drained. The change runs in production for 7 days with no reload problem. |
-| 2 | Lab tests 1-7 and 9-17 on the Phase 3 code | none (scratch directory) | Every test passes. If an HAProxy claim fails, stop and revise this design. |
-| 3 | Tier backends, rules, and switch: items 2-6 | infra-configuration | The render check on stage-8x8 passes with no Consul key, and the cost limits in Performance hold. |
-| 4 | Alerts: item 7 | infra-provisioning | Prometheus loads the 2 alerts. |
-| 5 | Switch on, region by region | Consul KV | The production checks pass after each region. |
+| 1 | State file: items 1 and 2 | infra-configuration | Before merge: lab test 8 passes. Before the prod-8x8 release: on stage-8x8, a reload keeps drained servers drained. Before Phase 3: 7 days in prod-8x8 with no `HAProxy_Reconfig_Failed`, and no `HAProxy_Redispatch_Rate_High` within 10 minutes after a reload. |
+| 2 | Lab tests 1-7, 9-12, and 14-17, and the cost render, on the Phase 3 branch | Local lab (scratch directory) | Every test passes, and the cost limits in Performance hold. If one of the 4 claims in Open Questions fails, stop and revise this design. |
+| 3 | Tier backends, rules, and switch: items 3-9 | infra-configuration | Before the prod-8x8 release: the render check on stage-8x8 passes. |
+| 4 | Alerts: item 10 | infra-provisioning | `promtool check rules` passes, and both rules appear in `/api/v1/rules` on stage-8x8. |
+| 5 | Switch on, region by region | Consul KV | The production checks pass for each region. |
 
 ### Phase 1: agent state across reloads
 
@@ -452,24 +455,33 @@ An infra-configuration change reaches an HAProxy only on a new HAProxy release b
 *   **Proposed Changes**:
     1.  Add `server-state-file {{ haproxy_state_file }}` to `global`.
     2.  Add `load-server-state-from-file global` to `defaults global_defaults`.
-    3.  In `README_HAPROXY.md`, "configuring haproxy", add 1 line: a reload restores agent state from `haproxy_state_file`.
-*   **Why**: Technical Plan section 4. `ExecReload` and `ExecStop` already write the file, so no other file changes.
+*   **Why**: Technical Plan section 4. `ExecReload` and `ExecStop` already write the file, so no other code file changes.
+
+#### 2. `README_HAPROXY.md` (Modify)
+
+*   **Type / Scope**: Documentation.
+*   **Proposed Changes**: In "configuring haproxy", add 1 line: a reload restores agent state from `haproxy_state_file`.
+*   **Why**: Lab test 8 passes before this merges, so the line states a checked fact.
 
 ### Phase 3: tier backends, rules, and switch
 
-#### 2. `ansible/roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2` (Modify)
+#### 3. `ansible/roles/hcv-haproxy-configure/templates/haproxy.cfg.template.j2` (Modify)
 
 *   **Type / Scope**: Jinja template that renders a consul-template template for `haproxy.cfg`.
-*   **Proposed Changes**:
-    1.  **Tier list.** After the namespace block at lines 58-63, split `ns.haproxy_datacenters` (`dcs` below) into a list of 3 region lists:
-        `[dcs[:1], dcs[1:1 + haproxy_tier_2_region_count], dcs[1 + haproxy_tier_2_region_count:]]`.
-        Drop an empty list. The index in this list is the tier number minus 1.
+*   **Proposed Changes**: Line numbers refer to the template before Phase 1. Phase 1 adds 2 lines above them.
+    1.  **Tier list.** After the namespace block at lines 58-63, split `ns.haproxy_datacenters` (`dcs` below) into a list of 3 region lists.
+        With `n` = `haproxy_tier_2_region_count | int`: `[dcs[:1], dcs[1:1 + n], dcs[1 + n:]]`.
+        The index in this list is the tier number minus 1. Tier numbers stay fixed. If a list is empty, skip that tier, and do not renumber.
     2.  **Switch variable.** After the tenant pin lines (line 229), add:
         `http-request set-var(req.tiers_on) str(tiers),map({{ haproxy_tier_map_path }},off)`.
-    3.  **Route variable.** After the switch variable, add 2 lines.
-        The first sets `req.route_release` from `req.live_backend`.
-        The second overrides it with `req.tenant_pin` if the pin is found and `var(req.tenant_pin),nbsrv gt 0`. This is the same condition as the pin rule at line 271.
-    4.  **Tier rules.** Put them after the standalone backend rules (line 268) and before the pin rule (line 270).
+    3.  **Route variable.** After the switch variable, add these 2 lines. The condition is the same as the pin rule at line 271.
+
+        ```
+        http-request set-var(req.route_release) var(req.live_backend)
+        http-request set-var(req.route_release) var(req.tenant_pin) if { var(req.tenant_pin) -m found } { var(req.tenant_pin),nbsrv gt 0 }
+        ```
+
+    4.  **Tier rules.** Put them after the standalone backend rules (line 268) and before the pin rule (line 271).
         Add a consul-template `range` over `scratch.MapValues "releases"`.
         Inside it, a Jinja loop over the tiers writes 1 rule per tier:
 
@@ -504,19 +516,38 @@ An infra-configuration change reaches an HAProxy only on a new HAProxy release b
           server <R>-fallback-<S> <addr>:<http_backend_port> id <shard_id+10> ssl verify none weight 0 track release-<release(S)>-t<j>/<release(S)>-<S>
         ```
 
+        For j != k, a Jinja `{% if %}` writes every shard of the region as a fallback line.
+        For j == k, a consul-template `{{ if ne $shard.ServiceMeta.release_number $release_number }}` writes only shards of other releases.
         Copy the `default-server` line from `release-N` (line 347) exactly.
-        Without `fall` and `rise`, HAProxy uses its own defaults, 3 and 2, not the role values 2 and 3.
+        Without `fall` and `rise`, HAProxy uses its own defaults, 3 and 2, not the role values 2 and 3 (`defaults/main.yml` lines 6 and 9).
         The weight-0 lines get no `check` and no `agent-check`, because a tracking server must not have its own check.
         The shard data comes from `service "signal@<dc>"` without `|any`, as in `release-N`.
-*   **Why**: This file holds all routing. Each change maps to 1 part of the Technical Plan.
+*   **Why**: Changes 1 and 5 implement Technical Plan section 1. Changes 3 and 4 implement section 2. Change 2 implements section 3.
 
-#### 3. `ansible/roles/hcv-haproxy-configure/defaults/main.yml` (Modify)
+#### 4. `ansible/roles/hcv-haproxy-configure/defaults/main.yml` (Modify)
 
 *   **Type / Scope**: Role defaults.
 *   **Proposed Changes**: Add `haproxy_tier_map_path: /etc/haproxy/maps/tiers.map` and `haproxy_tier_2_region_count: 2`.
-*   **Why**: The template and `configure-haproxy-local.yml` read the path. The template reads the count.
+*   **Why**: The template, the role tasks, and 2 playbooks read the path. The template reads the count.
 
-#### 4. `ansible/roles/hcv-haproxy-configure/files/tiers.map.template` (Create)
+#### 5. `ansible/roles/hcv-haproxy-configure/tasks/main.yml` (Modify)
+
+*   **Type / Scope**: Role tasks.
+*   **Proposed Changes**: After the task "Write health map file with haproxy_health_up_map_value", add 1 task:
+
+    ```yaml
+    - name: Write tier map file if missing
+      ansible.builtin.copy:
+        mode: 0644
+        dest: "{{ haproxy_tier_map_path }}"
+        content: "tiers off\n"
+        force: false
+    ```
+
+*   **Why**: `haproxy -c` fails if a map file that the config reads is missing. consul-template can run the config check before it writes `tiers.map`.
+    `force: false` keeps the value that consul-template wrote.
+
+#### 6. `ansible/roles/hcv-haproxy-configure/files/tiers.map.template` (Create)
 
 *   **Type / Scope**: consul-template template for the switch map.
 *   **Proposed Changes**: The file has 1 line:
@@ -528,7 +559,7 @@ An infra-configuration change reaches an HAProxy only on a new HAProxy release b
 *   **Why**: The value is a plain string with no JSON encoding. Only the exact value `on` turns the tiers on.
     `keyOrDefault` does not wait for a missing key, so a new environment renders `tiers off`.
 
-#### 5. `ansible/configure-haproxy-local.yml` (Modify)
+#### 7. `ansible/configure-haproxy-local.yml` (Modify)
 
 *   **Type / Scope**: Playbook that configures consul-template on each HAProxy.
 *   **Proposed Changes**:
@@ -543,72 +574,121 @@ An infra-configuration change reaches an HAProxy only on a new HAProxy release b
         ```
 
     2.  Add `- src: roles/hcv-haproxy-configure/files/tiers.map.template` to `consul_template_template_files`.
-*   **Why**: `live.map` and `tenant.map` use the same path. `update-haproxy-map.sh` loads the map through the admin socket with no reload.
+*   **Why**: `live.map` and `tenant.map` use the same consul-template mechanism. `update-haproxy-map.sh` loads the map through the admin socket with no reload.
     consul-template also renders the map on a new HAProxy, so a recycle keeps the value of the key.
 
-#### 6. `README_HAPROXY.md` (Modify)
+#### 8. `ansible/jvb-colibri-proxy-nginx.yml` (Modify)
+
+*   **Type / Scope**: Playbook that rewrites the consul-template config on an HAProxy for the colibri proxy.
+*   **Proposed Changes**: Add the same `tiers.map.template` entry as item 7 to `consul_template_templates`, after the `tenant.map.template` entry.
+    Add the same `src` line to its template file list.
+*   **Why**: This playbook sets its own full template list, and the consul-template role writes the whole config from it.
+    Without the entry, consul-template on that HAProxy stops watching `haproxy/<env>/tiers`, and the off switch does nothing there.
+
+#### 9. `README_HAPROXY.md` (Modify)
 
 *   **Type / Scope**: Documentation.
-*   **Proposed Changes**: Add a section "region failover tiers" after "tenant pinning". It describes:
-    *   The 3 tier backends per release, and that the regions in each tier differ for each HAProxy region.
-    *   That the order comes from `haproxy_regions_by_region`, without regions that are not in `consul_wan_regions_oracle`.
-    *   The live-release rules that catch a pinned release with no usable tier.
-    *   The switch: the Consul key `haproxy/<env>/tiers`, the `consul kv put -datacenter` command for 1 region, and the `set map` test on 1 HAProxy.
-    *   The Prometheus query for sessions per tier backend.
-*   **Why**: On-call needs the switch and the queries during an incident.
+*   **Proposed Changes**:
+    1.  Add a section "region failover tiers" after "tenant pinning". It describes:
+        *   The 3 tier backends per release, and that the regions in each tier differ for each HAProxy region.
+        *   That the order comes from `haproxy_regions_by_region`, filtered to the regions in `consul_wan_regions_oracle`.
+        *   The live-release rules that catch a pinned release with no usable tier.
+        *   The switch: the Consul key `haproxy/<env>/tiers`, the `consul kv put -datacenter` command for 1 region, and the `set map` test on 1 HAProxy.
+        *   The query for sessions per tier backend: `sum by (host, proxy) (rate(haproxy_backend_sessions_total{proxy=~"release-[0-9]+-t[123]"}[5m]))`.
+    2.  In "haproxy for jitsi shards" and in the upgrade checklist, mark the `monitor haproxy` job deprecated. Baron alerts on split brains.
+*   **Why**: On-call needs the switch and the query during an incident. The README still describes `monitor haproxy` as active.
 
 ### Phase 4: alerts
 
-#### 7. `nomad/prometheus.hcl` in infra-provisioning (Modify, separate pull request)
+#### 10. `nomad/prometheus.hcl` in infra-provisioning (Modify, separate pull request)
 
 *   **Type / Scope**: Prometheus alert rules, in a different repository.
-*   **Proposed Changes**: Add 2 alerts to the `core_service_alerts` group.
-    *   `HAProxy_Region_Tier_Failover` (warn): `sum by (instance, proxy) (rate(haproxy_backend_sessions_total{proxy=~"release-[0-9]+-t[23]"}[5m])) > 0` for 2 minutes.
-    *   `HAProxy_No_Usable_Shards` (severe, page): `sum by (instance) (haproxy_backend_active_servers{proxy=~"release-[0-9]+"} + haproxy_backend_backup_servers{proxy=~"release-[0-9]+"}) == 0` for 1 minute.
-        This alert does not depend on the tiers. It can ship before Phase 3.
-    Use the labels of the existing rules in the group: `service: jitsi` and `severity`.
-    Each region has its own Prometheus (`${var.dc}`), so `instance` names 1 HAProxy of that region.
+*   **Proposed Changes**: Add these 2 rules to the `core_service_alerts` group:
+
+    ```yaml
+      - alert: HAProxy_Region_Tier_Failover
+        expr: sum by (host, proxy) (rate(haproxy_backend_sessions_total{proxy=~"release-[0-9]+-t[23]"}[5m])) > 0
+        for: 2m
+        labels:
+          service: jitsi
+          severity: warn
+        annotations:
+          summary: haproxy {{ $labels.host }} in ${var.dc} sends new rooms to {{ $labels.proxy }}
+          description: >-
+            HAProxy {{ $labels.host }} in ${var.dc} found no usable shard in an earlier tier,
+            and sends new rooms to {{ $labels.proxy }}. The region failed over.
+            Check the agent state of the home-region shards.
+          dashboard_url: ${var.grafana_url}
+          alert_url: https://${var.prometheus_hostname}/alerts?search=haproxy_region_tier_failover
+      - alert: HAProxy_No_Usable_Shards
+        expr: sum by (host) (haproxy_backend_active_servers{proxy=~"release-[0-9]+"} + haproxy_backend_backup_servers{proxy=~"release-[0-9]+"}) == 0
+        for: 1m
+        labels:
+          service: jitsi
+          severity: severe
+          page: true
+        annotations:
+          summary: haproxy {{ $labels.host }} in ${var.dc} has no usable shard
+          description: >-
+            HAProxy {{ $labels.host }} in ${var.dc} has 0 UP servers in every release backend.
+            It returns 503 for every new room. Check the agent state of all shards.
+          dashboard_url: ${var.grafana_url}
+          alert_url: https://${var.prometheus_hostname}/alerts?search=haproxy_no_usable_shards
+    ```
+
+    The page rule has no `scope: global`, because the problem is in 1 region's HAProxy.
+
+    `host` names 1 HAProxy, as in `HAProxy_Reconfig_Failed`. The stage check confirms that `haproxy_backend_*` series carry `host`.
+    `core_service_alerts` renders only where `var.core_deployment` is true. Deploy with `scripts/deploy-nomad-prometheus.sh`.
+
     Do not change `Shard_HTTP_5xx_Elevated`. It reads `proxy=~"release-.*"` and extracts the shard with `[0-9]+-(?:fallback-)?(.*)` on the `server` label.
     That regex matches the tier server names `<R>-<S>` and `<R>-fallback-<S>`. A request goes through 1 backend only, so the sum by shard counts each 5xx once.
-*   **Why**: The goals need a failover signal and a page when HAProxy has no usable shard.
-    The alerts must exist before Phase 5 turns the switch on.
+*   **Why**: Goals 8 and 9 need a page when HAProxy has no usable shard, and a failover signal.
 
 #### Files checked that need no change
 
 *   `ansible/roles/hcv-haproxy-configure/templates/haproxy.service.j2`: `ExecReload` and `ExecStop` already write the state file.
 *   `ansible/roles/hcv-haproxy-configure/files/haproxy-configurator-payload.sh`: it reloads with `service haproxy reload`, so `ExecReload` runs.
 *   `ansible/roles/hcv-haproxy-configure/files/update-haproxy-map.sh`: it loads any map file through the admin socket.
-*   `ansible/roles/hcv-haproxy-configure/tasks/main.yml`: consul-template writes the tier map, so the role needs no map task.
-*   `ansible/jvb-colibri-proxy-nginx.yml`: it renders the Jinja stage only for the colibri template. The tier map exists from the main configure run.
+    On first boot, `prepare map` can fail before HAProxy loads a config that uses `tiers.map`. It then sends `map_update_failed:1`. This is expected once.
 *   `ansible/roles/hcv-haproxy-configure/files/live.map.template` and `tenant.map.template`: the tier rules read the maps as they are.
 *   `ansible/roles/hcv-haproxy-status/tasks/main.yml`: the `monitor haproxy` job that uses it is deprecated. Baron replaced it, and Baron alerts but does not patch.
 *   `ansible/roles/hcv-haproxy-set-stick-table/tasks/main.yml`: it patches entries by `server_id`. Tier lines keep `shard_id + 10`.
-*   `ansible/haproxy-set-release-ga.yml`: its `grep -q "backend <release>"` also matches tier backends. `release-N` and its tiers render from the same map, so the check stays valid.
+*   `ansible/haproxy-set-release-ga.yml`: its `grep -q "backend <release>"` also matches tier backends. `release-N` and its tiers render from the same `releases` scratch map, so the check stays valid.
+*   `vo_meetings_haproxy-knight` (`src/knight/app.py`): it parses `show servers state` only for servers named `shard-*`. It returns `show stat` unparsed.
+*   `vo_meetings_baron` (`src/baron/inconsistency_detector.py`): it reads `server_id` from the stick table and computes `shard_id = server_id - 10`. Tier lines keep the same ids.
+*   `HAProxy_Shard_Unhealthy` in `prometheus.hcl`: it groups `haproxy_agent_health` by `sv`. Tier agent lines reuse the `<R>-<S>` names, so their series merge with `release-N`. This is harmless.
 
 ### Verification Plan
 
 *   **Static Analysis & Linting**:
-    *   `ansible-lint ansible/configure-haproxy-local.yml ansible/roles/hcv-haproxy-configure`.
-    *   `ansible-playbook --syntax-check --vault-password-file .vault-password.txt ansible/configure-haproxy-local.yml`.
-*   **Render check on stage-8x8**: Run the role on 1 stage-8x8 HAProxy with no Consul key `haproxy/stage-8x8/tiers`. Then:
+    *   `ansible-lint ansible/configure-haproxy-local.yml ansible/jvb-colibri-proxy-nginx.yml ansible/roles/hcv-haproxy-configure`.
+    *   `ansible-playbook --syntax-check --vault-password-file .vault-password.txt ansible/configure-haproxy-local.yml ansible/jvb-colibri-proxy-nginx.yml`.
+    *   `promtool check rules` on the 2 Phase 4 rules, copied into a plain rules file with `${var.dc}` replaced by `lab`.
+*   **Render check on stage-8x8** (after the Phase 3 stage release, with no Consul key `haproxy/stage-8x8/tiers`):
     *   `haproxy -c -f /etc/haproxy/haproxy.cfg` passes.
     *   `/etc/haproxy/maps/tiers.map` holds `tiers off`.
-    *   `show stat` lists `release-<R>-t1`, `-t2`, and `-t3` for each release.
-    *   Each tier backend has exactly the expected weight-256 servers.
-    *   Record render time, `haproxy -c` time, reload time, and memory, before and after.
-    *   Record the number of series on port 8405 and in telegraf, before and after.
-    *   With no Consul key, the `release-N`, shard, and `nodes` sections are identical to the render before Phase 3.
-*   **Lab tests** (HAProxy 2.8, 2 peered HAProxies, 4 regions with 2-3 stub agents each, in a scratch directory, not committed).
-    With `haproxy_tier_2_region_count: 2`, tier 2 holds regions 2 and 3, and tier 3 holds region 4.
-    Lab recipe:
-    *   Config: render `haproxy.cfg` on 1 stage-8x8 HAProxy with the Phase 3 code. Copy it, and point the server lines at the lab stubs.
-    *   Stub agent: `socat TCP-LISTEN:<port>,fork SYSTEM:'cat /tmp/agent-<n>'`. The file holds the reply, for example `up ready 100%`.
-    *   Stub shard: 1 `http-request return` backend for each shard, which returns the shard name.
-    *   Load: `curl` with `?room=<name>` for each new room. Count rooms per shard from `show table nodes`.
-    *   Split rooms: count room names whose `show table nodes` entry differs between the 2 HAProxies.
-    *   Alerts: run the 2 expressions with `promtool test rules` against series scraped from port 8405.
-    Test 8 is the gate of Phase 1. The other tests are the Phase 2 gate:
-    1.  Record `nbsrv` and `haproxy_backend_active_servers` for these states: `up ready`, `up drain`, `up ready 0%`, `down`, a stopped agent after a drain, and a backend with backups. Confirm that the 2 values are equal when a backend has no backups.
+    *   `show stat` lists `release-<R>-t1` and `release-<R>-t2` for each release. stage-8x8 has 2 regions, so tier 3 is empty and not rendered.
+    *   For each release R and tier k, the weight-256 servers are the passing `signal` shards with `release_number` R in the regions of tier k. Compare the `show stat` rows with `weight` 256 against `consul catalog` for each region.
+    *   The `release-N`, shard, and `nodes` sections are identical to the render before Phase 3.
+    *   The `haproxy_backend_*` series in stage-8x8 Prometheus carry a `host` label.
+    *   Create rooms, then reload 1 HAProxy behind the load balancer drain. Every stick entry is still in `show table nodes`, and each room stays on its shard. (Lab test 13 moved here, because the lab has no load balancer.)
+*   **Lab** (HAProxy 2.8, in a scratch directory, not committed). The lab renders the real 2-stage template against fake data, so it needs no stage HAProxy and no release.
+    *   **Render:** Start 1 Consul dev agent for each fake region (`consul agent -dev -datacenter=lab-<region>`, separate ports), joined with `consul join -wan`.
+        Register `signal` services with the ServiceMeta fields `release_number`, `shard`, `shard_id`, `http_backend_port`, and `signal_sidecar_agent_port`.
+        Render the Jinja stage with `ansible localhost -m template`. Then render with `consul-template -once` against the region-1 agent.
+    *   **Functional lab:** 4 regions with 2-3 shards each, and 2 releases. 2 HAProxies with a `peers` section of the 2.
+        With `haproxy_tier_2_region_count: 2`, tier 2 holds regions 2 and 3, and tier 3 holds region 4.
+    *   **Cost render:** 10 regions, with the prod-8x8 shard count of each region from `consul catalog`. Measure the Performance limits on this render, against the same render of the template before Phase 3.
+    *   **Stub shard:** 1 `listen` section per shard: `bind :<port> ssl crt <lab cert>` and `http-request return status 200 string <shard>`.
+    *   **Stub agent:** `socat TCP-LISTEN:<port>,fork SYSTEM:'cat /tmp/agent-<n>'`. The file holds the reply, for example `up ready 100%`.
+    *   **Load:** `curl -X POST "https://<haproxy>/http-bind?room=<name>"` for each new room. The `/http-bind` path makes HAProxy set `X-StickTokenFlag`, so HAProxy stores the stick entry. Count rooms per shard from the stub replies.
+    *   **Split rooms:** Send the first request of each room to both HAProxies at the same time. A room is split if the 2 replies name different shards.
+        Do not compare `show table nodes`, because peers make the 2 tables converge.
+    *   **Alert tests:** Write a `promtool test rules` file with `input_series` for each alert case, against the plain rules file from the static checks.
+*   **Lab tests.** Test 8 is the gate of Phase 1, and it runs on the current template plus item 1. The other tests are the Phase 2 gate:
+    1.  Record `nbsrv` and `haproxy_backend_active_servers` for each state. The expected `nbsrv` values are: `up ready` 1, `up drain` 0, `up ready 0%` 0, `down` 0, a stopped agent after a drain 0, and 0 usable active servers with 1 usable backup 1.
+        Confirm that the 2 values are equal when a backend has no backups.
     2.  Confirm that `haproxy -c` accepts a `track` to an agent-only server in a backend that comes later in the file.
     3.  Confirm that a weight-0 `track` server goes DOWN and UP with its agent-checked server.
         Count the agent `down` replies that mark a server DOWN in `release-N` and in a tier backend. The 2 counts are equal.
@@ -617,21 +697,23 @@ An infra-configuration change reaches an HAProxy only on a new HAProxy release b
     6.  Repeat test 4 with a tenant pin and with `?release=release-<n>`. Pinned rooms use the tiers of the pinned release.
     7.  Change `live.map` with `set map`. New rooms use the tiers of the new live release with no reload.
     8.  Drain shards, then reload with the state file. Drained servers stay drained, and agent weights stay the same.
-        Start HAProxy with an empty state file. HAProxy starts.
-    9.  Run 2 HAProxies with agent timers out of phase. Count split rooms during drain changes.
-    10. Drain every shard. HAProxy returns 503, and `HAProxy_No_Usable_Shards` fires.
+        Start HAProxy with an empty state file. HAProxy starts. Start HAProxy with no state file. HAProxy starts.
+    9.  Run 2 HAProxies with agent timers out of phase. Count split rooms during drain changes, first with the switch off and then on.
+        The split count with the switch on is not higher than with it off.
+    10. Drain every shard. HAProxy returns 503, and the `HAProxy_No_Usable_Shards` promtool case fires.
     11. Set the Consul key to `on`, then to `off`. Routing changes with no reload.
         Set the key to `On` and then to `true`. The map holds `tiers off` both times.
         Start a new HAProxy. It renders the current value of the key.
     12. Drain every shard of a pinned release in every region. Pinned rooms spread over tier 1 of the live release.
         Send `?release=<shard>`. The room goes to that shard backend.
-    13. Create rooms, then reload 1 HAProxy behind the load balancer drain. Every stick entry is still in `show table nodes`, and each room stays on its shard.
+    13. Moved to the stage-8x8 render check.
     14. Drain every shard of the live release in every region. New rooms go to `release-<live>` and its backups.
     15. Set `live.map` to a release with no tier rules. New rooms use the live rule.
     16. Turn the switch on for 1 HAProxy and off for the other. A meeting stays on 1 shard through both.
-    17. Make sessions flow into a tier-2 backend. `HAProxy_Region_Tier_Failover` fires.
-*   **Production checks after each rollout step**: Watch `haproxy_backend_sessions_total` of the tier backends.
-    Compare the 503 rate of `haproxy_backend_http_responses_total{code="5xx"}` for 24 hours before and after each region. A rise is a rollback trigger.
+    17. Make sessions flow into a tier-2 backend. The `HAProxy_Region_Tier_Failover` promtool case fires.
+*   **Production checks for each region in Phase 5**: compare the 5xx ratio of the region's `www-http` frontends, 24 hours before and 24 hours after the switch:
+    `sum(rate(haproxy_frontend_http_responses_total{proxy="www-http",code="5xx"}[24h])) / sum(rate(haproxy_frontend_http_requests_total{proxy="www-http"}[24h]))`.
+    If the 24 hours after are above 1.5 times the 24 hours before, roll back. Wait 24 hours before the next region.
 
 --------------------------------------------------------------------------------
 
