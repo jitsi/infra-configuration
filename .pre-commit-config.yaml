@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v6.17.0  # Use latest version
+    hooks:
+      - id: ansible-lint
+        files: \.(yaml|yml)$
+        types: [file, yaml]
+        entry: ansible-lint
+  
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.31.0
+    hooks:
+      - id: yamllint
+        files: \.(yaml|yml)$
+        types: [file, yaml]
