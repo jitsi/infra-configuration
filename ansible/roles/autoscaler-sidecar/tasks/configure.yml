@@ -36,6 +36,13 @@
     regexp: "^%{{ autoscaler_groupname }}"
     line: "%{{ autoscaler_groupname }} ALL=(ALL) NOPASSWD: ALL"
 
+- name: Copy selenium-grid graceful shutdown script
+  ansible.builtin.copy:
+    dest: /usr/local/bin/graceful_shutdown_selenium_grid.sh
+    src: "graceful_shutdown_selenium_grid.sh"
+    mode: 0755
+  when: autoscaler_instance_type == 'selenium-grid'
+
 - name: Copy graceful shutdown wrapper script
   ansible.builtin.template:
     dest: "{{ autoscaler_graceful_shutdown_wrapper }}"
