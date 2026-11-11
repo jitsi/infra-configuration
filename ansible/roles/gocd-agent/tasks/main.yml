@@ -1,0 +1,98 @@
+---
+# Installation from apt repository
+- name: Ensure /etc/apt/keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: 0755
+  when: not gocd_install_from_deb
+
+- name: Download GoCD GPG key
+  ansible.builtin.get_url:
+    url: https://download.gocd.org/GOCD-GPG-KEY.asc
+    dest: /tmp/gocd-key.asc
+    mode: 0644
+  when: not gocd_install_from_deb
+
+- name: Add GoCD GPG key to keyring
+  ansible.builtin.shell: |
+    gpg --dearmor -o /etc/apt/keyrings/gocd.gpg < /tmp/gocd-key.asc
+    chmod a+r /etc/apt/keyrings/gocd.gpg
+  args:
+    creates: /etc/apt/keyrings/gocd.gpg
+  when: not gocd_install_from_deb
+
+- name: Add GoCD apt repository
+  ansible.builtin.apt_repository:
+    repo: 'deb [signed-by=/etc/apt/keyrings/gocd.gpg] https://download.gocd.org /'
+    state: present
+    filename: gocd
+  when: not gocd_install_from_deb
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: not gocd_install_from_deb
+
+- name: Install go-agent package from repository
+  ansible.builtin.apt:
+    name: go-agent
+    state: present
+    install_recommends: true
+  when: not gocd_install_from_deb
+
+# Installation from .deb file
+- name: Download go-agent .deb package
+  ansible.builtin.get_url:
+    url: "{{ gocd_deb_url }}"
+    dest: /tmp/go-agent.deb
+    mode: 0644
+  when: gocd_install_from_deb
+
+- name: Install go-agent from .deb package
+  ansible.builtin.apt:
+    deb: /tmp/go-agent.deb
+    state: present
+  when: gocd_install_from_deb
+
+- name: Configure GoCD server URL in /etc/default/go-agent
+  ansible.builtin.lineinfile:
+    path: /etc/default/go-agent
+    regexp: '^GO_SERVER_URL='
+    line: 'GO_SERVER_URL={{ gocd_server_url }}'
+    create: true
+    mode: 0644
+  when: gocd_server_url is defined and not gocd_install_from_deb
+  notify: Restart go-agent
+
+- name: Configure GoCD server URL in wrapper-properties.conf
+  ansible.builtin.lineinfile:
+    path: /usr/share/go-agent/wrapper-config/wrapper-properties.conf
+    regexp: '^wrapper\.app\.parameter\.101='
+    line: 'wrapper.app.parameter.101={{ gocd_server_url }}'
+    backrefs: false
+  when: gocd_server_url is defined and gocd_install_from_deb
+  notify: Restart go-agent
+
+- name: Configure auto-registration properties
+  ansible.builtin.template:
+    src: autoregister.properties.j2
+    dest: /var/lib/go-agent/config/autoregister.properties
+    owner: go
+    group: go
+    mode: 0600
+  when: gocd_agent_auto_register_key is defined
+  notify: Restart go-agent
+
+- name: Enable and start go-agent service
+  ansible.builtin.systemd:
+    name: go-agent
+    enabled: true
+    state: started
+    daemon_reload: true
+
+# Configure additional agents if gocd_agent_count > 1
+- name: Include tasks for multiple agents
+  ansible.builtin.include_tasks: configure-multiple-agents.yml
+  when: gocd_agent_count > 1
