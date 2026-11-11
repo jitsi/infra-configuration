@@ -712,6 +712,8 @@ Component "conference.{{ prosody_domain_name }}" "muc"
 {% endif %}
 {% if prosody_visitors_enabled %}
         "s2sout_override";
+        -- a component does not load the global s2s_whitelist module, it needs it in its own list
+        "s2s_whitelist";
 {% endif %}
 {% if prosody_recording_autostart_enabled %}
         "recording_autostart";
