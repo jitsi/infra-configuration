@@ -182,6 +182,25 @@
         dest: /etc/prosody/prosody.cfg.lua
         mode: 0644
 
+    # The prosody role writes a config for each visitor prosody (prosody-v0, prosody-v1, ...)
+    # from prosody.cfg.lua.visitor.j2. Write them again here, or a change to that template
+    # never reaches a standalone. The visitor prosodies are the /etc/prosody-vN directories
+    # the role created, which is not always visitors_count of the current vars.
+    - name: Find the visitor prosody config directories
+      ansible.builtin.find:
+        paths: /etc
+        patterns: '^prosody-v[0-9]+$'
+        use_regex: true
+        file_type: directory
+      register: visitor_prosody_dirs
+
+    - name: Build prosody.cfg.lua from template for visitor
+      ansible.builtin.template:
+        src: roles/prosody/templates/prosody.cfg.lua.visitor.j2
+        dest: "/etc/prosody-v{{ item }}/prosody.cfg.lua"
+        mode: 0644
+      loop: "{{ visitor_prosody_dirs.files | map(attribute='path') | map('regex_replace', '^/etc/prosody-v', '') | map('int') | sort }}"
+
     # now reconfigure jitsi-meet branding
     - name: Register installed Meet version
       ansible.builtin.shell: |
