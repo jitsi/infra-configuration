@@ -105,7 +105,7 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
 
 ### Standalone updates duplicate role tasks
 - `ansible/update-standalone.yml` does not run the roles that `configure-standalone.yml` runs. It repeats their install and config steps in `ansible/tasks/update-standalone-{preflight,stage,restart}.yml`, so a change to one of these roles needs the same change there:
-  - `prosody`: package install, patches, `prosody.cfg.lua` template, ASAP keys
+  - `prosody`: package install, patches, the `prosody.cfg.lua` template and the visitor `prosody.cfg.lua.visitor.j2` template, ASAP keys
   - `jitsi-meet-prosody`: plugin copy, `asap.lib.lua`/`ext_events.lib.lua`, the removed plugins, the stanza_router patch
   - `jicofo`, `jitsi-videobridge`: package version and `jicofo.conf`/`jvb.conf` templates
   - `jitsi-meet`, `jitsi-meet-branding`: package, `config.js`, `base.html`, the nginx site and stream config, SSL certs and keys, branding install
