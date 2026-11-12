@@ -12,14 +12,16 @@
     standalone_update_restart: true
     standalone_update_policy_rc_marker: written by update-standalone.yml, safe to delete
   vars_files:
-    - config/vars.yml
+    # A later file wins. The role defaults come first, so config/vars.yml overrides them,
+    # as it does in configure-standalone.yml, where they are role defaults.
     - roles/prosody/defaults/main.yml
     - roles/jitsi-meet-branding/defaults/main.yml
     - roles/jitsi-meet/defaults/main.yml
-    # shard_region, which the nginx site template reads
-    - roles/jitsi-meet/vars/main.yml
     - roles/jicofo/defaults/main.yml
     - roles/jitsi-videobridge/defaults/main.yml
+    - config/vars.yml
+    # shard_region, which the nginx site template reads
+    - roles/jitsi-meet/vars/main.yml
     - secrets/ssh-users.yml
     - secrets/jibri.yml
     - secrets/jicofo.yml
