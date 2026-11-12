@@ -109,6 +109,7 @@ This repository contains Infrastructure as Code (Ansible-based) for deploying an
   - `jitsi-meet-prosody`: plugin copy, `asap.lib.lua`/`ext_events.lib.lua`, the removed plugins, the stanza_router patch
   - `jicofo`, `jitsi-videobridge`: package version and `jicofo.conf`/`jvb.conf` templates
   - `jitsi-meet`, `jitsi-meet-branding`: package, `config.js`, `base.html`, the nginx site and stream config, SSL certs and keys, branding install
+- `update-standalone.yml` loads the role defaults as `vars_files`, and a later file wins. Keep them above `config/vars.yml`, or the update writes the role defaults over the values that `configure-standalone.yml` writes from `config/vars.yml`
 - If a role starts writing a new file that its service reads, add that file's directory to the paths that service watches in `update-standalone-restart.yml`; otherwise the update writes the file and never restarts the service
 - A new long-running service on the standalone (like `prosody-jvb` and the `prosody-v*` visitor instances) also needs handling in `update-standalone-restart.yml`; new prosody instances are found automatically from their ExecStart
 - Nothing in the stage may restart a service: it runs with a `policy-rc.d` that exits 101 and `NEEDRESTART_SUSPEND=1`, and the jitsi-videobridge2 install stays last because its postinst stops the bridge anyway
