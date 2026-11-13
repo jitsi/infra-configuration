@@ -7,7 +7,12 @@ HEALTH_URL="http://localhost:8788/about/health"
 STATS_URL="http://localhost:8788/about/stats"
 HEALTH_OUTPUT="/tmp/health-check-output"
 HEALTH_FAILURE_FILE="/tmp/health-check-fails"
+LOCAL_FAILURE_FILE="/tmp/health-check-local-fails"
 CRITICAL_FAILURE_THRESHHOLD=3
+#SIP provider maintenance can unregister every jigasi in a region for minutes, and jigasi keeps
+#a failed SIP health call until its next HEALTH_CHECK_INTERVAL run (5 minutes), so SIP-only
+#failures get a longer window
+SIP_CRITICAL_FAILURE_THRESHHOLD=15
 HEALTH_FAIL_LOCK_FILE="/tmp/jigasi-unhealthy-lock"
 GRACEFUL_SHUTDOWN_FILE="/tmp/graceful-shutdown-output"
 
@@ -23,12 +28,14 @@ CURL_BIN="/usr/bin/curl"
 
 . /usr/local/bin/oracle_cache.sh
 
-$CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -f $HEALTH_URL > $HEALTH_OUTPUT 2>&1
-if [ $? -eq 0 ]; then
+rm -f $HEALTH_OUTPUT
+HEALTH_HTTP_CODE=$($CURL_BIN --max-time $HEALTH_CHECK_TIMEOUT -sS -o $HEALTH_OUTPUT -w '%{http_code}' $HEALTH_URL 2>>$HEALTH_OUTPUT)
+HEALTH_CURL_RC=$?
+if [ $HEALTH_CURL_RC -eq 0 ] && [ "$HEALTH_HTTP_CODE" == "200" ]; then
     echo "Basic health OK"
     BASIC_HEALTH_PASSED=true
 else
-  echo "Basic health failed"
+  echo "Basic health failed ($HEALTH_HTTP_CODE)"
   BASIC_HEALTH_PASSED=false
 fi
 
@@ -53,9 +60,27 @@ else
   fi
 fi
 
+SIP_ONLY_FAILURE=false
+if ! $BASIC_HEALTH_PASSED && $EXTENDED_HEALTH_PASSED && [[ "$SHARD_ROLE" != "jigasi-transcriber" ]]; then
+  #jigasi answers 503 while its SIP account is unregistered. After it registers again, the cached
+  #health call failure says the provider was not registered. A failed health call with no media stays
+  #local: it cannot tell a SIP provider fault from a local media fault.
+  if [ "$HEALTH_HTTP_CODE" == "503" ]; then
+    SIP_ONLY_FAILURE=true
+  elif [ "$HEALTH_HTTP_CODE" == "500" ]; then
+    HEALTH_REASON="$(jq -r '.reason // empty' $HEALTH_OUTPUT 2>/dev/null)"
+    case "$HEALTH_REASON" in
+      "SIP provider not registered."|*"should be registered before placing an outgoing call"*)
+        SIP_ONLY_FAILURE=true
+        ;;
+    esac
+  fi
+fi
+
 if $BASIC_HEALTH_PASSED && $EXTENDED_HEALTH_PASSED; then
     HEALTH_CHECK_VALUE=1
     [ -e $HEALTH_FAILURE_FILE ] && rm $HEALTH_FAILURE_FILE
+    [ -e $LOCAL_FAILURE_FILE ] && rm $LOCAL_FAILURE_FILE
 else
     HEALTH_CHECK_VALUE=0
     if [ -e $HEALTH_FAILURE_FILE ]; then
@@ -64,7 +89,18 @@ else
       CHECK_COUNT=1
     fi
 	echo $CHECK_COUNT > $HEALTH_FAILURE_FILE
-  if [ $CHECK_COUNT -gt $CRITICAL_FAILURE_THRESHHOLD ]; then
+    if [ -e $LOCAL_FAILURE_FILE ]; then
+      LOCAL_CHECK_COUNT=$(cat $LOCAL_FAILURE_FILE)
+    else
+      LOCAL_CHECK_COUNT=0
+    fi
+    if $SIP_ONLY_FAILURE; then
+      echo "SIP-only failure ($HEALTH_HTTP_CODE), check $CHECK_COUNT, shutdown after $SIP_CRITICAL_FAILURE_THRESHHOLD"
+    else
+      LOCAL_CHECK_COUNT=$(( $LOCAL_CHECK_COUNT + 1 ))
+      echo $LOCAL_CHECK_COUNT > $LOCAL_FAILURE_FILE
+    fi
+  if [ $LOCAL_CHECK_COUNT -gt $CRITICAL_FAILURE_THRESHHOLD ] || [ $CHECK_COUNT -gt $SIP_CRITICAL_FAILURE_THRESHHOLD ]; then
 
     #only dump memory and set unhealth once, then write to lock file and never do it again unless lock is cleared
     if [ ! -f $HEALTH_FAIL_LOCK_FILE ]; then
