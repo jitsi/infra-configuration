@@ -122,7 +122,7 @@
     - name: Register installed Jicofo version
       ansible.builtin.shell: |
         set -o pipefail
-        dpkg -s jicofo | grep Version | awk '{print $2}' | cut -d'-' -f2
+        dpkg -s jicofo | grep Version | awk '{print $2}' | sed -E 's/^[^-]+-//; s/-[^-]+$//'
       register: jicofo_version_shell
       args:
         executable: /bin/bash
