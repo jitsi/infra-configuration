@@ -179,6 +179,17 @@ logrotate_rules_core:
       - delaycompress
     path:
       - /var/log/jitsi/signal-sidecar.log
+  - name: jicofo-rtcstats-push
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/jicofo-rtcstats-push/agent.log
 logrotate_rules_core_enabled: false
 logrotate_rules_coturn:
   - name: coturn
@@ -250,6 +261,17 @@ logrotate_rules_jvb:
       - copytruncate
     path:
       - /var/log/jitsi/jvb.log
+  - name: jvb-rtcstats-push
+    options:
+      - size 100M
+      - rotate 7
+      - missingok
+      - notifempty
+      - compress
+      - delaycompress
+      - copytruncate
+    path:
+      - /var/log/jitsi/jvb-rtcstats-push/agent.log
 logrotate_rules_jvb_enabled: false
 logrotate_rules_sip_jibri:
   - name: sip-jibri

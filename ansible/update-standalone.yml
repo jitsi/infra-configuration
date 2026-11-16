@@ -81,6 +81,14 @@
       when: standalone_update_restart | bool
       tags: "upgrade"
 
+    # The apt module keeps every .deb it downloads, and the apt-daily timers that would
+    # autoclean are off. Autoclean would not help anyway: the jitsi repo still serves old
+    # versions, so nothing counts as obsolete. Without this the cache grows by ~180MB a release.
+    - name: Remove downloaded package files from the apt cache
+      ansible.builtin.apt:
+        clean: true
+      tags: "upgrade"
+
   post_tasks:
     - name: Register upgraded Jicofo version
       tags: "gather_versions"
