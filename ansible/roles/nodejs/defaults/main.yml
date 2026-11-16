@@ -4,6 +4,7 @@ nodejs_from_apt: true
 # Pin-Priority of NodeSource repository
 nodejs_nodesource_pin_priority: 500
 nodejs_url: "https://{{ jitsi_repo_username }}:{{ jitsi_repo_password }}@{{ jitsi_repo_host }}/debian/misc/nodejs_16.20.0-deb-1nodesource1_{{ nodejs_architecture }}.deb" # noqa yaml[line-length]
-# 0.10 or 0.12 or 4.x
-nodejs_version: "22.*"
+# Node ignores /etc/ssl/certs and ships its own CA list. 22.23.4 is the first
+# 22.x without the compromised eMudhra roots (nodesource, 2026-10-21).
+nodejs_version: "22.23.4"
 nodejs_distribution_release: nodistro
