@@ -184,7 +184,6 @@
     - { role: "iptables-haproxy", tags: "iptables", when: cloud_provider == 'oracle' }
     - { role: "sshusers", tags: "ssh" }
     - { role: "unattended-upgrades", tags: "unattended-upgrades"}
-    - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
     - { role: "journald", tags: "journald"}
     - { role: "rsyslog", rsyslog_install_flag: false, rsyslog_tcp_output_enabled: "{{ haproxy_vector_enabled }}", tags: "rsyslog"}
     - { role: "vector", tags: "vector", when: haproxy_vector_enabled, vector_install_flag: false, vector_nginx_enabled: true, vector_nginx_service_name: "shard-ws" }
@@ -223,6 +222,10 @@
     - { role: "hcv-haproxy-configure", tags: "hcv-haproxy-configure" }
     - { role: "jvb-colibri-proxy", "tags": "jvb-colibri-proxy", when: jvb_colibri_proxy_enabled}
     - { role: "shard-ws-proxy", "tags": "shard-ws-proxy" }
+    # after jvb-colibri-proxy and shard-ws-proxy, which pull in the nginx role: the role
+    # deletes the logrotate.d file the nginx package ships. Run earlier, the install puts it
+    # back, logrotate rejects the duplicate entries and logrotate.service fails on every run.
+    - { role: "logrotate", tags: "logrotate", logrotate_rules_haproxy_enabled: true}
     - { role: "consul-template", tags: "consul-template", consul_template_install_flag: true, consul_template_configure_flag: true }
     - { role: "consul-telegraf", tags: "consul-telegraf" }
     - { role: "hcv-haproxy-rsyslog", tags: "hcv-haproxy-rsyslog", haproxy_reconfigure_rsyslog: true }
