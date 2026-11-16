@@ -132,6 +132,10 @@ jitsi_meet_config_path: "/etc/jitsi/meet"
 jitsi_meet_configure_flag: true
 jitsi_meet_content_security_policy_on_root: false
 jitsi_meet_cors_avatar_urls: false
+# AI Assist side panel; url and advisor_availability_url can also come from dynamic branding
+jitsi_meet_custom_panel_advisor_availability_url: false
+jitsi_meet_custom_panel_enabled: false
+jitsi_meet_custom_panel_url: false
 jitsi_meet_deb_pkg_name: "jitsi-meet-web"
 jitsi_meet_deb_pkg_version: "*"
 jitsi_meet_default_remote_displayname: false

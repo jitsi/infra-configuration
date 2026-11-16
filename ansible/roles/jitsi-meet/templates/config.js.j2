@@ -543,6 +543,17 @@ faceLandmarks: {
     faceCenteringThreshold: 20,
     captureInterval: 1000
 },
+{% if jitsi_meet_custom_panel_enabled %}
+customPanel: {
+    enabled: true,
+{% if jitsi_meet_custom_panel_url %}
+    url: '{{ jitsi_meet_custom_panel_url }}',
+{% endif %}
+{% if jitsi_meet_custom_panel_advisor_availability_url %}
+    advisorAvailabilityUrl: '{{ jitsi_meet_custom_panel_advisor_availability_url }}',
+{% endif %}
+},
+{% endif %}
 giphy: {
     enabled: {{ jitsi_meet_giphy_enabled | to_json }},
     sdkKey: '{{ jitsi_meet_giphy_sdk_key }}'
