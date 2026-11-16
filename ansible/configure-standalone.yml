@@ -315,9 +315,9 @@
     - { role: flush-handlers, tags: "configure" }
 
   # additional components here
-    # after every package install: the role deletes the logrotate.d files that the prosody,
-    # jicofo, nginx and jvb packages ship. Run earlier, the installs put them back, logrotate
-    # rejects the duplicate entries and logrotate.service fails on every run.
+    # after the prosody, jicofo, nginx and jvb installs: the role deletes the logrotate.d files
+    # those packages ship. Run earlier, there is nothing to delete yet, the installs then add the
+    # files, logrotate rejects the duplicate entries and logrotate.service fails on every run.
     - { role: "logrotate", tags: "logrotate", logrotate_rules_core_enabled: true, logrotate_rules_jvb_enabled: true, logrotate_rules_coturn_enabled: true}
     - { role: "consul-standalone", tags: "consul" }
     #     - { role: jitsi-videobridge-permo, tags: "jitsi-videobridge-permo"}

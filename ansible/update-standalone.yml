@@ -81,9 +81,9 @@
       when: standalone_update_restart | bool
       tags: "upgrade"
 
-    # The apt module keeps every .deb it downloads, and the apt-daily timers that would
-    # autoclean are off. Autoclean would not help anyway: the jitsi repo still serves old
-    # versions, so nothing counts as obsolete. Without this the cache grows by ~180MB a release.
+    # The apt module keeps every .deb it downloads. Autoclean would not help: the jitsi repo
+    # still serves old versions, so nothing counts as obsolete. Without this the cache grows
+    # every release.
     - name: Remove downloaded package files from the apt cache
       ansible.builtin.apt:
         clean: true
