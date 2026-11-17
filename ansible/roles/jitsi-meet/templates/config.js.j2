@@ -182,6 +182,12 @@ var config = {
 {% endif %}
     enableDisplayNameInStats: {% if jitsi_meet_enable_display_name_in_stats %}true{% else %}false{% endif %},
     disableAudioLevels: false,
+{% if jitsi_meet_enable_audio_output_manager %}
+    audioOutput: {
+        manager: true,
+        switchTimeout: {{ jitsi_meet_audio_output_switch_timeout }}
+    },
+{% endif %}
     audioQuality: {
         stereo: {% if jitsi_meet_enable_stereo %}true{% else %}false{% endif %},
         enableOpusDtx: {% if jitsi_meet_enable_dtx %}true{% else %}false{% endif %},
