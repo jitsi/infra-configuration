@@ -133,6 +133,19 @@
         state: started
         enabled: true
       when: selenium_grid_enable_nomad == "true"
+    # unattended-upgrades runs needrestart after every package it installs, and needrestart
+    # restarts nomad each time: processes of the previous nomad agent stay in its cgroup, so it
+    # is always flagged again. A new node does its first upgrade two hours after boot, ~80
+    # packages in ~20 minutes, and restarting the agent that often can restart the grid-node
+    # task and end the browser session of a running test. Nomad then picks up the new
+    # libraries at the next boot, which the grid scaling makes frequent.
+    - name: Keep needrestart from restarting nomad
+      ansible.builtin.copy:
+        dest: /etc/needrestart/conf.d/90-nomad.conf
+        mode: 0644
+        content: |
+          $nrconf{override_rc}{qr(^nomad\.service$)} = 0;
+      when: selenium_grid_enable_nomad == "true"
     - name: Start nomad
       ansible.builtin.service:
         name: nomad
