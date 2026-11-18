@@ -39,6 +39,10 @@ prosody_cache_keys_url: false
 prosody_cancel_api: "https://hc-video-events.staging.public.atl-paas.net/v1/call/cancel"
 prosody_cloud_provider: "{{ cloud_provider | default('oracle') }}"
 prosody_conference_info_url: false
+# the domain rooms are named under in the conference info (passcode) query when it is not this
+# host's own XMPP domain: a standalone with its own domain under an environment queries as the
+# environment's shards do, so the service parses the right tenant
+prosody_conference_info_domain: false
 prosody_configure_flag: true
 prosody_disable_messaging: false
 prosody_disabled_modules: ["pubsub", "register"]

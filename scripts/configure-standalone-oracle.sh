@@ -135,6 +135,11 @@ fi
 
 [[ "$DOCKER_COMPOSE_FLAG" == "true" ]] && PLAYBOOK="configure-standalone-compose.yml" || PLAYBOOK="configure-standalone.yml"
 
+# A standalone has its own XMPP domain ($UNIQUE_ID.<environment domain>) but is reached through the
+# environment, so tenant-keyed services (the passcode service) must be queried with the
+# environment's domain, not the standalone's.
+ENVIRONMENT_DOMAIN_NAME="${DOMAIN#"$UNIQUE_ID".}"
+
 ansible-playbook -v $LOCAL_PATH/../ansible/$PLAYBOOK -i "$PRIVATE_IP," \
 --extra-vars "cloud_provider=$CLOUD_PROVIDER inventory_cloud_provider=$CLOUD_PROVIDER core_cloud_provider=$CLOUD_PROVIDER cloud_name=$CLOUD_NAME hcv_environment=$ENVIRONMENT hcv_domain=$DOMAIN environment_domain_name=$DOMAIN prosody_domain_name=$DOMAIN shard_name=$SHARD_BASE-$ORACLE_REGION-$UNIQUE_ID" \
 -e "ansible_python_interpreter=/usr/bin/python" \
@@ -156,6 +161,7 @@ $([ -n "$ORACLE_REGION" ] && echo "-e oracle_region=$ORACLE_REGION") \
 -e "infra_customizations_repo=$INFRA_CUSTOMIZATIONS_REPO" \
 -e "test_id=$UNIQUE_ID" \
 -e "unique_id=$UNIQUE_ID" \
+$([ "$ENVIRONMENT_DOMAIN_NAME" != "$DOMAIN" ] && echo "-e prosody_conference_info_domain=$ENVIRONMENT_DOMAIN_NAME") \
 -e "consul_node_name=$SHARD_BASE-$ORACLE_REGION-$UNIQUE_ID" \
 -e "ansible_ssh_user=$ANSIBLE_SSH_USER" \
 --vault-password-file .vault-password.txt \
