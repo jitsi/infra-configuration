@@ -182,6 +182,21 @@
         state: started
         enabled: true
       when: coturn_enable_nomad
+    # as on the selenium grid nodes, needrestart restarts nomad after every package of the first
+    # unattended upgrade
+    - name: Ensure the needrestart conf.d directory exists
+      ansible.builtin.file:
+        path: /etc/needrestart/conf.d
+        state: directory
+        mode: 0755
+      when: coturn_enable_nomad
+    - name: Keep needrestart from restarting nomad
+      ansible.builtin.copy:
+        dest: /etc/needrestart/conf.d/90-nomad.conf
+        mode: 0644
+        content: |
+          $nrconf{override_rc}{qr(^nomad\.service$)} = 0;
+      when: coturn_enable_nomad
     - name: Start nomad
       ansible.builtin.service:
         name: nomad
