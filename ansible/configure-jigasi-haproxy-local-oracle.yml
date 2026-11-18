@@ -45,6 +45,19 @@
     - name: Change instance hostname
       ansible.builtin.hostname:
         name: "{{ jigasi_haproxy_hostname }}"
+    # the unattended-upgrades role queues an upgrade two hours after boot, and needrestart
+    # would restart haproxy when it installs a new version of a library haproxy has loaded
+    - name: Ensure the needrestart conf.d directory exists
+      ansible.builtin.file:
+        path: /etc/needrestart/conf.d
+        state: directory
+        mode: 0755
+    - name: Keep needrestart from restarting haproxy
+      ansible.builtin.copy:
+        dest: /etc/needrestart/conf.d/90-haproxy.conf
+        mode: 0644
+        content: |
+          $nrconf{override_rc}{qr(^haproxy\.service$)} = 0;
   post_tasks:
     - name: Restart rsyslog
       ansible.builtin.service:
