@@ -187,6 +187,8 @@ jitsi_meet_enable_p2p: false
 jitsi_meet_enable_p2p_turn: false
 jitsi_meet_enable_prejoin_page: true
 jitsi_meet_enable_room_api: false
+# let the bridge demux forwarded media by the RTP mid (config.flags.rtpMidDemuxEnabled); needs SSRC rewriting
+jitsi_meet_enable_rtp_mid_demux: false
 jitsi_meet_enable_save_logs: true
 jitsi_meet_enable_send_multiple_streams: false
 jitsi_meet_enable_shard_ws_proxy: true
