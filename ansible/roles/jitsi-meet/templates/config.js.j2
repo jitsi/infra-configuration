@@ -150,6 +150,9 @@ var config = {
         sourceNameSignaling: {% if jitsi_meet_enable_source_name_signaling %}true{% else %}false{% endif %},
         sendMultipleVideoStreams: {% if jitsi_meet_enable_send_multiple_streams %}true{% else %}false{% endif %},
         receiveMultipleVideoStreams: true,
+    {% if jitsi_meet_enable_rtp_mid_demux %}
+        rtpMidDemuxEnabled: true,
+    {% endif %}
     {% if jitsi_meet_disable_ssrc_rewriting %}
         ssrcRewritingEnabled: false,
     {% endif %}
